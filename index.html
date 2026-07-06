@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Wallet IQ V47</title>
+<title>Wallet IQ V56</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Wallet IQ">
@@ -314,6 +314,150 @@ body.dark .onb-group-count{background:var(--surface)}
 .onb-group.hidden{display:none}
 
 </style>
+<style>
+:root{
+  --bg:#f4f5f7;--surface:#ffffff;--surface-2:#f1f3f6;
+  --ink:#0f1419;--ink-2:#1c2430;--muted:#6b7280;--muted-2:#8a92a0;
+  --border:#e2e5eb;--border-2:#d1d6df;
+  --brand:#0d5a4e;--accent:#10b981;--accent-soft:#d1fae5;
+  --indigo:#6366f1;--indigo-soft:#e0e7ff;--amber:#f59e0b;--amber-soft:#fef3c7;
+  --coral:#ef4444;--coral-soft:#fee2e2;
+  --shadow-sm:0 1px 2px rgba(15,20,25,.04);
+  --shadow:0 4px 12px rgba(15,20,25,.06);
+  --radius:14px;--radius-lg:18px;--radius-xl:22px;
+}
+body{background:linear-gradient(180deg,#f7f8fa 0%,#eef0f3 100%);color:var(--ink)}
+.feature-row{display:grid;grid-template-columns:1fr;gap:9px;margin-top:14px}
+.feature-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:13px 14px;display:grid;grid-template-columns:40px 1fr auto;gap:12px;align-items:center;cursor:pointer;box-shadow:var(--shadow-sm)}
+.feature-card .fc-ico{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;font-size:19px;background:var(--accent-soft);color:var(--brand)}
+.feature-card .fc-ico.indigo{background:var(--indigo-soft);color:var(--indigo)}
+.feature-card .fc-ico.amber{background:var(--amber-soft);color:var(--amber)}
+.feature-card .fc-mid .fc-title{font-size:13.5px;font-weight:900;letter-spacing:-.015em;line-height:1.2}
+.feature-card .fc-mid .fc-sub{font-size:11px;color:var(--muted);font-weight:750;margin-top:2px;line-height:1.35}
+.feature-card .fc-arrow{font-size:16px;color:var(--muted-2)}
+</style>
+<style>
+#offersHero{background:linear-gradient(135deg,#0d5a4e 0%,#0a3d33 55%,#0f1419 100%);border-radius:22px;padding:18px 16px;margin-bottom:12px;color:#fff;box-shadow:0 4px 12px rgba(15,20,25,.06);position:relative;overflow:hidden}
+#offersHero::before{content:"";position:absolute;top:-45px;right:-45px;width:190px;height:190px;background:radial-gradient(circle,rgba(52,211,153,.22),transparent 65%);pointer-events:none}
+#offersHero .oh-label{font-size:10.5px;font-weight:900;letter-spacing:.14em;opacity:.75;text-transform:uppercase}
+#offersHero .oh-title{font-size:22px;font-weight:900;letter-spacing:-.03em;margin-top:4px;line-height:1.1}
+#offersHero .oh-sub{font-size:12px;font-weight:750;opacity:.75;margin-top:5px;line-height:1.4}
+#offersHero .oh-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.12)}
+#offersHero .oh-stat{text-align:center}
+#offersHero .oh-stat .l{font-size:9px;font-weight:900;opacity:.65;letter-spacing:.08em;text-transform:uppercase}
+#offersHero .oh-stat .v{font-family:ui-monospace,monospace;font-size:15px;font-weight:900;margin-top:2px;color:#7ed892;letter-spacing:-.01em}
+#filterRow{display:flex;flex-wrap:wrap;gap:6px;padding:2px 0 6px}
+#filterRow button.on{background:linear-gradient(135deg,var(--brand),var(--accent));color:#fff;border-color:transparent}
+</style>
+<style>
+.hero-art{display:flex;justify-content:center}
+.hero-art .cc-svg{max-width:240px;box-shadow:0 8px 24px rgba(15,20,25,.14)}
+#offersList .cc-svg{max-width:220px;box-shadow:0 6px 18px rgba(15,20,25,.12)}
+#appliedList .cc-svg{max-width:220px;box-shadow:0 6px 18px rgba(15,20,25,.12)}
+#locResult .cc-svg{max-width:210px;box-shadow:0 6px 18px rgba(15,20,25,.14)}
+.offer-art-wrap{padding:12px 14px 6px;display:flex;justify-content:center;background:linear-gradient(180deg,var(--surface-2),var(--surface))}
+</style>
+<style>
+/* V53 WARM PAPER + MUTED SLATE — calm palette overriding V49 emerald */
+:root{
+  --bg:#faf7f2;--bg-2:#f5f1e9;--surface:#ffffff;--surface-2:#f5f2ea;--surface-3:#ebe6d9;
+  --ink:#1c1a15;--ink-2:#3a352b;--muted:#7a736a;--muted-2:#a19a8f;
+  --border:#e7e3d9;--border-2:#d8d3c6;
+  --brand:#4a6c8a;--brand-2:#3d5a75;--accent:#5c7a97;--accent-2:#4a6c8a;--accent-soft:#e4ecf3;
+  --indigo:#7a6d9a;--indigo-soft:#eae5f0;--amber:#b8894a;--amber-soft:#f7ecd8;
+  --coral:#b8564a;--coral-soft:#f5e0dc;--green:#5c8963;--greenbg:#e5eee5;
+  --shadow-sm:0 1px 2px rgba(60,50,30,.04);
+  --shadow:0 3px 10px rgba(60,50,30,.05);
+  --shadow-lg:0 8px 24px rgba(60,50,30,.08);
+}
+body{background:linear-gradient(180deg,#fbf9f4 0%,#f5f1e9 100%)!important;color:var(--ink)}
+body.dark{
+  --bg:#1a1815;--surface:#22201c;--surface-2:#2b2823;--surface-3:#38342d;
+  --ink:#ede8dd;--ink-2:#c9c3b6;--muted:#8a8378;--muted-2:#5c574d;
+  --border:#38342d;--border-2:#4a453c;
+  --brand:#8ba8c2;--brand-2:#6b8ba8;--accent:#8ba8c2;--accent-2:#6b8ba8;--accent-soft:#2a3846;
+  --indigo:#a89bc2;--indigo-soft:#2e2840;--amber:#d4a76a;--amber-soft:#3d2e18;
+  --coral:#d67c70;--coral-soft:#3d201c;--green:#8bb491;--greenbg:#243828;
+  background:linear-gradient(180deg,#1e1c18 0%,#14120f 100%)!important;
+}
+.top{background:rgba(251,249,244,.85)!important;backdrop-filter:blur(16px) saturate(140%);border-bottom:1px solid var(--border)!important}
+body.dark .top{background:rgba(26,24,21,.85)!important;border-bottom:1px solid var(--border)!important}
+input:focus{border-color:var(--accent)!important;box-shadow:0 0 0 3px rgba(74,108,138,.12)!important}
+.greeting-name{background:none!important;-webkit-text-fill-color:var(--ink)!important;color:var(--ink)!important;font-weight:900}
+.rewards-hero{background:linear-gradient(135deg,#f7f1e3 0%,#efe7d3 100%)!important;color:var(--ink)!important;border:1px solid var(--border-2);box-shadow:var(--shadow)}
+.rewards-hero::before{background:radial-gradient(circle,rgba(74,108,138,.10),transparent 65%)!important}
+.rewards-hero .rh-label{opacity:.65;color:var(--muted-2)}
+.rewards-hero .rh-big{color:var(--brand)!important}
+.rewards-hero .rh-sub{color:var(--muted)}
+.rewards-hero .rh-tile{background:rgba(255,255,255,.55)!important;border:1px solid rgba(120,105,80,.12)!important}
+.rewards-hero .rh-tile .l{color:var(--muted-2);opacity:.7}
+.rewards-hero .rh-tile .v{color:var(--ink)}
+.rewards-hero .rh-tile .v.green{color:var(--green)!important}
+.rewards-hero .rh-tile .v.red{color:var(--coral)!important}
+body.dark .rewards-hero{background:linear-gradient(135deg,#2a2620 0%,#211d18 100%)!important;color:var(--ink)!important;border-color:var(--border-2)}
+body.dark .rewards-hero .rh-tile{background:rgba(255,255,255,.04)!important;border-color:rgba(255,255,255,.06)!important}
+.vault-summary-card{background:linear-gradient(135deg,#f4ede0 0%,#ebe1d0 100%)!important;color:var(--ink)!important;border:1px solid var(--border-2)}
+.vault-summary-card::after{background:radial-gradient(circle,rgba(122,109,154,.14),transparent 65%)!important}
+.vault-summary-card .vs-label{color:var(--muted-2);opacity:.7}
+.vault-summary-card .vs-big,.vault-summary-card .vs-mini .vm .v{color:var(--indigo)!important}
+.vault-summary-card .vs-sub{color:var(--muted)}
+.vault-summary-card .vs-mini .vm .l{color:var(--muted-2)}
+.vault-summary-card .vs-arrow{color:var(--muted)}
+body.dark .vault-summary-card{background:linear-gradient(135deg,#2a2520 0%,#211c18 100%)!important;color:var(--ink)!important}
+#offersHero{background:linear-gradient(135deg,#f5efe1 0%,#ebe4d1 100%)!important;color:var(--ink)!important;border:1px solid var(--border-2)}
+#offersHero::before{background:radial-gradient(circle,rgba(74,108,138,.10),transparent 65%)!important}
+#offersHero .oh-label{color:var(--muted-2);opacity:.7}
+#offersHero .oh-title{color:var(--ink)}
+#offersHero .oh-sub{color:var(--muted)}
+#offersHero .oh-stat .l{color:var(--muted-2);opacity:.65}
+#offersHero .oh-stat .v{color:var(--brand)!important}
+body.dark #offersHero{background:linear-gradient(135deg,#2a2620 0%,#211d18 100%)!important;color:var(--ink)!important}
+.empty-state button{background:var(--brand)!important;box-shadow:0 2px 6px rgba(74,108,138,.20)!important}
+.modal-actions .primary{background:var(--brand)!important;color:#fff!important;box-shadow:0 2px 6px rgba(74,108,138,.20)!important}
+body.dark .modal-actions .primary{background:var(--accent-2)!important;color:var(--ink)!important}
+#filterRow button.on{background:var(--brand)!important;color:#fff!important;border-color:transparent;box-shadow:0 2px 6px rgba(74,108,138,.15)!important}
+.drawer-item.active{background:var(--brand)!important;color:#fff!important}
+body.dark .drawer-item.active{background:var(--accent)!important;color:var(--ink)!important}
+.card-check.checked{border-color:var(--accent)!important;background:var(--accent-soft)!important;box-shadow:0 0 0 2px rgba(74,108,138,.08)!important}
+.card-check.checked .cc-mark{background:var(--accent)!important;border-color:var(--accent)!important}
+.empty-state{background:var(--surface)!important;border:1px dashed var(--border-2)!important}
+.feature-card .fc-ico{background:var(--accent-soft)!important;color:var(--brand)!important}
+.feature-card .fc-ico.indigo{background:var(--indigo-soft)!important;color:var(--indigo)!important}
+.feature-card .fc-ico.amber{background:var(--amber-soft)!important;color:var(--amber)!important}
+.pill.conf-high{background:var(--greenbg)!important;color:var(--green)!important}
+.pill.conf-mid{background:var(--amber-soft)!important;color:var(--amber)!important}
+.pill.conf-low{background:var(--coral-soft)!important;color:var(--coral)!important}
+button.on{background:var(--ink)!important;color:var(--surface)!important;border-color:var(--ink)!important}
+body.dark button.on{background:var(--ink)!important;color:var(--surface)!important;border-color:var(--ink)!important}
+.ac-item .ac-badge.no-amex{background:var(--coral-soft)!important;color:var(--coral)!important}
+.rewards-subtabs button.on{background:var(--surface)!important;color:var(--ink)!important;box-shadow:var(--shadow-sm)!important}
+.warn-box{background:var(--amber-soft)!important;border-color:#e6d3a1!important;color:#7a5c1e!important}
+body.dark .warn-box{color:#e0c898!important}
+.info-box{background:var(--accent-soft)!important;border-color:#c2d1de!important;color:#2f4d6c!important}
+body.dark .info-box{color:#a8c0d4!important}
+.hero,.item,.cardBig,.tile,.card-check,.settings-link,.empty-state,.drawer,.modal,.autocomplete,.header-btn,input{background:var(--surface);border-color:var(--border)}
+body.dark .hero,body.dark .item,body.dark .cardBig,body.dark .tile,body.dark .card-check,body.dark .settings-link,body.dark .empty-state,body.dark .drawer,body.dark .modal,body.dark .autocomplete,body.dark .header-btn,body.dark input{background:var(--surface)!important;border-color:var(--border)!important;color:var(--ink)!important}
+.credits-hero{background:linear-gradient(135deg,#f7f1e3 0%,#efe7d3 100%)!important;color:var(--ink)!important;border:1px solid var(--border-2)}
+.credits-hero::before{background:radial-gradient(circle,rgba(74,108,138,.10),transparent 65%)!important}
+.credits-hero .ch-label{color:var(--muted-2);opacity:.7}
+.credits-hero .ch-big{color:var(--green)!important}
+.credits-hero .ch-sub{color:var(--muted)}
+.credits-hero .ch-ring .rr-bg{stroke:rgba(120,105,80,.18)!important}
+.credits-hero .ch-ring .rr-fg{stroke:var(--green)!important}
+.credits-hero .ch-ring .rr-pct{color:var(--green)!important}
+.credits-hero .ch-stat .l{color:var(--muted-2);opacity:.65}
+.credits-hero .ch-stat .v{color:var(--ink)}
+.credits-hero .ch-stat .v.green{color:var(--green)!important}
+.credits-hero .ch-stat .v.yellow{color:var(--amber)!important}
+.credits-hero .ch-stat .v.red{color:var(--coral)!important}
+body.dark .credits-hero{background:linear-gradient(135deg,#2a2620 0%,#211d18 100%)!important}
+.credit-card{background:var(--surface)!important;border-color:var(--border)!important}
+.credit-card.redeemed{background:linear-gradient(135deg,var(--greenbg),var(--surface))!important;border-color:#b8cebd!important}
+.credit-card .cc-btn{background:var(--ink)!important;color:var(--surface)!important}
+body.dark .credit-card .cc-btn{background:var(--ink)!important;color:var(--surface)!important}
+.credit-filter.on{background:var(--brand)!important;color:#fff!important;border-color:transparent!important}
+body.dark .credit-filter.on{background:var(--accent)!important;color:var(--ink)!important}
+</style>
 </head>
 <style>
 /* V41 Home simplifications */
@@ -470,6 +614,7 @@ body.dark .credits-empty{background:var(--surface)}
 .credit-flash .cf-emoji{font-size:20px}
 </style>
 <body>
+<!-- V56: Added 15 new credit cards (Simplii, HSBC WE, HSBC, Vancity, ATB, Servus, Prospera, Rogers Preferred, Fido, KOHO Everything, PC World MC, TD First Class, Bonvoy Business, Amazon RBC + Neo Secure). Fixed home vault summary + recent activity + sweet spots. -->
 <div class="top">
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;gap:8px">
 <h1 id="titleHome" style="flex:1;text-align:center;cursor:pointer;user-select:none" onclick="switchTab('home')">Wallet IQ</h1>
@@ -486,13 +631,30 @@ body.dark .credits-empty{background:var(--surface)}
 <section id="home" class="panel active">
 <div class="greeting">
 <div class="greeting-time" id="greetingTime"></div>
-<div class="greeting-name" id="greetingName">Hey there 👋</div>
+<div class="greeting-name" id="greetingName">Hey there</div>
 </div>
 <div id="emptyWalletState" class="empty-state" style="display:none">
 <div class="big">💳</div>
 <h3>Welcome to Wallet IQ</h3>
 <p>Add the credit cards you own to get personalized recommendations on the best card to use at every merchant.</p>
 <button onclick="showOnboarding()">Set up my wallet</button>
+<div class="feature-row" style="margin-top:18px;text-align:left">
+  <div class="feature-card" onclick="switchTab('offers')">
+    <div class="fc-ico">🎁</div>
+    <div class="fc-mid"><div class="fc-title">Explore welcome offers</div><div class="fc-sub">See the top Canadian cards by first-year value</div></div>
+    <div class="fc-arrow">→</div>
+  </div>
+  <div class="feature-card" onclick="switchTab('rewards');setTimeout(function(){if(typeof switchRewardsView==='function')switchRewardsView('credits');},150)">
+    <div class="fc-ico indigo">💳</div>
+    <div class="fc-mid"><div class="fc-title">Statement credits</div><div class="fc-sub">Never lose a benefit or credit again</div></div>
+    <div class="fc-arrow">→</div>
+  </div>
+  <div class="feature-card" onclick="switchTab('rewards')">
+    <div class="fc-ico amber">📊</div>
+    <div class="fc-mid"><div class="fc-title">Rewards Studio</div><div class="fc-sub">Track spending & maximize points</div></div>
+    <div class="fc-arrow">→</div>
+  </div>
+</div>
 </div>
 <div id="hero" class="hero" style="display:none"></div>
 <div id="inlineResults" class="inline-results" style="display:none"></div>
@@ -524,6 +686,17 @@ body.dark .credits-empty{background:var(--surface)}
 <!-- OFFERS PANEL -->
 <section id="offers" class="panel">
 <div class="section">Welcome Offers · Canadian Cards</div>
+<div id="offersHero">
+  <div class="oh-label">🎁 Welcome Offers</div>
+  <div class="oh-title">Best first-year value in Canada</div>
+  <div class="oh-sub">Compare welcome bonuses, minimum spend, and net value across every major issuer.</div>
+  <div class="oh-stats">
+    <div class="oh-stat"><div class="l">Cards tracked</div><div class="v" id="ohCount">—</div></div>
+    <div class="oh-stat"><div class="l">Top value</div><div class="v" id="ohTop">—</div></div>
+    <div class="oh-stat"><div class="l">Avg minSpend</div><div class="v" id="ohAvg">—</div></div>
+  </div>
+</div>
+
 <div class="foot" style="margin:0 0 9px">Ranked by net first-year value.</div>
 <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:9px" id="filterRow"></div>
 <div id="offersCountLabel" style="font-size:10.5px;color:var(--muted);font-weight:900;letter-spacing:.1em;text-transform:uppercase;margin:0 2px 8px"></div>
@@ -777,7 +950,7 @@ body.dark .credits-empty{background:var(--surface)}
 <button class="drawer-item" id="drawerFxToggle" onclick="toggleForeignMode()"><span class="di-ico" id="drawerFxIco">🇨🇦</span><span id="drawerFxLbl">CAD mode</span></button>
 <div class="drawer-divider"></div>
 <button class="drawer-item" onclick="resetWalletIQ()" style="color:var(--pass)"><span class="di-ico">🗑</span><span>Reset Wallet IQ</span></button>
-<div class="drawer-footer">Wallet IQ V47 · Built by samirdhan</div>
+<div class="drawer-footer">Wallet IQ V56 · Built by samirdhan</div>
 </div>
 </aside>
 
@@ -3393,6 +3566,7 @@ const NAME_KEY='walletIQ_v40_name';
 const CUSTOM_KEY='walletIQ_v40_custom';
 const ONBOARDED_KEY='walletIQ_v40_onboarded';
 const THEME_KEY='walletIQ_v40_theme';
+const VAULT_KEY='walletIQ_v48_vault';
 
 let userWallet=new Set();
 let isScotiaEmp=false;
@@ -3661,7 +3835,9 @@ function renderRecommendation(query){
 
  const displayQuery=query&&query.trim()?query.trim():'General purchase';
 
+ const heroCardKey=Object.keys(CARDS_DB).find(function(k){return CARDS_DB[k].n===c.n;})||'cobalt';
  heroEl.innerHTML=`<div class="k">Best card for ${displayQuery}</div>
+  <div class="hero-art" style="margin:10px 0 12px">${svgCard(c, heroCardKey)}</div>
   <div class="grid" style="margin-top:6px">
    <div class="dot ${c.cl}">${c.e}</div>
    <div>
@@ -4153,28 +4329,121 @@ function mergeCustomCards(){
 // ============================================================
 // CARD RENDERING
 // ============================================================
+const CARD_PALETTES = {
+ cobalt:{c:['#1e4dbf','#0d2b78','#08194a'],accent:'#7db9ff',issuer:'AMERICAN EXPRESS',tier:'COBALT',pattern:'cobalt'},
+ amexGold:{c:['#e6c473','#b18729','#6b4d0e'],accent:'#fff2c0',issuer:'AMERICAN EXPRESS',tier:'GOLD',pattern:'gold'},
+ amexPlatinum:{c:['#c9ccd1','#7d8590','#3a4048'],accent:'#e8ecf0',issuer:'AMERICAN EXPRESS',tier:'PLATINUM',pattern:'metallic'},
+ amexSimplyCash:{c:['#5b7899','#3a5474','#1e3552'],accent:'#a8c4e0',issuer:'AMERICAN EXPRESS',tier:'SIMPLYCASH',pattern:'wave'},
+ amexAeroReserve:{c:['#26292e','#141619','#000'],accent:'#c9a449',issuer:'AMERICAN EXPRESS',tier:'AEROPLAN RESERVE',pattern:'dark'},
+ amexAeroplanBiz:{c:['#1f3556','#0e1e38','#050d1c'],accent:'#dc2626',issuer:'AMERICAN EXPRESS',tier:'AEROPLAN BUSINESS',pattern:'dark'},
+ amexBusinessGold:{c:['#d4a869','#8b6b1e','#4a3808'],accent:'#f2d891',issuer:'AMERICAN EXPRESS',tier:'BUSINESS GOLD',pattern:'gold'},
+ amexBusinessEdge:{c:['#3d4551','#232830','#0f1216'],accent:'#c9a449',issuer:'AMERICAN EXPRESS',tier:'BUSINESS EDGE',pattern:'dark'},
+ amexBusinessPlat:{c:['#1a1c20','#0a0b0d','#000'],accent:'#c9ccd1',issuer:'AMERICAN EXPRESS',tier:'BUSINESS PLATINUM',pattern:'dark'},
+ bonvoy:{c:['#5b2b9e','#3d1c6b','#1f0f38'],accent:'#f2c94c',issuer:'MARRIOTT BONVOY',tier:'AMEX',pattern:'bonvoy'},
+ scotiaPlat:{c:['#2b2b3d','#181828','#0a0a14'],accent:'#e0132c',issuer:'SCOTIABANK',tier:'PLATINUM',pattern:'dark'},
+ scotiaPass:{c:['#e0132c','#b40e24','#7a091a'],accent:'#fff2f2',issuer:'SCOTIABANK',tier:'PASSPORT',pattern:'red'},
+ scotiaGold:{c:['#c9a449','#96710e','#5e4a0d'],accent:'#e0132c',issuer:'SCOTIABANK',tier:'GOLD',pattern:'gold'},
+ scotiaCashbackVisa:{c:['#003b71','#00224a','#000e1e'],accent:'#e0132c',issuer:'SCOTIABANK',tier:'MOMENTUM',pattern:'wave'},
+ sceneVI:{c:['#f04923','#c53212','#7a1e08'],accent:'#fff2c0',issuer:'SCENE+',tier:'VISA',pattern:'red'},
+ scotiaAmexBasic:{c:['#3a4a5c','#1e2a3a','#0a1220'],accent:'#e0132c',issuer:'SCOTIABANK',tier:'SCENE+',pattern:'dark'},
+ scotiaMomentumMC:{c:['#003b71','#00224a','#000e1e'],accent:'#e0132c',issuer:'SCOTIABANK',tier:'MOMENTUM',pattern:'wave'},
+ scotiaMomentumNoFee:{c:['#004080','#002c5b','#001a3d'],accent:'#e0132c',issuer:'SCOTIABANK',tier:'MOMENTUM',pattern:'wave'},
+ scotiaValueVisa:{c:['#1a3a5c','#0e2438','#050e1c'],accent:'#e0132c',issuer:'SCOTIABANK',tier:'VALUE',pattern:'wave'},
+ scotiaGmVisa:{c:['#4a4a52','#2a2a30','#0f0f12'],accent:'#e0132c',issuer:'SCOTIABANK',tier:'GM',pattern:'dark'},
+ rogers:{c:['#e6191e','#b8141a','#6e0c11'],accent:'#fff2c0',issuer:'ROGERS',tier:'RED WORLD ELITE',pattern:'red'},
+ rbcAvion:{c:['#0051a2','#003370','#001f45'],accent:'#f7d417',issuer:'RBC',tier:'AVION VISA INFINITE',pattern:'wave'},
+ rbcAvionPlat:{c:['#0051a2','#00366e','#001c40'],accent:'#f7d417',issuer:'RBC',tier:'AVION PLATINUM',pattern:'wave'},
+ rbcCashback:{c:['#00305c','#001e3d','#000a1a'],accent:'#f7d417',issuer:'RBC',tier:'CASH BACK PREFERRED',pattern:'wave'},
+ rbcION:{c:['#0051a2','#0079d4','#001f45'],accent:'#f7d417',issuer:'RBC',tier:'ION+',pattern:'lightning'},
+ rbcRewardsPlus:{c:['#0068c9','#004a94','#002d5c'],accent:'#f7d417',issuer:'RBC',tier:'REWARDS+',pattern:'wave'},
+ rbcSignature:{c:['#4a6a8c','#2e485e','#122438'],accent:'#f7d417',issuer:'RBC',tier:'SIGNATURE',pattern:'wave'},
+ rbcWestJet:{c:['#01467a','#003b6b','#001f3d'],accent:'#03a3c7',issuer:'RBC WESTJET',tier:'WORLD ELITE',pattern:'wave'},
+ rbcBAVisa:{c:['#0d2a4a','#061a30','#020d1c'],accent:'#e30717',issuer:'RBC · BRITISH AIRWAYS',tier:'VISA INFINITE',pattern:'wave'},
+ tdAero:{c:['#00693d','#004a2b','#00291a'],accent:'#e30916',issuer:'TD',tier:'AEROPLAN VI',pattern:'wave'},
+ tdCash:{c:['#008140','#00542a','#002b16'],accent:'#f5f5f5',issuer:'TD',tier:'CASH BACK VI',pattern:'wave'},
+ tdRewardsVI:{c:['#00693d','#004a2b','#00291a'],accent:'#f5f5f5',issuer:'TD',tier:'REWARDS VI',pattern:'wave'},
+ tdPlatTravel:{c:['#00693d','#004a2b','#00291a'],accent:'#c9a449',issuer:'TD',tier:'PLATINUM TRAVEL',pattern:'wave'},
+ tdRewardsCard:{c:['#008140','#005a2f','#003018'],accent:'#f5f5f5',issuer:'TD',tier:'REWARDS',pattern:'wave'},
+ tdUsdVisa:{c:['#1c3d24','#0e2415','#04120a'],accent:'#f5f5f5',issuer:'TD',tier:'U.S. DOLLAR',pattern:'dark'},
+ cibcAventura:{c:['#c8102e','#8b0a1f','#520512'],accent:'#f5c033',issuer:'CIBC',tier:'AVENTURA VI',pattern:'red'},
+ cibcAventuraGold:{c:['#c9a449','#8b6b1e','#4a3808'],accent:'#c8102e',issuer:'CIBC',tier:'AVENTURA GOLD',pattern:'gold'},
+ cibcAeroplan:{c:['#c8102e','#8b0a1f','#520512'],accent:'#111',issuer:'CIBC',tier:'AEROPLAN VI',pattern:'red'},
+ cibcDividendVI:{c:['#c8102e','#8b0a1f','#520512'],accent:'#f5c033',issuer:'CIBC',tier:'DIVIDEND VI',pattern:'red'},
+ cibcDividendPlat:{c:['#7a1421','#4a0d16','#26060a'],accent:'#c9ccd1',issuer:'CIBC',tier:'DIVIDEND PLATINUM',pattern:'dark'},
+ cibcCostco:{c:['#003c78','#00285a','#00143d'],accent:'#e30717',issuer:'CIBC · COSTCO',tier:'MASTERCARD',pattern:'wave'},
+ cibcSelect:{c:['#4a5a6b','#2a3644','#141a22'],accent:'#c8102e',issuer:'CIBC',tier:'SELECT',pattern:'dark'},
+ cibcTelus:{c:['#4b286d','#331b4a','#1c0e29'],accent:'#65e1e1',issuer:'CIBC · TELUS',tier:'REWARDS',pattern:'wave'},
+ bmoEclipse:{c:['#0079c1','#004b7c','#001c3d'],accent:'#ffcc33',issuer:'BMO',tier:'ECLIPSE VI',pattern:'wave'},
+ bmoCashback:{c:['#0079c1','#00538a','#002545'],accent:'#e30717',issuer:'BMO',tier:'CASHBACK WE',pattern:'wave'},
+ bmoCashbackMC:{c:['#c8102e','#8b0a1f','#520512'],accent:'#ffcc33',issuer:'BMO',tier:'CASHBACK',pattern:'red'},
+ bmoWorldElite:{c:['#1a3a5c','#0e2440','#04121e'],accent:'#e30717',issuer:'BMO',tier:'WORLD ELITE',pattern:'wave'},
+ bmoAirMiles:{c:['#004b8c','#00305c','#00152d'],accent:'#e30717',issuer:'BMO · AIR MILES',tier:'WORLD ELITE',pattern:'wave'},
+ bmoRewardsMC:{c:['#0079c1','#004b7c','#001c3d'],accent:'#e30717',issuer:'BMO',tier:'REWARDS',pattern:'wave'},
+ bmoPrefRate:{c:['#003366','#001a3d','#000a1c'],accent:'#e30717',issuer:'BMO',tier:'PREFERRED RATE',pattern:'wave'},
+ wsCashCard:{c:['#111','#000','#000'],accent:'#4a4a4a',issuer:'WEALTHSIMPLE',tier:'CASH',pattern:'mono'},
+ wsInfinite1:{c:['#0d0d0d','#000','#000'],accent:'#4a4a4a',issuer:'WEALTHSIMPLE',tier:'VISA INFINITE',pattern:'mono'},
+ wsInfinitePlus:{c:['#141414','#0a0a0a','#000'],accent:'#a0a0a0',issuer:'WEALTHSIMPLE',tier:'VISA INFINITE+',pattern:'mono'},
+ wsInfinitePrivilege:{c:['#3a3a3a','#1c1c1c','#000'],accent:'#e0e0e0',issuer:'WEALTHSIMPLE',tier:'INFINITE PRIVILEGE',pattern:'metallic'},
+ tangerine:{c:['#ff6b35','#d84315','#7a2408'],accent:'#fff2c0',issuer:'TANGERINE',tier:'MONEY-BACK',pattern:'red'},
+ pcMC:{c:['#111','#000','#000'],accent:'#ffd200',issuer:'PC FINANCIAL',tier:'WORLD ELITE MC',pattern:'mono'},
+ pcInsiders:{c:['#1a1a1a','#0d0d0d','#000'],accent:'#ffd200',issuer:'PC FINANCIAL',tier:'INSIDERS WE',pattern:'mono'},
+ walmartMC:{c:['#0071ce','#003d78','#001a3d'],accent:'#ffc220',issuer:'WALMART',tier:'REWARDS MC',pattern:'wave'},
+ canadianTire:{c:['#c8102e','#8b0a1f','#520512'],accent:'#f5f5f5',issuer:'CANADIAN TIRE',tier:'TRIANGLE WE MC',pattern:'red'},
+ mbnaRewards:{c:['#2d4a6b','#1a2f47','#0a1626'],accent:'#c9ccd1',issuer:'MBNA',tier:'REWARDS WE',pattern:'metallic'},
+ mbnaSmart:{c:['#3a4a5c','#232f3d','#0f151d'],accent:'#c9ccd1',issuer:'MBNA',tier:'SMART CASH',pattern:'metallic'},
+ mbnaTrue:{c:['#c9ccd1','#7d8590','#3a4048'],accent:'#4a4a4a',issuer:'MBNA',tier:'TRUE LINE',pattern:'metallic'},
+ neoMC:{c:['#5b21b6','#3d0f8a','#20064d'],accent:'#e0d4ff',issuer:'NEO FINANCIAL',tier:'MASTERCARD',pattern:'wave'},
+ kohoExtra:{c:['#00c8b9','#00867a','#00443e'],accent:'#fff2c0',issuer:'KOHO',tier:'EXTRA',pattern:'wave'},
+ eqBank:{c:['#00764c','#004d31','#002418'],accent:'#f5c033',issuer:'EQ BANK',tier:'CARD',pattern:'wave'},
+ brimWE:{c:['#1a3d5c','#0e2440','#04121e'],accent:'#c9ccd1',issuer:'BRIM',tier:'WORLD ELITE',pattern:'wave'},
+ brimStd:{c:['#3a4a5c','#232f3d','#0f151d'],accent:'#c9ccd1',issuer:'BRIM',tier:'MASTERCARD',pattern:'metallic'},
+ homeTrust:{c:['#8b0a1f','#520512','#26030a'],accent:'#f5f5f5',issuer:'HOME TRUST',tier:'PREFERRED',pattern:'red'},
+ meridianCash:{c:['#eb5b1c','#b34412','#66270a'],accent:'#111',issuer:'MERIDIAN',tier:'CASH BACK VI',pattern:'red'},
+ desjardinsOdyssey:{c:['#009947','#005f2c','#002e15'],accent:'#f5c033',issuer:'DESJARDINS',tier:'ODYSSEY WE',pattern:'wave'},
+ desjardinsCashback:{c:['#009947','#005f2c','#002e15'],accent:'#f5f5f5',issuer:'DESJARDINS',tier:'CASH BACK',pattern:'wave'},
+ nationalWorldElite:{c:['#c8102e','#8b0a1f','#520512'],accent:'#f5c033',issuer:'NATIONAL BANK',tier:'WORLD ELITE',pattern:'red'},
+ nationalSyncro:{c:['#4a5a6b','#2a3644','#141a22'],accent:'#c8102e',issuer:'NATIONAL BANK',tier:'SYNCRO',pattern:'dark'},
+ laurentianVI:{c:['#1a3d5c','#0e2440','#04121e'],accent:'#c9a449',issuer:'LAURENTIAN',tier:'VISA INFINITE',pattern:'wave'},
+ capOneAspire:{c:['#c62828','#8b1a1a','#4a0a0a'],accent:'#f5f5f5',issuer:'CAPITAL ONE',tier:'ASPIRE CASH',pattern:'red'},
+ coastCapital:{c:['#00466e','#002e4a','#001322'],accent:'#03a3c7',issuer:'COAST CAPITAL',tier:'WORLD ELITE',pattern:'wave'}
+};
+
 function svgCard(c,key){
- const gradients={cobalt:['#1d6fe0','#0d4a99','#0a3666'],plat:['#c9a449','#96710e','#5e4a0d'],pass:['#e85265','#d6334c','#9a1f33'],rogers:['#f08a3d','#e0701d','#9c4d10'],bonvoy:['#a06ddf','#7b3fd4','#4d2588']};
- const g=gradients[c.cl]||gradients.cobalt;
- const issuer=(c.net||'CARD').toUpperCase();
- const shortName=c.n.replace('Amex ','').replace('Scotia ','').replace(' Visa Infinite','').replace(' World Elite','').replace(' Amex','');
- return '<svg viewBox="0 0 340 210" class="cc-svg" preserveAspectRatio="xMidYMid meet">'+
- '<defs>'+
- '<linearGradient id="cc-'+key+'" x1="0" y1="0" x2="1" y2="1">'+
- '<stop offset="0" stop-color="'+g[0]+'"/>'+
- '<stop offset="0.55" stop-color="'+g[1]+'"/>'+
- '<stop offset="1" stop-color="'+g[2]+'"/>'+
- '</linearGradient></defs>'+
- '<rect width="340" height="210" rx="18" fill="url(#cc-'+key+')"/>'+
- '<rect x="24" y="80" width="38" height="28" rx="4" fill="#f0d77a" opacity="0.85"/>'+
- '<text x="24" y="35" fill="#fff" font-size="13" font-weight="900" letter-spacing="2" opacity="0.85">CARDHOLDER</text>'+
- '<text x="24" y="155" fill="#fff" font-size="19" font-weight="900" letter-spacing="-0.5">'+shortName+'</text>'+
- '<text x="24" y="178" fill="#fff" font-size="10" font-weight="800" opacity="0.7" letter-spacing="1.5">'+c.r+'</text>'+
- '<text x="316" y="35" fill="#fff" font-size="11" font-weight="900" text-anchor="end" letter-spacing="1" opacity="0.85">'+issuer+'</text>'+
- '<circle cx="290" cy="170" r="22" fill="#fff" opacity="0.18"/>'+
- '<circle cx="305" cy="170" r="22" fill="#fff" opacity="0.28"/>'+
- '</svg>';
+ const fb = {cobalt:['#1e4dbf','#0d2b78','#08194a'],plat:['#c9a449','#96710e','#5e4a0d'],pass:['#c8102e','#8b0a1f','#520512'],rogers:['#e6191e','#b8141a','#6e0c11'],bonvoy:['#5b2b9e','#3d1c6b','#1f0f38']};
+ const p = CARD_PALETTES[key] || {c:fb[c.cl]||fb.cobalt, accent:'#ffffff', issuer:(c.iss||c.net||'CARD').toUpperCase(), tier:(c.r||'').toUpperCase().slice(0,24), pattern:'wave'};
+ const g = p.c;
+ const network = (c.net||'').toLowerCase();
+ const shortName = c.n.replace('Amex ','').replace('Scotia ','').replace(' Visa Infinite','').replace(' World Elite MC','').replace(' World Elite Mastercard','').replace(' Amex','').replace('American Express ','');
+ let netLogo='';
+ if(network==='visa'){netLogo='<g transform="translate(272,178)"><text x="0" y="0" font-family="Arial,sans-serif" font-size="17" font-style="italic" font-weight="900" fill="#ffffff" letter-spacing="1">VISA</text></g>';}
+ else if(network==='mastercard'){netLogo='<g transform="translate(280,178)"><circle cx="0" cy="-6" r="10" fill="#eb001b" opacity="0.95"/><circle cx="14" cy="-6" r="10" fill="#f79e1b" opacity="0.95"/><circle cx="7" cy="-6" r="10" fill="#ff5f00" opacity="0.5"/></g>';}
+ else if(network==='amex'){netLogo='<g transform="translate(258,168)"><rect x="0" y="0" width="60" height="18" rx="2" fill="#006fcf"/><text x="30" y="13" font-family="Arial,sans-serif" font-size="9" font-weight="900" fill="#fff" text-anchor="middle" letter-spacing="1">AMEX</text></g>';}
+ else{netLogo='<text x="316" y="188" fill="#fff" font-size="10" font-weight="900" text-anchor="end" opacity="0.75" letter-spacing="1">'+network.toUpperCase()+'</text>';}
+ let overlay='';
+ if(p.pattern==='wave'){overlay='<path d="M-20,160 Q 80,120 170,150 T 360,140 L360,220 L-20,220 Z" fill="#fff" opacity="0.06"/><path d="M-20,180 Q 80,140 170,170 T 360,160 L360,220 L-20,220 Z" fill="#fff" opacity="0.04"/>';}
+ else if(p.pattern==='gold'){overlay='<path d="M340,0 L340,90 L200,0 Z" fill="#fff" opacity="0.10"/><path d="M340,0 L340,50 L280,0 Z" fill="#fff" opacity="0.15"/>';}
+ else if(p.pattern==='metallic'){overlay='<rect x="0" y="0" width="340" height="210" fill="url(#sheen-'+key+')"/>';}
+ else if(p.pattern==='red'){overlay='<circle cx="290" cy="60" r="80" fill="#fff" opacity="0.06"/><circle cx="330" cy="30" r="45" fill="#fff" opacity="0.10"/>';}
+ else if(p.pattern==='dark'){overlay='<path d="M0,110 L340,60 L340,110 Z" fill="#fff" opacity="0.04"/><path d="M0,130 L340,80 L340,130 Z" fill="#fff" opacity="0.03"/>';}
+ else if(p.pattern==='cobalt'){overlay='<circle cx="30" cy="200" r="140" fill="#4a90e2" opacity="0.15"/><circle cx="310" cy="10" r="80" fill="#fff" opacity="0.08"/>';}
+ else if(p.pattern==='bonvoy'){overlay='<path d="M340,0 L340,120 L180,0 Z" fill="#fff" opacity="0.06"/><circle cx="290" cy="60" r="45" fill="#f2c94c" opacity="0.15"/>';}
+ else if(p.pattern==='lightning'){overlay='<path d="M180,20 L160,110 L200,110 L170,190 L230,90 L190,90 L220,20 Z" fill="#f7d417" opacity="0.25"/>';}
+ else if(p.pattern==='mono'){overlay='<path d="M-20,180 Q 80,150 170,170 T 360,160 L360,220 L-20,220 Z" fill="#fff" opacity="0.03"/>';}
+ const chip = '<g transform="translate(24,78)"><rect width="42" height="32" rx="5" fill="#e5c05f"/><rect width="42" height="32" rx="5" fill="url(#chip-'+key+')" opacity="0.8"/><path d="M0,10 L14,10 M0,22 L14,22 M28,10 L42,10 M28,22 L42,22 M14,0 L14,10 M14,22 L14,32 M28,0 L28,10 M28,22 L28,32" stroke="#8b6f18" stroke-width="1" fill="none" opacity="0.7"/><rect x="14" y="10" width="14" height="12" rx="1" fill="#c99b30" opacity="0.6"/></g>';
+ const contactless = '<g transform="translate(300,78) rotate(90)" fill="none" stroke="#fff" stroke-width="1.5" opacity="0.55"><path d="M0,0 A 8,8 0 0 1 0,-14"/><path d="M-5,0 A 12,12 0 0 1 -5,-19"/><path d="M-10,0 A 16,16 0 0 1 -10,-24"/></g>';
+ return '<svg viewBox="0 0 340 210" class="cc-svg" preserveAspectRatio="xMidYMid meet"><defs><linearGradient id="cc-'+key+'" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="'+g[0]+'"/><stop offset="0.55" stop-color="'+g[1]+'"/><stop offset="1" stop-color="'+g[2]+'"/></linearGradient><linearGradient id="sheen-'+key+'" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0.20"/><stop offset="0.5" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#fff" stop-opacity="0.12"/></linearGradient><linearGradient id="chip-'+key+'" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f5d47a"/><stop offset="1" stop-color="#a97e18"/></linearGradient></defs><rect width="340" height="210" rx="18" fill="url(#cc-'+key+')"/>'+overlay+chip+contactless+'<text x="316" y="30" fill="#fff" font-size="11" font-weight="900" text-anchor="end" letter-spacing="1.2" opacity="0.92">'+p.issuer+'</text><text x="316" y="45" fill="'+p.accent+'" font-size="9" font-weight="800" text-anchor="end" letter-spacing="1.5" opacity="0.85">'+p.tier+'</text><text x="24" y="150" fill="#fff" font-size="17" font-weight="900" letter-spacing="-.3">'+shortName+'</text><text x="24" y="170" fill="#fff" font-size="9.5" font-weight="800" opacity="0.62" letter-spacing="1.2">'+c.r+'</text>'+netLogo+'</svg>';
 }
+
+
+function svgOfferCard(o, i){
+ const matchKey = Object.keys(CARDS_DB).find(function(k){return CARDS_DB[k].n === o.n;});
+ if(matchKey){return svgCard(CARDS_DB[matchKey], matchKey);}
+ const mcIssuers = ['BMO','Rogers','MBNA','Tangerine','Canadian Tire','PC Financial','Walmart','Neo','KOHO','EQ Bank','Brim','Capital One','Coast Capital'];
+ const netGuess = (o.iss==='Amex') ? 'Amex' : (mcIssuers.indexOf(o.iss)>=0 ? 'Mastercard' : 'Visa');
+ const synth = {n:o.n, cl:o.color||'cobalt', net:netGuess, iss:o.iss, r:o.pts||'', e:o.e||''};
+ return svgCard(synth, 'offer_'+i);
+}
+window.svgOfferCard=svgOfferCard;
 
 function renderCards(){
  const list=document.getElementById('cardList');
@@ -4284,10 +4553,12 @@ function renderOffers(){
   return;
  }
  if(noMatchEl)noMatchEl.style.display='none';
- document.getElementById('offersList').innerHTML=list.map(o=>{
+ document.getElementById('offersList').innerHTML=list.map(function(o,i){
   const netY1=o.val-(o.fyf?0:o.fee);
   const feeTxt=o.fyf?'$'+o.fee.toFixed(0)+' \u00b7 <b style="color:var(--green)">first year free</b>':'$'+o.fee.toFixed(0)+'/yr';
-  return '<div class="cardBig"><div style="padding:12px 13px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px">'+
+  return '<div class="cardBig">'+
+   '<div class="offer-art-wrap">'+svgOfferCard(o,i)+'</div>'+
+   '<div style="padding:12px 13px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px">'+
    '<div style="display:flex;gap:9px;align-items:center;flex:1;min-width:0">'+
     '<div style="font-size:24px">'+o.e+'</div>'+
     '<div><div style="font-size:14.5px;font-weight:900;letter-spacing:-.02em">'+o.n+'</div>'+
@@ -4488,10 +4759,12 @@ function renderLocResult(data,lat,lon){
   html+='<div class="warn-box">\u26A0\uFE0F None of your cards match this merchant\'s accepted networks.<br>'+(result.acceptance.note||'')+'</div>';
  } else {
   const b=result.best,c=b.card,acc=result.acceptance;
+  const locCardKey=Object.keys(CARDS_DB).find(function(k){return CARDS_DB[k].n===c.n;})||'cobalt';
   html+='<div style="background:var(--surface-2);border-radius:14px;padding:14px;margin-bottom:10px">';
-  html+='<div style="font-size:9.5px;color:var(--muted);font-weight:900;letter-spacing:.1em;text-transform:uppercase">Use this card</div>';
-  html+='<div style="font-size:20px;font-weight:900;letter-spacing:-.02em;margin-top:4px">'+c.e+' '+c.n+'</div>';
-  html+='<div style="font-family:ui-monospace,monospace;font-size:14px;font-weight:900;color:var(--green);margin-top:4px">Earns '+b.rate.toFixed(1)+'% here</div>';
+  html+='<div style="font-size:9.5px;color:var(--muted);font-weight:900;letter-spacing:.1em;text-transform:uppercase;text-align:center;margin-bottom:10px">Use this card</div>';
+  html+='<div style="display:flex;justify-content:center;margin-bottom:12px">'+svgCard(c,locCardKey)+'</div>';
+  html+='<div style="font-size:18px;font-weight:900;letter-spacing:-.02em;margin-top:4px;text-align:center">'+c.n+'</div>';
+  html+='<div style="font-family:ui-monospace,monospace;font-size:14px;font-weight:900;color:var(--green);margin-top:4px;text-align:center">Earns '+b.rate.toFixed(1)+'% here</div>';
   html+='</div>';
   html+='<div style="font-size:11.5px;color:var(--muted);font-weight:700;line-height:1.5"><b style="color:var(--ink)">Why:</b> '+(c.w||'Best rate from your wallet.')+'</div>';
   if(acc.note)html+='<div class="info-box" style="margin-top:10px">'+acc.note+'</div>';
@@ -4547,12 +4820,39 @@ function getUserPrograms(){
 function loadVault(){try{return JSON.parse(localStorage.getItem(VAULT_KEY)||'{}');}catch(e){return {};}}
 function saveVaultData(v){try{localStorage.setItem(VAULT_KEY,JSON.stringify(v));}catch(e){}}
 
-function updateVaultBalance(prog,val){
+function updateVaultBalance(prog,val,inputEl){
  const v=loadVault();
  v[prog]=parseFloat(val)||0;
  saveVaultData(v);
- renderVault();
+ try{
+  if(typeof POINT_PROGRAMS!=='undefined'&&POINT_PROGRAMS[prog]){
+   const p=POINT_PROGRAMS[prog];
+   const bal=v[prog]||0;
+   const cpp=p.redemptions[0].cpp;
+   const dv=prog==='rogersCash'?bal:(bal*cpp/100);
+   if(inputEl){
+    const card=inputEl.closest('div[style*="border-radius:14px"]');
+    if(card){
+     const dvEl=card.querySelector('div[style*="color:var(--green)"]');
+     if(dvEl)dvEl.textContent='\u2248 $'+Math.round(dv).toLocaleString();
+     const balEl=card.querySelector('div[style*="font-size:14px"]');
+     if(balEl)balEl.textContent=bal.toLocaleString();
+     const badge=inputEl.parentElement.querySelector('span');
+     if(badge){badge.textContent='Saved \u2713';badge.style.background='var(--greenbg)';badge.style.color='var(--green)';clearTimeout(inputEl._savedT);inputEl._savedT=setTimeout(function(){badge.textContent='Save auto';badge.style.background='';badge.style.color='';},1400);}
+    }
+   }
+   const userProgs=getUserPrograms();
+   let totalValue=0;
+   Object.entries(POINT_PROGRAMS).filter(function(e){return userProgs.has(e[0]);}).forEach(function(entry){
+    const k=entry[0],pr=entry[1];const b=v[k]||0;const c=pr.redemptions[0].cpp;
+    totalValue+=k==='rogersCash'?b:(b*c/100);
+   });
+   const totalEl=document.getElementById('vaultTotal');
+   if(totalEl)totalEl.textContent='$'+Math.round(totalValue).toLocaleString();
+  }
+ }catch(e){console.warn('vault update:',e);}
  if(typeof updateVaultTile==='function')updateVaultTile();
+ if(typeof updateHeroTotals==='function')updateHeroTotals();
 }
 
 function renderVault(){
@@ -4601,7 +4901,7 @@ function renderVault(){
      '<div style="text-align:right"><div style="font-family:ui-monospace,monospace;font-size:14px;font-weight:900">'+bal.toLocaleString()+'</div><div style="font-family:ui-monospace,monospace;font-size:11px;font-weight:900;color:var(--green);margin-top:3px">\u2248 $'+Math.round(dollarValue).toLocaleString()+'</div></div>'+
     '</div>'+
     '<div style="display:grid;grid-template-columns:1fr auto;gap:6px;margin-top:8px;padding-top:8px;border-top:1px dashed var(--border)">'+
-     '<input type="number" min="0" step="100" placeholder="Enter balance" value="'+(bal||'')+'" onchange="updateVaultBalance(\''+key+'\',this.value)" style="padding:7px 10px;border:1px solid var(--border);border-radius:10px;font-size:13px;font-weight:800;font-family:ui-monospace,monospace">'+
+     '<input type="number" min="0" step="100" placeholder="Enter balance" value="'+(bal||'')+'" oninput="updateVaultBalance(\''+key+'\',this.value,this)" onblur="updateVaultBalance(\''+key+'\',this.value,this)" style="padding:7px 10px;border:1px solid var(--border);border-radius:10px;font-size:13px;font-weight:800;font-family:ui-monospace,monospace">'+
      '<span style="padding:7px 12px;background:var(--surface-2);color:var(--muted);border-radius:10px;font-size:11px;font-weight:900;align-self:center">Save auto</span>'+
     '</div>'+
     '<div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--border)">'+
@@ -5461,8 +5761,9 @@ function renderAppliedList(){
    '<button onclick="markAppliedStatus(\'' + a.id + '\',\'pending\')" style="background:transparent;border:1px solid var(--border);padding:6px 10px;border-radius:8px;font-size:11px;font-weight:900;cursor:pointer">Reopen</button>';
 
   return '<div class="cardBig" style="padding:12px;margin-bottom:8px">' +
+   '<div style="display:flex;justify-content:center;margin-bottom:12px">' + svgCard(card, a.cardKey) + '</div>' +
    '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px">' +
-    '<div style="min-width:0"><div style="font-size:13.5px;font-weight:900">' + card.e + ' ' + card.n + '</div>' +
+    '<div style="min-width:0"><div style="font-size:13.5px;font-weight:900">' + card.n + '</div>' +
     '<div style="font-size:10.5px;color:var(--muted);font-weight:700;margin-top:2px">Applied ' + a.dateApplied + ' \u00b7 Bonus ~$' + a.bonusValue.toLocaleString() + '</div></div>' +
     statusBadge +
    '</div>' +
@@ -5561,7 +5862,7 @@ function applyUserWallet(){
 
  // Update greeting
  const gn=document.getElementById('greetingName');
- if(gn){const nm=loadName();gn.textContent=nm?'Hey, '+nm+' \ud83d\udc4b':'Hey there \ud83d\udc4b';}
+ if(gn){const nm=loadName();gn.textContent=nm?'Hey, '+nm:'Hey there';}
 
  // Update card count tile
  const tc=document.getElementById('walletCardCount');
@@ -5853,17 +6154,22 @@ function showFlash(msg){
 function renderHomeVaultSummary(){
   const el=document.getElementById('homeVaultSummary');
   if(!el)return;
-  if(typeof wallet==='undefined'||!wallet||wallet.length===0){el.style.display='none';return;}
+  // V56 FIX: use userWallet (a Set) instead of undefined `wallet`
+  if(typeof userWallet==='undefined'||!userWallet||userWallet.size===0){el.style.display='none';return;}
+  const walletSize=userWallet.size;
   let totalRewards=0,ytdRewards=0,thisMonthRewards=0;
   const now=new Date();
   const currentMonth=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
   const currentYear=String(now.getFullYear());
-  if(typeof transactions!=='undefined'&&transactions.length){
-    transactions.forEach(function(t){
-      if(!t.cardKey||!t.amount)return;
-      const card=CARDS_DB[t.cardKey]||(typeof customCards!=='undefined'&&customCards[t.cardKey]);
+  // V56 FIX: use loadTx() instead of undefined `transactions`
+  let txs=[];
+  try{if(typeof loadTx==='function')txs=loadTx();}catch(e){}
+  if(txs.length){
+    txs.forEach(function(t){
+      if(!t.card||!t.amount)return;
+      const card=CARDS_DB[t.card]||(typeof customCards!=='undefined'&&customCards[t.card]);
       if(!card||!card.realRates)return;
-      const cat=(typeof lookupCategory==='function')?lookupCategory(t.merchant||''):'base';
+      const cat=(typeof resolveCategory==='function')?resolveCategory(t.merchant||''):'base';
       const rate=card.realRates[cat]||card.realRates.base||1;
       const earned=t.amount*rate/100;
       totalRewards+=earned;
@@ -5872,16 +6178,30 @@ function renderHomeVaultSummary(){
       if(txDate.startsWith(currentYear))ytdRewards+=earned;
     });
   }
+  // Also include vault balance so it's not just tx-based
+  let vaultDollars=0;
+  try{
+    if(typeof loadVault==='function'&&typeof POINT_PROGRAMS!=='undefined'){
+      const v=loadVault();
+      Object.entries(POINT_PROGRAMS).forEach(function(entry){
+        const key=entry[0],p=entry[1];
+        const bal=v[key]||0;
+        const cpp=p.redemptions[0].cpp;
+        vaultDollars+=key==='rogersCash'?bal:(bal*cpp/100);
+      });
+    }
+  }catch(e){}
+  const grandTotal=totalRewards+vaultDollars;
   el.style.display='block';
   el.innerHTML='<div class="vault-summary-card" onclick="switchTab(\'rewards\')">'+
     '<div class="vs-arrow">\u2192</div>'+
     '<div class="vs-label">\uD83C\uDFE6 Points Vault</div>'+
-    '<div class="vs-big">$'+totalRewards.toFixed(2)+'</div>'+
-    '<div class="vs-sub">Total rewards earned \u00B7 tap to open</div>'+
+    '<div class="vs-big">$'+Math.round(grandTotal).toLocaleString()+'</div>'+
+    '<div class="vs-sub">Earnings + points value \u00B7 tap to open</div>'+
     '<div class="vs-mini">'+
-      '<div class="vm"><div class="l">This mo</div><div class="v">$'+thisMonthRewards.toFixed(2)+'</div></div>'+
-      '<div class="vm"><div class="l">YTD</div><div class="v">$'+ytdRewards.toFixed(2)+'</div></div>'+
-      '<div class="vm"><div class="l">Cards</div><div class="v">'+wallet.length+'</div></div>'+
+      '<div class="vm"><div class="l">This mo</div><div class="v">$'+thisMonthRewards.toFixed(0)+'</div></div>'+
+      '<div class="vm"><div class="l">Vault</div><div class="v">$'+Math.round(vaultDollars).toLocaleString()+'</div></div>'+
+      '<div class="vm"><div class="l">Cards</div><div class="v">'+walletSize+'</div></div>'+
     '</div>'+
   '</div>';
 }
@@ -5889,17 +6209,21 @@ function renderHomeVaultSummary(){
 function renderHomeRecentActivity(){
   const el=document.getElementById('homeRecentActivity');
   if(!el)return;
-  if(typeof wallet==='undefined'||!wallet||wallet.length===0){el.style.display='none';return;}
-  if(typeof transactions==='undefined'||!transactions.length){el.style.display='none';return;}
-  const sorted=transactions.slice().sort(function(a,b){return (b.date||'').localeCompare(a.date||'');}).slice(0,3);
+  // V56 FIX: userWallet is a Set (has .size), transactions come from loadTx()
+  if(typeof userWallet==='undefined'||!userWallet||userWallet.size===0){el.style.display='none';return;}
+  let txs=[];
+  try{if(typeof loadTx==='function')txs=loadTx();}catch(e){}
+  if(!txs.length){el.style.display='none';return;}
+  const sorted=txs.slice().sort(function(a,b){return (b.date||'').localeCompare(a.date||'');}).slice(0,3);
   if(sorted.length===0){el.style.display='none';return;}
   el.style.display='block';
   let html='<div class="recent-card"><div class="rc-title">Recent activity</div>';
   sorted.forEach(function(t){
-    const card=CARDS_DB[t.cardKey]||(typeof customCards!=='undefined'&&customCards[t.cardKey])||{n:'Unknown'};
+    // V56 FIX: field is `t.card`, not `t.cardKey`
+    const card=CARDS_DB[t.card]||(typeof customCards!=='undefined'&&customCards[t.card])||{n:'Unknown'};
     let earned=0;
     try{
-      const cat=(typeof lookupCategory==='function')?lookupCategory(t.merchant||''):'base';
+      const cat=(typeof resolveCategory==='function')?resolveCategory(t.merchant||''):'base';
       if(card.realRates){
         const rate=card.realRates[cat]||card.realRates.base||1;
         earned=t.amount*rate/100;
@@ -6315,13 +6639,13 @@ window.CARD_TO_PROGRAMS={
 
 if(typeof SWEET_SPOTS==='undefined'){
 window.SWEET_SPOTS=[
-  {program:'aeroplan',title:'Star Alliance short-haul (6K)',note:'2,000-mile Star Alliance flights start at 6K Aeroplan pts. Amazing YVR-SEA/YVR-SFO deals.'},
-  {program:'mr',title:'Transfer MR \u2192 Aeroplan for 2cpp+',note:'Transfer 1:1 to Aeroplan and redeem for sweet-spot business class to Europe or Asia at 2cpp+.'},
-  {program:'bonvoy',title:'5th night free at Marriott',note:'Book 5 nights on points and the 5th is free. Boosts value by ~20%.'},
-  {program:'scenePlus',title:'Grocery redemption 1:1',note:'Redeem Scene+ at Sobeys/Safeway/IGA at 1cpp \u2014 great flexibility.'},
-  {program:'rogersCash',title:'Redeem to Rogers/Fido bill for 1.5x',note:'Redeem cashback back to Rogers/Fido wireless bill for a 50% boost.'},
-  {program:'pcOptimum',title:'10x events at Loblaw stores',note:'Watch for Superstore/Shoppers 10x/20x offers \u2014 stack with PC Insiders MC.'},
-  {program:'avios',title:'BA short-haul from YVR',note:'Avios shine for short-haul on Alaska/JAL/Cathay. YVR-SEA-LAX-etc. can be ~4.5K Avios.'}
+  {program:'aeroplan',emoji:'\u2708\uFE0F',title:'Star Alliance short-haul (6K)',body:'2,000-mile Star Alliance flights start at 6K Aeroplan pts. Amazing YVR-SEA/YVR-SFO deals.',note:'2,000-mile Star Alliance flights start at 6K Aeroplan pts.'},
+  {program:'mr',emoji:'\u2B50',title:'Transfer MR \u2192 Aeroplan for 2cpp+',body:'Transfer 1:1 to Aeroplan and redeem for sweet-spot business class to Europe or Asia at 2cpp+.',note:'Transfer to Aeroplan for premium cabin sweet spots at 2cpp+.'},
+  {program:'bonvoy',emoji:'\uD83C\uDFE8',title:'5th night free at Marriott',body:'Book 5 nights on points and the 5th is free. Boosts value by ~20%.',note:'Book 5 nights on points; 5th night is free.'},
+  {program:'scenePlus',emoji:'\uD83C\uDFAC',title:'Grocery redemption 1:1',body:'Redeem Scene+ at Sobeys/Safeway/IGA at 1cpp \u2014 great flexibility for daily spend.',note:'Redeem at Sobeys/Safeway/IGA at 1cpp.'},
+  {program:'rogersCash',emoji:'\uD83D\uDCB0',title:'Redeem to Rogers/Fido bill for 1.5x',body:'Redeem cashback back to Rogers/Fido wireless bill for a 50% boost \u2014 2% becomes effective 3%.',note:'Redeem to Rogers/Fido bill for +50%.'},
+  {program:'pcOptimum',emoji:'\uD83D\uDED2',title:'10x events at Loblaw stores',body:'Watch for Superstore/Shoppers 10x/20x pt offers \u2014 stack with PC Insiders MC for huge returns.',note:'Watch for 10x-20x pt events. Stack with PC Insiders.'},
+  {program:'avios',emoji:'\u2708\uFE0F',title:'BA short-haul from YVR',body:'Avios shine for short-haul on Alaska/JAL/Cathay. YVR-SEA-LAX-etc. can be ~4.5K Avios.',note:'Great short-haul redemptions on Alaska/JAL/Cathay.'}
 ];
 }
 
@@ -6954,6 +7278,1041 @@ setTimeout(function(){
     if(r.failed>0){console.warn('[Wallet IQ] Self-test failures detected. Call _walletiqSelfTest() for details.');}
   }catch(e){console.warn('[Wallet IQ] Self-test could not run:',e.message);}
 },2000);
+</script>
+<script>
+(function(){
+  function fmtMoney(n){return '$'+Math.round(n).toLocaleString()}
+  function updateOffersHero(){
+    try{
+      var list=document.getElementById('offersList');
+      if(!list)return;
+      var lbl=document.getElementById('offersCountLabel');
+      var m=lbl?lbl.textContent.match(/(\d+)/):null;
+      var cnt=m?parseInt(m[1],10):list.querySelectorAll('.cardBig,.item').length;
+      var e=document.getElementById('ohCount');if(e)e.textContent=cnt||'\u2014';
+      var vals=[];
+      list.querySelectorAll('.cardBig .fees .val, .cardBig .expand, .item .tag').forEach(function(el){
+        var m=el.textContent.match(/\$(\d[\d,]*)/g);
+        if(m)m.forEach(function(v){var n=parseInt(v.replace(/[^0-9]/g,''),10);if(n>50&&n<5000)vals.push(n);});
+      });
+      if(vals.length){
+        var t=Math.max.apply(null,vals);
+        var a=Math.round(vals.reduce(function(x,y){return x+y},0)/vals.length);
+        var te=document.getElementById('ohTop');if(te)te.textContent=fmtMoney(t);
+        var ae=document.getElementById('ohAvg');if(ae)ae.textContent=fmtMoney(a);
+      }
+    }catch(e){}
+  }
+  window.updateOffersHero=updateOffersHero;
+  document.addEventListener('DOMContentLoaded',function(){
+    var list=document.getElementById('offersList');
+    if(list && window.MutationObserver){
+      var mo=new MutationObserver(function(){updateOffersHero()});
+      mo.observe(list,{childList:true,subtree:true});
+    }
+    setTimeout(updateOffersHero,600);
+  });
+})();
+</script>
+<script>
+// ================================================================
+// V55 MERCHANT EXPANSION (runs AFTER both consts declared)
+// - 824 new aliases (BC, AB, ON, coffee, gelato, donair)
+// - 79 new autocomplete entries
+// Wrapped in try/catch so it never crashes the app.
+// ================================================================
+try {
+  if (typeof ALIASES === 'object' && ALIASES) {
+    Object.assign(ALIASES, {
+  'la ruota':'dining',
+  'la ruota pizzeria':'dining',
+  'la ruota vancouver':'dining',
+  'la ruota kitsilano':'dining',
+  'laruota':'dining',
+  'uncle fatih\'s pizza':'dining',
+  'uncle fatih\'s':'dining',
+  'uncle fatihs':'dining',
+  'uncle fatih':'dining',
+  'famoso neapolitan pizzeria':'dining',
+  'famoso pizzeria':'dining',
+  'famoso':'dining',
+  'nat\'s new york pizzeria':'dining',
+  'nats new york pizzeria':'dining',
+  'nat\'s pizza':'dining',
+  'nats pizza':'dining',
+  'straight outta brooklyn pizza':'dining',
+  'straight outta brooklyn':'dining',
+  'rocky mountain flatbread':'dining',
+  'rocky mountain flatbread company':'dining',
+  'mega bite pizza':'dining',
+  'megabite':'dining',
+  'megabite pizza':'dining',
+  'pi co pizza':'dining',
+  'pi co':'dining',
+  'pico pizza':'dining',
+  'sopra sotto pizzeria':'dining',
+  'sopra sotto':'dining',
+  'papa roma':'dining',
+  'papa roma pizza':'dining',
+  'lombardo\'s pizzeria':'dining',
+  'lombardos pizzeria':'dining',
+  'lombardo\'s':'dining',
+  'lombardos':'dining',
+  'gigi\'s pizza':'dining',
+  'gigis pizza':'dining',
+  'zaccary\'s pizza':'dining',
+  'zaccarys pizza':'dining',
+  'zaccary\'s':'dining',
+  'sicilian pizza':'dining',
+  'grand pizzeria':'dining',
+  'grand pizza':'dining',
+  'federico\'s pizza':'dining',
+  'federicos pizza':'dining',
+  'mario\'s pizza':'dining',
+  'marios pizza':'dining',
+  'firecrust pizza':'dining',
+  'firecrust':'dining',
+  'pizzeria grano':'dining',
+  'pizzeria napoletana':'dining',
+  'brooklyn pizza':'dining',
+  'kabab king':'dining',
+  'kabab king surrey':'dining',
+  'kebab king':'dining',
+  'zaytoon donair':'dining',
+  'zaytoon':'dining',
+  'sami\'s donair':'dining',
+  'samis donair':'dining',
+  'sami\'s':'dining',
+  'ali\'s donair':'dining',
+  'alis donair':'dining',
+  'ali baba donair':'dining',
+  'king\'s donair':'dining',
+  'kings donair':'dining',
+  'king of donair':'dining',
+  'osman\'s donair':'dining',
+  'osmans donair':'dining',
+  'yasmin\'s donair':'dining',
+  'yasmins donair':'dining',
+  'sultan donair':'dining',
+  'sultan of donair':'dining',
+  'donair affair':'dining',
+  'north van donair':'dining',
+  'north vancouver donair':'dining',
+  'vancouver donair':'dining',
+  'athens donair':'dining',
+  'nicos donair':'dining',
+  'nico\'s donair':'dining',
+  'alexandra\'s donair':'dining',
+  'alexandras donair':'dining',
+  'halifax donair':'dining',
+  'halifax donair co':'dining',
+  'halifax donair company':'dining',
+  'nasib\'s donair':'dining',
+  'nasibs donair':'dining',
+  'petro donair':'dining',
+  'superior donair':'dining',
+  'village donair':'dining',
+  'palace donair':'dining',
+  'marina donair':'dining',
+  'nizami donair':'dining',
+  'aladdin donair':'dining',
+  'king kabob':'dining',
+  'king kabab':'dining',
+  'donair king':'dining',
+  'donair queen':'dining',
+  'donair master':'dining',
+  'donair spot':'dining',
+  'donair republic':'dining',
+  'donair factory':'dining',
+  'donair express':'dining',
+  'donair hub':'dining',
+  'donair paradise':'dining',
+  'donair stop':'dining',
+  'donair guyz':'dining',
+  'bilal\'s donair':'dining',
+  'bilals donair':'dining',
+  'levant shawarma':'dining',
+  'levant':'dining',
+  'jerusalem shawarma':'dining',
+  'aleppo shawarma':'dining',
+  'aleppo bites':'dining',
+  'lazeez shawarma':'dining',
+  'shawarma palace':'dining',
+  'shawarma king':'dining',
+  'shawarma house':'dining',
+  'shawarma express':'dining',
+  'shawarma taxi':'dining',
+  'shawarma stop':'dining',
+  'shawarma plus':'dining',
+  'shawarmaji':'dining',
+  'shawarma spot':'dining',
+  'shawarma tale':'dining',
+  'shawarma zone':'dining',
+  'shawarma habibi':'dining',
+  'shawarma station':'dining',
+  'shawarma bay':'dining',
+  'shawarma kingdom':'dining',
+  'aroma shawarma':'dining',
+  'mr. shawarma':'dining',
+  'mr shawarma':'dining',
+  'sultan shawarma':'dining',
+  'khyber kabab':'dining',
+  'khyber':'dining',
+  'flame kabab':'dining',
+  'kabab palace':'dining',
+  'kabab hut':'dining',
+  'kabob house':'dining',
+  'kabob palace':'dining',
+  'shami kabab':'dining',
+  'jasmine kabab':'dining',
+  'ottoman kabob':'dining',
+  'ottoman kabab':'dining',
+  'kabab home':'dining',
+  'kabab kingdom':'dining',
+  'kabab express':'dining',
+  'kabab hub':'dining',
+  'kabab afghan':'dining',
+  'kabob king':'dining',
+  'kebab queen':'dining',
+  'charcoal kabob':'dining',
+  'mediterranean grill':'dining',
+  'mediterranean kitchen':'dining',
+  'mediterranean express':'dining',
+  'mediterranean cuisine':'dining',
+  'tazza mediterranean':'dining',
+  'tazza':'dining',
+  'sinbad restaurant':'dining',
+  'sinbad':'dining',
+  'byblos lebanese':'dining',
+  'byblos':'dining',
+  'phoenicia':'dining',
+  'phoenicia lebanese':'dining',
+  'petra restaurant':'dining',
+  'petra lebanese':'dining',
+  'cedars lebanese':'dining',
+  'cedars':'dining',
+  'beit habibi':'dining',
+  'beitrut':'dining',
+  'chic pea':'dining',
+  'chic pea vancouver':'dining',
+  'chickpea vancouver':'dining',
+  'mezza lebanese kitchen':'dining',
+  'mezza lebanese':'dining',
+  'mezza':'dining',
+  'falafel palace':'dining',
+  'falafel king':'dining',
+  'falafel hut':'dining',
+  'falafel time':'dining',
+  'falafel corner':'dining',
+  'falafel castle':'dining',
+  'mediterrasian':'dining',
+  'mediterranean bites':'dining',
+  'jollibee':'dining',
+  'jollibee canada':'dining',
+  'red ribbon':'dining',
+  'red ribbon bakeshop':'dining',
+  'kenny rogers roasters':'dining',
+  'kenny rogers':'dining',
+  'chowking canada':'dining',
+  'mang inasal':'dining',
+  'mangs inasal':'dining',
+  'reyes barbecue':'dining',
+  'reyes bbq':'dining',
+  'bonchon':'dining',
+  'bonchon chicken':'dining',
+  'bang bang chicken':'dining',
+  'parallel 49':'dining',
+  'parallel 49 brewing':'dining',
+  'parallel forty nine':'dining',
+  'brassneck':'dining',
+  'brassneck brewery':'dining',
+  '33 acres':'dining',
+  '33 acres brewing':'dining',
+  'thirty three acres':'dining',
+  'four winds brewing':'dining',
+  'four winds':'dining',
+  'strathcona brewing':'dining',
+  'strathcona beer company':'dining',
+  'red truck beer':'dining',
+  'red truck brewing':'dining',
+  'granville island brewing':'dining',
+  'granville island brewery':'dining',
+  'steamworks':'dining',
+  'steamworks brewing':'dining',
+  'yaletown brewing':'dining',
+  'yaletown brewing co':'dining',
+  'main street brewing':'dining',
+  'bomber brewing':'dining',
+  'faculty brewing':'dining',
+  'callister brewing':'dining',
+  'off the rail':'dining',
+  'off the rail brewing':'dining',
+  'twin sails':'dining',
+  'twin sails brewing':'dining',
+  'moody ales':'dining',
+  'yellow dog brewing':'dining',
+  'yellow dog':'dining',
+  'steel toad':'dining',
+  'steel toad brewpub':'dining',
+  'storm brewing':'dining',
+  'storm crow':'dining',
+  'storm crow tavern':'dining',
+  'storm crow alehouse':'dining',
+  'stormcrow':'dining',
+  'stanley park brewing':'dining',
+  'stanley park brewery':'dining',
+  'dageraad brewing':'dining',
+  'container brewing':'dining',
+  'boombox brewing':'dining',
+  'andina brewing':'dining',
+  'east van brewing':'dining',
+  'temporal artisan ales':'dining',
+  'real cask brewing':'dining',
+  'phillips brewing':'dining',
+  'driftwood brewing':'dining',
+  'vancouver island brewing':'dining',
+  'hoyne brewing':'dining',
+  'torchlight brewing':'dining',
+  'category 12 brewing':'dining',
+  'bad tattoo brewing':'dining',
+  'tin whistle brewing':'dining',
+  'cannery brewing':'dining',
+  'okanagan spring brewery':'dining',
+  'okanagan springs':'dining',
+  'nelson brewing':'dining',
+  'mt begbie brewing':'dining',
+  'whistler brewing':'dining',
+  'triple o\'s':'dining',
+  'triple os':'dining',
+  'triple o\'s white spot':'dining',
+  'white spot triple o\'s':'dining',
+  'splitz grill':'dining',
+  'splitz':'dining',
+  'stack\'d burgers':'dining',
+  'stackd burgers':'dining',
+  'locus':'dining',
+  'locus restaurant':'dining',
+  'hundy burger':'dining',
+  'bells and whistles':'dining',
+  'famous foods':'groceryAmex',
+  'donald\'s market':'groceryAmex',
+  'donalds market':'groceryAmex',
+  'fresh street market':'groceryAmex',
+  'fresh street':'groceryAmex',
+  'south china seas trading':'groceryAmex',
+  'south china seas':'groceryAmex',
+  'les amis du fromage':'groceryAmex',
+  'benton brothers':'groceryAmex',
+  'benton bros fine cheese':'groceryAmex',
+  'gourmet warehouse':'groceryAmex',
+  'east van roasters':'groceryAmex',
+  'kokuho rose':'groceryAmex',
+  'angel seafoods':'groceryAmex',
+  'granville island fish co':'groceryAmex',
+  'lonsdale quay market':'groceryAmex',
+  'robson public market':'groceryAmex',
+  'beaucoup bakery':'dining',
+  'beaucoup':'dining',
+  'butter baked goods':'dining',
+  'butter bakery':'dining',
+  'republica coffee':'dining',
+  'republica':'dining',
+  'moja coffee':'dining',
+  'moja':'dining',
+  'small potatoes coffee':'dining',
+  'gg\'s espresso':'dining',
+  'ggs espresso':'dining',
+  'prufrock':'dining',
+  'prufrock coffee':'dining',
+  'nemesis coffee':'dining',
+  'dose hq':'dining',
+  'aubade coffee':'dining',
+  'grouse mountain':'travel',
+  'cypress mountain':'travel',
+  'whistler blackcomb':'travel',
+  'whistler mountain':'travel',
+  'blackcomb mountain':'travel',
+  'mt seymour':'travel',
+  'seymour mountain':'travel',
+  'silver star mountain':'travel',
+  'big white ski resort':'travel',
+  'sun peaks':'travel',
+  'sun peaks resort':'travel',
+  'revelstoke mountain resort':'travel',
+  'apex mountain':'travel',
+  'panorama mountain village':'travel',
+  'fernie alpine resort':'travel',
+  'kicking horse mountain resort':'travel',
+  'gill\'s south indian':'dining',
+  'gills south indian':'dining',
+  'gill\'s restaurant':'dining',
+  'sanjhi rasoi':'dining',
+  'shakthi':'dining',
+  'shakthi south indian':'dining',
+  'sabor south indian':'dining',
+  'sabor restaurant':'dining',
+  'bombay banquet':'dining',
+  'punjab restaurant':'dining',
+  'punjab kitchen':'dining',
+  'punjabi chef':'dining',
+  'chandi restaurant':'dining',
+  'chandi indian':'dining',
+  'sanam sweets':'dining',
+  'gaba\'s kabab':'dining',
+  'gabas kabab':'dining',
+  'pabla indian cuisine':'dining',
+  'pabla\'s':'dining',
+  'pablas':'dining',
+  'raj indian cuisine':'dining',
+  'indian oven':'dining',
+  'all india sweets':'dining',
+  'deer garden signatures':'dining',
+  'golden great wall':'dining',
+  'bamboo grove':'dining',
+  'r&h chinese food':'dining',
+  'rh chinese food':'dining',
+  'fatty cow seafood':'dining',
+  'uncle lu':'dining',
+  'uncle lu vancouver':'dining',
+  'uncle tetsu':'dining',
+  'uncle tetsu cheesecake':'dining',
+  'bao chateau':'dining',
+  'bao chateau vancouver':'dining',
+  'bao down':'dining',
+  'crystal jade':'dining',
+  'crystal jade la mian xiao long bao':'dining',
+  'mott 32':'dining',
+  'mott32':'dining',
+  'mott 32 vancouver':'dining',
+  'empire seafood':'dining',
+  'gold sky seafood':'dining',
+  'silver tower':'dining',
+  'silver tower seafood':'dining',
+  'prince seafood':'dining',
+  'neptune palace':'dining',
+  'neptune restaurant':'dining',
+  'jade seafood restaurant':'dining',
+  'regal seafood restaurant':'dining',
+  'ban chok dee':'dining',
+  'chatrium thai':'dining',
+  'chatrium':'dining',
+  'lemongrass thai':'dining',
+  'thai house':'dining',
+  'thai house restaurant':'dining',
+  'khao san':'dining',
+  'ubuntu thai':'dining',
+  'pad thai kitchen':'dining',
+  'gari thai':'dining',
+  'thai palace':'dining',
+  'thai spice':'dining',
+  'bkk cuisine':'dining',
+  'bkk street food':'dining',
+  'green lemongrass':'dining',
+  'green lemongrass vietnamese':'dining',
+  'lam\'s rice roll':'dining',
+  'lams rice roll':'dining',
+  'the rice roll bar':'dining',
+  'com hoi an':'dining',
+  'song vu':'dining',
+  'song vu vietnamese':'dining',
+  'mekong vietnamese':'dining',
+  'mekong':'dining',
+  'saigon pho':'dining',
+  'saigon village':'dining',
+  'saigon lounge':'dining',
+  'saigon corner':'dining',
+  'pho brothers':'dining',
+  'pho sister':'dining',
+  'pho city':'dining',
+  'pho hen':'dining',
+  'pho lu vietnamese':'dining',
+  'pho world':'dining',
+  'pho bo vietnamese':'dining',
+  'ma dang goul':'dining',
+  'madang goul':'dining',
+  'kalbi korean bbq':'dining',
+  'kalbi bbq':'dining',
+  'daldongnae':'dining',
+  'daldongnae korean bbq':'dining',
+  'red parka':'dining',
+  'kimbab cheonguk':'dining',
+  'kimbab paradise':'dining',
+  'myung ga korean bbq':'dining',
+  'myung ga':'dining',
+  'sura royal':'dining',
+  'g5 korean bbq':'dining',
+  'g5':'dining',
+  'miga korean':'dining',
+  'sushi bar mekong':'dining',
+  'sushi kim':'dining',
+  'sushi land':'dining',
+  'sushi one':'dining',
+  'sushi town':'dining',
+  'sushi 8':'dining',
+  'sushi bella':'dining',
+  'sushi california':'dining',
+  'sushi maru':'dining',
+  'sushi jou':'dining',
+  'sushi zen':'dining',
+  'sushi umi':'dining',
+  'temaki sushi':'dining',
+  'temaki bar':'dining',
+  'umi sushi':'dining',
+  'tojo\'s restaurant':'dining',
+  'tojos restaurant':'dining',
+  'blue plate sushi':'dining',
+  'tacofino cantina':'dining',
+  'tacofino oceanwise':'dining',
+  'tacofino ocean':'dining',
+  'taco luis':'dining',
+  'chronic tacos':'dining',
+  'chronic tacos canada':'dining',
+  'carnitas michoacanas':'dining',
+  'ay caramba taqueria':'dining',
+  'mi cocina':'dining',
+  'las margaritas mexican':'dining',
+  'earls kitchen bar':'dining',
+  'earls kitchen + bar':'dining',
+  'browns socialhouse':'dining',
+  'original joes':'dining',
+  'original joe\'s restaurant':'dining',
+  'cactus club cafe':'dining',
+  'nook restaurant':'dining',
+  'nook italian':'dining',
+  'commodore lanes':'dining',
+  'dixie\'s bbq':'dining',
+  'dixies bbq':'dining',
+  'peaked pies':'dining',
+  'peaked pies vancouver':'dining',
+  'peters drive-in':'dining',
+  'peters drive in':'dining',
+  'peter\'s drive-in':'dining',
+  'peter\'s drive in':'dining',
+  'tubby dog':'dining',
+  'melrose cafe':'dining',
+  'melrose calgary':'dining',
+  'blowers and grafton':'dining',
+  'blowers grafton':'dining',
+  'diner deluxe':'dining',
+  'oeb breakfast':'dining',
+  'oeb breakfast co':'dining',
+  'alforno bakery':'dining',
+  'alforno cafe':'dining',
+  'yellow door bistro':'dining',
+  'village ice cream':'dining',
+  'village ice cream calgary':'dining',
+  'made by marcus':'dining',
+  'peppino calgary':'dining',
+  'peppino':'dining',
+  'mercato calgary':'dining',
+  'mercato':'dining',
+  'ox and angela':'dining',
+  'ox angela':'dining',
+  'national beer hall':'dining',
+  'craft beer market':'dining',
+  'vin room':'dining',
+  'dairy lane cafe':'dining',
+  'deville coffee':'dining',
+  'analog coffee':'dining',
+  'analog':'dining',
+  'rosso coffee':'dining',
+  'rosso coffee roasters':'dining',
+  'monogram coffee':'dining',
+  'phil and sebastian':'dining',
+  'phil & sebastian':'dining',
+  'phil sebastian':'dining',
+  'fratello coffee':'dining',
+  'fratello coffee roasters':'dining',
+  'method coffee':'dining',
+  'method coffee roasters':'dining',
+  'barb and ernies':'dining',
+  'barb & ernie\'s':'dining',
+  'the sugarbowl':'dining',
+  'sugarbowl':'dining',
+  'duchess bake shop':'dining',
+  'duchess bakeshop':'dining',
+  'padmanadi':'dining',
+  'rostizado':'dining',
+  'corso 32':'dining',
+  'corso trentadue':'dining',
+  'uccellino':'dining',
+  'bar bricco':'dining',
+  'northern chicken':'dining',
+  'meuwly\'s':'dining',
+  'meuwlys':'dining',
+  'sabor divino':'dining',
+  'sabor edmonton':'dining',
+  'woodwork edmonton':'dining',
+  'village brewery':'dining',
+  'village brewery calgary':'dining',
+  'wild rose brewery':'dining',
+  'wild rose brewing':'dining',
+  'cabin brewing':'dining',
+  'cold garden':'dining',
+  'cold garden beverage':'dining',
+  'bow river brewing':'dining',
+  'blindman brewing':'dining',
+  'establishment brewing':'dining',
+  'big rock brewery':'dining',
+  'big rock brewing':'dining',
+  'annex ale project':'dining',
+  'last best brewing':'dining',
+  'banded peak brewing':'dining',
+  'high line brewing':'dining',
+  'bench creek brewing':'dining',
+  'blind enthusiasm':'dining',
+  'sea change brewing':'dining',
+  'situation brewing':'dining',
+  'alley kat brewing':'dining',
+  'rutt\'s chinese':'dining',
+  'ricky\'s all day grill':'dining',
+  'rickys':'dining',
+  'elephant and castle':'dining',
+  'elephant & castle':'dining',
+  'mr. mikes':'dining',
+  'mr mikes':'dining',
+  'smitty\'s':'dining',
+  'smittys':'dining',
+  'humpty\'s':'dining',
+  'humptys restaurant':'dining',
+  'chianti cafe':'dining',
+  'una pizza':'dining',
+  'una pizza wine':'dining',
+  'model milk':'dining',
+  'pigeonhole':'dining',
+  'shokunin':'dining',
+  'cassis bistro':'dining',
+  'charbar':'dining',
+  'teatro calgary':'dining',
+  'river cafe calgary':'dining',
+  'wurst restaurant':'dining',
+  'saltlik':'dining',
+  'beltliner diner':'dining',
+  'beltliner':'dining',
+  'cibo calgary':'dining',
+  'blink restaurant':'dining',
+  'pizza nova':'dining',
+  'big slice':'dining',
+  'big slice pizza':'dining',
+  'terroni':'dining',
+  'terroni toronto':'dining',
+  'buca':'dining',
+  'buca yorkville':'dining',
+  'piano piano':'dining',
+  'grazie':'dining',
+  'grazie ristorante':'dining',
+  'pai northern thai':'dining',
+  'pai toronto':'dining',
+  'loka':'dining',
+  'chubby\'s jamaican':'dining',
+  'chubbys jamaican':'dining',
+  'king palace':'dining',
+  'mandy\'s gourmet salads':'dining',
+  'mandys salads':'dining',
+  'la palma':'dining',
+  'la palma toronto':'dining',
+  'bar isabel':'dining',
+  'alo restaurant':'dining',
+  'alo toronto':'dining',
+  'canoe restaurant':'dining',
+  'canoe toronto':'dining',
+  'byblos toronto':'dining',
+  'r&d toronto':'dining',
+  'bar raval':'dining',
+  'aloette':'dining',
+  'aloette toronto':'dining',
+  'sud forno':'dining',
+  'impact kitchen':'dining',
+  'fresh restaurants':'dining',
+  'fresh vegetarian':'dining',
+  'kupfert and kim':'dining',
+  'kupfert & kim':'dining',
+  'pizzeria libretto':'dining',
+  'blaze pizza':'dining',
+  'slice of pizza':'dining',
+  'descendant detroit-style pizza':'dining',
+  'descendant pizza':'dining',
+  'north of brooklyn pizzeria':'dining',
+  'il fornello':'dining',
+  'magic oven':'dining',
+  'gusto 101':'dining',
+  'cafe polonez':'dining',
+  'planta toronto':'dining',
+  'planta':'dining',
+  'wilbur mexicana':'dining',
+  'banh mi boys':'dining',
+  'banh mi boys toronto':'dining',
+  'dailo':'dining',
+  'nightowl':'dining',
+  'kiin thai eatery':'dining',
+  'kiin thai':'dining',
+  'sansotei ramen':'dining',
+  'kinton ramen':'dining',
+  'santouka ramen':'dining',
+  'ippudo':'dining',
+  'preston st italian':'dining',
+  'darcy mcgees':'dining',
+  'd\'arcy mcgee\'s':'dining',
+  'the whalesbone':'dining',
+  'whalesbone':'dining',
+  'riviera ottawa':'dining',
+  'riviera':'dining',
+  'fauna ottawa':'dining',
+  'fauna':'dining',
+  'play food and wine':'dining',
+  'play food & wine':'dining',
+  'metropolitain brasserie':'dining',
+  'beckta':'dining',
+  'beckta dining and wine':'dining',
+  'wellington gastropub':'dining',
+  'aroma meze':'dining',
+  'shanghai restaurant ottawa':'dining',
+  'supply and demand ottawa':'dining',
+  'supply demand':'dining',
+  'north and navy':'dining',
+  'union local 613':'dining',
+  'elgin street diner':'dining',
+  'cafe my house':'dining',
+  'balzacs coffee':'dining',
+  'balzac\'s coffee':'dining',
+  'balzac\'s coffee roasters':'dining',
+  'boxcar social':'dining',
+  'boxcar':'dining',
+  'sam james coffee':'dining',
+  'sam james coffee bar':'dining',
+  'fahrenheit coffee':'dining',
+  'reunion island coffee':'dining',
+  'le gourmand':'dining',
+  'le gourmand bakery':'dining',
+  'rooster coffee':'dining',
+  'rooster coffee house':'dining',
+  'sorry coffee':'dining',
+  'sorry coffee company':'dining',
+  'dineen coffee':'dining',
+  'dineen coffee company':'dining',
+  'dark horse espresso':'dining',
+  'dark horse espresso bar':'dining',
+  'pilot coffee roasters':'dining',
+  'pilot coffee':'dining',
+  'hasbean coffee':'dining',
+  'hasbean':'dining',
+  'ideal coffee roasters':'dining',
+  'ideal coffee':'dining',
+  'detour coffee':'dining',
+  'detour coffee roasters':'dining',
+  'nadege patisserie':'dining',
+  'nadege':'dining',
+  'nadège':'dining',
+  'le beau bakery':'dining',
+  'blackbird baking':'dining',
+  'blackbird bakery':'dining',
+  'craig\'s cookies':'dining',
+  'craigs cookies':'dining',
+  'sud forno bakery':'dining',
+  'symposium cafe':'dining',
+  'sunset grill':'dining',
+  'eggsmart':'dining',
+  'country style':'dining',
+  'country style donuts':'dining',
+  'coffee time':'dining',
+  'steam whistle':'dining',
+  'steam whistle brewing':'dining',
+  'amsterdam brewing':'dining',
+  'amsterdam brewery':'dining',
+  'bellwoods brewery':'dining',
+  'rorschach brewing':'dining',
+  'left field brewery':'dining',
+  'blood brothers brewing':'dining',
+  'godspeed brewery':'dining',
+  'halo brewery':'dining',
+  'henderson brewing':'dining',
+  'henderson brewery':'dining',
+  'great lakes brewery':'dining',
+  'muddy york brewing':'dining',
+  'burdock brewery':'dining',
+  'indie alehouse':'dining',
+  'indie ale house':'dining',
+  'junction craft brewing':'dining',
+  'black oak brewing':'dining',
+  'mill st brewery':'dining',
+  'mill street brewery':'dining',
+  '49th parallel':'dining',
+  '49th parallel coffee':'dining',
+  '49 parallel':'dining',
+  'revolver coffee':'dining',
+  'revolver':'dining',
+  'prado cafe':'dining',
+  'prado':'dining',
+  'milano coffee':'dining',
+  'milano espresso':'dining',
+  'timbertrain coffee roasters':'dining',
+  'timbertrain':'dining',
+  'bows and arrows coffee':'dining',
+  'bows arrows':'dining',
+  'discovery coffee':'dining',
+  'fernwood coffee':'dining',
+  '2% jazz coffee':'dining',
+  '2 percent jazz':'dining',
+  'habit coffee':'dining',
+  'union pacific coffee':'dining',
+  'wired monk':'dining',
+  'wired monk coffee':'dining',
+  'elephant house coffee':'dining',
+  'zephyr coffee':'dining',
+  'caffe artigiano':'dining',
+  'caffe artigiano vancouver':'dining',
+  'bump and grind':'dining',
+  'bump n grind':'dining',
+  'east van roasters cafe':'dining',
+  'matchstick coffee':'dining',
+  'matchstick':'dining',
+  'kafka\'s coffee':'dining',
+  'kafkas':'dining',
+  'elysian coffee':'dining',
+  'elysian':'dining',
+  'propaganda coffee':'dining',
+  'agro cafe':'dining',
+  'brewhall':'dining',
+  'kokomo':'dining',
+  'kokomo vancouver':'dining',
+  'stormcrow espresso':'dining',
+  'small victory bakery':'dining',
+  'small victory':'dining',
+  'thomas haas patisserie':'dining',
+  'thomas haas':'dining',
+  'thierry chocolates':'dining',
+  'thierry':'dining',
+  'faubourg paris':'dining',
+  'faubourg':'dining',
+  'bella gelateria':'dining',
+  'casa gelato':'dining',
+  'la casa gelato':'dining',
+  'uno gelato':'dining',
+  'mario\'s gelati':'dining',
+  'marios gelati':'dining',
+  'kekou gelato':'dining',
+  'innocent ice cream':'dining',
+  'rain or shine ice cream':'dining',
+  'rain or shine':'dining',
+  'earnest ice cream':'dining',
+  'betty\'s ice cream':'dining',
+  'bettys ice cream':'dining',
+  'la glace':'dining',
+  'yaletown ice cream':'dining',
+  'fiasco gelato':'dining',
+  'righteous gelato':'dining',
+  'made by marcus ice cream':'dining',
+  'sweet jesus':'dining',
+  'sweet jesus ice cream':'dining',
+  'ed\'s real scoop':'dining',
+  'eds real scoop':'dining',
+  'death in venice gelato':'dining',
+  'fresh and ruscello gelato':'dining',
+  'la diperie':'dining',
+  'cows creamery':'dining',
+  'cows':'dining',
+  'great balls of fire':'dining',
+  'tsujiri':'dining',
+  'dolce gelato':'dining',
+  'il gelatiere':'dining',
+  'bang bang ice cream':'dining',
+  'bang bang ice cream bakery':'dining',
+  'kekou gelato house':'dining',
+  'ihalo krunch':'dining',
+  'i-halo krunch':'dining',
+  'scoops ice cream':'dining',
+  'milkbar':'dining',
+  'milkcow':'dining',
+  'old fashioned donuts':'dining',
+  'beavertails':'dining',
+  'beavertail':'dining',
+  'beaver tails':'dining',
+  'kelly\'s bake shoppe':'dining',
+  'kellys bake shoppe':'dining',
+  'sanremo bakery':'dining',
+  'san remo bakery':'dining',
+  'mabel\'s bakery':'dining',
+  'mabels bakery':'dining',
+  'mendocino':'dining',
+  'rush order donuts':'dining',
+  'kunga bakery':'dining',
+  'kris cakes':'dining',
+  'cookie martinez':'dining',
+  'le petit chef':'dining',
+  'sweet gemma bakery':'dining',
+  'sweet gemma':'dining',
+  'la boulangerie':'dining',
+  'gabi\'s bakery':'dining',
+  'crumbl cookies':'dining',
+  'crumbl':'dining',
+  'insomnia cookies':'dining',
+  'meli baker':'dining',
+  'meli bakery':'dining'
+    });
+  }
+  if (typeof MERCHANT_DIRECTORY !== 'undefined' && Array.isArray(MERCHANT_DIRECTORY)) {
+    Array.prototype.push.apply(MERCHANT_DIRECTORY, [
+  {name:'La Ruota Pizzeria',cat:'Pizza',emoji:'🍕',key:'la ruota'},
+  {name:'Uncle Fatih\'s Pizza',cat:'Pizza',emoji:'🍕',key:'uncle fatih\'s'},
+  {name:'Famoso Neapolitan Pizzeria',cat:'Pizza',emoji:'🍕',key:'famoso'},
+  {name:'Nat\'s New York Pizzeria',cat:'Pizza',emoji:'🍕',key:'nat\'s new york pizzeria'},
+  {name:'Rocky Mountain Flatbread',cat:'Pizza',emoji:'🍕',key:'rocky mountain flatbread'},
+  {name:'Mega Bite Pizza',cat:'Pizza',emoji:'🍕',key:'mega bite pizza'},
+  {name:'Halifax Donair',cat:'Donair',emoji:'🥙',key:'halifax donair'},
+  {name:'King\'s Donair',cat:'Donair',emoji:'🥙',key:'king\'s donair'},
+  {name:'Zaytoon Donair',cat:'Donair',emoji:'🥙',key:'zaytoon donair'},
+  {name:'Sami\'s Donair',cat:'Donair',emoji:'🥙',key:'sami\'s donair'},
+  {name:'Ali\'s Donair',cat:'Donair',emoji:'🥙',key:'ali\'s donair'},
+  {name:'Nasib\'s Donair',cat:'Donair',emoji:'🥙',key:'nasib\'s donair'},
+  {name:'Sultan Donair',cat:'Donair',emoji:'🥙',key:'sultan donair'},
+  {name:'Athens Donair',cat:'Donair',emoji:'🥙',key:'athens donair'},
+  {name:'Chic Pea',cat:'Middle Eastern',emoji:'🧆',key:'chic pea'},
+  {name:'Levant Shawarma',cat:'Shawarma',emoji:'🌯',key:'levant shawarma'},
+  {name:'Jerusalem Shawarma',cat:'Shawarma',emoji:'🌯',key:'jerusalem shawarma'},
+  {name:'Aleppo Shawarma',cat:'Shawarma',emoji:'🌯',key:'aleppo shawarma'},
+  {name:'Kabab King',cat:'Kabab',emoji:'🍢',key:'kabab king'},
+  {name:'Jollibee',cat:'Filipino Fast Food',emoji:'🍗',key:'jollibee'},
+  {name:'Red Ribbon Bakeshop',cat:'Filipino Bakery',emoji:'🎂',key:'red ribbon'},
+  {name:'Chowking',cat:'Filipino',emoji:'🍜',key:'chowking canada'},
+  {name:'Bonchon',cat:'Korean Fried Chicken',emoji:'🍗',key:'bonchon'},
+  {name:'Triple O\'s',cat:'Burgers',emoji:'🍔',key:'triple o\'s'},
+  {name:'Parallel 49 Brewing',cat:'Brewery',emoji:'🍺',key:'parallel 49'},
+  {name:'Brassneck Brewery',cat:'Brewery',emoji:'🍺',key:'brassneck'},
+  {name:'33 Acres Brewing',cat:'Brewery',emoji:'🍺',key:'33 acres'},
+  {name:'Steamworks Brewing',cat:'Brewpub',emoji:'🍺',key:'steamworks'},
+  {name:'Granville Island Brewing',cat:'Brewery',emoji:'🍺',key:'granville island brewing'},
+  {name:'Yaletown Brewing',cat:'Brewpub',emoji:'🍺',key:'yaletown brewing'},
+  {name:'Storm Crow Tavern',cat:'Pub',emoji:'🍻',key:'storm crow tavern'},
+  {name:'Famous Foods',cat:'Grocery',emoji:'🛒',key:'famous foods'},
+  {name:'Fresh Street Market',cat:'Grocery',emoji:'🛒',key:'fresh street market'},
+  {name:'Grouse Mountain',cat:'Mountain Resort',emoji:'⛷️',key:'grouse mountain'},
+  {name:'Cypress Mountain',cat:'Mountain Resort',emoji:'⛷️',key:'cypress mountain'},
+  {name:'Whistler Blackcomb',cat:'Mountain Resort',emoji:'⛷️',key:'whistler blackcomb'},
+  {name:'Pabla\'s Indian Cuisine',cat:'Indian',emoji:'🍛',key:'pabla\'s'},
+  {name:'Beaucoup Bakery',cat:'Bakery',emoji:'🥐',key:'beaucoup bakery'},
+  {name:'Republica Coffee',cat:'Coffee',emoji:'☕',key:'republica coffee'},
+  {name:'Peters Drive-In',cat:'Burgers',emoji:'🍔',key:'peters drive-in'},
+  {name:'OEB Breakfast',cat:'Breakfast',emoji:'🍳',key:'oeb breakfast'},
+  {name:'Village Ice Cream',cat:'Ice Cream',emoji:'🍦',key:'village ice cream'},
+  {name:'Made by Marcus',cat:'Ice Cream',emoji:'🍦',key:'made by marcus'},
+  {name:'Phil & Sebastian Coffee',cat:'Coffee',emoji:'☕',key:'phil & sebastian'},
+  {name:'Fratello Coffee',cat:'Coffee',emoji:'☕',key:'fratello coffee'},
+  {name:'Analog Coffee',cat:'Coffee',emoji:'☕',key:'analog coffee'},
+  {name:'Rosso Coffee',cat:'Coffee',emoji:'☕',key:'rosso coffee'},
+  {name:'Monogram Coffee',cat:'Coffee',emoji:'☕',key:'monogram coffee'},
+  {name:'Duchess Bake Shop',cat:'Bakery',emoji:'🥐',key:'duchess bake shop'},
+  {name:'Corso 32',cat:'Italian',emoji:'🍝',key:'corso 32'},
+  {name:'Village Brewery',cat:'Brewery',emoji:'🍺',key:'village brewery'},
+  {name:'Wild Rose Brewery',cat:'Brewery',emoji:'🍺',key:'wild rose brewery'},
+  {name:'Pizza Nova',cat:'Pizza',emoji:'🍕',key:'pizza nova'},
+  {name:'Terroni',cat:'Italian',emoji:'🍝',key:'terroni'},
+  {name:'Buca',cat:'Italian',emoji:'🍝',key:'buca'},
+  {name:'Pai Northern Thai',cat:'Thai',emoji:'🍜',key:'pai northern thai'},
+  {name:'Pizzeria Libretto',cat:'Pizza',emoji:'🍕',key:'pizzeria libretto'},
+  {name:'Balzac\'s Coffee',cat:'Coffee',emoji:'☕',key:'balzac\'s coffee'},
+  {name:'Sam James Coffee Bar',cat:'Coffee',emoji:'☕',key:'sam james coffee'},
+  {name:'Rooster Coffee',cat:'Coffee',emoji:'☕',key:'rooster coffee'},
+  {name:'Dark Horse Espresso',cat:'Coffee',emoji:'☕',key:'dark horse espresso'},
+  {name:'Pilot Coffee Roasters',cat:'Coffee',emoji:'☕',key:'pilot coffee'},
+  {name:'Nadège Patisserie',cat:'Bakery',emoji:'🥐',key:'nadege'},
+  {name:'Steam Whistle Brewing',cat:'Brewery',emoji:'🍺',key:'steam whistle'},
+  {name:'Bellwoods Brewery',cat:'Brewery',emoji:'🍺',key:'bellwoods brewery'},
+  {name:'49th Parallel Coffee',cat:'Coffee',emoji:'☕',key:'49th parallel'},
+  {name:'Matchstick Coffee',cat:'Coffee',emoji:'☕',key:'matchstick coffee'},
+  {name:'Revolver Coffee',cat:'Coffee',emoji:'☕',key:'revolver coffee'},
+  {name:'Caffe Artigiano',cat:'Coffee',emoji:'☕',key:'caffe artigiano'},
+  {name:'Bella Gelateria',cat:'Gelato',emoji:'🍨',key:'bella gelateria'},
+  {name:'La Casa Gelato',cat:'Gelato',emoji:'🍨',key:'la casa gelato'},
+  {name:'Uno Gelato',cat:'Gelato',emoji:'🍨',key:'uno gelato'},
+  {name:'Fiasco Gelato',cat:'Gelato',emoji:'🍨',key:'fiasco gelato'},
+  {name:'Rain or Shine Ice Cream',cat:'Ice Cream',emoji:'🍦',key:'rain or shine'},
+  {name:'Earnest Ice Cream',cat:'Ice Cream',emoji:'🍦',key:'earnest ice cream'},
+  {name:'Sweet Jesus',cat:'Ice Cream',emoji:'🍦',key:'sweet jesus'},
+  {name:'BeaverTails',cat:'Bakery',emoji:'🥐',key:'beavertails'},
+  {name:'Crumbl Cookies',cat:'Bakery',emoji:'🍪',key:'crumbl cookies'},
+  {name:'Thomas Haas Patisserie',cat:'Chocolatier',emoji:'🍫',key:'thomas haas'}
+    ]);
+  }
+  console.log('V55 merchant expansion loaded:', 824, 'aliases,', 79, 'merchant entries');
+} catch (e) {
+  console.warn('V55 merchant expansion failed:', e);
+}
+</script>
+<script>
+// ================================================================
+// V56 CARD EXPANSION — 15 new Canadian credit cards
+// Adds after CARDS_DB is fully declared so no temporal dead zone.
+// Wrapped in try/catch for safety.
+// ================================================================
+try {
+  if (typeof CARDS_DB === 'object' && CARDS_DB) {
+    Object.assign(CARDS_DB, {
+      simpliiCashback:{n:'Simplii Cash Back Visa',e:'\u{1F49C}',cl:'rogers',iss:'Simplii',net:'Visa',r:'4% restaurants',w:'Free 4% dining cashback.',feeRetail:0,feeYours:0,scotiaEmployee:false,
+       benefits:[['\u{1F37D}\uFE0F','4% restaurants','4%'],['\u26FD','1.5% gas/grocery/drug','1.5%'],['\u{1F4B3}','No annual fee','\u2605']],
+       extra:'No fee. CIBC family.',
+       realRates:{dining:4,groceryAmex:1.5,groceryNo:1.5,loblaws:1.5,gas:1.5,transit:1.5,streaming:1,rogers:1,shopping:0.5,shoppingAmex:0.5,base:0.5,costco:1,walmart:0.5,cineplex:1,travel:1,marriott:1,usd:0,other:0.5}},
+      amexAeroplan:{n:'Amex Aeroplan Card',e:'\u2708\uFE0F',cl:'cobalt',iss:'Amex',net:'Amex',r:'2x Air Canada',w:'Mid-tier Aeroplan Amex.',feeRetail:139,feeYours:139,scotiaEmployee:false,
+       benefits:[['\u2708\uFE0F','2x Air Canada','2x'],['\u{1F37D}\uFE0F','1.5x dining/delivery','1.5x'],['\u{1F381}','Buddy pass','\u2605']],
+       extra:'Base Aeroplan Amex tier.',
+       realRates:{dining:2.25,groceryAmex:1.5,shopping:1.5,shoppingAmex:1.5,streaming:1.5,transit:1.5,gas:1.5,base:1.5,cineplex:1.5,travel:3,marriott:1.5,usd:1.5,groceryNo:1.5,loblaws:1.5,costco:1.5,walmart:1.5,other:1.5}},
+      hsbcWorldElite:{n:'HSBC World Elite Mastercard',e:'\u{1F534}',cl:'cobalt',iss:'HSBC',net:'Mastercard',r:'3x travel',w:'HSBC travel MC.',feeRetail:149,feeYours:149,scotiaEmployee:false,
+       benefits:[['\u2708\uFE0F','3x travel via HSBC','3x'],['\u{1F374}','2x dining/gas/entertainment','2x'],['\u{1F30D}','No FX (limited)','\u2605']],
+       extra:'HSBC now RBC-owned.',
+       realRates:{dining:2,groceryAmex:1,groceryNo:1,loblaws:1,gas:2,transit:2,streaming:1,shopping:1,shoppingAmex:1,base:1,costco:1,walmart:1,cineplex:2,travel:3,marriott:3,usd:1,other:1}},
+      vancityVisa:{n:'Vancity enviro Visa Infinite',e:'\u{1F33F}',cl:'pass',iss:'Vancity',net:'Visa',r:'1.5% CB',w:'BC credit union card.',feeRetail:120,feeYours:120,scotiaEmployee:false,
+       benefits:[['\u{1F4B5}','1.5% all spend','1.5%'],['\u{1F30D}','Ethical credit union','\u2605']],
+       extra:'BC credit union.',
+       realRates:{dining:1.5,groceryAmex:1.5,groceryNo:1.5,loblaws:1.5,shopping:1.5,shoppingAmex:1.5,streaming:1.5,transit:1.5,gas:1.5,base:1.5,costco:1.5,walmart:1.5,cineplex:1.5,travel:1.5,marriott:1.5,usd:0,other:1.5}},
+      atbCashRewards:{n:'ATB Cash Rewards Visa',e:'\u{1F49B}',cl:'rogers',iss:'ATB',net:'Visa',r:'2% CB',w:'Alberta CU card.',feeRetail:0,feeYours:0,scotiaEmployee:false,
+       benefits:[['\u{1F6D2}','2% grocery/gas','2%'],['\u{1F4B3}','No annual fee','\u2605']],
+       extra:'ATB (Alberta).',
+       realRates:{groceryAmex:2,groceryNo:2,loblaws:2,gas:2,transit:2,dining:1,shopping:1,shoppingAmex:1,streaming:1,base:1,costco:1,walmart:1,cineplex:1,travel:1,marriott:1,usd:0,other:1}},
+      servusVisa:{n:'Servus World Elite Mastercard',e:'\u{1F49A}',cl:'cobalt',iss:'Servus',net:'Mastercard',r:'1.5% CB',w:'AB credit union card.',feeRetail:99,feeYours:99,scotiaEmployee:false,
+       benefits:[['\u{1F4B5}','1.5% all spend','1.5%'],['\u2708\uFE0F','Travel insurance','\u2605']],
+       extra:'Servus (Alberta CU).',
+       realRates:{dining:1.5,groceryAmex:1.5,groceryNo:1.5,loblaws:1.5,shopping:1.5,shoppingAmex:1.5,streaming:1.5,transit:1.5,gas:1.5,base:1.5,costco:1.5,walmart:1.5,cineplex:1.5,travel:1.5,marriott:1.5,usd:0,other:1.5}},
+      prosperaVisa:{n:'Prospera Cash Back Visa',e:'\u{1F33C}',cl:'rogers',iss:'Prospera',net:'Visa',r:'2% CB',w:'BC CU cashback.',feeRetail:0,feeYours:0,scotiaEmployee:false,
+       benefits:[['\u{1F6D2}','2% grocery','2%'],['\u{1F4B3}','No fee','\u2605']],
+       extra:'Prospera (BC CU).',
+       realRates:{groceryAmex:2,groceryNo:2,loblaws:2,gas:1,transit:1,dining:1,shopping:1,shoppingAmex:1,streaming:1,base:1,costco:1,walmart:1,cineplex:1,travel:1,marriott:1,usd:0,other:1}},
+      rogersPreferred:{n:'Rogers Preferred Mastercard',e:'\u{1F7E0}',cl:'rogers',iss:'Rogers',net:'Mastercard',r:'1.5% CB',w:'Rogers no-fee entry MC.',feeRetail:0,feeYours:0,scotiaEmployee:false,
+       benefits:[['\u{1F4B5}','1.5% all spend','1.5%'],['\u{1F4F1}','4% Rogers/Fido bill','4%']],
+       extra:'Entry-tier Rogers MC.',
+       realRates:{dining:1.5,groceryAmex:1.5,groceryNo:1.5,loblaws:1.5,shopping:1.5,shoppingAmex:1.5,streaming:1.5,transit:1.5,gas:1.5,base:1.5,costco:1.5,walmart:1.5,cineplex:1.5,travel:1.5,marriott:1.5,usd:0,rogers:4,other:1.5}},
+      fidoMC:{n:'Fido Mastercard',e:'\u{1F7E2}',cl:'rogers',iss:'Fido',net:'Mastercard',r:'1.5% CB',w:'Fido co-brand MC.',feeRetail:0,feeYours:0,scotiaEmployee:false,
+       benefits:[['\u{1F4B5}','1.5% all spend','1.5%'],['\u{1F4F1}','4% Fido/Rogers bill','4%']],
+       extra:'No fee Fido co-brand.',
+       realRates:{dining:1.5,groceryAmex:1.5,groceryNo:1.5,loblaws:1.5,shopping:1.5,shoppingAmex:1.5,streaming:1.5,transit:1.5,gas:1.5,base:1.5,costco:1.5,walmart:1.5,cineplex:1.5,travel:1.5,marriott:1.5,usd:0,rogers:4,other:1.5}},
+      neoSecure:{n:'Neo Secure Mastercard',e:'\u26A1',cl:'pass',iss:'Neo',net:'Mastercard',r:'Credit builder',w:'Secured credit-building MC.',feeRetail:0,feeYours:0,scotiaEmployee:false,
+       benefits:[['\u{1F4B3}','Credit builder','\u2605'],['\u{1F4B5}','No annual fee','\u2605']],
+       extra:'Secured. Builds credit.',
+       realRates:{dining:1,groceryAmex:1,groceryNo:1,loblaws:1,shopping:1,shoppingAmex:1,streaming:1,transit:1,gas:1,base:1,costco:1,walmart:1,cineplex:1,travel:1,marriott:1,usd:0,other:1}},
+      kohoEverything:{n:'KOHO Everything',e:'\u{1F3A8}',cl:'rogers',iss:'KOHO',net:'Mastercard',r:'3% grocery',w:'Premium KOHO prepaid.',feeRetail:228,feeYours:228,scotiaEmployee:false,
+       benefits:[['\u{1F6D2}','3% grocery/dining/transit','3%'],['\u{1F30D}','No FX','\u2605'],['\u{1F4B0}','5% savings interest','\u2605']],
+       extra:'$19/mo prepaid tier.',
+       realRates:{dining:3,groceryAmex:3,groceryNo:3,loblaws:3,shopping:1,shoppingAmex:1,streaming:1,transit:3,gas:1,base:1,costco:1,walmart:1,cineplex:1,travel:1,marriott:1,usd:1,other:1}},
+      pcWorldMC:{n:'PC World Mastercard',e:'\u{1F6D2}',cl:'rogers',iss:'PC Financial',net:'Mastercard',r:'20 pts/$ Loblaw',w:'No-fee PC MC.',feeRetail:0,feeYours:0,scotiaEmployee:false,
+       benefits:[['\u{1F6D2}','20 pts/$1 Loblaw','\u2605'],['\u{1F4B0}','30 pts/$1 Shoppers','\u2605']],
+       extra:'No fee entry PC.',
+       realRates:{loblaws:2,groceryNo:2,dining:1,groceryAmex:1,shopping:1,shoppingAmex:1,streaming:1,transit:1,gas:1,base:1,costco:1,walmart:1,cineplex:1,travel:1,marriott:1,usd:0,other:1}},
+      tdFirstClass:{n:'TD First Class Travel Visa Infinite',e:'\u2708\uFE0F',cl:'cobalt',iss:'TD',net:'Visa',r:'4.5x Expedia',w:'Top TD Rewards travel.',feeRetail:139,feeYours:139,scotiaEmployee:false,
+       benefits:[['\u2708\uFE0F','9x via Expedia (4.5%)','9x'],['\u{1F374}','3x dining/grocery','3x']],
+       extra:'Expedia bookings shine.',
+       realRates:{dining:1.5,groceryAmex:1.5,groceryNo:1.5,loblaws:1.5,shopping:1,shoppingAmex:1,streaming:1,transit:1.5,gas:1.5,base:1,costco:1,walmart:1,cineplex:1,travel:4.5,marriott:1.5,usd:0,other:1}},
+      amexBonvoyBusiness:{n:'Marriott Bonvoy Business Amex',e:'\u{1F4BC}',cl:'bonvoy',iss:'Amex',net:'Amex',r:'6x Marriott',w:'Business Bonvoy card.',feeRetail:150,feeYours:150,scotiaEmployee:false,
+       benefits:[['\u{1F3E8}','6x Marriott','6x'],['\u2708\uFE0F','3x gas/dining/transit','3x'],['\u{1F381}','Free night cert','\u2605']],
+       extra:'Business Bonvoy.',
+       realRates:{marriott:4.8,dining:2.4,groceryAmex:0.8,shopping:0.8,shoppingAmex:0.8,streaming:0.8,transit:2.4,gas:2.4,base:0.8,cineplex:0.8,travel:1.6,usd:0.8,groceryNo:0.8,loblaws:0.8,costco:0.8,walmart:0.8,other:0.8}},
+      amazonRBCVisa:{n:'Amazon.ca RBC Visa',e:'\u{1F4E6}',cl:'cobalt',iss:'RBC',net:'Visa',r:'2.5% Amazon',w:'Amazon co-brand.',feeRetail:0,feeYours:0,scotiaEmployee:false,
+       benefits:[['\u{1F4E6}','2.5% Amazon.ca','2.5%'],['\u{1F30D}','No FX','\u2605'],['\u{1F4B3}','No fee','\u2605']],
+       extra:'No FX + Amazon boost.',
+       realRates:{dining:1,groceryAmex:1,groceryNo:1,loblaws:1,shopping:2.5,shoppingAmex:2.5,streaming:1,transit:1,gas:1,base:1,costco:1,walmart:1,cineplex:1,travel:1,marriott:1,usd:1,other:1}}
+    });
+    console.log('V56 card expansion loaded:', Object.keys(CARDS_DB).length, 'total cards in CARDS_DB');
+  }
+} catch (e) {
+  console.warn('V56 card expansion failed:', e);
+}
 </script>
 </body>
 </html>
