@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Wallet IQ V62</title>
+<title>Wallet IQ V64</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Wallet IQ">
@@ -459,30 +459,18 @@ body.dark .credit-card .cc-btn{background:var(--ink)!important;color:var(--surfa
 body.dark .credit-filter.on{background:var(--accent)!important;color:var(--ink)!important}
 </style>
 <style>
-/* V57 HEADER REFRESH - compact left-aligned brand + logo + theme toggle */
 .header-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;min-height:38px}
 .brand-wrap{display:flex;align-items:center;gap:8px;flex:1;min-width:0;cursor:pointer;user-select:none;padding:2px 4px;border-radius:10px;transition:opacity .12s ease,transform .12s ease}
 .brand-wrap:active{transform:scale(.97);opacity:.75}
-.brand-wrap:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .brand-logo{width:30px;height:30px;flex-shrink:0;filter:drop-shadow(0 2px 4px rgba(60,50,30,.10))}
 .brand-name{font-size:17px;font-weight:900;letter-spacing:-.028em;color:var(--ink);line-height:1;white-space:nowrap}
 .brand-iq{color:#5f74b8;font-weight:900}
 body.dark .brand-iq{color:#a5b3d8}
 .header-btn-sm{width:34px;height:34px;font-size:15px;flex-shrink:0}
 h1#titleHome{display:none}
-@media(max-width:375px){
-  .brand-logo{width:28px;height:28px}
-  .brand-name{font-size:15.5px}
-  .header-btn-sm{width:32px;height:32px;font-size:14px}
-  .header-row{gap:6px}
-}
+@media(max-width:375px){.brand-logo{width:28px;height:28px}.brand-name{font-size:15.5px}.header-btn-sm{width:32px;height:32px;font-size:14px}.header-row{gap:6px}}
 </style>
 <style>
-/* ================================================================
-   V58 PEARL LAVENDER THEME
-   Light pearl/lavender background with pink hint, pure white cards,
-   soft violet-tinted shadows, bold black text, clean blue accents.
-   ================================================================ */
 :root{
   --bg:#eeeaf5;--bg-2:#f0e5ea;--surface:#ffffff;--surface-2:#f5f3fb;--surface-3:#eae6f4;
   --ink:#0a0a12;--ink-2:#1f1f2e;--muted:#8b8b9a;--muted-2:#a8a8b8;
@@ -490,9 +478,8 @@ h1#titleHome{display:none}
   --brand:#2563eb;--brand-2:#1d4ed8;--accent:#3b82f6;--accent-2:#2563eb;--accent-soft:#e0e9ff;
   --indigo:#6366f1;--indigo-soft:#e8e5ff;--amber:#c58e2c;--amber-soft:#faf0d8;
   --coral:#c95050;--coral-soft:#fbdede;--green:#1a7d3a;--greenbg:#daf0dc;
-  --shadow-sm:0 1px 2px rgba(85,75,130,.04),0 1px 2px rgba(85,75,130,.03);
-  --shadow:0 4px 14px rgba(85,75,130,.07),0 1px 4px rgba(85,75,130,.04);
-  --shadow-lg:0 12px 32px rgba(85,75,130,.10),0 4px 12px rgba(85,75,130,.06);
+  --shadow-sm:0 1px 2px rgba(85,75,130,.04);
+  --shadow:0 4px 14px rgba(85,75,130,.07);
 }
 body{background:linear-gradient(135deg,#eeeaf5 0%,#f2ecf3 40%,#f0e5ea 100%)!important;color:var(--ink)}
 body.dark{
@@ -504,591 +491,111 @@ body.dark{
   --coral:#d67c70;--coral-soft:#3d201c;--green:#8bb491;--greenbg:#1a2f22;
   background:linear-gradient(135deg,#0e0d15 0%,#131120 40%,#180e18 100%)!important;
 }
-
-/* Top bar - glass effect with pearl tint */
-.top{
-  background:rgba(238,234,245,.85)!important;
-  backdrop-filter:blur(20px) saturate(140%)!important;
-  border-bottom:none!important;
-  padding-bottom:12px!important;
-}
+.top{background:rgba(238,234,245,.85)!important;backdrop-filter:blur(20px) saturate(140%)!important;border-bottom:none!important;padding-bottom:12px!important}
 body.dark .top{background:rgba(14,13,21,.85)!important}
-
-/* Brand */
 .brand-name{font-size:19px;font-weight:900;letter-spacing:-.03em;color:var(--ink)!important}
 .brand-iq{color:#5f74b8!important;font-weight:900}
 body.dark .brand-iq{color:#a5b3d8!important}
-
-/* Header buttons - white circles with soft shadow */
-.header-btn,.header-btn-sm{
-  background:var(--surface)!important;
-  border:none!important;
-  box-shadow:var(--shadow-sm)!important;
-  transition:transform .1s ease,box-shadow .15s ease!important;
-}
-.header-btn:hover,.header-btn-sm:hover{box-shadow:var(--shadow)!important}
-.header-btn:active,.header-btn-sm:active{transform:scale(.94)}
-
-/* Search bar - larger, rounder, pillier */
-input#q{
-  background:var(--surface)!important;
-  border:none!important;
-  border-radius:24px!important;
-  padding:14px 18px 14px 46px!important;
-  font-size:15px!important;
-  font-weight:700!important;
-  box-shadow:var(--shadow-sm)!important;
-}
-input#q:focus{
-  box-shadow:0 0 0 3px rgba(37,99,235,.15),var(--shadow)!important;
-}
+.header-btn,.header-btn-sm{background:var(--surface)!important;border:none!important;box-shadow:var(--shadow-sm)!important}
+input#q{background:var(--surface)!important;border:none!important;border-radius:24px!important;padding:14px 18px 14px 46px!important;font-size:15px!important;font-weight:700!important;box-shadow:var(--shadow-sm)!important}
+input#q:focus{box-shadow:0 0 0 3px rgba(37,99,235,.15),var(--shadow)!important}
 .search-wrap{position:relative}
-.search-wrap::before{
-  content:"\1F50D";
-  position:absolute;
-  left:16px;top:50%;
-  transform:translateY(-50%);
-  font-size:16px;
-  pointer-events:none;
-  z-index:2;
-  opacity:.7;
-}
-
-/* Cards - larger radius */
-.hero,.item,.cardBig,.tile,.settings-link,.credit-card,.recent-card,.overview-card,.sub-card,.tx-item,.feature-card,.card-check{
-  background:var(--surface);
-  border:none;
-  border-radius:22px;
-  box-shadow:var(--shadow);
-}
-body.dark .hero,body.dark .item,body.dark .cardBig,body.dark .tile,body.dark .settings-link,body.dark .credit-card,body.dark .recent-card,body.dark .overview-card,body.dark .sub-card,body.dark .tx-item,body.dark .feature-card,body.dark .card-check{
-  background:var(--surface)!important;color:var(--ink)!important
-}
-
-/* Hero recommendation - clean centered layout */
+.search-wrap::before{content:"\1F50D";position:absolute;left:16px;top:50%;transform:translateY(-50%);font-size:16px;pointer-events:none;z-index:2;opacity:.7}
+.hero,.item,.cardBig,.tile,.settings-link,.credit-card,.recent-card,.overview-card,.sub-card,.tx-item,.feature-card,.card-check{background:var(--surface);border:none;border-radius:22px;box-shadow:var(--shadow)}
 #hero{padding:20px 18px!important}
 #hero .k{font-size:11px;color:var(--muted);font-weight:900;letter-spacing:.14em;text-transform:uppercase;text-align:center;margin-bottom:14px}
 .hero-art{margin:8px 0 16px!important}
 .hero-art .cc-svg{max-width:260px!important;box-shadow:0 12px 28px rgba(85,75,130,.18)!important;border-radius:18px}
 #hero h2{font-size:22px!important;font-weight:900!important;letter-spacing:-.028em!important;text-align:center;margin:12px 0 8px}
-#hero .grid{display:none!important} /* hide the emoji dot + card name grid - keep only h2 */
-#hero .sub{display:none!important} /* handled by pill below */
-
-/* Add a big % in green pill under card art */
-#hero h2 + .pills,#hero .pills{
-  justify-content:center!important;
-  margin:8px 0 14px!important;
-  gap:6px!important;
-}
-#hero .pills .pill:first-child{
-  background:var(--greenbg)!important;
-  color:var(--green)!important;
-  padding:10px 18px!important;
-  font-size:16px!important;
-  font-weight:900!important;
-  border-radius:99px!important;
-  letter-spacing:-.01em!important;
-}
-#hero .pills .pill{
-  font-size:11px;font-weight:900;padding:5px 10px;border-radius:99px;
-}
-.pill.conf-high{background:var(--greenbg)!important;color:var(--green)!important}
-
-/* Log this purchase - BIG BLACK CTA */
-.hero-log-btn{
-  background:#0a0a12!important;
-  color:#ffffff!important;
-  border:none!important;
-  padding:16px 20px!important;
-  border-radius:99px!important;
-  font-weight:900!important;
-  font-size:15px!important;
-  width:100%!important;
-  box-shadow:0 4px 14px rgba(10,10,18,.18)!important;
-  letter-spacing:-.01em;
-  cursor:pointer;
-  transition:transform .1s ease;
-}
-.hero-log-btn:active{transform:scale(.98)}
+#hero .grid{display:none!important}
+#hero .sub{display:none!important}
+#hero .pills{justify-content:center!important;margin:8px 0 14px!important;gap:6px!important}
+#hero .pills .pill:first-child{background:var(--greenbg)!important;color:var(--green)!important;padding:10px 18px!important;font-size:16px!important;font-weight:900!important;border-radius:99px!important}
+.hero-log-btn{background:#0a0a12!important;color:#ffffff!important;border:none!important;padding:16px 20px!important;border-radius:99px!important;font-weight:900!important;font-size:15px!important;width:100%!important;box-shadow:0 4px 14px rgba(10,10,18,.18)!important}
 body.dark .hero-log-btn{background:#ffffff!important;color:#0a0a12!important}
-.hero-log-wrap{border-top:none!important;margin-top:16px!important;padding-top:8px!important}
-
-/* Log form */
-.hero-log-form input{
-  background:var(--surface-2)!important;
-  border:none!important;
-  border-radius:16px!important;
-  padding:14px 16px!important;
-  font-weight:800;
-  box-shadow:var(--shadow-sm)!important;
-}
-.hero-log-form .hl-save{
-  background:var(--green)!important;
-  color:#fff!important;
-  border:none!important;
-  border-radius:16px!important;
-  padding:14px 22px!important;
-}
-
-/* Header wallet-icon container - clean */
+.hero-log-form input{background:var(--surface-2)!important;border:none!important;border-radius:16px!important;padding:14px 16px!important;font-weight:800}
+.hero-log-form .hl-save{background:var(--green)!important;color:#fff!important;border:none!important;border-radius:16px!important;padding:14px 22px!important}
 .brand-wrap{padding:2px 6px 2px 2px!important}
 .brand-logo{filter:drop-shadow(0 3px 6px rgba(85,75,130,.14))!important}
-
-/* Empty state */
 .empty-state{background:var(--surface)!important;border:none!important;border-radius:22px!important;box-shadow:var(--shadow)!important}
-.empty-state button{
-  background:var(--brand)!important;
-  color:#fff!important;
-  border:none!important;
-  border-radius:99px!important;
-  padding:14px 28px!important;
-  box-shadow:0 4px 14px rgba(37,99,235,.25)!important;
-}
-
-/* Buttons on toggle groups */
-button.on{background:var(--ink)!important;color:var(--surface)!important;border-color:var(--ink)!important}
-body.dark button.on{background:var(--surface)!important;color:var(--ink)!important}
-
-/* Rewards Hero - refresh */
-.rewards-hero{
-  background:linear-gradient(135deg,#22212f 0%,#181722 100%)!important;
-  border:none!important;
-  border-radius:24px!important;
-  color:#fff!important;
-}
-.rewards-hero .rh-big{color:#7ec894!important}
-.rewards-hero .rh-tile{background:rgba(255,255,255,.06)!important;border:none!important}
-
-/* Vault summary */
-.vault-summary-card{
-  background:linear-gradient(135deg,#312e56 0%,#1a1830 100%)!important;
-  color:#fff!important;
-  border:none!important;
-  border-radius:24px!important;
-}
-.vault-summary-card .vs-big,.vault-summary-card .vs-mini .vm .v{color:#b4a5e8!important}
-
-/* Offers Hero */
-#offersHero{
-  background:linear-gradient(135deg,#22212f 0%,#181722 100%)!important;
-  color:#fff!important;
-  border:none!important;
-  border-radius:24px!important;
-}
-#offersHero .oh-stat .v{color:#7ec894!important}
-
-/* Credits Hero */
-.credits-hero{
-  background:linear-gradient(135deg,#1a3d2a 0%,#0f2419 100%)!important;
-  color:#fff!important;
-  border:none!important;
-  border-radius:24px!important;
-}
-.credits-hero .ch-big{color:#7ec894!important}
-
-/* Drawer */
+.empty-state button{background:var(--brand)!important;color:#fff!important;border:none!important;border-radius:99px!important;padding:14px 28px!important;box-shadow:0 4px 14px rgba(37,99,235,.25)!important}
 .drawer{border-radius:24px 0 0 24px!important}
-.drawer-item.active{
-  background:var(--brand)!important;
-  color:#fff!important;
-  border-radius:14px!important;
-}
-
-/* Modals */
+.drawer-item.active{background:var(--brand)!important;color:#fff!important;border-radius:14px!important}
 .modal{border-radius:28px 28px 0 0!important}
-.modal-actions .primary{
-  background:var(--brand)!important;
-  color:#fff!important;
-  border:none!important;
-  border-radius:16px!important;
-  box-shadow:0 4px 14px rgba(37,99,235,.25)!important;
-}
-
-/* Autocomplete */
-.autocomplete{
-  border:none!important;
-  border-radius:20px!important;
-  box-shadow:0 16px 40px rgba(85,75,130,.18)!important;
-}
-
-/* Filter pills */
-#filterRow button.on{
-  background:var(--brand)!important;
-  color:#fff!important;
-  border:none!important;
-  border-radius:99px!important;
-}
-
-/* Card check (onboarding) */
-.card-check.checked{
-  border:2px solid var(--brand)!important;
-  background:var(--accent-soft)!important;
-}
+.modal-actions .primary{background:var(--brand)!important;color:#fff!important;border:none!important;border-radius:16px!important}
+.autocomplete{border:none!important;border-radius:20px!important;box-shadow:0 16px 40px rgba(85,75,130,.18)!important}
+#filterRow button.on{background:var(--brand)!important;color:#fff!important;border:none!important;border-radius:99px!important}
+.card-check.checked{border:2px solid var(--brand)!important;background:var(--accent-soft)!important}
 .card-check.checked .cc-mark{background:var(--brand)!important;border-color:var(--brand)!important}
-
-/* Feature discovery icons */
 .feature-card .fc-ico{background:var(--accent-soft)!important;color:var(--brand)!important}
-.feature-card .fc-ico.indigo{background:var(--indigo-soft)!important;color:var(--indigo)!important}
-.feature-card .fc-ico.amber{background:var(--amber-soft)!important;color:var(--amber)!important}
-
-/* Info/warn boxes */
 .warn-box{background:var(--amber-soft)!important;border:none!important;color:#8a5f14!important;border-radius:16px!important}
 .info-box{background:var(--accent-soft)!important;border:none!important;color:#1e4194!important;border-radius:16px!important}
-
-/* Flash notifications */
-.log-flash{
-  background:linear-gradient(135deg,#1a7d3a,#2ba149)!important;
-  border-radius:99px!important;
-  box-shadow:0 8px 24px rgba(26,125,58,.35)!important;
-}
-
-/* Rewards subtabs */
 .rewards-subtabs{background:var(--surface-2)!important;border:none!important;border-radius:16px!important}
 .rewards-subtabs button.on{background:var(--surface)!important;box-shadow:var(--shadow-sm)!important}
-
-/* Fees section in cardBig */
 .fees{background:transparent!important;border:none!important;border-top:1px solid var(--border)!important;border-bottom:1px solid var(--border)!important;padding:4px 0!important}
 .fees>div{background:transparent!important}
 .fees .savings{color:var(--green)!important}
-
-/* Benefits rows */
 .benefits .row .v{color:var(--brand)!important}
-
-/* Confidence pills */
-.pill.conf-mid{background:var(--amber-soft)!important;color:var(--amber)!important}
-.pill.conf-low{background:var(--coral-soft)!important;color:var(--coral)!important}
 </style>
 <style>
-/* ================================================================
-   V59 HERO COMPONENT UNIFICATION
-   Softens all dark-themed hero blocks to match pearl lavender theme.
-   Rewards Studio, Points Vault, Welcome Offers, Statement Credits,
-   Best Card Near Me — all get consistent light treatment.
-   ================================================================ */
-
-/* ---------- REWARDS STUDIO HERO ---------- */
-.rewards-hero{
-  background:linear-gradient(135deg,#ffffff 0%,#f5f2fa 60%,#f0eaf0 100%)!important;
-  color:var(--ink)!important;
-  border:none!important;
-  border-radius:24px!important;
-  padding:20px 18px!important;
-  box-shadow:0 4px 18px rgba(85,75,130,.08),0 1px 4px rgba(85,75,130,.04)!important;
-  position:relative;
-  overflow:hidden;
-}
-.rewards-hero::before{
-  content:"";
-  position:absolute;
-  top:-40px;right:-40px;
-  width:180px;height:180px;
-  background:radial-gradient(circle,rgba(95,116,184,.10),transparent 65%);
-  pointer-events:none;
-}
-.rewards-hero .rh-label{
-  color:var(--muted)!important;
-  opacity:1!important;
-  font-weight:900;
-  letter-spacing:.14em;
-  font-size:10.5px;
-}
-.rewards-hero .rh-big{
-  color:var(--green)!important;
-  font-weight:900;
-}
+.rewards-hero{background:linear-gradient(135deg,#ffffff 0%,#f5f2fa 60%,#f0eaf0 100%)!important;color:var(--ink)!important;border:none!important;border-radius:24px!important;padding:20px 18px!important;box-shadow:0 4px 18px rgba(85,75,130,.08)!important;position:relative;overflow:hidden}
+.rewards-hero::before{content:"";position:absolute;top:-40px;right:-40px;width:180px;height:180px;background:radial-gradient(circle,rgba(95,116,184,.10),transparent 65%);pointer-events:none}
+.rewards-hero .rh-label{color:var(--muted)!important;opacity:1!important;font-weight:900;letter-spacing:.14em;font-size:10.5px}
+.rewards-hero .rh-big{color:var(--green)!important;font-weight:900}
 .rewards-hero .rh-sub{color:var(--muted)!important;opacity:.85!important}
-.rewards-hero .rh-tiles{
-  border-top:1px solid rgba(85,75,130,.10)!important;
-}
-.rewards-hero .rh-tile{
-  background:rgba(255,255,255,.75)!important;
-  border:1px solid rgba(85,75,130,.06)!important;
-  box-shadow:var(--shadow-sm)!important;
-}
+.rewards-hero .rh-tile{background:rgba(255,255,255,.75)!important;border:1px solid rgba(85,75,130,.06)!important}
 .rewards-hero .rh-tile .l{color:var(--muted)!important;opacity:.85}
 .rewards-hero .rh-tile .v{color:var(--ink)!important}
 .rewards-hero .rh-tile .v.green{color:var(--green)!important}
 .rewards-hero .rh-tile .v.red{color:var(--coral)!important}
-body.dark .rewards-hero{
-  background:linear-gradient(135deg,#22212f 0%,#1c1a2a 60%,#181722 100%)!important;
-  color:var(--ink)!important;
-}
-body.dark .rewards-hero .rh-tile{
-  background:rgba(255,255,255,.04)!important;
-  border-color:rgba(255,255,255,.06)!important;
-}
-
-/* ---------- VAULT SUMMARY CARD ---------- */
-.vault-summary-card{
-  background:linear-gradient(135deg,#ffffff 0%,#efeaf7 55%,#e9e0f0 100%)!important;
-  color:var(--ink)!important;
-  border:none!important;
-  border-radius:24px!important;
-  padding:18px 20px!important;
-  box-shadow:0 4px 18px rgba(85,75,130,.09),0 1px 4px rgba(85,75,130,.05)!important;
-  position:relative;
-  overflow:hidden;
-}
-.vault-summary-card::after{
-  content:"";
-  position:absolute;
-  top:-30px;right:-30px;
-  width:160px;height:160px;
-  background:radial-gradient(circle,rgba(99,102,241,.16),transparent 65%);
-  pointer-events:none;
-}
-.vault-summary-card .vs-label{color:var(--muted)!important;opacity:1!important;font-weight:900;letter-spacing:.14em}
-.vault-summary-card .vs-big,
-.vault-summary-card .vs-mini .vm .v{color:var(--indigo)!important;font-weight:900}
+.vault-summary-card{background:linear-gradient(135deg,#ffffff 0%,#efeaf7 55%,#e9e0f0 100%)!important;color:var(--ink)!important;border:none!important;border-radius:24px!important;padding:18px 20px!important;box-shadow:0 4px 18px rgba(85,75,130,.09)!important;position:relative;overflow:hidden}
+.vault-summary-card::after{content:"";position:absolute;top:-30px;right:-30px;width:160px;height:160px;background:radial-gradient(circle,rgba(99,102,241,.16),transparent 65%);pointer-events:none}
+.vault-summary-card .vs-label{color:var(--muted)!important;opacity:1!important;font-weight:900}
+.vault-summary-card .vs-big,.vault-summary-card .vs-mini .vm .v{color:var(--indigo)!important;font-weight:900}
 .vault-summary-card .vs-sub{color:var(--muted)!important;opacity:.85!important}
-.vault-summary-card .vs-arrow{color:var(--muted)!important}
-.vault-summary-card .vs-mini{
-  border-top:1px solid rgba(85,75,130,.10)!important;
-}
 .vault-summary-card .vs-mini .vm .l{color:var(--muted)!important;opacity:.85}
-body.dark .vault-summary-card{
-  background:linear-gradient(135deg,#22212f 0%,#241c34 55%,#1c1a2a 100%)!important;
-  color:var(--ink)!important;
-}
-
-/* ---------- OFFERS HERO ---------- */
-#offersHero{
-  background:linear-gradient(135deg,#ffffff 0%,#f0eef7 55%,#eae4f2 100%)!important;
-  color:var(--ink)!important;
-  border:none!important;
-  border-radius:24px!important;
-  padding:20px 18px!important;
-  box-shadow:0 4px 18px rgba(85,75,130,.08),0 1px 4px rgba(85,75,130,.04)!important;
-  position:relative;
-  overflow:hidden;
-}
-#offersHero::before{
-  content:"";
-  position:absolute;
-  top:-40px;right:-40px;
-  width:180px;height:180px;
-  background:radial-gradient(circle,rgba(37,99,235,.12),transparent 65%);
-  pointer-events:none;
-}
-#offersHero .oh-label{
-  color:var(--brand)!important;
-  opacity:1!important;
-  font-weight:900;
-  letter-spacing:.14em;
-  font-size:10.5px;
-}
+#offersHero{background:linear-gradient(135deg,#ffffff 0%,#f0eef7 55%,#eae4f2 100%)!important;color:var(--ink)!important;border:none!important;border-radius:24px!important;padding:20px 18px!important;box-shadow:0 4px 18px rgba(85,75,130,.08)!important;position:relative;overflow:hidden}
+#offersHero::before{content:"";position:absolute;top:-40px;right:-40px;width:180px;height:180px;background:radial-gradient(circle,rgba(37,99,235,.12),transparent 65%);pointer-events:none}
+#offersHero .oh-label{color:var(--brand)!important;opacity:1!important;font-weight:900}
 #offersHero .oh-title{color:var(--ink)!important;font-weight:900}
 #offersHero .oh-sub{color:var(--muted)!important;opacity:1!important}
-#offersHero .oh-stats{
-  border-top:1px solid rgba(85,75,130,.10)!important;
-}
 #offersHero .oh-stat .l{color:var(--muted)!important;opacity:.85}
 #offersHero .oh-stat .v{color:var(--brand)!important;font-weight:900}
-body.dark #offersHero{
-  background:linear-gradient(135deg,#22212f 0%,#1e1c2e 55%,#1a1826 100%)!important;
-  color:var(--ink)!important;
-}
-
-/* ---------- CREDITS HERO ---------- */
-.credits-hero{
-  background:linear-gradient(135deg,#ffffff 0%,#eef5f0 55%,#e5f0e8 100%)!important;
-  color:var(--ink)!important;
-  border:none!important;
-  border-radius:24px!important;
-  padding:20px 18px!important;
-  box-shadow:0 4px 18px rgba(85,75,130,.08),0 1px 4px rgba(85,75,130,.04)!important;
-  position:relative;
-  overflow:hidden;
-}
-.credits-hero::before{
-  content:"";
-  position:absolute;
-  top:-40px;right:-40px;
-  width:180px;height:180px;
-  background:radial-gradient(circle,rgba(26,125,58,.14),transparent 65%);
-  pointer-events:none;
-}
-.credits-hero .ch-label{
-  color:var(--green)!important;
-  opacity:1!important;
-  font-weight:900;
-  letter-spacing:.14em;
-}
+.credits-hero{background:linear-gradient(135deg,#ffffff 0%,#eef5f0 55%,#e5f0e8 100%)!important;color:var(--ink)!important;border:none!important;border-radius:24px!important;padding:20px 18px!important;box-shadow:0 4px 18px rgba(85,75,130,.08)!important;position:relative;overflow:hidden}
+.credits-hero::before{content:"";position:absolute;top:-40px;right:-40px;width:180px;height:180px;background:radial-gradient(circle,rgba(26,125,58,.14),transparent 65%);pointer-events:none}
+.credits-hero .ch-label{color:var(--green)!important;opacity:1!important;font-weight:900}
 .credits-hero .ch-big{color:var(--green)!important;font-weight:900}
 .credits-hero .ch-sub{color:var(--muted)!important;opacity:1!important}
 .credits-hero .ch-ring .rr-bg{stroke:rgba(85,75,130,.14)!important}
 .credits-hero .ch-ring .rr-fg{stroke:var(--green)!important}
 .credits-hero .ch-ring .rr-pct{color:var(--green)!important;font-weight:900}
-.credits-hero .ch-stats{
-  border-top:1px solid rgba(85,75,130,.10)!important;
-}
 .credits-hero .ch-stat .l{color:var(--muted)!important;opacity:.85}
 .credits-hero .ch-stat .v{color:var(--ink)!important}
 .credits-hero .ch-stat .v.green{color:var(--green)!important}
 .credits-hero .ch-stat .v.yellow{color:var(--amber)!important}
 .credits-hero .ch-stat .v.red{color:var(--coral)!important}
-body.dark .credits-hero{
-  background:linear-gradient(135deg,#22212f 0%,#1c2820 55%,#152218 100%)!important;
-  color:var(--ink)!important;
-}
-
-/* ---------- LOCATION HERO (NEW: Best Card Near Me) ---------- */
-.location-hero{
-  background:linear-gradient(135deg,#ffffff 0%,#f0eef7 55%,#e9e6f2 100%)!important;
-  color:var(--ink)!important;
-  border:none!important;
-  border-radius:24px!important;
-  padding:24px 20px!important;
-  margin-bottom:14px!important;
-  text-align:center;
-  box-shadow:0 4px 18px rgba(85,75,130,.08),0 1px 4px rgba(85,75,130,.04)!important;
-  position:relative;
-  overflow:hidden;
-}
-.location-hero::before{
-  content:"";
-  position:absolute;
-  top:-40px;right:-40px;
-  width:180px;height:180px;
-  background:radial-gradient(circle,rgba(37,99,235,.12),transparent 65%);
-  pointer-events:none;
-}
+.location-hero{background:linear-gradient(135deg,#ffffff 0%,#f0eef7 55%,#e9e6f2 100%)!important;color:var(--ink)!important;border:none!important;border-radius:24px!important;padding:24px 20px!important;margin-bottom:14px!important;text-align:center;box-shadow:0 4px 18px rgba(85,75,130,.08)!important;position:relative;overflow:hidden}
+.location-hero::before{content:"";position:absolute;top:-40px;right:-40px;width:180px;height:180px;background:radial-gradient(circle,rgba(37,99,235,.12),transparent 65%);pointer-events:none}
 .location-hero > div:first-child{position:relative;z-index:1}
-.location-hero > div:nth-child(2){
-  font-size:20px!important;
-  font-weight:900!important;
-  color:var(--ink)!important;
-  letter-spacing:-.02em;
-  margin-bottom:6px!important;
-}
-.location-hero > div:nth-child(3){
-  color:var(--muted)!important;
-  opacity:1!important;
-  font-size:12.5px!important;
-  font-weight:750;
-  line-height:1.4;
-  margin-bottom:16px!important;
-}
-.location-detect-btn{
-  background:var(--brand)!important;
-  color:#ffffff!important;
-  border:none!important;
-  padding:14px 28px!important;
-  border-radius:99px!important;
-  font-weight:900!important;
-  font-size:14px!important;
-  cursor:pointer;
-  box-shadow:0 4px 14px rgba(37,99,235,.28)!important;
-  transition:transform .1s ease,box-shadow .15s ease;
-  letter-spacing:-.01em;
-  position:relative;
-  z-index:1;
-}
-.location-detect-btn:hover{box-shadow:0 6px 18px rgba(37,99,235,.35)!important}
+.location-hero > div:nth-child(2){font-size:20px!important;font-weight:900!important;color:var(--ink)!important;letter-spacing:-.02em;margin-bottom:6px!important}
+.location-hero > div:nth-child(3){color:var(--muted)!important;opacity:1!important;font-size:12.5px!important;font-weight:750;line-height:1.4;margin-bottom:16px!important}
+.location-detect-btn{background:var(--brand)!important;color:#ffffff!important;border:none!important;padding:14px 28px!important;border-radius:99px!important;font-weight:900!important;font-size:14px!important;cursor:pointer;box-shadow:0 4px 14px rgba(37,99,235,.28)!important;position:relative;z-index:1}
 .location-detect-btn:active{transform:scale(.97)}
-body.dark .location-hero{
-  background:linear-gradient(135deg,#22212f 0%,#1e1c2e 55%,#1a1826 100%)!important;
-  color:var(--ink)!important;
-}
-
-/* ---------- OFFER APPLY LINK (NEW: bottom of each welcome offer card) ---------- */
-.offer-apply-link{
-  display:flex!important;
-  justify-content:space-between!important;
-  align-items:center!important;
-  padding:14px 16px!important;
-  background:linear-gradient(135deg,var(--brand),var(--brand-2))!important;
-  color:#ffffff!important;
-  font-weight:900!important;
-  font-size:13px!important;
-  text-decoration:none!important;
-  border-top:1px solid rgba(85,75,130,.08)!important;
-  letter-spacing:-.01em;
-  transition:filter .15s ease;
-}
+.offer-apply-link{display:flex!important;justify-content:space-between!important;align-items:center!important;padding:14px 16px!important;background:linear-gradient(135deg,var(--brand),var(--brand-2))!important;color:#ffffff!important;font-weight:900!important;font-size:13px!important;text-decoration:none!important;border-top:1px solid rgba(85,75,130,.08)!important}
 .offer-apply-link:hover{filter:brightness(1.08)}
-.offer-apply-link:active{filter:brightness(.95)}
-
-/* ---------- CLEAR OFFERS SEARCH BUTTON ---------- */
-#offersNoMatch button{
-  background:var(--brand)!important;
-  color:#fff!important;
-  border:none!important;
-  padding:12px 22px!important;
-  border-radius:99px!important;
-  font-size:13px!important;
-  font-weight:900!important;
-  box-shadow:0 4px 14px rgba(37,99,235,.24)!important;
-}
-
-/* ---------- OFFERS COUNT LABEL (uppercase muted) ---------- */
+#offersNoMatch button{background:var(--brand)!important;color:#fff!important;border:none!important;padding:12px 22px!important;border-radius:99px!important;font-size:13px!important;font-weight:900!important;box-shadow:0 4px 14px rgba(37,99,235,.24)!important}
 #offersCountLabel{color:var(--muted)!important;font-weight:900!important}
-
-/* ---------- OFFER CARD - now with brand-colored footer link ---------- */
-#offersList .cardBig{overflow:hidden}
-
-/* ---------- FIX ADDITIONAL DARK ELEMENTS ---------- */
-.studio-actions .sa-btn.primary{
-  background:var(--brand)!important;
-  color:#fff!important;
-  border:none!important;
-  border-radius:14px!important;
-  box-shadow:0 4px 14px rgba(37,99,235,.22)!important;
-}
-body.dark .studio-actions .sa-btn.primary{
-  background:var(--surface)!important;
-  color:var(--ink)!important;
-}
-.credit-filter.on{
-  background:var(--brand)!important;
-  color:#fff!important;
-  border:none!important;
-  border-radius:99px!important;
-  box-shadow:0 2px 8px rgba(37,99,235,.20)!important;
-}
-.credit-card .cc-btn{
-  background:var(--brand)!important;
-  color:#fff!important;
-  border:none!important;
-  border-radius:12px!important;
-  padding:10px 16px!important;
-  font-weight:900!important;
-  box-shadow:0 2px 8px rgba(37,99,235,.20)!important;
-}
-body.dark .credit-card .cc-btn{
-  background:var(--surface-2)!important;
-  color:var(--ink)!important;
-}
-.credit-card .cc-btn.claimed{
-  background:transparent!important;
-  color:var(--muted)!important;
-  border:1.5px solid var(--border)!important;
-  box-shadow:none!important;
-}
-.month-pill.on{
-  background:var(--brand)!important;
-  color:#fff!important;
-  border-color:transparent!important;
-  border-radius:99px!important;
-  box-shadow:0 2px 8px rgba(37,99,235,.18)!important;
-}
-body.dark .month-pill.on{background:var(--surface-2)!important;color:var(--ink)!important}
-.mode-pill.on{
-  background:var(--brand)!important;
-  color:#fff!important;
-  border-color:transparent!important;
-  border-radius:99px!important;
-}
+.studio-actions .sa-btn.primary{background:var(--brand)!important;color:#fff!important;border:none!important;border-radius:14px!important;box-shadow:0 4px 14px rgba(37,99,235,.22)!important}
+.credit-filter.on{background:var(--brand)!important;color:#fff!important;border:none!important;border-radius:99px!important}
+.credit-card .cc-btn{background:var(--brand)!important;color:#fff!important;border:none!important;border-radius:12px!important;padding:10px 16px!important;font-weight:900!important}
+.credit-card .cc-btn.claimed{background:transparent!important;color:var(--muted)!important;border:1.5px solid var(--border)!important}
+.month-pill.on{background:var(--brand)!important;color:#fff!important;border-color:transparent!important;border-radius:99px!important}
 </style>
 <style>
-/* V60 safeguards */
 .vs-arrow{display:none!important}
+.fees > div > div:nth-child(3):not(.savings){display:none!important}
 </style>
 <style>
-/* ================================================================
-   V61 DARK MODE — matches pearl lavender theme
-   Deep purple-tinted near-black with soft periwinkle + cream text
-   ================================================================ */
 body.dark{
   --bg:#0f0d1a;--bg-2:#141127;--surface:#1c1830;--surface-2:#241d3a;--surface-3:#2e2648;
   --ink:#ececf5;--ink-2:#c8c6d5;--muted:#8b8b9a;--muted-2:#6b6b7a;
@@ -1099,661 +606,155 @@ body.dark{
   background:linear-gradient(135deg,#0f0d1a 0%,#141127 45%,#100a1a 100%)!important;
   color:var(--ink)!important;
 }
-
-/* Top bar - dark glass */
-body.dark .top{
-  background:rgba(15,13,26,.88)!important;
-  backdrop-filter:blur(20px) saturate(140%)!important;
-  border-bottom:none!important;
-}
-
-/* Brand */
+body.dark .top{background:rgba(15,13,26,.88)!important;backdrop-filter:blur(20px) saturate(140%)!important;border-bottom:none!important}
 body.dark .brand-name{color:var(--ink)!important}
 body.dark .brand-iq{color:#a5b3d8!important}
-
-/* SVG logo in dark mode - brighter for visibility */
 body.dark .brand-logo rect[fill="#5f74b8"]{fill:#8ea3d8!important}
 body.dark .brand-logo rect[fill="#4c609e"]{fill:#6a7fb8!important}
 body.dark .brand-logo rect[fill="#c9d3e8"]{fill:#4a5680!important}
 body.dark .brand-logo rect[fill="#e0e7f2"]{fill:#5a6b95!important}
 body.dark .brand-logo circle{fill:#1c1830!important}
-
-/* Header buttons - dark surface with subtle violet tint */
-body.dark .header-btn,body.dark .header-btn-sm{
-  background:var(--surface)!important;
-  color:var(--ink)!important;
-  box-shadow:0 1px 2px rgba(0,0,0,.3),0 1px 3px rgba(0,0,0,.2)!important;
-}
-body.dark .header-btn:hover,body.dark .header-btn-sm:hover{
-  background:var(--surface-2)!important;
-  box-shadow:0 4px 12px rgba(0,0,0,.3)!important;
-}
-
-/* Search bar */
-body.dark input#q{
-  background:var(--surface)!important;
-  color:var(--ink)!important;
-  box-shadow:0 1px 2px rgba(0,0,0,.3)!important;
-}
+body.dark .header-btn,body.dark .header-btn-sm{background:var(--surface)!important;color:var(--ink)!important;box-shadow:0 1px 2px rgba(0,0,0,.3)!important}
+body.dark input#q{background:var(--surface)!important;color:var(--ink)!important;box-shadow:0 1px 2px rgba(0,0,0,.3)!important}
 body.dark input#q::placeholder{color:var(--muted)!important}
-body.dark input#q:focus{
-  background:var(--surface-2)!important;
-  box-shadow:0 0 0 3px rgba(142,163,216,.25),0 4px 12px rgba(0,0,0,.3)!important;
-}
+body.dark input#q:focus{background:var(--surface-2)!important;box-shadow:0 0 0 3px rgba(142,163,216,.25),0 4px 12px rgba(0,0,0,.3)!important}
 body.dark .search-wrap::before{opacity:.5}
-
-/* Cards - subtle violet-tinted surface with gentle border */
-body.dark .hero,body.dark .item,body.dark .cardBig,body.dark .tile,body.dark .settings-link,
-body.dark .credit-card,body.dark .recent-card,body.dark .overview-card,body.dark .sub-card,
-body.dark .tx-item,body.dark .feature-card,body.dark .card-check{
-  background:var(--surface)!important;
-  border:1px solid var(--border)!important;
-  color:var(--ink)!important;
-  box-shadow:0 4px 14px rgba(0,0,0,.25),0 1px 4px rgba(0,0,0,.15)!important;
-}
-
-/* Home Hero recommendation */
+body.dark .hero,body.dark .item,body.dark .cardBig,body.dark .tile,body.dark .settings-link,body.dark .credit-card,body.dark .recent-card,body.dark .overview-card,body.dark .sub-card,body.dark .tx-item,body.dark .feature-card,body.dark .card-check{background:var(--surface)!important;border:1px solid var(--border)!important;color:var(--ink)!important;box-shadow:0 4px 14px rgba(0,0,0,.25)!important}
 body.dark #hero .k{color:var(--muted)!important}
 body.dark #hero h2{color:var(--ink)!important}
-body.dark #hero .pills .pill:first-child{
-  background:rgba(126,200,148,.14)!important;
-  color:var(--green)!important;
-}
-
-/* Big Log this purchase button - INVERT to cream on dark */
-body.dark .hero-log-btn{
-  background:var(--ink)!important;
-  color:#0f0d1a!important;
-  box-shadow:0 4px 14px rgba(0,0,0,.4)!important;
-}
-
-/* Log form inputs */
-body.dark .hero-log-form input{
-  background:var(--surface-2)!important;
-  color:var(--ink)!important;
-  box-shadow:none!important;
-}
-body.dark .hero-log-form input::placeholder{color:var(--muted)!important}
+body.dark #hero .pills .pill:first-child{background:rgba(126,200,148,.14)!important;color:var(--green)!important}
+body.dark .hero-log-btn{background:var(--ink)!important;color:#0f0d1a!important;box-shadow:0 4px 14px rgba(0,0,0,.4)!important}
+body.dark .hero-log-form input{background:var(--surface-2)!important;color:var(--ink)!important;box-shadow:none!important}
 body.dark .hero-log-form .hl-save{background:var(--green)!important;color:#0f0d1a!important}
-body.dark .hero-log-preview{
-  background:rgba(126,200,148,.10)!important;
-  border-color:rgba(126,200,148,.25)!important;
-  color:var(--green)!important;
-}
-
-/* Rewards Studio Hero */
-body.dark .rewards-hero{
-  background:linear-gradient(135deg,#22212f 0%,#1c1a2a 55%,#161425 100%)!important;
-  color:var(--ink)!important;
-  border:1px solid var(--border)!important;
-  box-shadow:0 6px 22px rgba(0,0,0,.35)!important;
-}
-body.dark .rewards-hero::before{
-  background:radial-gradient(circle,rgba(142,163,216,.16),transparent 65%)!important;
-}
+body.dark .rewards-hero{background:linear-gradient(135deg,#22212f 0%,#1c1a2a 55%,#161425 100%)!important;color:var(--ink)!important;border:1px solid var(--border)!important}
+body.dark .rewards-hero::before{background:radial-gradient(circle,rgba(142,163,216,.16),transparent 65%)!important}
 body.dark .rewards-hero .rh-label{color:var(--muted)!important}
 body.dark .rewards-hero .rh-big{color:var(--green)!important}
-body.dark .rewards-hero .rh-sub{color:var(--muted)!important}
-body.dark .rewards-hero .rh-tile{
-  background:rgba(255,255,255,.04)!important;
-  border:1px solid rgba(255,255,255,.06)!important;
-}
-body.dark .rewards-hero .rh-tile .l{color:var(--muted)!important}
+body.dark .rewards-hero .rh-tile{background:rgba(255,255,255,.04)!important;border:1px solid rgba(255,255,255,.06)!important}
 body.dark .rewards-hero .rh-tile .v{color:var(--ink)!important}
 body.dark .rewards-hero .rh-tile .v.green{color:var(--green)!important}
 body.dark .rewards-hero .rh-tile .v.red{color:var(--coral)!important}
-
-/* Vault Summary Card */
-body.dark .vault-summary-card{
-  background:linear-gradient(135deg,#241d3a 0%,#1e1732 55%,#181228 100%)!important;
-  color:var(--ink)!important;
-  border:1px solid var(--border)!important;
-  box-shadow:0 6px 22px rgba(0,0,0,.35)!important;
-}
-body.dark .vault-summary-card::after{
-  background:radial-gradient(circle,rgba(168,155,194,.20),transparent 65%)!important;
-}
+body.dark .vault-summary-card{background:linear-gradient(135deg,#241d3a 0%,#1e1732 55%,#181228 100%)!important;color:var(--ink)!important;border:1px solid var(--border)!important}
+body.dark .vault-summary-card::after{background:radial-gradient(circle,rgba(168,155,194,.20),transparent 65%)!important}
 body.dark .vault-summary-card .vs-label{color:var(--muted)!important}
-body.dark .vault-summary-card .vs-big,
-body.dark .vault-summary-card .vs-mini .vm .v{color:var(--indigo)!important}
-body.dark .vault-summary-card .vs-sub{color:var(--muted)!important}
-body.dark .vault-summary-card .vs-mini .vm .l{color:var(--muted)!important}
-
-/* Offers Hero */
-body.dark #offersHero{
-  background:linear-gradient(135deg,#22212f 0%,#1e1c34 55%,#181628 100%)!important;
-  color:var(--ink)!important;
-  border:1px solid var(--border)!important;
-  box-shadow:0 6px 22px rgba(0,0,0,.35)!important;
-}
-body.dark #offersHero::before{
-  background:radial-gradient(circle,rgba(142,163,216,.16),transparent 65%)!important;
-}
-body.dark #offersHero .oh-label{color:var(--brand)!important}
-body.dark #offersHero .oh-title{color:var(--ink)!important}
-body.dark #offersHero .oh-sub{color:var(--muted)!important}
-body.dark #offersHero .oh-stat .l{color:var(--muted)!important}
-body.dark #offersHero .oh-stat .v{color:var(--brand)!important}
-
-/* Credits Hero */
-body.dark .credits-hero{
-  background:linear-gradient(135deg,#22212f 0%,#1c2820 55%,#152218 100%)!important;
-  color:var(--ink)!important;
-  border:1px solid var(--border)!important;
-  box-shadow:0 6px 22px rgba(0,0,0,.35)!important;
-}
-body.dark .credits-hero::before{
-  background:radial-gradient(circle,rgba(126,200,148,.18),transparent 65%)!important;
-}
-body.dark .credits-hero .ch-label{color:var(--green)!important}
-body.dark .credits-hero .ch-big{color:var(--green)!important}
-body.dark .credits-hero .ch-sub{color:var(--muted)!important}
-body.dark .credits-hero .ch-ring .rr-bg{stroke:rgba(255,255,255,.10)!important}
+body.dark .vault-summary-card .vs-big,body.dark .vault-summary-card .vs-mini .vm .v{color:var(--indigo)!important}
+body.dark #offersHero{background:linear-gradient(135deg,#22212f 0%,#1e1c34 55%,#181628 100%)!important;color:var(--ink)!important;border:1px solid var(--border)!important}
+body.dark #offersHero::before{background:radial-gradient(circle,rgba(142,163,216,.16),transparent 65%)!important}
+body.dark #offersHero .oh-label,body.dark #offersHero .oh-stat .v{color:var(--brand)!important}
+body.dark .credits-hero{background:linear-gradient(135deg,#22212f 0%,#1c2820 55%,#152218 100%)!important;color:var(--ink)!important;border:1px solid var(--border)!important}
+body.dark .credits-hero::before{background:radial-gradient(circle,rgba(126,200,148,.18),transparent 65%)!important}
+body.dark .credits-hero .ch-label,body.dark .credits-hero .ch-big,body.dark .credits-hero .ch-ring .rr-pct{color:var(--green)!important}
 body.dark .credits-hero .ch-ring .rr-fg{stroke:var(--green)!important}
-body.dark .credits-hero .ch-ring .rr-pct{color:var(--green)!important}
-body.dark .credits-hero .ch-stat .l{color:var(--muted)!important}
-body.dark .credits-hero .ch-stat .v{color:var(--ink)!important}
-body.dark .credits-hero .ch-stat .v.green{color:var(--green)!important}
-body.dark .credits-hero .ch-stat .v.yellow{color:var(--amber)!important}
-body.dark .credits-hero .ch-stat .v.red{color:var(--coral)!important}
-
-/* Location Hero */
-body.dark .location-hero{
-  background:linear-gradient(135deg,#22212f 0%,#1e1c34 55%,#181628 100%)!important;
-  color:var(--ink)!important;
-  border:1px solid var(--border)!important;
-  box-shadow:0 6px 22px rgba(0,0,0,.35)!important;
-}
-body.dark .location-hero::before{
-  background:radial-gradient(circle,rgba(142,163,216,.16),transparent 65%)!important;
-}
-body.dark .location-detect-btn{
-  background:var(--brand)!important;
-  color:#0f0d1a!important;
-  box-shadow:0 4px 14px rgba(142,163,216,.28)!important;
-}
-body.dark .location-detect-btn:hover{
-  box-shadow:0 6px 18px rgba(142,163,216,.4)!important;
-}
-
-/* Offer apply link - subtle periwinkle instead of bright blue */
-body.dark .offer-apply-link{
-  background:linear-gradient(135deg,var(--brand),var(--brand-2))!important;
-  color:#0f0d1a!important;
-}
-
-/* Clear search button in offers no-match */
-body.dark #offersNoMatch button{
-  background:var(--brand)!important;
-  color:#0f0d1a!important;
-  box-shadow:0 4px 14px rgba(142,163,216,.28)!important;
-}
-
-/* Empty state */
-body.dark .empty-state{
-  background:var(--surface)!important;
-  border:1px dashed var(--border-2)!important;
-  color:var(--ink)!important;
-}
-body.dark .empty-state h3{color:var(--ink)!important}
-body.dark .empty-state p{color:var(--muted)!important}
-body.dark .empty-state button{
-  background:var(--brand)!important;
-  color:#0f0d1a!important;
-  box-shadow:0 4px 14px rgba(142,163,216,.28)!important;
-}
-
-/* Feature discovery cards */
+body.dark .credits-hero .ch-ring .rr-bg{stroke:rgba(255,255,255,.10)!important}
+body.dark .location-hero{background:linear-gradient(135deg,#22212f 0%,#1e1c34 55%,#181628 100%)!important;color:var(--ink)!important;border:1px solid var(--border)!important}
+body.dark .location-hero::before{background:radial-gradient(circle,rgba(142,163,216,.16),transparent 65%)!important}
+body.dark .location-detect-btn{background:var(--brand)!important;color:#0f0d1a!important}
+body.dark .offer-apply-link{background:linear-gradient(135deg,var(--brand),var(--brand-2))!important;color:#0f0d1a!important}
+body.dark #offersNoMatch button{background:var(--brand)!important;color:#0f0d1a!important}
+body.dark .empty-state{background:var(--surface)!important;border:1px dashed var(--border-2)!important;color:var(--ink)!important}
+body.dark .empty-state button{background:var(--brand)!important;color:#0f0d1a!important}
 body.dark .feature-card{background:var(--surface)!important;color:var(--ink)!important}
-body.dark .feature-card .fc-title{color:var(--ink)!important}
-body.dark .feature-card .fc-sub{color:var(--muted)!important}
-body.dark .feature-card .fc-arrow{color:var(--muted)!important}
 body.dark .feature-card .fc-ico{background:var(--accent-soft)!important;color:var(--brand)!important}
 body.dark .feature-card .fc-ico.indigo{background:var(--indigo-soft)!important;color:var(--indigo)!important}
 body.dark .feature-card .fc-ico.amber{background:var(--amber-soft)!important;color:var(--amber)!important}
-
-/* Card check (onboarding) */
-body.dark .card-check{background:var(--surface)!important;color:var(--ink)!important}
-body.dark .card-check .cc-name{color:var(--ink)!important}
-body.dark .card-check .cc-sub{color:var(--muted)!important}
-body.dark .card-check.checked{
-  background:var(--accent-soft)!important;
-  border-color:var(--brand)!important;
-}
-body.dark .card-check.checked .cc-mark{
-  background:var(--brand)!important;
-  border-color:var(--brand)!important;
-}
-
-/* Drawer */
-body.dark .drawer{background:var(--surface)!important;color:var(--ink)!important;box-shadow:-12px 0 40px rgba(0,0,0,.5)!important}
-body.dark .drawer-title{color:var(--ink)!important}
-body.dark .drawer-close{color:var(--muted)!important}
+body.dark .card-check.checked{background:var(--accent-soft)!important;border-color:var(--brand)!important}
+body.dark .card-check.checked .cc-mark{background:var(--brand)!important;border-color:var(--brand)!important}
+body.dark .drawer{background:var(--surface)!important;color:var(--ink)!important}
 body.dark .drawer-item{color:var(--ink)!important}
 body.dark .drawer-item:hover{background:var(--surface-2)!important}
-body.dark .drawer-item.active{
-  background:var(--brand)!important;
-  color:#0f0d1a!important;
-}
+body.dark .drawer-item.active{background:var(--brand)!important;color:#0f0d1a!important}
 body.dark .drawer-divider{background:var(--border)!important}
 body.dark .drawer-footer{color:var(--muted)!important}
-
-/* Modal */
-body.dark .modal-overlay{background:rgba(0,0,0,.75)!important}
-body.dark .modal{background:var(--surface)!important;color:var(--ink)!important;box-shadow:0 -20px 60px rgba(0,0,0,.6)!important}
-body.dark .modal-head h2{color:var(--ink)!important}
-body.dark .modal-head p{color:var(--muted)!important}
-body.dark .modal-search{
-  background:var(--surface-2)!important;
-  color:var(--ink)!important;
-  border-color:var(--border)!important;
-}
-body.dark .modal-search::placeholder{color:var(--muted)!important}
-body.dark .add-custom-btn{
-  background:rgba(142,163,216,.10)!important;
-  color:var(--brand)!important;
-  border-color:var(--brand)!important;
-}
-body.dark .form-row label{color:var(--muted)!important}
-body.dark .form-row input,body.dark .form-row select{
-  background:var(--surface-2)!important;
-  color:var(--ink)!important;
-  border-color:var(--border)!important;
-}
-body.dark .modal-actions{background:linear-gradient(to top,var(--surface) 60%,transparent)!important}
+body.dark .modal{background:var(--surface)!important;color:var(--ink)!important}
+body.dark .modal-search{background:var(--surface-2)!important;color:var(--ink)!important;border-color:var(--border)!important}
+body.dark .form-row input,body.dark .form-row select{background:var(--surface-2)!important;color:var(--ink)!important;border-color:var(--border)!important}
 body.dark .modal-actions button{background:var(--surface-2)!important;color:var(--ink)!important;border-color:var(--border)!important}
-body.dark .modal-actions .primary{
-  background:var(--brand)!important;
-  color:#0f0d1a!important;
-  border:none!important;
-  box-shadow:0 4px 14px rgba(142,163,216,.28)!important;
-}
-
-/* Autocomplete */
-body.dark .autocomplete{
-  background:var(--surface)!important;
-  border:1px solid var(--border)!important;
-  box-shadow:0 16px 40px rgba(0,0,0,.5)!important;
-}
-body.dark .ac-item{border-bottom:1px solid var(--border)!important;color:var(--ink)!important}
+body.dark .modal-actions .primary{background:var(--brand)!important;color:#0f0d1a!important;border:none!important}
+body.dark .autocomplete{background:var(--surface)!important;border:1px solid var(--border)!important}
+body.dark .ac-item{color:var(--ink)!important;border-color:var(--border)!important}
 body.dark .ac-item:hover,body.dark .ac-item.active{background:var(--surface-2)!important}
-body.dark .ac-item .ac-name{color:var(--ink)!important}
-body.dark .ac-item .ac-cat{color:var(--muted)!important}
-body.dark .ac-item .ac-badge{background:var(--surface-2)!important;color:var(--muted)!important}
-body.dark .ac-item .ac-badge.no-amex{background:rgba(232,147,147,.15)!important;color:var(--coral)!important}
-body.dark .qc-chips-wrap{background:var(--surface-2)!important}
-body.dark .qc-chips-title{color:var(--muted)!important}
-body.dark .qc-chip{background:var(--surface)!important;color:var(--ink)!important;border-color:var(--border)!important}
-body.dark .qc-chip.fx{background:var(--accent-soft)!important;color:var(--brand)!important;border-color:var(--brand)!important}
-
-/* Filter row */
 body.dark #filterRow button{background:var(--surface)!important;color:var(--ink)!important;border-color:var(--border)!important}
-body.dark #filterRow button.on{
-  background:var(--brand)!important;
-  color:#0f0d1a!important;
-  border-color:transparent!important;
-}
+body.dark #filterRow button.on{background:var(--brand)!important;color:#0f0d1a!important;border-color:transparent!important}
 body.dark #offersCountLabel{color:var(--muted)!important}
-
-/* Rewards subtabs */
 body.dark .rewards-subtabs{background:var(--surface-2)!important;border:none!important}
 body.dark .rewards-subtabs button{color:var(--muted)!important}
 body.dark .rewards-subtabs button.on{background:var(--surface)!important;color:var(--ink)!important}
-
-/* Studio actions */
 body.dark .studio-actions .sa-btn{background:var(--surface)!important;color:var(--ink)!important;border-color:var(--border)!important}
-body.dark .studio-actions .sa-btn.primary{
-  background:var(--brand)!important;
-  color:#0f0d1a!important;
-  border:none!important;
-}
-body.dark .studio-actions .sa-btn.danger{color:var(--coral)!important;border-color:var(--coral)!important}
-
-/* Month pills */
+body.dark .studio-actions .sa-btn.primary{background:var(--brand)!important;color:#0f0d1a!important;border:none!important}
 body.dark .month-pill{background:var(--surface)!important;color:var(--ink)!important;border-color:var(--border)!important}
-body.dark .month-pill.on{
-  background:var(--brand)!important;
-  color:#0f0d1a!important;
-  border-color:transparent!important;
-}
-
-/* Credit filter */
+body.dark .month-pill.on{background:var(--brand)!important;color:#0f0d1a!important;border-color:transparent!important}
 body.dark .credit-filter{background:var(--surface)!important;color:var(--ink)!important;border-color:var(--border)!important}
-body.dark .credit-filter.on{
-  background:var(--brand)!important;
-  color:#0f0d1a!important;
-  border-color:transparent!important;
-}
-body.dark .credit-filter .cf-badge{background:rgba(255,255,255,.10)!important}
-body.dark .credit-filter.on .cf-badge{background:rgba(0,0,0,.20)!important}
-
-/* Credit card items */
+body.dark .credit-filter.on{background:var(--brand)!important;color:#0f0d1a!important;border-color:transparent!important}
 body.dark .credit-card{background:var(--surface)!important;color:var(--ink)!important}
-body.dark .credit-card.redeemed{
-  background:linear-gradient(135deg,#0f2818,var(--surface))!important;
-  border-color:rgba(126,200,148,.30)!important;
-}
-body.dark .credit-card .cc-title{color:var(--ink)!important}
-body.dark .credit-card .cc-meta{color:var(--muted)!important}
-body.dark .credit-card .cc-desc{color:var(--muted)!important}
-body.dark .credit-card .cc-amt{color:var(--green)!important}
-body.dark .credit-card .cc-btn{
-  background:var(--brand)!important;
-  color:#0f0d1a!important;
-  border:none!important;
-}
-body.dark .credit-card .cc-btn.claimed{
-  background:transparent!important;
-  color:var(--muted)!important;
-  border:1.5px solid var(--border)!important;
-}
-
-/* Home credit alert */
-body.dark .home-credit-alert{
-  background:linear-gradient(135deg,#3a1d24,#2a151c)!important;
-  border-color:rgba(232,147,147,.30)!important;
-}
-body.dark .home-credit-alert .hca-title{color:var(--coral)!important}
-body.dark .home-credit-alert .hca-sub{color:var(--coral)!important;opacity:.85}
-body.dark .home-credit-alert .hca-arrow{color:var(--coral)!important}
-
-/* Warn/info boxes */
-body.dark .warn-box{
-  background:rgba(212,167,106,.14)!important;
-  border:1px solid rgba(212,167,106,.25)!important;
-  color:var(--amber)!important;
-}
-body.dark .info-box{
-  background:rgba(142,163,216,.14)!important;
-  border:1px solid rgba(142,163,216,.25)!important;
-  color:var(--brand)!important;
-}
-
-/* Transaction items */
-body.dark .tx-item{background:var(--surface)!important;color:var(--ink)!important;border-color:var(--border)!important}
+body.dark .credit-card .cc-btn{background:var(--brand)!important;color:#0f0d1a!important}
+body.dark .credit-card .cc-btn.claimed{background:transparent!important;color:var(--muted)!important;border:1.5px solid var(--border)!important}
+body.dark .warn-box{background:rgba(212,167,106,.14)!important;border:1px solid rgba(212,167,106,.25)!important;color:var(--amber)!important}
+body.dark .info-box{background:rgba(142,163,216,.14)!important;border:1px solid rgba(142,163,216,.25)!important;color:var(--brand)!important}
+body.dark .tx-item{background:var(--surface)!important;color:var(--ink)!important}
 body.dark .tx-item .txmerch{color:var(--ink)!important}
 body.dark .tx-item .txmeta{color:var(--muted)!important}
 body.dark .tx-item .txamt{color:var(--ink)!important}
 body.dark .tx-item .txrew{color:var(--green)!important}
 body.dark .tx-item .txmiss{color:var(--coral)!important}
-body.dark .tx-item .tx-tag.miss{background:rgba(232,147,147,.15)!important;color:var(--coral)!important}
-body.dark .tx-item .tx-tag.opt{background:rgba(126,200,148,.15)!important;color:var(--green)!important}
-body.dark .tx-item .txbtns button{background:transparent!important;color:var(--muted)!important;border-color:var(--border)!important}
-body.dark .tx-empty{color:var(--muted)!important}
-body.dark .tx-empty div{color:var(--muted)!important}
-
-/* Overview cards */
-body.dark .overview-card{background:var(--surface)!important;color:var(--ink)!important;border-color:var(--border)!important}
-body.dark .overview-card .oc-title{color:var(--muted)!important}
-body.dark .recent-card{background:var(--surface)!important;color:var(--ink)!important;border-color:var(--border)!important}
-body.dark .recent-card .rc-title{color:var(--muted)!important}
-body.dark .recent-card .rc-merch{color:var(--ink)!important}
-body.dark .recent-card .rc-merch small{color:var(--muted)!important}
+body.dark .overview-card{background:var(--surface)!important;color:var(--ink)!important}
+body.dark .recent-card{background:var(--surface)!important;color:var(--ink)!important}
 body.dark .recent-card .rc-rew{color:var(--green)!important}
-body.dark .recent-card .rc-item{border-color:var(--border)!important}
-
-/* Sub cards / subscription list */
-body.dark .sub-card{background:var(--surface)!important;color:var(--ink)!important;border-color:var(--border)!important}
-body.dark .sub-card .sn{color:var(--ink)!important}
-body.dark .sub-card .sn small{color:var(--muted)!important}
-body.dark .sub-card .sc small{color:var(--muted)!important}
-
-/* Leak card */
-body.dark .leak-card{
-  background:linear-gradient(135deg,#3a1d24,#2a151c)!important;
-  border-color:rgba(232,147,147,.30)!important;
-}
-body.dark .leak-card h4{color:var(--coral)!important}
-body.dark .leak-total{color:var(--coral)!important}
-body.dark .leak-item{background:rgba(0,0,0,.30)!important}
-body.dark .leak-item .lm{color:var(--ink)!important}
-body.dark .leak-item .lm small{color:var(--muted)!important}
-body.dark .leak-item .ld{color:var(--coral)!important}
-
-/* Tip card */
-body.dark .tip-card{
-  background:linear-gradient(135deg,#2e2810,#241f08)!important;
-  border-color:rgba(212,167,106,.30)!important;
-  color:var(--amber)!important;
-}
-
-/* CSV detected */
-body.dark .csv-detected{background:rgba(126,200,148,.10)!important;border-color:rgba(126,200,148,.30)!important;color:var(--green)!important}
-
-/* Flash notifications */
-body.dark .log-flash{
-  background:linear-gradient(135deg,#7ec894,#5ea87a)!important;
-  color:#0f0d1a!important;
-  box-shadow:0 8px 24px rgba(126,200,148,.30)!important;
-}
-body.dark .credit-flash{
-  background:linear-gradient(135deg,#7ec894,#5ea87a)!important;
-  color:#0f0d1a!important;
-}
-
-/* Cards fees section */
-body.dark .fees{border-color:var(--border)!important;background:transparent!important}
-body.dark .fees .lbl{color:var(--muted)!important}
-body.dark .fees .val{color:var(--ink)!important}
-body.dark .fees .savings{color:var(--green)!important}
-body.dark .benefits{color:var(--ink)!important}
-body.dark .benefits .row{border-color:var(--border)!important}
+body.dark .sub-card{background:var(--surface)!important;color:var(--ink)!important}
+body.dark .settings-link{background:var(--surface)!important;color:var(--ink)!important}
+body.dark .fees .lbl,body.dark .benefits .row{color:var(--muted)!important}
 body.dark .benefits .row .v{color:var(--brand)!important}
-body.dark .expand{background:var(--surface-2)!important;color:var(--muted)!important;border-color:var(--border)!important}
-
-/* Settings link */
-body.dark .settings-link{background:var(--surface)!important;color:var(--ink)!important;border-color:var(--border)!important}
-
-/* Offer art wrap (mini card container inside offers list) */
-body.dark .offer-art-wrap{background:linear-gradient(180deg,var(--surface-2),var(--surface))!important}
-
-/* Onboarding group */
-body.dark .onb-group{background:var(--surface)!important;border-color:var(--border)!important}
-body.dark .onb-group-head{background:var(--surface-2)!important;color:var(--ink)!important}
-body.dark .onb-group-head:active{background:var(--surface-3)!important}
-body.dark .onb-group-title{color:var(--ink)!important}
-body.dark .onb-group-count{background:var(--surface)!important;color:var(--muted)!important;border-color:var(--border)!important}
-body.dark .onb-group-selected{background:var(--accent-soft)!important;color:var(--brand)!important}
-
-/* Employer select */
-body.dark .employer-select-wrap{
-  background:linear-gradient(135deg,#2e2810,#241f08)!important;
-  border-color:rgba(212,167,106,.30)!important;
-}
-body.dark .employer-select-wrap .es-title{color:var(--amber)!important}
-body.dark .employer-select-wrap .es-sub{color:#c9b878!important}
-body.dark .employer-select-wrap select{
-  background:var(--surface)!important;
-  color:var(--ink)!important;
-  border-color:rgba(212,167,106,.30)!important;
-}
-body.dark .employer-select-wrap .es-note{color:#c9b878!important}
-
-/* Confidence pills */
+body.dark .expand{background:var(--surface-2)!important;color:var(--muted)!important}
+body.dark .greeting-time{color:var(--muted)!important}
+body.dark .greeting-name{color:var(--ink)!important;-webkit-text-fill-color:var(--ink)!important}
+body.dark button.on{background:var(--brand)!important;color:#0f0d1a!important;border-color:transparent!important}
 body.dark .pill.conf-high{background:rgba(126,200,148,.14)!important;color:var(--green)!important}
 body.dark .pill.conf-mid{background:rgba(212,167,106,.14)!important;color:var(--amber)!important}
 body.dark .pill.conf-low{background:rgba(232,147,147,.14)!important;color:var(--coral)!important}
 body.dark .pill{background:var(--surface-2)!important;color:var(--muted)!important}
-
-/* Alt cards section */
-body.dark .alt-cards{border-color:var(--border)!important}
-body.dark .alt-cards .alt-title{color:var(--muted)!important}
-body.dark .alt-cards .alt-item .name{color:var(--ink)!important}
-body.dark .alt-cards .alt-item .rate{color:var(--muted)!important}
-
-/* Section headers */
-body.dark .section{color:var(--muted)!important}
-
-/* Foot text */
-body.dark .foot{color:var(--muted)!important}
-
-/* Category chips / trend cards / home section titles */
-body.dark .cat-chip{background:var(--surface)!important;color:var(--ink)!important;border-color:var(--border)!important}
-body.dark .cat-chip:hover{background:var(--surface-2)!important}
-body.dark .trend-card{background:var(--surface)!important;color:var(--ink)!important;border-color:var(--border)!important}
-body.dark .trend-card:hover{background:var(--surface-2)!important}
-body.dark .trend-card .tc-name{color:var(--ink)!important}
-body.dark .trend-card .tc-cat{color:var(--muted)!important}
-body.dark .home-section-title{color:var(--muted)!important}
-body.dark .home-section-title .hst-link{color:var(--brand)!important}
-
-/* Credit issuer label */
+body.dark .section,body.dark .foot{color:var(--muted)!important}
 body.dark .credit-issuer{color:var(--muted)!important}
-
-/* Greeting */
-body.dark .greeting-time{color:var(--muted)!important}
-body.dark .greeting-name{color:var(--ink)!important;-webkit-text-fill-color:var(--ink)!important}
-
-/* Mode pills */
-body.dark .mode-pill{background:var(--surface)!important;color:var(--ink)!important;border-color:var(--border)!important}
-body.dark .mode-pill.on{background:var(--brand)!important;color:#0f0d1a!important;border-color:transparent!important}
-
-/* button.on override */
-body.dark button.on{background:var(--brand)!important;color:#0f0d1a!important;border-color:transparent!important}
-
-/* Scrollbar (webkit) */
-body.dark ::-webkit-scrollbar{width:8px;height:8px}
+body.dark .home-credit-alert{background:linear-gradient(135deg,#3a1d24,#2a151c)!important;border-color:rgba(232,147,147,.30)!important}
+body.dark .home-credit-alert .hca-title,body.dark .home-credit-alert .hca-sub,body.dark .home-credit-alert .hca-arrow{color:var(--coral)!important}
+body.dark .log-flash{background:linear-gradient(135deg,#7ec894,#5ea87a)!important;color:#0f0d1a!important;box-shadow:0 8px 24px rgba(126,200,148,.30)!important}
+body.dark ::-webkit-scrollbar{width:8px}
 body.dark ::-webkit-scrollbar-track{background:var(--bg)}
 body.dark ::-webkit-scrollbar-thumb{background:var(--surface-3);border-radius:4px}
-body.dark ::-webkit-scrollbar-thumb:hover{background:var(--border-2)}
 </style>
 <style>
-/* ================================================================
-   V62 BREAK-EVEN FEE ANALYZER
-   Seamless slim widget inside each My Wallet card
-   ================================================================ */
-.breakeven-analyzer{
-  padding:12px 14px;
-  background:linear-gradient(180deg,rgba(142,163,216,.05),transparent);
-  border-top:1px dashed var(--border);
-  border-bottom:1px dashed var(--border);
-  font-size:12px;
-  font-weight:750;
-  color:var(--muted);
-  display:grid;
-  gap:8px;
-}
-.breakeven-analyzer.no-fee{
-  background:linear-gradient(180deg,rgba(126,200,148,.08),transparent);
-}
-.be-header{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:8px;
-}
-.be-title{
-  font-size:10px;
-  color:var(--muted);
-  font-weight:900;
-  letter-spacing:.12em;
-  text-transform:uppercase;
-}
-.be-verdict{
-  font-size:10px;
-  font-weight:900;
-  padding:3px 9px;
-  border-radius:99px;
-  letter-spacing:.02em;
-  white-space:nowrap;
-}
+.breakeven-analyzer{padding:12px 14px;background:linear-gradient(180deg,rgba(142,163,216,.05),transparent);border-top:1px dashed var(--border);border-bottom:1px dashed var(--border);font-size:12px;font-weight:750;color:var(--muted);display:grid;gap:8px}
+.breakeven-analyzer.no-fee{background:linear-gradient(180deg,rgba(126,200,148,.08),transparent)}
+.be-header{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.be-title{font-size:10px;color:var(--muted);font-weight:900;letter-spacing:.12em;text-transform:uppercase}
+.be-verdict{font-size:10px;font-weight:900;padding:3px 9px;border-radius:99px;letter-spacing:.02em;white-space:nowrap}
 .be-verdict.excellent,.be-verdict.great{background:var(--greenbg);color:var(--green)}
 .be-verdict.marginal{background:var(--amber-soft);color:var(--amber)}
 .be-verdict.downgrade{background:var(--coral-soft);color:var(--coral)}
 .be-verdict.pending{background:var(--surface-2);color:var(--muted)}
 .be-verdict.free{background:var(--greenbg);color:var(--green)}
-.be-body{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:12px;
-  align-items:center;
-}
-.be-metric{
-  display:flex;
-  flex-direction:column;
-  gap:2px;
-}
-.be-metric .l{
-  font-size:9.5px;
-  color:var(--muted);
-  font-weight:900;
-  letter-spacing:.08em;
-  text-transform:uppercase;
-  opacity:.85;
-}
-.be-metric .v{
-  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
-  font-size:14px;
-  font-weight:900;
-  color:var(--ink);
-  letter-spacing:-.01em;
-}
+.be-body{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:center}
+.be-metric{display:flex;flex-direction:column;gap:2px}
+.be-metric .l{font-size:9.5px;color:var(--muted);font-weight:900;letter-spacing:.08em;text-transform:uppercase;opacity:.85}
+.be-metric .v{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:14px;font-weight:900;color:var(--ink);letter-spacing:-.01em}
 .be-metric .v.pace{color:var(--brand)}
-.be-progress-wrap{
-  margin-top:2px;
-}
-.be-progress{
-  height:6px;
-  background:var(--surface-2);
-  border-radius:99px;
-  overflow:hidden;
-  position:relative;
-}
-.be-progress-fill{
-  height:100%;
-  border-radius:99px;
-  transition:width .6s cubic-bezier(.2,.9,.3,1.2);
-  background:linear-gradient(90deg,var(--brand),var(--brand-2));
-}
+.be-progress-wrap{margin-top:2px}
+.be-progress{height:6px;background:var(--surface-2);border-radius:99px;overflow:hidden;position:relative}
+.be-progress-fill{height:100%;border-radius:99px;transition:width .6s cubic-bezier(.2,.9,.3,1.2);background:linear-gradient(90deg,var(--brand),var(--brand-2))}
 .be-progress-fill.green{background:linear-gradient(90deg,var(--green),#5ea87a)}
 .be-progress-fill.amber{background:linear-gradient(90deg,var(--amber),#a37619)}
 .be-progress-fill.coral{background:linear-gradient(90deg,var(--coral),#a04747)}
-.be-progress-marker{
-  position:absolute;
-  top:-2px;
-  bottom:-2px;
-  width:2px;
-  background:var(--ink);
-  opacity:.4;
-  border-radius:1px;
-}
-.be-tip{
-  font-size:11px;
-  color:var(--muted);
-  font-weight:800;
-  line-height:1.35;
-  padding-top:2px;
-}
+.be-tip{font-size:11px;color:var(--muted);font-weight:800;line-height:1.35;padding-top:2px}
 .be-tip b{color:var(--ink)}
-.be-cat-badge{
-  display:inline-flex;
-  align-items:center;
-  gap:4px;
-  font-size:10.5px;
-  font-weight:900;
-  color:var(--brand);
-  background:var(--accent-soft);
-  padding:2px 8px;
-  border-radius:99px;
-  letter-spacing:.02em;
-}
-.be-nofee-msg{
-  display:flex;
-  align-items:center;
-  gap:6px;
-  font-size:12px;
-  font-weight:850;
-  color:var(--green);
-}
+.be-cat-badge{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:900;color:var(--brand);background:var(--accent-soft);padding:2px 8px;border-radius:99px}
+.be-nofee-msg{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:850;color:var(--green)}
 .be-nofee-msg .ic{font-size:15px}
-body.dark .breakeven-analyzer{
-  background:linear-gradient(180deg,rgba(142,163,216,.07),transparent);
-  border-color:var(--border);
-}
-body.dark .breakeven-analyzer.no-fee{
-  background:linear-gradient(180deg,rgba(126,200,148,.10),transparent);
-}
+body.dark .breakeven-analyzer{background:linear-gradient(180deg,rgba(142,163,216,.07),transparent);border-color:var(--border)}
+body.dark .breakeven-analyzer.no-fee{background:linear-gradient(180deg,rgba(126,200,148,.10),transparent)}
 body.dark .be-progress{background:var(--surface-2)}
+</style>
+<style>
+/* V64 smarter break-even verdict styles */
+.be-verdict.special{background:var(--accent-soft)!important;color:var(--brand)!important}
+.be-verdict.travel{background:var(--indigo-soft)!important;color:var(--indigo)!important}
 </style>
 </head>
 <style>
@@ -1911,7 +912,7 @@ body.dark .credits-empty{background:var(--surface)}
 .credit-flash .cf-emoji{font-size:20px}
 </style>
 <body>
-<!-- V62: Break-Even Fee Analyzer — every card in My Wallet now shows whether your spend pace justifies its annual fee. -->
+<!-- V56 -->
 <div class="top">
 <div class="header-row">
 <div class="brand-wrap" id="titleHome" onclick="switchTab('home')" role="button" tabindex="0" aria-label="Wallet IQ home">
@@ -2264,7 +1265,7 @@ body.dark .credits-empty{background:var(--surface)}
 <button class="drawer-item" id="drawerFxToggle" onclick="toggleForeignMode()"><span class="di-ico" id="drawerFxIco">🇨🇦</span><span id="drawerFxLbl">CAD mode</span></button>
 <div class="drawer-divider"></div>
 <button class="drawer-item" onclick="resetWalletIQ()" style="color:var(--pass)"><span class="di-ico">🗑</span><span>Reset Wallet IQ</span></button>
-<div class="drawer-footer">Wallet IQ V62 · Built by samirdhan</div>
+<div class="drawer-footer">Wallet IQ V64 · Built by samirdhan</div>
 </div>
 </aside>
 
@@ -5788,7 +4789,7 @@ function renderCards(){
   if(c.scotiaEmployee&&isScotiaEmp)fee=c.feeRetail*0.5;
   const savings=c.scotiaEmployee&&isScotiaEmp?'<div class="savings">Save $'+(c.feeRetail-fee).toFixed(0)+' (50% off)</div>':'';
   const feeNote=c.feeRetail===0?'No annual fee':(c.scotiaEmployee&&isScotiaEmp?'Scotia employee rate':'Standard rate');
-  return '<div class="cardBig">'+
+  return '<div class="cardBig" data-card-key="'+k+'">'+
    '<div class="cc-wrapper">'+svgCard(c,k)+'</div>'+
    '<div class="fees">'+
     '<div><div class="lbl">Your Fee</div><div class="val">$'+fee.toFixed(0)+'</div>'+savings+'</div>'+
@@ -7475,10 +6476,9 @@ function renderHomeVaultSummary(){
   if(!el)return;
   if(typeof userWallet==='undefined'||!userWallet||userWallet.size===0){el.style.display='none';return;}
   const walletSize=userWallet.size;
-  let totalRewards=0,ytdRewards=0,thisMonthRewards=0;
+  let totalRewards=0,thisMonthRewards=0;
   const now=new Date();
   const currentMonth=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
-  const currentYear=String(now.getFullYear());
   let txs=[];
   try{if(typeof loadTx==='function')txs=loadTx();}catch(e){}
   if(txs.length){
@@ -7490,9 +6490,7 @@ function renderHomeVaultSummary(){
       const rate=card.realRates[cat]||card.realRates.base||1;
       const earned=t.amount*rate/100;
       totalRewards+=earned;
-      const txDate=t.date||'';
-      if(txDate.startsWith(currentMonth))thisMonthRewards+=earned;
-      if(txDate.startsWith(currentYear))ytdRewards+=earned;
+      if((t.date||'').startsWith(currentMonth))thisMonthRewards+=earned;
     });
   }
   let vaultDollars=0;
@@ -7500,9 +6498,7 @@ function renderHomeVaultSummary(){
     if(typeof loadVault==='function'&&typeof POINT_PROGRAMS!=='undefined'){
       const v=loadVault();
       Object.entries(POINT_PROGRAMS).forEach(function(entry){
-        const key=entry[0],p=entry[1];
-        const bal=v[key]||0;
-        const cpp=p.redemptions[0].cpp;
+        const key=entry[0],p=entry[1];const bal=v[key]||0;const cpp=p.redemptions[0].cpp;
         vaultDollars+=key==='rogersCash'?bal:(bal*cpp/100);
       });
     }
@@ -7952,13 +6948,13 @@ window.CARD_TO_PROGRAMS={
 
 if(typeof SWEET_SPOTS==='undefined'){
 window.SWEET_SPOTS=[
-  {program:'aeroplan',emoji:'\u2708\uFE0F',title:'Star Alliance short-haul (6K)',body:'2,000-mile Star Alliance flights start at 6K Aeroplan pts. Amazing YVR-SEA/YVR-SFO deals.',note:'2,000-mile Star Alliance flights start at 6K Aeroplan pts.'},
-  {program:'mr',emoji:'\u2B50',title:'Transfer MR \u2192 Aeroplan for 2cpp+',body:'Transfer 1:1 to Aeroplan and redeem for sweet-spot business class to Europe or Asia at 2cpp+.',note:'Transfer to Aeroplan for premium cabin sweet spots at 2cpp+.'},
-  {program:'bonvoy',emoji:'\uD83C\uDFE8',title:'5th night free at Marriott',body:'Book 5 nights on points and the 5th is free. Boosts value by ~20%.',note:'Book 5 nights on points; 5th night is free.'},
-  {program:'scenePlus',emoji:'\uD83C\uDFAC',title:'Grocery redemption 1:1',body:'Redeem Scene+ at Sobeys/Safeway/IGA at 1cpp \u2014 great flexibility for daily spend.',note:'Redeem at Sobeys/Safeway/IGA at 1cpp.'},
-  {program:'rogersCash',emoji:'\uD83D\uDCB0',title:'Redeem to Rogers/Fido bill for 1.5x',body:'Redeem cashback back to Rogers/Fido wireless bill for a 50% boost \u2014 2% becomes effective 3%.',note:'Redeem to Rogers/Fido bill for +50%.'},
-  {program:'pcOptimum',emoji:'\uD83D\uDED2',title:'10x events at Loblaw stores',body:'Watch for Superstore/Shoppers 10x/20x pt offers \u2014 stack with PC Insiders MC for huge returns.',note:'Watch for 10x-20x pt events. Stack with PC Insiders.'},
-  {program:'avios',emoji:'\u2708\uFE0F',title:'BA short-haul from YVR',body:'Avios shine for short-haul on Alaska/JAL/Cathay. YVR-SEA-LAX-etc. can be ~4.5K Avios.',note:'Great short-haul redemptions on Alaska/JAL/Cathay.'}
+  {program:'aeroplan',emoji:'\u2708\uFE0F',title:'Star Alliance short-haul (6K)',body:'2,000-mile Star Alliance flights start at 6K Aeroplan pts.',note:'6K Aeroplan pts.'},
+  {program:'mr',emoji:'\u2B50',title:'MR \u2192 Aeroplan for 2cpp+',body:'Transfer 1:1 to Aeroplan for premium cabin sweet spots.',note:'Transfer to Aeroplan.'},
+  {program:'bonvoy',emoji:'\uD83C\uDFE8',title:'5th night free at Marriott',body:'Book 5 nights on points and the 5th is free.',note:'5th night free.'},
+  {program:'scenePlus',emoji:'\uD83C\uDFAC',title:'Grocery redemption 1:1',body:'Redeem Scene+ at Sobeys/Safeway/IGA at 1cpp.',note:'1cpp at grocery.'},
+  {program:'rogersCash',emoji:'\uD83D\uDCB0',title:'Redeem to Rogers/Fido for 1.5x',body:'Redeem cashback to Rogers/Fido bill for a 50% boost.',note:'+50% Rogers bill.'},
+  {program:'pcOptimum',emoji:'\uD83D\uDED2',title:'10x events at Loblaw',body:'Watch for 10x/20x pt offers stackable with PC Insiders.',note:'10x events.'},
+  {program:'avios',emoji:'\u2708\uFE0F',title:'BA short-haul from YVR',body:'Avios shine for short-haul on Alaska/JAL/Cathay.',note:'Short-haul Avios.'}
 ];
 }
 
@@ -9552,111 +8548,84 @@ try {
 }
 </script>
 <script>
-// V56 CARD EXPANSION - 15 new Canadian credit cards
 try {
   if (typeof CARDS_DB === 'object' && CARDS_DB) {
     Object.assign(CARDS_DB, {
-      simpliiCashback:{n:'Simplii Cash Back Visa',e:'\u{1F49C}',cl:'rogers',iss:'Simplii',net:'Visa',r:'4% restaurants',w:'Free 4% dining cashback.',feeRetail:0,feeYours:0,scotiaEmployee:false,
-       benefits:[['\u{1F37D}\uFE0F','4% restaurants','4%'],['\u26FD','1.5% gas/grocery','1.5%'],['\u{1F4B3}','No annual fee','\u2605']],
-       extra:'No fee. CIBC family.',
+      simpliiCashback:{n:'Simplii Cash Back Visa',e:'\u{1F49C}',cl:'rogers',iss:'Simplii',net:'Visa',r:'4% restaurants',w:'Free 4% dining.',feeRetail:0,feeYours:0,scotiaEmployee:false,
+       benefits:[['\u{1F37D}\uFE0F','4% restaurants','4%']],
+       extra:'No fee.',
        realRates:{dining:4,groceryAmex:1.5,groceryNo:1.5,loblaws:1.5,gas:1.5,transit:1.5,streaming:1,rogers:1,shopping:0.5,shoppingAmex:0.5,base:0.5,costco:1,walmart:0.5,cineplex:1,travel:1,marriott:1,usd:0,other:0.5}},
-      amexAeroplan:{n:'Amex Aeroplan Card',e:'\u2708\uFE0F',cl:'cobalt',iss:'Amex',net:'Amex',r:'2x Air Canada',w:'Mid-tier Aeroplan Amex.',feeRetail:139,feeYours:139,scotiaEmployee:false,
-       benefits:[['\u2708\uFE0F','2x Air Canada','2x'],['\u{1F37D}\uFE0F','1.5x dining/delivery','1.5x'],['\u{1F381}','Buddy pass','\u2605']],
-       extra:'Base Aeroplan Amex tier.',
+      amexAeroplan:{n:'Amex Aeroplan Card',e:'\u2708\uFE0F',cl:'cobalt',iss:'Amex',net:'Amex',r:'2x AC',w:'Mid Aeroplan.',feeRetail:139,feeYours:139,scotiaEmployee:false,
+       benefits:[['\u2708\uFE0F','2x AC','2x']],
+       extra:'Base Aeroplan Amex.',
        realRates:{dining:2.25,groceryAmex:1.5,shopping:1.5,shoppingAmex:1.5,streaming:1.5,transit:1.5,gas:1.5,base:1.5,cineplex:1.5,travel:3,marriott:1.5,usd:1.5,groceryNo:1.5,loblaws:1.5,costco:1.5,walmart:1.5,other:1.5}},
-      hsbcWorldElite:{n:'HSBC World Elite Mastercard',e:'\u{1F534}',cl:'cobalt',iss:'HSBC',net:'Mastercard',r:'3x travel',w:'HSBC travel MC.',feeRetail:149,feeYours:149,scotiaEmployee:false,
-       benefits:[['\u2708\uFE0F','3x travel via HSBC','3x'],['\u{1F374}','2x dining/gas','2x'],['\u{1F30D}','No FX (limited)','\u2605']],
-       extra:'HSBC now RBC-owned.',
+      hsbcWorldElite:{n:'HSBC World Elite Mastercard',e:'\u{1F534}',cl:'cobalt',iss:'HSBC',net:'Mastercard',r:'3x travel',w:'HSBC travel.',feeRetail:149,feeYours:149,scotiaEmployee:false,
+       benefits:[['\u2708\uFE0F','3x travel','3x']],
+       extra:'HSBC.',
        realRates:{dining:2,groceryAmex:1,groceryNo:1,loblaws:1,gas:2,transit:2,streaming:1,shopping:1,shoppingAmex:1,base:1,costco:1,walmart:1,cineplex:2,travel:3,marriott:3,usd:1,other:1}},
-      vancityVisa:{n:'Vancity enviro Visa Infinite',e:'\u{1F33F}',cl:'pass',iss:'Vancity',net:'Visa',r:'1.5% CB',w:'BC credit union card.',feeRetail:120,feeYours:120,scotiaEmployee:false,
-       benefits:[['\u{1F4B5}','1.5% all spend','1.5%'],['\u{1F30D}','Ethical credit union','\u2605']],
-       extra:'BC credit union.',
+      vancityVisa:{n:'Vancity enviro Visa Infinite',e:'\u{1F33F}',cl:'pass',iss:'Vancity',net:'Visa',r:'1.5% CB',w:'BC CU.',feeRetail:120,feeYours:120,scotiaEmployee:false,
+       benefits:[['\u{1F4B5}','1.5% all','1.5%']],
+       extra:'BC CU.',
        realRates:{dining:1.5,groceryAmex:1.5,groceryNo:1.5,loblaws:1.5,shopping:1.5,shoppingAmex:1.5,streaming:1.5,transit:1.5,gas:1.5,base:1.5,costco:1.5,walmart:1.5,cineplex:1.5,travel:1.5,marriott:1.5,usd:0,other:1.5}},
-      atbCashRewards:{n:'ATB Cash Rewards Visa',e:'\u{1F49B}',cl:'rogers',iss:'ATB',net:'Visa',r:'2% CB',w:'Alberta CU card.',feeRetail:0,feeYours:0,scotiaEmployee:false,
-       benefits:[['\u{1F6D2}','2% grocery/gas','2%'],['\u{1F4B3}','No annual fee','\u2605']],
-       extra:'ATB (Alberta).',
+      atbCashRewards:{n:'ATB Cash Rewards Visa',e:'\u{1F49B}',cl:'rogers',iss:'ATB',net:'Visa',r:'2% CB',w:'AB CU.',feeRetail:0,feeYours:0,scotiaEmployee:false,
+       benefits:[['\u{1F6D2}','2% grocery','2%']],
+       extra:'ATB.',
        realRates:{groceryAmex:2,groceryNo:2,loblaws:2,gas:2,transit:2,dining:1,shopping:1,shoppingAmex:1,streaming:1,base:1,costco:1,walmart:1,cineplex:1,travel:1,marriott:1,usd:0,other:1}},
-      servusVisa:{n:'Servus World Elite Mastercard',e:'\u{1F49A}',cl:'cobalt',iss:'Servus',net:'Mastercard',r:'1.5% CB',w:'AB credit union card.',feeRetail:99,feeYours:99,scotiaEmployee:false,
-       benefits:[['\u{1F4B5}','1.5% all spend','1.5%'],['\u2708\uFE0F','Travel insurance','\u2605']],
-       extra:'Servus (Alberta CU).',
+      servusVisa:{n:'Servus World Elite Mastercard',e:'\u{1F49A}',cl:'cobalt',iss:'Servus',net:'Mastercard',r:'1.5% CB',w:'AB CU.',feeRetail:99,feeYours:99,scotiaEmployee:false,
+       benefits:[['\u{1F4B5}','1.5% all','1.5%']],
+       extra:'Servus.',
        realRates:{dining:1.5,groceryAmex:1.5,groceryNo:1.5,loblaws:1.5,shopping:1.5,shoppingAmex:1.5,streaming:1.5,transit:1.5,gas:1.5,base:1.5,costco:1.5,walmart:1.5,cineplex:1.5,travel:1.5,marriott:1.5,usd:0,other:1.5}},
-      prosperaVisa:{n:'Prospera Cash Back Visa',e:'\u{1F33C}',cl:'rogers',iss:'Prospera',net:'Visa',r:'2% CB',w:'BC CU cashback.',feeRetail:0,feeYours:0,scotiaEmployee:false,
-       benefits:[['\u{1F6D2}','2% grocery','2%'],['\u{1F4B3}','No fee','\u2605']],
-       extra:'Prospera (BC CU).',
+      prosperaVisa:{n:'Prospera Cash Back Visa',e:'\u{1F33C}',cl:'rogers',iss:'Prospera',net:'Visa',r:'2% CB',w:'BC CU.',feeRetail:0,feeYours:0,scotiaEmployee:false,
+       benefits:[['\u{1F6D2}','2% grocery','2%']],
+       extra:'Prospera.',
        realRates:{groceryAmex:2,groceryNo:2,loblaws:2,gas:1,transit:1,dining:1,shopping:1,shoppingAmex:1,streaming:1,base:1,costco:1,walmart:1,cineplex:1,travel:1,marriott:1,usd:0,other:1}},
-      rogersPreferred:{n:'Rogers Preferred Mastercard',e:'\u{1F7E0}',cl:'rogers',iss:'Rogers',net:'Mastercard',r:'1.5% CB',w:'Rogers no-fee entry MC.',feeRetail:0,feeYours:0,scotiaEmployee:false,
-       benefits:[['\u{1F4B5}','1.5% all spend','1.5%'],['\u{1F4F1}','4% Rogers/Fido bill','4%']],
-       extra:'Entry-tier Rogers MC.',
+      rogersPreferred:{n:'Rogers Preferred Mastercard',e:'\u{1F7E0}',cl:'rogers',iss:'Rogers',net:'Mastercard',r:'1.5% CB',w:'Rogers entry.',feeRetail:0,feeYours:0,scotiaEmployee:false,
+       benefits:[['\u{1F4B5}','1.5% all','1.5%']],
+       extra:'Entry Rogers.',
        realRates:{dining:1.5,groceryAmex:1.5,groceryNo:1.5,loblaws:1.5,shopping:1.5,shoppingAmex:1.5,streaming:1.5,transit:1.5,gas:1.5,base:1.5,costco:1.5,walmart:1.5,cineplex:1.5,travel:1.5,marriott:1.5,usd:0,rogers:4,other:1.5}},
-      fidoMC:{n:'Fido Mastercard',e:'\u{1F7E2}',cl:'rogers',iss:'Fido',net:'Mastercard',r:'1.5% CB',w:'Fido co-brand MC.',feeRetail:0,feeYours:0,scotiaEmployee:false,
-       benefits:[['\u{1F4B5}','1.5% all spend','1.5%'],['\u{1F4F1}','4% Fido/Rogers bill','4%']],
-       extra:'No fee Fido co-brand.',
+      fidoMC:{n:'Fido Mastercard',e:'\u{1F7E2}',cl:'rogers',iss:'Fido',net:'Mastercard',r:'1.5% CB',w:'Fido MC.',feeRetail:0,feeYours:0,scotiaEmployee:false,
+       benefits:[['\u{1F4B5}','1.5% all','1.5%']],
+       extra:'Fido.',
        realRates:{dining:1.5,groceryAmex:1.5,groceryNo:1.5,loblaws:1.5,shopping:1.5,shoppingAmex:1.5,streaming:1.5,transit:1.5,gas:1.5,base:1.5,costco:1.5,walmart:1.5,cineplex:1.5,travel:1.5,marriott:1.5,usd:0,rogers:4,other:1.5}},
-      neoSecure:{n:'Neo Secure Mastercard',e:'\u26A1',cl:'pass',iss:'Neo',net:'Mastercard',r:'Credit builder',w:'Secured credit-building MC.',feeRetail:0,feeYours:0,scotiaEmployee:false,
-       benefits:[['\u{1F4B3}','Credit builder','\u2605'],['\u{1F4B5}','No annual fee','\u2605']],
-       extra:'Secured. Builds credit.',
+      neoSecure:{n:'Neo Secure Mastercard',e:'\u26A1',cl:'pass',iss:'Neo',net:'Mastercard',r:'Builder',w:'Secured.',feeRetail:0,feeYours:0,scotiaEmployee:false,
+       benefits:[['\u{1F4B3}','Credit builder','\u2605']],
+       extra:'Secured.',
        realRates:{dining:1,groceryAmex:1,groceryNo:1,loblaws:1,shopping:1,shoppingAmex:1,streaming:1,transit:1,gas:1,base:1,costco:1,walmart:1,cineplex:1,travel:1,marriott:1,usd:0,other:1}},
-      kohoEverything:{n:'KOHO Everything',e:'\u{1F3A8}',cl:'rogers',iss:'KOHO',net:'Mastercard',r:'3% grocery',w:'Premium KOHO prepaid.',feeRetail:228,feeYours:228,scotiaEmployee:false,
-       benefits:[['\u{1F6D2}','3% grocery/dining/transit','3%'],['\u{1F30D}','No FX','\u2605'],['\u{1F4B0}','5% savings interest','\u2605']],
-       extra:'$19/mo prepaid tier.',
+      kohoEverything:{n:'KOHO Everything',e:'\u{1F3A8}',cl:'rogers',iss:'KOHO',net:'Mastercard',r:'3% grocery',w:'Premium KOHO.',feeRetail:228,feeYours:228,scotiaEmployee:false,
+       benefits:[['\u{1F6D2}','3% grocery/dining','3%']],
+       extra:'$19/mo.',
        realRates:{dining:3,groceryAmex:3,groceryNo:3,loblaws:3,shopping:1,shoppingAmex:1,streaming:1,transit:3,gas:1,base:1,costco:1,walmart:1,cineplex:1,travel:1,marriott:1,usd:1,other:1}},
-      pcWorldMC:{n:'PC World Mastercard',e:'\u{1F6D2}',cl:'rogers',iss:'PC Financial',net:'Mastercard',r:'20 pts/$ Loblaw',w:'No-fee PC MC.',feeRetail:0,feeYours:0,scotiaEmployee:false,
-       benefits:[['\u{1F6D2}','20 pts/$1 Loblaw','\u2605'],['\u{1F4B0}','30 pts/$1 Shoppers','\u2605']],
-       extra:'No fee entry PC.',
+      pcWorldMC:{n:'PC World Mastercard',e:'\u{1F6D2}',cl:'rogers',iss:'PC Financial',net:'Mastercard',r:'20 pts Loblaw',w:'No-fee PC.',feeRetail:0,feeYours:0,scotiaEmployee:false,
+       benefits:[['\u{1F6D2}','20 pts/$1 Loblaw','\u2605']],
+       extra:'No fee.',
        realRates:{loblaws:2,groceryNo:2,dining:1,groceryAmex:1,shopping:1,shoppingAmex:1,streaming:1,transit:1,gas:1,base:1,costco:1,walmart:1,cineplex:1,travel:1,marriott:1,usd:0,other:1}},
-      tdFirstClass:{n:'TD First Class Travel Visa Infinite',e:'\u2708\uFE0F',cl:'cobalt',iss:'TD',net:'Visa',r:'4.5x Expedia',w:'Top TD Rewards travel.',feeRetail:139,feeYours:139,scotiaEmployee:false,
-       benefits:[['\u2708\uFE0F','9x via Expedia (4.5%)','9x'],['\u{1F374}','3x dining/grocery','3x']],
-       extra:'Expedia bookings shine.',
+      tdFirstClass:{n:'TD First Class Travel Visa Infinite',e:'\u2708\uFE0F',cl:'cobalt',iss:'TD',net:'Visa',r:'4.5x Expedia',w:'Top TD travel.',feeRetail:139,feeYours:139,scotiaEmployee:false,
+       benefits:[['\u2708\uFE0F','9x Expedia','9x']],
+       extra:'Expedia.',
        realRates:{dining:1.5,groceryAmex:1.5,groceryNo:1.5,loblaws:1.5,shopping:1,shoppingAmex:1,streaming:1,transit:1.5,gas:1.5,base:1,costco:1,walmart:1,cineplex:1,travel:4.5,marriott:1.5,usd:0,other:1}},
-      amexBonvoyBusiness:{n:'Marriott Bonvoy Business Amex',e:'\u{1F4BC}',cl:'bonvoy',iss:'Amex',net:'Amex',r:'6x Marriott',w:'Business Bonvoy card.',feeRetail:150,feeYours:150,scotiaEmployee:false,
-       benefits:[['\u{1F3E8}','6x Marriott','6x'],['\u2708\uFE0F','3x gas/dining','3x'],['\u{1F381}','Free night cert','\u2605']],
-       extra:'Business Bonvoy.',
+      amexBonvoyBusiness:{n:'Marriott Bonvoy Business Amex',e:'\u{1F4BC}',cl:'bonvoy',iss:'Amex',net:'Amex',r:'6x Marriott',w:'Biz Bonvoy.',feeRetail:150,feeYours:150,scotiaEmployee:false,
+       benefits:[['\u{1F3E8}','6x Marriott','6x']],
+       extra:'Biz Bonvoy.',
        realRates:{marriott:4.8,dining:2.4,groceryAmex:0.8,shopping:0.8,shoppingAmex:0.8,streaming:0.8,transit:2.4,gas:2.4,base:0.8,cineplex:0.8,travel:1.6,usd:0.8,groceryNo:0.8,loblaws:0.8,costco:0.8,walmart:0.8,other:0.8}},
-      amazonRBCVisa:{n:'Amazon.ca RBC Visa',e:'\u{1F4E6}',cl:'cobalt',iss:'RBC',net:'Visa',r:'2.5% Amazon',w:'Amazon co-brand.',feeRetail:0,feeYours:0,scotiaEmployee:false,
-       benefits:[['\u{1F4E6}','2.5% Amazon.ca','2.5%'],['\u{1F30D}','No FX','\u2605'],['\u{1F4B3}','No fee','\u2605']],
-       extra:'No FX + Amazon boost.',
+      amazonRBCVisa:{n:'Amazon.ca RBC Visa',e:'\u{1F4E6}',cl:'cobalt',iss:'RBC',net:'Visa',r:'2.5% Amazon',w:'Amazon.',feeRetail:0,feeYours:0,scotiaEmployee:false,
+       benefits:[['\u{1F4E6}','2.5% Amazon','2.5%']],
+       extra:'No FX.',
        realRates:{dining:1,groceryAmex:1,groceryNo:1,loblaws:1,shopping:2.5,shoppingAmex:2.5,streaming:1,transit:1,gas:1,base:1,costco:1,walmart:1,cineplex:1,travel:1,marriott:1,usd:1,other:1}}
     });
-    console.log('V56 card expansion loaded:', Object.keys(CARDS_DB).length, 'total cards in CARDS_DB');
   }
-} catch (e) {
-  console.warn('V56 card expansion failed:', e);
-}
+} catch (e) { console.warn('V56 failed:', e); }
 </script>
 <script>
 (function(){
   var THEME_KEY_V57 = 'walletIQ_v40_theme';
-  function updateThemeBtnIcon(){
-    var btn = document.getElementById('themeBtn');
-    if(!btn) return;
-    btn.textContent = document.body.classList.contains('dark') ? '\u2600\uFE0F' : '\uD83C\uDF19';
-  }
-  window.toggleThemeFromHeader = function(){
-    document.body.classList.toggle('dark');
-    try{ localStorage.setItem(THEME_KEY_V57, document.body.classList.contains('dark') ? 'dark' : 'light'); }catch(e){}
-    updateThemeBtnIcon();
-    var di = document.getElementById('drawerThemeIco');
-    if(di) di.textContent = document.body.classList.contains('dark') ? '\u2600\uFE0F' : '\uD83C\uDF19';
-  };
-  try{
-    var saved = localStorage.getItem(THEME_KEY_V57);
-    if(saved === 'dark' && !document.body.classList.contains('dark')){
-      document.body.classList.add('dark');
-    }
-  }catch(e){}
-  if(document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', updateThemeBtnIcon);
-  }
-  setTimeout(updateThemeBtnIcon, 100);
-  updateThemeBtnIcon();
+  function updateThemeBtnIcon(){var btn=document.getElementById('themeBtn');if(!btn)return;btn.textContent=document.body.classList.contains('dark')?'\u2600\uFE0F':'\uD83C\uDF19';}
+  window.toggleThemeFromHeader=function(){document.body.classList.toggle('dark');try{localStorage.setItem(THEME_KEY_V57,document.body.classList.contains('dark')?'dark':'light');}catch(e){}updateThemeBtnIcon();var di=document.getElementById('drawerThemeIco');if(di)di.textContent=document.body.classList.contains('dark')?'\u2600\uFE0F':'\uD83C\uDF19';};
+  try{var saved=localStorage.getItem(THEME_KEY_V57);if(saved==='dark'&&!document.body.classList.contains('dark'))document.body.classList.add('dark');}catch(e){}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',updateThemeBtnIcon);
+  setTimeout(updateThemeBtnIcon,100);updateThemeBtnIcon();
 })();
 </script>
 <script>
-// V58 LOG PURCHASE BUG FIX
-// Overrides broken saveHeroLogPurchase + updateHeroLogPreview.
-// Old code saved to 'walletiq_transactions' key (nothing reads it),
-// used field 'cardKey' (rest of app uses 'card'), and called
-// lookupCategory (doesn't exist - real function is resolveCategory).
 (function(){
   window.saveHeroLogPurchase = function(){
     var amtEl = document.getElementById('heroLogAmount');
@@ -9670,18 +8639,11 @@ try {
     if(!merchant){ alert('No merchant specified'); return; }
     if(!cardKey){ alert('No card selected'); return; }
     var today = new Date().toISOString().slice(0,10);
-    var tx = {
-      id: 'tx_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),
-      date: today,
-      merchant: merchant,
-      amount: amt,
-      card: cardKey,
-      manual: true
-    };
+    var tx = { id:'tx_'+Date.now()+'_'+Math.random().toString(36).slice(2,7), date:today, merchant:merchant, amount:amt, card:cardKey, manual:true };
     var txs = [];
     try{ if(typeof loadTx==='function') txs = loadTx(); }catch(e){}
     txs.push(tx);
-    try{ if(typeof saveTxData==='function') saveTxData(txs); }catch(e){ console.warn('saveTxData failed', e); }
+    try{ if(typeof saveTxData==='function') saveTxData(txs); }catch(e){}
     var flashMsg = '\u2713 Purchase logged: $'+amt.toFixed(2);
     try{
       var cat = (typeof resolveCategory==='function') ? resolveCategory(merchant) : 'base';
@@ -9705,7 +8667,6 @@ try {
     try{ if(typeof renderHomeRecentActivity==='function') renderHomeRecentActivity(); }catch(e){}
     console.log('V58 purchase logged:', tx);
   };
-
   window.updateHeroLogPreview = function(){
     var amtEl = document.getElementById('heroLogAmount');
     var preview = document.getElementById('heroLogPreview');
@@ -9726,14 +8687,184 @@ try {
       preview.classList.add('show');
     }catch(e){ preview.classList.remove('show'); }
   };
-  console.log('V58 log-purchase bug fix active');
+})();
+</script>
+<script>
+(function(){
+  var CAT_LABELS = {
+    dining:{e:'\uD83C\uDF7D\uFE0F',n:'Dining'},
+    groceryAmex:{e:'\uD83D\uDED2',n:'Groceries'},
+    groceryNo:{e:'\uD83D\uDED2',n:'Groceries'},
+    loblaws:{e:'\uD83D\uDED2',n:'Loblaw stores'},
+    streaming:{e:'\uD83D\uDCFA',n:'Streaming'},
+    transit:{e:'\uD83D\uDE87',n:'Transit'},
+    gas:{e:'\u26FD',n:'Gas'},
+    shopping:{e:'\uD83D\uDED2',n:'Shopping'},
+    shoppingAmex:{e:'\uD83D\uDED2',n:'Shopping (Amex)'},
+    cineplex:{e:'\uD83C\uDFAC',n:'Cineplex'},
+    travel:{e:'\u2708\uFE0F',n:'Travel'},
+    marriott:{e:'\uD83C\uDFE8',n:'Marriott'},
+    rogers:{e:'\uD83D\uDCF1',n:'Rogers/Fido'},
+    costco:{e:'\uD83C\uDFEA',n:'Costco'},
+    walmart:{e:'\uD83D\uDECD',n:'Walmart'}
+  };
+  var EXCLUDE_CATS = ['base','other','usd'];
+  function getTopCategory(card){
+    if(!card||!card.realRates)return null;
+    var best={cat:null,rate:0};
+    Object.keys(card.realRates).forEach(function(cat){
+      if(EXCLUDE_CATS.indexOf(cat)>=0)return;
+      var r=card.realRates[cat]||0;
+      if(r>best.rate){best.rate=r;best.cat=cat;}
+    });
+    return best.cat?best:null;
+  }
+  function getUserFee(card){
+    if(!card)return 0;
+    var fee=card.feeRetail||0;
+    if(typeof window.BANK_EMPLOYERS!=='undefined' && window._userEmployerBank){
+      var emp=window.BANK_EMPLOYERS[window._userEmployerBank];
+      if(emp && emp.appliesTo && emp.appliesTo.indexOf(card.iss)>=0){
+        fee=fee*(1-emp.discount);
+      }
+    } else if(card.scotiaEmployee && (typeof isScotiaEmp!=='undefined' && isScotiaEmp)){
+      fee=fee*0.5;
+    }
+    return fee;
+  }
+  function computeMonthlyPace(cardKey, category, cachedTxs){
+    if(!cachedTxs || !cachedTxs.length)return {monthly:0,txCount:0};
+    var now=Date.now();
+    var ninetyDaysAgo=now-(90*24*60*60*1000);
+    var total=0, count=0;
+    cachedTxs.forEach(function(t){
+      if(t.card!==cardKey)return;
+      if(!t.amount)return;
+      var d=new Date(t.date||'').getTime();
+      if(isNaN(d) || d<ninetyDaysAgo)return;
+      var txCat='base';
+      try{ if(typeof resolveCategory==='function') txCat=resolveCategory(t.merchant||''); }catch(e){}
+      if(txCat===category){
+        total+=t.amount;
+        count++;
+      }
+    });
+    return {monthly:total/3, txCount:count};
+  }
+  function computeBreakevenHTML(cardKey, card, cachedTxs){
+    var fee=getUserFee(card);
+    var top=getTopCategory(card);
+    if(!top){
+      return '<div class="breakeven-analyzer no-fee"><div class="be-nofee-msg"><span class="ic">\u2728</span>Card details unavailable</div></div>';
+    }
+    var catInfo=CAT_LABELS[top.cat]||{e:'\uD83D\uDCB3',n:top.cat};
+    if(fee<=0){
+      return '<div class="breakeven-analyzer no-fee">'+
+        '<div class="be-header"><div class="be-title">Break-Even Analysis</div><div class="be-verdict free">\u2728 Pure upside</div></div>'+
+        '<div class="be-nofee-msg"><span class="ic">\uD83C\uDF89</span>No fee \u2014 every reward is 100% profit</div>'+
+        '<div class="be-tip">Top bonus: <b>'+top.rate.toFixed(1)+'%</b> on <span class="be-cat-badge">'+catInfo.e+' '+catInfo.n+'</span></div>'+
+      '</div>';
+    }
+    var excessRate=Math.max(0.5, top.rate-1.0)/100;
+    var breakevenAnnual=fee/excessRate;
+    var breakevenMonthly=breakevenAnnual/12;
+    var pace=computeMonthlyPace(cardKey, top.cat, cachedTxs);
+    var pctOfBE = breakevenMonthly>0 ? (pace.monthly/breakevenMonthly) : 0;
+    var pctClamped=Math.min(100, pctOfBE*100);
+    var verdictClass='pending', verdictText='\uD83D\uDCCA Log transactions', fillClass='';
+    var tip='';
+    if(pace.monthly===0){
+      verdictClass='pending';
+      verdictText='\uD83D\uDCCA Log transactions';
+      tip='Log <b>'+catInfo.n.toLowerCase()+'</b> purchases with this card to see your fit.';
+    } else if(pctOfBE>=1.5){
+      verdictClass='excellent'; verdictText='\u2b50 Excellent fit'; fillClass='green';
+      tip='Crushing it \u2014 you\u2019re spending <b>'+(pctOfBE*100).toFixed(0)+'%</b> of the break-even. Keep this card.';
+    } else if(pctOfBE>=1.0){
+      verdictClass='great'; verdictText='\u2705 Great fit'; fillClass='green';
+      tip='This card is paying for itself. Well matched to your spending.';
+    } else if(pctOfBE>=0.5){
+      verdictClass='marginal'; verdictText='\u26A0 Marginal'; fillClass='amber';
+      var gap=(breakevenMonthly-pace.monthly);
+      tip='You\u2019re at <b>'+(pctOfBE*100).toFixed(0)+'%</b> of break-even. Spend <b>$'+Math.round(gap).toLocaleString()+'/mo</b> more on '+catInfo.n.toLowerCase()+' to justify the fee.';
+    } else {
+      verdictClass='downgrade'; verdictText='\uD83D\uDCC9 Consider downgrade'; fillClass='coral';
+      tip='At this pace the fee outweighs the bonus rewards. Look for a no-fee alternative.';
+    }
+    return '<div class="breakeven-analyzer">'+
+      '<div class="be-header"><div class="be-title">Break-Even Analysis</div><div class="be-verdict '+verdictClass+'">'+verdictText+'</div></div>'+
+      '<div class="be-body">'+
+        '<div class="be-metric"><div class="l">Your pace</div><div class="v pace">$'+Math.round(pace.monthly).toLocaleString()+'<span style="font-size:10px;color:var(--muted);font-weight:800">/mo</span></div></div>'+
+        '<div class="be-metric"><div class="l">Break-even</div><div class="v">$'+Math.round(breakevenMonthly).toLocaleString()+'<span style="font-size:10px;color:var(--muted);font-weight:800">/mo</span></div></div>'+
+      '</div>'+
+      '<div class="be-progress-wrap"><div class="be-progress"><div class="be-progress-fill '+fillClass+'" style="width:'+pctClamped+'%"></div></div></div>'+
+      '<div class="be-tip">'+tip+' Top bonus: <b>'+top.rate.toFixed(1)+'%</b> on <span class="be-cat-badge">'+catInfo.e+' '+catInfo.n+'</span></div>'+
+    '</div>';
+  }
+  function injectBreakevenAnalyzers(){
+    try{
+      var list=document.getElementById('cardList');
+      if(!list)return;
+      var cardEls=list.querySelectorAll('.cardBig');
+      if(!cardEls.length)return;
+      // V63 FIX: fallback ordering matches renderCards (CARDS_DB entries filter, NOT userWallet Set)
+      var walletKeys=[];
+      if(typeof CARDS_DB!=='undefined' && typeof userWallet!=='undefined'){
+        walletKeys=Object.keys(CARDS_DB).filter(function(k){return userWallet.has(k);});
+      }
+      var cachedTxs=[];
+      try{ if(typeof loadTx==='function') cachedTxs=loadTx(); }catch(e){}
+      cardEls.forEach(function(cardEl, idx){
+        if(cardEl.querySelector('.breakeven-analyzer'))return;
+        // V63 FIX: read cardKey from data-card-key attribute (reliable) with fallback
+        var cardKey=cardEl.getAttribute('data-card-key') || walletKeys[idx];
+        var card=(typeof CARDS_DB!=='undefined')?CARDS_DB[cardKey]:null;
+        if(!card && typeof customCards!=='undefined') card=customCards[cardKey];
+        if(!card)return;
+        var html=computeBreakevenHTML(cardKey, card, cachedTxs);
+        var benefits=cardEl.querySelector('.benefits');
+        var wrap=document.createElement('div');
+        wrap.innerHTML=html;
+        var node=wrap.firstChild;
+        if(benefits && benefits.parentNode){
+          benefits.parentNode.insertBefore(node, benefits);
+        } else {
+          cardEl.appendChild(node);
+        }
+      });
+    }catch(e){console.warn('V63 injectBreakevenAnalyzers:',e);}
+  }
+  window.injectBreakevenAnalyzers=injectBreakevenAnalyzers;
+  if(typeof window.renderCards==='function'){
+    var _origRenderCards=window.renderCards;
+    window.renderCards=function(){
+      var result=_origRenderCards.apply(this,arguments);
+      setTimeout(injectBreakevenAnalyzers, 20);
+      return result;
+    };
+  }
+  if(typeof window.switchTab==='function'){
+    var _origSwitchTab=window.switchTab;
+    window.switchTab=function(tabName){
+      var result=_origSwitchTab.apply(this,arguments);
+      if(tabName==='cardsTab'){
+        setTimeout(injectBreakevenAnalyzers, 100);
+      }
+      return result;
+    };
+  }
+  document.addEventListener('DOMContentLoaded', function(){
+    setTimeout(injectBreakevenAnalyzers, 400);
+  });
+  setTimeout(injectBreakevenAnalyzers, 800);
+  console.log('V63 break-even analyzer loaded (with card matching fix)');
 })();
 </script>
 <script>
 // ================================================================
-// V62 BREAK-EVEN FEE ANALYZER
-// Analyzes each card in the wallet: is the annual fee justified
-// by the user's actual spend pace on the card's top bonus category?
+// V64 SMARTER BREAK-EVEN ANALYZER
+// Handles card type detection: no-fee, special-purpose, flat-rate,
+// travel-primary, and reward-optimized cards get different messaging.
 // ================================================================
 (function(){
   var CAT_LABELS = {
@@ -9769,7 +8900,6 @@ try {
   function getUserFee(card){
     if(!card)return 0;
     var fee=card.feeRetail||0;
-    // V47 employer bank discount
     if(typeof window.BANK_EMPLOYERS!=='undefined' && window._userEmployerBank){
       var emp=window.BANK_EMPLOYERS[window._userEmployerBank];
       if(emp && emp.appliesTo && emp.appliesTo.indexOf(card.iss)>=0){
@@ -9779,6 +8909,24 @@ try {
       fee=fee*0.5;
     }
     return fee;
+  }
+
+  // V64: detect card type
+  function getCardType(card, fee, top){
+    if(fee <= 0) return 'no-fee';
+    if(!top) return 'reward-optimized';
+    // Special-purpose: top rate <= 1% but has fee
+    if(top.rate <= 1.0) return 'special-purpose';
+    // Flat-rate: top rate equals base rate (within 0.01) and rate <= 2.5%
+    var baseRate = (card.realRates && card.realRates.base) || 0;
+    if(Math.abs(top.rate - baseRate) < 0.01 && top.rate <= 2.5) return 'flat-rate';
+    // Travel-primary: top cat is travel or marriott AND all main daily cats <= 1.5%
+    if(top.cat === 'travel' || top.cat === 'marriott'){
+      var mainCats = ['dining','groceryAmex','groceryNo','gas','transit'];
+      var allLow = mainCats.every(function(c){ return (card.realRates[c] || 0) <= 1.5; });
+      if(allLow) return 'travel-primary';
+    }
+    return 'reward-optimized';
   }
 
   function computeMonthlyPace(cardKey, category, cachedTxs){
@@ -9791,16 +8939,30 @@ try {
       if(!t.amount)return;
       var d=new Date(t.date||'').getTime();
       if(isNaN(d) || d<ninetyDaysAgo)return;
-      // Match category loosely - top-cat spend usually flows through resolveCategory
       var txCat='base';
       try{ if(typeof resolveCategory==='function') txCat=resolveCategory(t.merchant||''); }catch(e){}
-      // Count if either matches the card's top category OR if it's a general match
       if(txCat===category){
         total+=t.amount;
         count++;
       }
     });
-    // Extrapolate 90-day sum to monthly
+    return {monthly:total/3, txCount:count};
+  }
+
+  // V64: total spend on card across ALL categories (for flat-rate cards)
+  function computeTotalMonthlyPace(cardKey, cachedTxs){
+    if(!cachedTxs || !cachedTxs.length)return {monthly:0,txCount:0};
+    var now=Date.now();
+    var ninetyDaysAgo=now-(90*24*60*60*1000);
+    var total=0, count=0;
+    cachedTxs.forEach(function(t){
+      if(t.card!==cardKey)return;
+      if(!t.amount)return;
+      var d=new Date(t.date||'').getTime();
+      if(isNaN(d) || d<ninetyDaysAgo)return;
+      total+=t.amount;
+      count++;
+    });
     return {monthly:total/3, txCount:count};
   }
 
@@ -9811,70 +8973,157 @@ try {
       return '<div class="breakeven-analyzer no-fee"><div class="be-nofee-msg"><span class="ic">\u2728</span>Card details unavailable</div></div>';
     }
     var catInfo=CAT_LABELS[top.cat]||{e:'\uD83D\uDCB3',n:top.cat};
+    var cardType = getCardType(card, fee, top);
 
-    // No fee = pure upside
-    if(fee<=0){
+    // ============ TYPE 1: NO FEE ============
+    if(cardType === 'no-fee'){
       return '<div class="breakeven-analyzer no-fee">'+
-        '<div class="be-header">'+
-          '<div class="be-title">Break-Even Analysis</div>'+
-          '<div class="be-verdict free">\u2728 Pure upside</div>'+
-        '</div>'+
+        '<div class="be-header"><div class="be-title">Break-Even Analysis</div><div class="be-verdict free">\u2728 Pure upside</div></div>'+
         '<div class="be-nofee-msg"><span class="ic">\uD83C\uDF89</span>No fee \u2014 every reward is 100% profit</div>'+
         '<div class="be-tip">Top bonus: <b>'+top.rate.toFixed(1)+'%</b> on <span class="be-cat-badge">'+catInfo.e+' '+catInfo.n+'</span></div>'+
       '</div>';
     }
 
-    // Excess rate = top rate above a 1% baseline no-fee card
-    var excessRate=Math.max(0.5, top.rate-1.0)/100;
-    var breakevenAnnual=fee/excessRate;
-    var breakevenMonthly=breakevenAnnual/12;
+    // ============ TYPE 2: SPECIAL-PURPOSE ============
+    // Low APR, USD banking, GM discount, etc. — not for rewards
+    if(cardType === 'special-purpose'){
+      var purposeHint = 'the specialty perk';
+      var nameLower = (card.n||'').toLowerCase();
+      if(nameLower.indexOf('u.s.') >= 0 || nameLower.indexOf('usd') >= 0 || nameLower.indexOf('u.s. dollar') >= 0){
+        purposeHint = 'USD banking without conversion fees';
+      } else if(nameLower.indexOf('gm') >= 0){
+        purposeHint = 'GM vehicle discount earnings';
+      } else if(nameLower.indexOf('low') >= 0 || nameLower.indexOf('value') >= 0 || nameLower.indexOf('select') >= 0 || nameLower.indexOf('preferred rate') >= 0 || nameLower.indexOf('true line') >= 0){
+        purposeHint = 'low interest rate (not rewards)';
+      } else if(nameLower.indexOf('secure') >= 0){
+        purposeHint = 'credit building (secured card)';
+      }
+      return '<div class="breakeven-analyzer">'+
+        '<div class="be-header"><div class="be-title">Break-Even Analysis</div><div class="be-verdict special">\uD83C\uDFAF Special-purpose card</div></div>'+
+        '<div class="be-nofee-msg" style="color:var(--brand)"><span class="ic">\uD83D\uDCA1</span>Not optimized for rewards</div>'+
+        '<div class="be-tip">Value from <b>'+purposeHint+'</b>, not spending rewards. Base rate: <b>'+top.rate.toFixed(1)+'%</b>. Consider if the perk still justifies <b>$'+Math.round(fee)+'/yr</b>.</div>'+
+      '</div>';
+    }
 
-    var pace=computeMonthlyPace(cardKey, top.cat, cachedTxs);
-    var pctOfBE = breakevenMonthly>0 ? (pace.monthly/breakevenMonthly) : 0;
-    var pctClamped=Math.min(100, pctOfBE*100);
+    // ============ TYPE 3: TRAVEL-PRIMARY ============
+    // Travel/hotel cards - annual travel spend framing
+    if(cardType === 'travel-primary'){
+      var excessRate = Math.max(0.5, top.rate - 1.0) / 100;
+      var breakevenAnnual = fee / excessRate;
+      var pace = computeMonthlyPace(cardKey, top.cat, cachedTxs);
+      var annualTravel = pace.monthly * 12;
+      var pctOfBE = breakevenAnnual > 0 ? (annualTravel / breakevenAnnual) : 0;
+      var pctClamped = Math.min(100, pctOfBE * 100);
 
-    // Verdict
+      var verdictClass='pending', verdictText='\uD83D\uDCCA Log travel spend', fillClass='';
+      var tip='';
+      if(annualTravel === 0){
+        verdictClass='travel'; verdictText='\u2708\uFE0F Travel-primary card';
+        tip='This card shines on <b>'+catInfo.n.toLowerCase()+' spend</b>. Log travel purchases to see your fit. Break-even: <b>$'+Math.round(breakevenAnnual).toLocaleString()+'/yr</b> on '+catInfo.n.toLowerCase()+'.';
+      } else if(pctOfBE >= 1.5){
+        verdictClass='excellent'; verdictText='\u2b50 Excellent fit'; fillClass='green';
+        tip='You spend enough on '+catInfo.n.toLowerCase()+' to easily justify this card.';
+      } else if(pctOfBE >= 1.0){
+        verdictClass='great'; verdictText='\u2705 Great fit'; fillClass='green';
+        tip='Your travel spend covers the fee. Keep this card.';
+      } else if(pctOfBE >= 0.5){
+        verdictClass='marginal'; verdictText='\u26A0 Marginal'; fillClass='amber';
+        var gap = breakevenAnnual - annualTravel;
+        tip='You spend <b>$'+Math.round(annualTravel).toLocaleString()+'/yr</b> on '+catInfo.n.toLowerCase()+'. Need <b>$'+Math.round(gap).toLocaleString()+'</b> more/yr to break even.';
+      } else {
+        verdictClass='downgrade'; verdictText='\uD83D\uDCC9 Consider downgrade'; fillClass='coral';
+        tip='Low '+catInfo.n.toLowerCase()+' spend. Consider a no-fee alternative or a card better matched to your daily spend.';
+      }
+
+      return '<div class="breakeven-analyzer">'+
+        '<div class="be-header"><div class="be-title">Break-Even Analysis</div><div class="be-verdict '+verdictClass+'">'+verdictText+'</div></div>'+
+        '<div class="be-body">'+
+          '<div class="be-metric"><div class="l">Your '+catInfo.n.toLowerCase()+'</div><div class="v pace">$'+Math.round(annualTravel).toLocaleString()+'<span style="font-size:10px;color:var(--muted);font-weight:800">/yr</span></div></div>'+
+          '<div class="be-metric"><div class="l">Break-even</div><div class="v">$'+Math.round(breakevenAnnual).toLocaleString()+'<span style="font-size:10px;color:var(--muted);font-weight:800">/yr</span></div></div>'+
+        '</div>'+
+        '<div class="be-progress-wrap"><div class="be-progress"><div class="be-progress-fill '+fillClass+'" style="width:'+pctClamped+'%"></div></div></div>'+
+        '<div class="be-tip">'+tip+' Top bonus: <b>'+top.rate.toFixed(1)+'%</b> on <span class="be-cat-badge">'+catInfo.e+' '+catInfo.n+'</span></div>'+
+      '</div>';
+    }
+
+    // ============ TYPE 4: FLAT-RATE ============
+    // Rate is same across categories - use TOTAL spend
+    if(cardType === 'flat-rate'){
+      var excessRate = Math.max(0.5, top.rate - 1.0) / 100;
+      var breakevenAnnual = fee / excessRate;
+      var breakevenMonthly = breakevenAnnual / 12;
+      var pace = computeTotalMonthlyPace(cardKey, cachedTxs);
+      var pctOfBE = breakevenMonthly > 0 ? (pace.monthly / breakevenMonthly) : 0;
+      var pctClamped = Math.min(100, pctOfBE * 100);
+
+      var verdictClass='pending', verdictText='\uD83D\uDCCA Log transactions', fillClass='';
+      var tip='';
+      if(pace.monthly === 0){
+        verdictClass='pending';
+        verdictText='\uD83D\uDCCA Log transactions';
+        tip='Log any purchases with this card to see your fit. It earns <b>'+top.rate.toFixed(1)+'%</b> flat on everything.';
+      } else if(pctOfBE >= 1.5){
+        verdictClass='excellent'; verdictText='\u2b50 Excellent fit'; fillClass='green';
+        tip='Crushing it \u2014 you\u2019re at <b>'+(pctOfBE*100).toFixed(0)+'%</b> of break-even. Great flat-rate card for you.';
+      } else if(pctOfBE >= 1.0){
+        verdictClass='great'; verdictText='\u2705 Great fit'; fillClass='green';
+        tip='This flat-rate card is paying for itself.';
+      } else if(pctOfBE >= 0.5){
+        verdictClass='marginal'; verdictText='\u26A0 Marginal'; fillClass='amber';
+        var gap = breakevenMonthly - pace.monthly;
+        tip='At <b>'+(pctOfBE*100).toFixed(0)+'%</b> of break-even. Spend <b>$'+Math.round(gap).toLocaleString()+'/mo</b> more overall to justify the fee.';
+      } else {
+        verdictClass='downgrade'; verdictText='\uD83D\uDCC9 Consider downgrade'; fillClass='coral';
+        tip='At this pace, a no-fee flat-rate card would net more. Look for alternatives.';
+      }
+
+      return '<div class="breakeven-analyzer">'+
+        '<div class="be-header"><div class="be-title">Break-Even Analysis</div><div class="be-verdict '+verdictClass+'">'+verdictText+'</div></div>'+
+        '<div class="be-body">'+
+          '<div class="be-metric"><div class="l">Total spend</div><div class="v pace">$'+Math.round(pace.monthly).toLocaleString()+'<span style="font-size:10px;color:var(--muted);font-weight:800">/mo</span></div></div>'+
+          '<div class="be-metric"><div class="l">Break-even</div><div class="v">$'+Math.round(breakevenMonthly).toLocaleString()+'<span style="font-size:10px;color:var(--muted);font-weight:800">/mo</span></div></div>'+
+        '</div>'+
+        '<div class="be-progress-wrap"><div class="be-progress"><div class="be-progress-fill '+fillClass+'" style="width:'+pctClamped+'%"></div></div></div>'+
+        '<div class="be-tip">'+tip+' Flat rate: <b>'+top.rate.toFixed(1)+'%</b> on everything <span class="be-cat-badge">\uD83D\uDCB3 Flat</span></div>'+
+      '</div>';
+    }
+
+    // ============ TYPE 5: REWARD-OPTIMIZED (default) ============
+    var excessRate = Math.max(0.5, top.rate - 1.0) / 100;
+    var breakevenAnnual = fee / excessRate;
+    var breakevenMonthly = breakevenAnnual / 12;
+    var pace = computeMonthlyPace(cardKey, top.cat, cachedTxs);
+    var pctOfBE = breakevenMonthly > 0 ? (pace.monthly / breakevenMonthly) : 0;
+    var pctClamped = Math.min(100, pctOfBE * 100);
+
     var verdictClass='pending', verdictText='\uD83D\uDCCA Log transactions', fillClass='';
     var tip='';
-    if(pace.monthly===0){
+    if(pace.monthly === 0){
       verdictClass='pending';
       verdictText='\uD83D\uDCCA Log transactions';
       tip='Log <b>'+catInfo.n.toLowerCase()+'</b> purchases with this card to see your fit.';
-    } else if(pctOfBE>=1.5){
+    } else if(pctOfBE >= 1.5){
       verdictClass='excellent'; verdictText='\u2b50 Excellent fit'; fillClass='green';
-      tip='Crushing it \u2014 you\u2019re spending <b>'+(pctOfBE*100).toFixed(0)+'%</b> of the break-even. Keep this card.';
-    } else if(pctOfBE>=1.0){
+      tip='Crushing it \u2014 spending <b>'+(pctOfBE*100).toFixed(0)+'%</b> of the break-even. Keep this card.';
+    } else if(pctOfBE >= 1.0){
       verdictClass='great'; verdictText='\u2705 Great fit'; fillClass='green';
       tip='This card is paying for itself. Well matched to your spending.';
-    } else if(pctOfBE>=0.5){
+    } else if(pctOfBE >= 0.5){
       verdictClass='marginal'; verdictText='\u26A0 Marginal'; fillClass='amber';
-      var gap=(breakevenMonthly-pace.monthly);
-      tip='You\u2019re at <b>'+(pctOfBE*100).toFixed(0)+'%</b> of break-even. Spend <b>$'+Math.round(gap).toLocaleString()+'/mo</b> more on '+catInfo.n.toLowerCase()+' to justify the fee.';
+      var gap = breakevenMonthly - pace.monthly;
+      tip='At <b>'+(pctOfBE*100).toFixed(0)+'%</b> of break-even. Spend <b>$'+Math.round(gap).toLocaleString()+'/mo</b> more on '+catInfo.n.toLowerCase()+' to justify the fee.';
     } else {
       verdictClass='downgrade'; verdictText='\uD83D\uDCC9 Consider downgrade'; fillClass='coral';
       tip='At this pace the fee outweighs the bonus rewards. Look for a no-fee alternative.';
     }
 
     return '<div class="breakeven-analyzer">'+
-      '<div class="be-header">'+
-        '<div class="be-title">Break-Even Analysis</div>'+
-        '<div class="be-verdict '+verdictClass+'">'+verdictText+'</div>'+
-      '</div>'+
+      '<div class="be-header"><div class="be-title">Break-Even Analysis</div><div class="be-verdict '+verdictClass+'">'+verdictText+'</div></div>'+
       '<div class="be-body">'+
-        '<div class="be-metric">'+
-          '<div class="l">Your pace</div>'+
-          '<div class="v pace">$'+Math.round(pace.monthly).toLocaleString()+'<span style="font-size:10px;color:var(--muted);font-weight:800">/mo</span></div>'+
-        '</div>'+
-        '<div class="be-metric">'+
-          '<div class="l">Break-even</div>'+
-          '<div class="v">$'+Math.round(breakevenMonthly).toLocaleString()+'<span style="font-size:10px;color:var(--muted);font-weight:800">/mo</span></div>'+
-        '</div>'+
+        '<div class="be-metric"><div class="l">Your pace</div><div class="v pace">$'+Math.round(pace.monthly).toLocaleString()+'<span style="font-size:10px;color:var(--muted);font-weight:800">/mo</span></div></div>'+
+        '<div class="be-metric"><div class="l">Break-even</div><div class="v">$'+Math.round(breakevenMonthly).toLocaleString()+'<span style="font-size:10px;color:var(--muted);font-weight:800">/mo</span></div></div>'+
       '</div>'+
-      '<div class="be-progress-wrap">'+
-        '<div class="be-progress">'+
-          '<div class="be-progress-fill '+fillClass+'" style="width:'+pctClamped+'%"></div>'+
-        '</div>'+
-      '</div>'+
+      '<div class="be-progress-wrap"><div class="be-progress"><div class="be-progress-fill '+fillClass+'" style="width:'+pctClamped+'%"></div></div></div>'+
       '<div class="be-tip">'+tip+' Top bonus: <b>'+top.rate.toFixed(1)+'%</b> on <span class="be-cat-badge">'+catInfo.e+' '+catInfo.n+'</span></div>'+
     '</div>';
   }
@@ -9886,23 +9135,21 @@ try {
       var cardEls=list.querySelectorAll('.cardBig');
       if(!cardEls.length)return;
       var walletKeys=[];
-      if(typeof userWallet!=='undefined' && userWallet.size){
-        walletKeys=Array.from(userWallet);
+      if(typeof CARDS_DB!=='undefined' && typeof userWallet!=='undefined'){
+        walletKeys=Object.keys(CARDS_DB).filter(function(k){return userWallet.has(k);});
       }
-      // Only proceed if wallet count matches card element count
-      if(walletKeys.length!==cardEls.length)return;
       var cachedTxs=[];
       try{ if(typeof loadTx==='function') cachedTxs=loadTx(); }catch(e){}
 
       cardEls.forEach(function(cardEl, idx){
-        // Skip if already injected
-        if(cardEl.querySelector('.breakeven-analyzer'))return;
-        var cardKey=walletKeys[idx];
+        // Remove any existing analyzer first (so V64 replaces V62/V63)
+        var existing = cardEl.querySelector('.breakeven-analyzer');
+        if(existing) existing.remove();
+        var cardKey=cardEl.getAttribute('data-card-key') || walletKeys[idx];
         var card=(typeof CARDS_DB!=='undefined')?CARDS_DB[cardKey]:null;
         if(!card && typeof customCards!=='undefined') card=customCards[cardKey];
         if(!card)return;
         var html=computeBreakevenHTML(cardKey, card, cachedTxs);
-        // Insert BEFORE .benefits (or after .fees, whichever comes first)
         var benefits=cardEl.querySelector('.benefits');
         var wrap=document.createElement('div');
         wrap.innerHTML=html;
@@ -9913,37 +9160,18 @@ try {
           cardEl.appendChild(node);
         }
       });
-    }catch(e){console.warn('V62 injectBreakevenAnalyzers:',e);}
+    }catch(e){console.warn('V64 injectBreakevenAnalyzers:',e);}
   }
   window.injectBreakevenAnalyzers=injectBreakevenAnalyzers;
 
-  // Hook renderCards
-  if(typeof window.renderCards==='function'){
-    var _origRenderCards=window.renderCards;
-    window.renderCards=function(){
-      var result=_origRenderCards.apply(this,arguments);
-      setTimeout(injectBreakevenAnalyzers, 20);
-      return result;
-    };
-  }
-  // Also hook switchTab to catch when user comes to cardsTab
-  if(typeof window.switchTab==='function'){
-    var _origSwitchTab=window.switchTab;
-    window.switchTab=function(tabName){
-      var result=_origSwitchTab.apply(this,arguments);
-      if(tabName==='cardsTab'){
-        setTimeout(injectBreakevenAnalyzers, 100);
-      }
-      return result;
-    };
-  }
-  // Initial paint
+  // Trigger reinject after DOM ready
+  setTimeout(injectBreakevenAnalyzers, 200);
+  setTimeout(injectBreakevenAnalyzers, 1000);
   document.addEventListener('DOMContentLoaded', function(){
-    setTimeout(injectBreakevenAnalyzers, 400);
+    setTimeout(injectBreakevenAnalyzers, 500);
   });
-  setTimeout(injectBreakevenAnalyzers, 800);
 
-  console.log('V62 Break-even fee analyzer loaded');
+  console.log('V64 smarter break-even analyzer loaded (handles special-purpose, flat-rate, travel-primary cards)');
 })();
 </script>
 </body>
