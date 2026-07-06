@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Wallet IQ V56</title>
+<title>Wallet IQ V57</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Wallet IQ">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#f7f6f2">
-<link rel="apple-touch-icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' rx='40' fill='%23171713'/><text x='90' y='120' text-anchor='middle' font-family='-apple-system' font-size='95' font-weight='900' fill='%23fff'>W</text></svg>">
+<link rel="apple-touch-icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' rx='40' fill='%23faf7f2'/><rect x='55' y='40' width='68' height='16' rx='5' fill='%23c8d5e3' opacity='0.85'/><rect x='47' y='52' width='80' height='20' rx='6' fill='%23dfe8f1'/><rect x='35' y='68' width='110' height='72' rx='16' fill='%237994b0'/><rect x='110' y='96' width='24' height='18' rx='5' fill='%235c7d9c'/><circle cx='122' cy='105' r='4' fill='%23faf7f2'/><path d='M143 15 L147 25 L157 29 L147 33 L143 43 L139 33 L129 29 L139 25 Z' fill='%23c9a35a'/></svg>">
 <style>
 :root{--bg:#f7f6f2;--surface:#fff;--ink:#181814;--muted:#77746c;--border:#dfdcd2;--cobalt:#1d6fe0;--cobaltbg:#e8f0fe;--plat:#96710e;--platbg:#fbf3da;--pass:#d6334c;--passbg:#fce9ec;--rogers:#e0701d;--rogersbg:#fdecdd;--bonvoy:#7b3fd4;--bonvoybg:#f1e7fb;--green:#1f8a3d;--greenbg:#e3f5e8;--yellow:#a37a17;--yellowbg:#fef5d4;--red:#c4314a;--redbg:#fbe7eb;--shadow:0 8px 22px rgba(20,20,18,.06);--surface-2:#f0eee7}
 *{box-sizing:border-box}
@@ -458,6 +458,25 @@ body.dark .credit-card .cc-btn{background:var(--ink)!important;color:var(--surfa
 .credit-filter.on{background:var(--brand)!important;color:#fff!important;border-color:transparent!important}
 body.dark .credit-filter.on{background:var(--accent)!important;color:var(--ink)!important}
 </style>
+<style>
+/* V57 HEADER REFRESH - compact left-aligned brand + logo + theme toggle */
+.header-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;min-height:38px}
+.brand-wrap{display:flex;align-items:center;gap:8px;flex:1;min-width:0;cursor:pointer;user-select:none;padding:2px 4px;border-radius:10px;transition:opacity .12s ease,transform .12s ease}
+.brand-wrap:active{transform:scale(.97);opacity:.75}
+.brand-wrap:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.brand-logo{width:30px;height:30px;flex-shrink:0;filter:drop-shadow(0 2px 4px rgba(60,50,30,.10))}
+.brand-name{font-size:17px;font-weight:900;letter-spacing:-.028em;color:var(--ink);line-height:1;white-space:nowrap}
+.brand-iq{color:#7994b0;font-weight:900}
+body.dark .brand-iq{color:#a8bfd4}
+.header-btn-sm{width:34px;height:34px;font-size:15px;flex-shrink:0}
+h1#titleHome{display:none}
+@media(max-width:375px){
+  .brand-logo{width:28px;height:28px}
+  .brand-name{font-size:15.5px}
+  .header-btn-sm{width:32px;height:32px;font-size:14px}
+  .header-row{gap:6px}
+}
+</style>
 </head>
 <style>
 /* V41 Home simplifications */
@@ -614,11 +633,29 @@ body.dark .credits-empty{background:var(--surface)}
 .credit-flash .cf-emoji{font-size:20px}
 </style>
 <body>
-<!-- V56: Added 15 new credit cards (Simplii, HSBC WE, HSBC, Vancity, ATB, Servus, Prospera, Rogers Preferred, Fido, KOHO Everything, PC World MC, TD First Class, Bonvoy Business, Amazon RBC + Neo Secure). Fixed home vault summary + recent activity + sweet spots. -->
+<!-- V57: Header refresh — compact left-aligned wallet logo + wordmark in dusty blue, theme toggle moved from drawer to header. -->
 <div class="top">
-<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;gap:8px">
-<h1 id="titleHome" style="flex:1;text-align:center;cursor:pointer;user-select:none" onclick="switchTab('home')">Wallet IQ</h1>
-<button id="menuBtn" class="header-btn" type="button" title="Menu">☰</button>
+<div class="header-row">
+<div class="brand-wrap" id="titleHome" onclick="switchTab('home')" role="button" tabindex="0" aria-label="Wallet IQ home">
+<svg class="brand-logo" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+<defs>
+<linearGradient id="brandGrad" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" stop-color="#ffffff" stop-opacity="0.35"/>
+<stop offset="1" stop-color="#000000" stop-opacity="0.15"/>
+</linearGradient>
+</defs>
+<rect x="10" y="7" width="17" height="4" rx="1.2" fill="#c8d5e3" opacity="0.85"/>
+<rect x="8" y="10" width="20" height="5" rx="1.5" fill="#dfe8f1"/>
+<rect x="5" y="14" width="30" height="20" rx="4.5" fill="#7994b0"/>
+<rect x="5" y="14" width="30" height="20" rx="4.5" fill="url(#brandGrad)" opacity="0.35"/>
+<rect x="26" y="22" width="6" height="4.5" rx="1.2" fill="#5c7d9c"/>
+<circle cx="29" cy="24.25" r="1" fill="#faf7f2"/>
+<path d="M32 3.5 L33 6 L35.5 7 L33 8 L32 10.5 L31 8 L28.5 7 L31 6 Z" fill="#c9a35a"/>
+</svg>
+<span class="brand-name">Wallet <span class="brand-iq">IQ</span></span>
+</div>
+<button id="themeBtn" class="header-btn header-btn-sm" type="button" title="Toggle theme" onclick="toggleThemeFromHeader()" aria-label="Toggle theme">🌙</button>
+<button id="menuBtn" class="header-btn header-btn-sm" type="button" title="Menu" aria-label="Menu">☰</button>
 </div>
 <div class="search-wrap">
 <input id="q" placeholder="Search merchant, store, or category..." autocomplete="off">
@@ -946,11 +983,10 @@ body.dark .credits-empty{background:var(--surface)}
 <button class="drawer-item" data-tab="rewards"><span class="di-ico">🎯</span><span>Rewards Studio</span></button>
 <div class="drawer-divider"></div>
 <button class="drawer-item" onclick="showOnboarding();closeDrawer()"><span class="di-ico">⚙️</span><span>Edit my wallet</span></button>
-<button class="drawer-item" onclick="toggleThemeFromDrawer()"><span class="di-ico" id="drawerThemeIco">🌙</span><span>Toggle theme</span></button>
 <button class="drawer-item" id="drawerFxToggle" onclick="toggleForeignMode()"><span class="di-ico" id="drawerFxIco">🇨🇦</span><span id="drawerFxLbl">CAD mode</span></button>
 <div class="drawer-divider"></div>
 <button class="drawer-item" onclick="resetWalletIQ()" style="color:var(--pass)"><span class="di-ico">🗑</span><span>Reset Wallet IQ</span></button>
-<div class="drawer-footer">Wallet IQ V56 · Built by samirdhan</div>
+<div class="drawer-footer">Wallet IQ V57 · Built by samirdhan</div>
 </div>
 </aside>
 
@@ -6154,14 +6190,12 @@ function showFlash(msg){
 function renderHomeVaultSummary(){
   const el=document.getElementById('homeVaultSummary');
   if(!el)return;
-  // V56 FIX: use userWallet (a Set) instead of undefined `wallet`
   if(typeof userWallet==='undefined'||!userWallet||userWallet.size===0){el.style.display='none';return;}
   const walletSize=userWallet.size;
   let totalRewards=0,ytdRewards=0,thisMonthRewards=0;
   const now=new Date();
   const currentMonth=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
   const currentYear=String(now.getFullYear());
-  // V56 FIX: use loadTx() instead of undefined `transactions`
   let txs=[];
   try{if(typeof loadTx==='function')txs=loadTx();}catch(e){}
   if(txs.length){
@@ -6178,7 +6212,6 @@ function renderHomeVaultSummary(){
       if(txDate.startsWith(currentYear))ytdRewards+=earned;
     });
   }
-  // Also include vault balance so it's not just tx-based
   let vaultDollars=0;
   try{
     if(typeof loadVault==='function'&&typeof POINT_PROGRAMS!=='undefined'){
@@ -6209,7 +6242,6 @@ function renderHomeVaultSummary(){
 function renderHomeRecentActivity(){
   const el=document.getElementById('homeRecentActivity');
   if(!el)return;
-  // V56 FIX: userWallet is a Set (has .size), transactions come from loadTx()
   if(typeof userWallet==='undefined'||!userWallet||userWallet.size===0){el.style.display='none';return;}
   let txs=[];
   try{if(typeof loadTx==='function')txs=loadTx();}catch(e){}
@@ -6219,7 +6251,6 @@ function renderHomeRecentActivity(){
   el.style.display='block';
   let html='<div class="recent-card"><div class="rc-title">Recent activity</div>';
   sorted.forEach(function(t){
-    // V56 FIX: field is `t.card`, not `t.cardKey`
     const card=CARDS_DB[t.card]||(typeof customCards!=='undefined'&&customCards[t.card])||{n:'Unknown'};
     let earned=0;
     try{
@@ -8239,16 +8270,12 @@ try {
 }
 </script>
 <script>
-// ================================================================
-// V56 CARD EXPANSION — 15 new Canadian credit cards
-// Adds after CARDS_DB is fully declared so no temporal dead zone.
-// Wrapped in try/catch for safety.
-// ================================================================
+// V56 CARD EXPANSION - 15 new Canadian credit cards
 try {
   if (typeof CARDS_DB === 'object' && CARDS_DB) {
     Object.assign(CARDS_DB, {
       simpliiCashback:{n:'Simplii Cash Back Visa',e:'\u{1F49C}',cl:'rogers',iss:'Simplii',net:'Visa',r:'4% restaurants',w:'Free 4% dining cashback.',feeRetail:0,feeYours:0,scotiaEmployee:false,
-       benefits:[['\u{1F37D}\uFE0F','4% restaurants','4%'],['\u26FD','1.5% gas/grocery/drug','1.5%'],['\u{1F4B3}','No annual fee','\u2605']],
+       benefits:[['\u{1F37D}\uFE0F','4% restaurants','4%'],['\u26FD','1.5% gas/grocery','1.5%'],['\u{1F4B3}','No annual fee','\u2605']],
        extra:'No fee. CIBC family.',
        realRates:{dining:4,groceryAmex:1.5,groceryNo:1.5,loblaws:1.5,gas:1.5,transit:1.5,streaming:1,rogers:1,shopping:0.5,shoppingAmex:0.5,base:0.5,costco:1,walmart:0.5,cineplex:1,travel:1,marriott:1,usd:0,other:0.5}},
       amexAeroplan:{n:'Amex Aeroplan Card',e:'\u2708\uFE0F',cl:'cobalt',iss:'Amex',net:'Amex',r:'2x Air Canada',w:'Mid-tier Aeroplan Amex.',feeRetail:139,feeYours:139,scotiaEmployee:false,
@@ -8256,7 +8283,7 @@ try {
        extra:'Base Aeroplan Amex tier.',
        realRates:{dining:2.25,groceryAmex:1.5,shopping:1.5,shoppingAmex:1.5,streaming:1.5,transit:1.5,gas:1.5,base:1.5,cineplex:1.5,travel:3,marriott:1.5,usd:1.5,groceryNo:1.5,loblaws:1.5,costco:1.5,walmart:1.5,other:1.5}},
       hsbcWorldElite:{n:'HSBC World Elite Mastercard',e:'\u{1F534}',cl:'cobalt',iss:'HSBC',net:'Mastercard',r:'3x travel',w:'HSBC travel MC.',feeRetail:149,feeYours:149,scotiaEmployee:false,
-       benefits:[['\u2708\uFE0F','3x travel via HSBC','3x'],['\u{1F374}','2x dining/gas/entertainment','2x'],['\u{1F30D}','No FX (limited)','\u2605']],
+       benefits:[['\u2708\uFE0F','3x travel via HSBC','3x'],['\u{1F374}','2x dining/gas','2x'],['\u{1F30D}','No FX (limited)','\u2605']],
        extra:'HSBC now RBC-owned.',
        realRates:{dining:2,groceryAmex:1,groceryNo:1,loblaws:1,gas:2,transit:2,streaming:1,shopping:1,shoppingAmex:1,base:1,costco:1,walmart:1,cineplex:2,travel:3,marriott:3,usd:1,other:1}},
       vancityVisa:{n:'Vancity enviro Visa Infinite',e:'\u{1F33F}',cl:'pass',iss:'Vancity',net:'Visa',r:'1.5% CB',w:'BC credit union card.',feeRetail:120,feeYours:120,scotiaEmployee:false,
@@ -8300,7 +8327,7 @@ try {
        extra:'Expedia bookings shine.',
        realRates:{dining:1.5,groceryAmex:1.5,groceryNo:1.5,loblaws:1.5,shopping:1,shoppingAmex:1,streaming:1,transit:1.5,gas:1.5,base:1,costco:1,walmart:1,cineplex:1,travel:4.5,marriott:1.5,usd:0,other:1}},
       amexBonvoyBusiness:{n:'Marriott Bonvoy Business Amex',e:'\u{1F4BC}',cl:'bonvoy',iss:'Amex',net:'Amex',r:'6x Marriott',w:'Business Bonvoy card.',feeRetail:150,feeYours:150,scotiaEmployee:false,
-       benefits:[['\u{1F3E8}','6x Marriott','6x'],['\u2708\uFE0F','3x gas/dining/transit','3x'],['\u{1F381}','Free night cert','\u2605']],
+       benefits:[['\u{1F3E8}','6x Marriott','6x'],['\u2708\uFE0F','3x gas/dining','3x'],['\u{1F381}','Free night cert','\u2605']],
        extra:'Business Bonvoy.',
        realRates:{marriott:4.8,dining:2.4,groceryAmex:0.8,shopping:0.8,shoppingAmex:0.8,streaming:0.8,transit:2.4,gas:2.4,base:0.8,cineplex:0.8,travel:1.6,usd:0.8,groceryNo:0.8,loblaws:0.8,costco:0.8,walmart:0.8,other:0.8}},
       amazonRBCVisa:{n:'Amazon.ca RBC Visa',e:'\u{1F4E6}',cl:'cobalt',iss:'RBC',net:'Visa',r:'2.5% Amazon',w:'Amazon co-brand.',feeRetail:0,feeYours:0,scotiaEmployee:false,
@@ -8313,6 +8340,34 @@ try {
 } catch (e) {
   console.warn('V56 card expansion failed:', e);
 }
+</script>
+<script>
+(function(){
+  var THEME_KEY_V57 = 'walletIQ_v40_theme';
+  function updateThemeBtnIcon(){
+    var btn = document.getElementById('themeBtn');
+    if(!btn) return;
+    btn.textContent = document.body.classList.contains('dark') ? '\u2600\uFE0F' : '\uD83C\uDF19';
+  }
+  window.toggleThemeFromHeader = function(){
+    document.body.classList.toggle('dark');
+    try{ localStorage.setItem(THEME_KEY_V57, document.body.classList.contains('dark') ? 'dark' : 'light'); }catch(e){}
+    updateThemeBtnIcon();
+    var di = document.getElementById('drawerThemeIco');
+    if(di) di.textContent = document.body.classList.contains('dark') ? '\u2600\uFE0F' : '\uD83C\uDF19';
+  };
+  try{
+    var saved = localStorage.getItem(THEME_KEY_V57);
+    if(saved === 'dark' && !document.body.classList.contains('dark')){
+      document.body.classList.add('dark');
+    }
+  }catch(e){}
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', updateThemeBtnIcon);
+  }
+  setTimeout(updateThemeBtnIcon, 100);
+  updateThemeBtnIcon();
+})();
 </script>
 </body>
 </html>
