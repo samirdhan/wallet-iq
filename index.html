@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Wallet IQ V85</title>
+<title>Wallet IQ V86</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Wallet IQ">
@@ -1300,6 +1300,17 @@ body.dark .v82-toast { background: linear-gradient(135deg, #a5b3d8, #8ea3d8); co
 <style id="v85-styles">
 [data-v85-hidden="1"] { display: none !important; }
 </style>
+<style id="v86-styles">
+.v86-hidden-note { display: flex !important; align-items: center; gap: 8px; padding: 10px 14px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 10px; font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; font-size: 12px; font-weight: 800; color: var(--muted); }
+.v86-hidden-ico { font-size: 16px; flex-shrink: 0; }
+.v86-hidden-msg { flex: 1; line-height: 1.35; }
+.v86-hidden-count { color: var(--brand); font-weight: 900; }
+.v86-restore-btn { background: transparent; border: 1.5px solid var(--brand); color: var(--brand); padding: 5px 12px; border-radius: 999px; font-family: inherit; font-weight: 900; font-size: 11px; cursor: pointer; flex-shrink: 0; transition: all .12s ease; }
+.v86-restore-btn:hover { background: var(--accent-soft); }
+.v86-restore-btn:active { transform: scale(.96); }
+body.dark .v86-hidden-note { background: var(--surface-2); border-color: var(--border); }
+body.dark .v86-restore-btn:hover { background: rgba(142,163,216,.10); }
+</style>
 </head>
 <style>
 /* V41 Home simplifications */
@@ -1476,6 +1487,7 @@ body.dark .credits-empty{background:var(--surface)}
 <!-- V83: Hid the Sweet spots block in Points Vault (unnecessary once you add several memberships) and removed the Top move tip from Insights/Overview for a cleaner view. -->
 <!-- V84: Orphan banner recounts intelligently (filters historical, hides at zero, rewrites count). Subscriptions section auto-hides header when all dismissed and updates counts when partial. All-Time grouped view has 6 date-format parsers + fallback tx-array lookup by merchant+amount + labels leftovers 'Older' instead of 'Unknown'. -->
 <!-- V85: Fixed Rewards Studio hero Missed tile to exclude historical tx (reads localStorage, filters by historical set + t.historical flag). Fixed All-Time grouping to extract dates from .txmeta only (was picking Sept 2-7 from notes like 'Flights to Dallas (Sept 2-7)'). Regroups aggressively into correct months. Recalculates leak-total based on visible items only. -->
+<!-- V86: Zeros out missedReward on historical tx in localStorage (persists so #rhMissed stays $0). Uses date+amount fallback matching for historical fingerprints (survives merchant cleaning). Replaces AIR MILES / AIR MILES Dream in loyalty modal with Blue Rewards (BMO, 0.67 cpp) per official June 2026 rebrand. Adds a small 'N items hidden — Restore all' note in Insights when subs or leaks have been dismissed. -->
 <!-- V56 -->
 <div class="top">
 <div class="header-row">
@@ -1829,7 +1841,7 @@ body.dark .credits-empty{background:var(--surface)}
 <button class="drawer-item" id="drawerFxToggle" onclick="toggleForeignMode()"><span class="di-ico" id="drawerFxIco">🇨🇦</span><span id="drawerFxLbl">CAD mode</span></button>
 <div class="drawer-divider"></div>
 <button class="drawer-item" onclick="resetWalletIQ()" style="color:var(--pass)"><span class="di-ico">🗑</span><span>Reset Wallet IQ</span></button>
-<div class="drawer-footer">Wallet IQ V85 · Built by samirdhan</div>
+<div class="drawer-footer">Wallet IQ V86 · Built by samirdhan</div>
 </div>
 </aside>
 
@@ -14778,6 +14790,152 @@ setTimeout(stampV79,500);setTimeout(stampV79,1500);
     tick();
     if(!mo){mo=new MutationObserver(function(){tick();});mo.observe(document.body,{childList:true,subtree:true,characterData:true});}
     document.addEventListener('v82:refresh',tick);
+  }
+  if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',init);}else{init();}
+  setTimeout(init,500);setTimeout(init,1500);setTimeout(init,3500);setTimeout(init,6000);
+})();
+</script>
+<script id="v86-script">
+(function(){
+  'use strict';
+  function findTxKey(){for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(!k)continue;if(k.indexOf('walletiq')!==0)continue;if(k.indexOf('walletiq_v82')===0)continue;if(!/(tx|transaction)/i.test(k))continue;try{var v=JSON.parse(localStorage.getItem(k));if(Array.isArray(v))return k;}catch(e){}}return null;}
+  function getAllTx(){var k=findTxKey();if(!k)return[];try{return JSON.parse(localStorage.getItem(k))||[];}catch(e){return[];}}
+  function saveTx(list){var k=findTxKey();if(!k)return;try{localStorage.setItem(k,JSON.stringify(list));}catch(e){}}
+  function loadHistoricalIds(){try{var v=JSON.parse(localStorage.getItem('walletiq_v82_historical_ids')||'null');return new Set(Array.isArray(v)?v:[]);}catch(e){return new Set();}}
+  function fingerprint(d,m,a){return d+'|'+(m||'').toLowerCase().trim()+'|'+Number(a||0).toFixed(2);}
+  function buildHistDateAmt(hist){var out=new Set();hist.forEach(function(fp){var parts=fp.split('|');if(parts.length===3)out.add(parts[0]+'|'+parts[2]);});return out;}
+  function isHistoricalTx(t,hist,histDateAmt){
+    if(t.historical===true)return true;
+    var fp=fingerprint(t.date,t.merchant,t.amount);
+    if(hist.has(fp))return true;
+    var target=(t.date||'')+'|'+Number(t.amount||0).toFixed(2);
+    if(histDateAmt.has(target))return true;
+    return false;
+  }
+  function zeroOutHistoricalMissed(){
+    var tx=getAllTx();
+    if(tx.length===0)return;
+    var hist=loadHistoricalIds();
+    var histDateAmt=buildHistDateAmt(hist);
+    var changed=false;
+    var missedFields=['missedReward','missed','missedRewards','missedValue','rewardMissed','lostRewards','missedCashback'];
+    tx.forEach(function(t){
+      if(!isHistoricalTx(t,hist,histDateAmt))return;
+      missedFields.forEach(function(k){
+        if(t[k]!==undefined&&t[k]!==null&&t[k]!==0){t[k]=0;changed=true;}
+      });
+      if(t.historical!==true){t.historical=true;changed=true;}
+    });
+    if(changed)saveTx(tx);
+  }
+  function fixMissedHero(){
+    var tx=getAllTx();
+    var hist=loadHistoricalIds();
+    var histDateAmt=buildHistDateAmt(hist);
+    var missedSum=0;
+    var anyNonHist=false;
+    tx.forEach(function(t){
+      if(isHistoricalTx(t,hist,histDateAmt))return;
+      anyNonHist=true;
+      var v=t.missedReward||t.missed||t.missedRewards||t.missedValue||0;
+      missedSum+=parseFloat(v)||0;
+    });
+    var el=document.getElementById('rhMissed');
+    if(!el)return;
+    var target=anyNonHist?('$'+missedSum.toFixed(2)):'$0';
+    if((el.textContent||'').trim()!==target){el.textContent=target;}
+  }
+  function showHiddenNote(){
+    var view=document.getElementById('viewOverview');
+    if(!view)return;
+    var leakD=(function(){try{var v=JSON.parse(localStorage.getItem('walletiq_v82_leak_dismissed')||'null');return Array.isArray(v)?v.length:0;}catch(e){return 0;}})();
+    var subD=(function(){try{var v=JSON.parse(localStorage.getItem('walletiq_v82_sub_dismissed')||'null');return Array.isArray(v)?v.length:0;}catch(e){return 0;}})();
+    var total=leakD+subD;
+    var existing=view.querySelector('.v86-hidden-note');
+    if(total===0){if(existing)existing.parentNode.removeChild(existing);return;}
+    var parts=[];
+    if(subD>0)parts.push(subD+' subscription'+(subD===1?'':'s'));
+    if(leakD>0)parts.push(leakD+' leak'+(leakD===1?'':'s'));
+    var msg=parts.join(' and ')+' hidden from insights';
+    if(existing){
+      var msgEl=existing.querySelector('.v86-hidden-msg');
+      if(msgEl)msgEl.innerHTML='<span class="v86-hidden-count">'+total+'</span> '+msg;
+      return;
+    }
+    var note=document.createElement('div');
+    note.className='v86-hidden-note';
+    note.innerHTML='<span class="v86-hidden-ico">\uD83D\uDE48</span><span class="v86-hidden-msg"><span class="v86-hidden-count">'+total+'</span> '+msg+'</span><button class="v86-restore-btn" type="button">Restore all</button>';
+    note.querySelector('.v86-restore-btn').addEventListener('click',function(){
+      if(!confirm('Restore all hidden subscriptions and leaks?'))return;
+      localStorage.removeItem('walletiq_v82_leak_dismissed');
+      localStorage.removeItem('walletiq_v82_sub_dismissed');
+      location.reload();
+    });
+    view.insertBefore(note,view.firstChild);
+  }
+  function patchMembershipModal(){
+    var sel=document.getElementById('v81Prog');
+    if(!sel)return;
+    if(sel.dataset.v86Patched==='1')return;
+    Array.prototype.slice.call(sel.options).forEach(function(o){
+      if(o.value==='airmiles'||o.value==='airmilesdream'){o.parentNode.removeChild(o);}
+    });
+    var hasBlue=Array.prototype.some.call(sel.options,function(o){return o.value==='bluerewards';});
+    if(!hasBlue){
+      var customOpt=null;
+      for(var i=0;i<sel.options.length;i++){if(sel.options[i].value==='__custom__'){customOpt=sel.options[i];break;}}
+      var bro=document.createElement('option');
+      bro.value='bluerewards';
+      bro.textContent='\uD83D\uDD35  Blue Rewards (BMO)';
+      if(customOpt){sel.insertBefore(bro,customOpt);}else{sel.appendChild(bro);}
+    }
+    sel.dataset.v86Patched='1';
+    var saveBtn=document.getElementById('v81Save');
+    var bi=document.getElementById('v81Balance');
+    if(!saveBtn||!bi)return;
+    saveBtn.addEventListener('click',function(e){
+      if(sel.value!=='bluerewards')return;
+      var bal=parseFloat(bi.value);
+      if(!(bal>0)){bi.focus();bi.style.borderColor='var(--coral, #d94b4b)';e.stopImmediatePropagation();return;}
+      var record={key:'bluerewards',name:'Blue Rewards',emoji:'\uD83D\uDD35',unit:'points',cpp:0.67,balance:bal};
+      try{
+        var raw=localStorage.getItem('walletiq_memberships');
+        var arr=raw?JSON.parse(raw):[];
+        if(!Array.isArray(arr))arr=[];
+        arr.push(record);
+        localStorage.setItem('walletiq_memberships',JSON.stringify(arr));
+      }catch(err){}
+      var overlay=document.getElementById('v81Modal');
+      if(overlay)overlay.classList.remove('show');
+      bi.value='';
+      bi.style.borderColor='';
+      document.dispatchEvent(new CustomEvent('v82:refresh'));
+      var vp=document.getElementById('vaultPrograms');
+      if(vp){var trigger=document.createElement('span');trigger.style.display='none';vp.appendChild(trigger);setTimeout(function(){if(trigger.parentNode)trigger.parentNode.removeChild(trigger);},20);}
+      e.stopImmediatePropagation();
+    },true);
+  }
+  function updateFooterV86(){
+    document.querySelectorAll('.v73-footer-copy').forEach(function(el){
+      if(el&&el.textContent&&el.textContent.indexOf('V85')!==-1){
+        el.textContent=el.textContent.replace('V85','V86');
+      }
+    });
+  }
+  var _t=false;
+  function tick(){
+    if(_t)return;_t=true;
+    setTimeout(function(){
+      try{zeroOutHistoricalMissed();fixMissedHero();showHiddenNote();patchMembershipModal();updateFooterV86();}catch(e){}
+      _t=false;
+    },80);
+  }
+  var mo=null;
+  function init(){
+    tick();
+    if(!mo){mo=new MutationObserver(function(){tick();});mo.observe(document.body,{childList:true,subtree:true,characterData:true});}
+    document.addEventListener('v82:refresh',tick);
+    setInterval(function(){try{fixMissedHero();}catch(e){}},1000);
   }
   if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',init);}else{init();}
   setTimeout(init,500);setTimeout(init,1500);setTimeout(init,3500);setTimeout(init,6000);
