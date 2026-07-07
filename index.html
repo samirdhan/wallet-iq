@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Wallet IQ V84</title>
+<title>Wallet IQ V85</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Wallet IQ">
@@ -1297,6 +1297,9 @@ body.dark .v82-toast { background: linear-gradient(135deg, #a5b3d8, #8ea3d8); co
 <style id="v84-styles">
 [data-v84-hidden="1"] { display: none !important; }
 </style>
+<style id="v85-styles">
+[data-v85-hidden="1"] { display: none !important; }
+</style>
 </head>
 <style>
 /* V41 Home simplifications */
@@ -1472,6 +1475,7 @@ body.dark .credits-empty{background:var(--surface)}
 <!-- V82: Adds 'Mark as historical' bulk action for imported CSV transactions (excludes them from missed-rewards + leak detection). Insights leak items auto-filter known bill-pay merchants (mortgage/rent/strata/insurance/hydro) + individual x dismiss buttons on each leak/subscription card. All-Time transactions view groups into collapsible monthly accordions. -->
 <!-- V83: Hid the Sweet spots block in Points Vault (unnecessary once you add several memberships) and removed the Top move tip from Insights/Overview for a cleaner view. -->
 <!-- V84: Orphan banner recounts intelligently (filters historical, hides at zero, rewrites count). Subscriptions section auto-hides header when all dismissed and updates counts when partial. All-Time grouped view has 6 date-format parsers + fallback tx-array lookup by merchant+amount + labels leftovers 'Older' instead of 'Unknown'. -->
+<!-- V85: Fixed Rewards Studio hero Missed tile to exclude historical tx (reads localStorage, filters by historical set + t.historical flag). Fixed All-Time grouping to extract dates from .txmeta only (was picking Sept 2-7 from notes like 'Flights to Dallas (Sept 2-7)'). Regroups aggressively into correct months. Recalculates leak-total based on visible items only. -->
 <!-- V56 -->
 <div class="top">
 <div class="header-row">
@@ -1825,7 +1829,7 @@ body.dark .credits-empty{background:var(--surface)}
 <button class="drawer-item" id="drawerFxToggle" onclick="toggleForeignMode()"><span class="di-ico" id="drawerFxIco">🇨🇦</span><span id="drawerFxLbl">CAD mode</span></button>
 <div class="drawer-divider"></div>
 <button class="drawer-item" onclick="resetWalletIQ()" style="color:var(--pass)"><span class="di-ico">🗑</span><span>Reset Wallet IQ</span></button>
-<div class="drawer-footer">Wallet IQ V84 · Built by samirdhan</div>
+<div class="drawer-footer">Wallet IQ V85 · Built by samirdhan</div>
 </div>
 </aside>
 
@@ -14566,6 +14570,208 @@ setTimeout(stampV79,500);setTimeout(stampV79,1500);
       try{recountOrphanBanner();cleanupSubscriptionsSection();fixUnknownGroups();updateFooterV84();}catch(e){}
       _t=false;
     },80);
+  }
+  var mo=null;
+  function init(){
+    tick();
+    if(!mo){mo=new MutationObserver(function(){tick();});mo.observe(document.body,{childList:true,subtree:true,characterData:true});}
+    document.addEventListener('v82:refresh',tick);
+  }
+  if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',init);}else{init();}
+  setTimeout(init,500);setTimeout(init,1500);setTimeout(init,3500);setTimeout(init,6000);
+})();
+</script>
+<script id="v85-script">
+(function(){
+  'use strict';
+  var MONTH_NAMES={jan:'01',january:'01',feb:'02',february:'02',mar:'03',march:'03',apr:'04',april:'04',may:'05',jun:'06',june:'06',jul:'07',july:'07',aug:'08',august:'08',sep:'09',sept:'09',september:'09',oct:'10',october:'10',nov:'11',november:'11',dec:'12',december:'12'};
+  function findTxKey(){for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(!k)continue;if(k.indexOf('walletiq')!==0)continue;if(k.indexOf('walletiq_v82')===0)continue;if(!/(tx|transaction)/i.test(k))continue;try{var v=JSON.parse(localStorage.getItem(k));if(Array.isArray(v))return k;}catch(e){}}return null;}
+  function getAllTx(){var k=findTxKey();if(!k)return[];try{return JSON.parse(localStorage.getItem(k))||[];}catch(e){return[];}}
+  function loadHistoricalIds(){try{var v=JSON.parse(localStorage.getItem('walletiq_v82_historical_ids')||'null');return new Set(Array.isArray(v)?v:[]);}catch(e){return new Set();}}
+  function fingerprint(d,m,a){return d+'|'+(m||'').toLowerCase().trim()+'|'+Number(a||0).toFixed(2);}
+  function extractDateFromMeta(item){
+    var meta=item.querySelector('.txmeta');
+    if(!meta)return null;
+    var text=meta.textContent||'';
+    var m=text.match(/(\d{4})-(\d{2})-(\d{2})/);
+    if(m)return m[1]+'-'+m[2]+'-'+m[3];
+    m=text.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    if(m){var mm=m[1].length===1?'0'+m[1]:m[1];var dd=m[2].length===1?'0'+m[2]:m[2];return m[3]+'-'+mm+'-'+dd;}
+    m=text.match(/(jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\s+(\d{1,2})[,\s]+(\d{4})/i);
+    if(m){var mo=MONTH_NAMES[m[1].toLowerCase()];var dd2=m[2].length===1?'0'+m[2]:m[2];if(mo)return m[3]+'-'+mo+'-'+dd2;}
+    m=text.match(/(\d{1,2})\s+(jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*[,\s]+(\d{4})/i);
+    if(m){var mo2=MONTH_NAMES[m[2].toLowerCase()];var dd3=m[1].length===1?'0'+m[1]:m[1];if(mo2)return m[3]+'-'+mo2+'-'+dd3;}
+    return null;
+  }
+  function extractDateFromTxLookup(item){
+    var mEl=item.querySelector('.txmerch');
+    var aEl=item.querySelector('.txamt');
+    if(!mEl||!aEl)return null;
+    var merchant=mEl.textContent.trim().toLowerCase();
+    var amt=parseFloat((aEl.textContent||'').replace(/[^\d.-]/g,''))||0;
+    try{
+      var tx=getAllTx();
+      for(var j=0;j<tx.length;j++){
+        var t=tx[j];
+        if(!t.date)continue;
+        if(Number(t.amount).toFixed(2)===amt.toFixed(2)&&(t.merchant||'').toLowerCase().trim()===merchant){
+          var ds=String(t.date);
+          var m1=ds.match(/(\d{4})-(\d{2})-(\d{2})/);
+          if(m1)return m1[1]+'-'+m1[2]+'-'+m1[3];
+          var m2=ds.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+          if(m2){var mm=m2[1].length===1?'0'+m2[1]:m2[1];var dd=m2[2].length===1?'0'+m2[2]:m2[2];return m2[3]+'-'+mm+'-'+dd;}
+        }
+      }
+    }catch(e){}
+    return null;
+  }
+  function getSafeDate(item){return extractDateFromMeta(item)||extractDateFromTxLookup(item);}
+  function isAllTimeActive(){
+    var pills=document.querySelectorAll('#monthPills .month-pill');
+    for(var i=0;i<pills.length;i++){
+      if(pills[i].classList.contains('on')||pills[i].classList.contains('active')){
+        var t=(pills[i].textContent||'').trim().toLowerCase();
+        if(t==='all'||t==='all time'||t==='alltime')return true;
+      }
+    }
+    return false;
+  }
+  function ymLabel(ym){
+    var parts=ym.split('-');
+    if(parts.length!==2)return ym;
+    try{var d=new Date(parseInt(parts[0],10),parseInt(parts[1],10)-1,1);return d.toLocaleDateString('en-US',{month:'long',year:'numeric'});}catch(e){return ym;}
+  }
+  function getGroupYm(group){
+    var lbl=group.querySelector('.v82-month-label');
+    if(!lbl)return null;
+    var t=lbl.textContent.trim().toLowerCase();
+    if(t==='older'||t==='unknown')return null;
+    var parts=lbl.textContent.trim().split(/\s+/);
+    if(parts.length!==2)return null;
+    var mo=MONTH_NAMES[parts[0].toLowerCase()];
+    if(!mo)return null;
+    return parts[1]+'-'+mo;
+  }
+  function calcTotal(items){var total=0;items.forEach(function(it){var a=it.querySelector('.txamt');if(a)total+=parseFloat((a.textContent||'').replace(/[^\d.-]/g,''))||0;});return total;}
+  function createGroup(ym,items,isOpen){
+    var group=document.createElement('div');
+    group.className='v82-month-group'+(isOpen?' v82-open':'');
+    var label=ym==='older'?'Older':ymLabel(ym);
+    var total=calcTotal(items);
+    var header=document.createElement('button');
+    header.className='v82-month-header';
+    header.type='button';
+    header.innerHTML='<span class="v82-month-chevron">'+(isOpen?'\u25BC':'\u25B6')+'</span><span class="v82-month-label">'+label+'</span><span class="v82-month-count">'+items.length+' tx</span><span class="v82-month-total">$'+total.toFixed(2)+'</span>';
+    var body=document.createElement('div');
+    body.className='v82-month-body';
+    if(!isOpen)body.style.display='none';
+    items.forEach(function(it){body.appendChild(it);});
+    header.addEventListener('click',function(){
+      var open=body.style.display!=='none';
+      body.style.display=open?'none':'';
+      var ch=header.querySelector('.v82-month-chevron');
+      if(ch)ch.textContent=open?'\u25B6':'\u25BC';
+      group.classList.toggle('v82-open',!open);
+    });
+    group.appendChild(header);
+    group.appendChild(body);
+    return group;
+  }
+  var _regrouping=false;
+  function regroupAllTimeAggressive(){
+    if(_regrouping)return;
+    if(!isAllTimeActive())return;
+    var list=document.getElementById('txList');
+    if(!list)return;
+    var groups=list.querySelectorAll('.v82-month-group');
+    if(groups.length===0)return;
+    var allItems=[];
+    var groupsArr=Array.prototype.slice.call(groups);
+    groupsArr.forEach(function(g){
+      var body=g.querySelector('.v82-month-body');
+      if(!body)return;
+      var currentYm=getGroupYm(g);
+      Array.prototype.forEach.call(body.querySelectorAll('.tx-item'),function(item){
+        var trueDate=getSafeDate(item);
+        var trueYm=trueDate?trueDate.substring(0,7):null;
+        allItems.push({item:item,currentYm:currentYm,trueYm:trueYm});
+      });
+    });
+    if(allItems.length===0)return;
+    var anyMismatch=false;
+    for(var i=0;i<allItems.length;i++){
+      if(allItems[i].trueYm!==allItems[i].currentYm){anyMismatch=true;break;}
+    }
+    if(!anyMismatch)return;
+    _regrouping=true;
+    var byYm={};
+    var older=[];
+    allItems.forEach(function(x){
+      if(x.trueYm){if(!byYm[x.trueYm])byYm[x.trueYm]=[];byYm[x.trueYm].push(x.item);}
+      else{older.push(x.item);}
+    });
+    while(list.firstChild)list.removeChild(list.firstChild);
+    var now=new Date();
+    var curYm=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+    var keys=Object.keys(byYm).sort().reverse();
+    keys.forEach(function(ym){
+      var isOpen=(ym===curYm);
+      list.appendChild(createGroup(ym,byYm[ym],isOpen));
+    });
+    if(older.length>0){list.appendChild(createGroup('older',older,false));}
+    _regrouping=false;
+  }
+  function fixMissedHero(){
+    var tx=getAllTx();
+    if(tx.length===0)return;
+    var hist=loadHistoricalIds();
+    var hasNonHistorical=false;
+    var nonHistMissedSum=0;
+    tx.forEach(function(t){
+      if(t.historical)return;
+      var fp=fingerprint(t.date,t.merchant,t.amount);
+      if(hist.has(fp))return;
+      hasNonHistorical=true;
+      var m=t.missedReward||t.missed||t.missedRewards||0;
+      nonHistMissedSum+=parseFloat(m)||0;
+    });
+    var missedEl=document.getElementById('rhMissed');
+    if(missedEl){
+      var newText=hasNonHistorical?'$'+nonHistMissedSum.toFixed(2):'$0';
+      var currentNum=parseFloat((missedEl.textContent||'').replace(/[^\d.-]/g,''))||0;
+      var newNum=parseFloat(newText.replace(/[^\d.-]/g,''))||0;
+      if(Math.abs(currentNum-newNum)>0.01){missedEl.textContent=newText;}
+    }
+  }
+  function fixLeakTotals(){
+    document.querySelectorAll('.leak-card').forEach(function(card){
+      var totalEl=card.querySelector('.leak-total');
+      if(!totalEl)return;
+      var visibleItems=[];
+      card.querySelectorAll('.leak-item').forEach(function(i){if(i.style.display!=='none')visibleItems.push(i);});
+      var sum=0;
+      visibleItems.forEach(function(i){
+        var ld=i.querySelector('.ld');
+        if(ld)sum+=parseFloat((ld.textContent||'').replace(/[^\d.-]/g,''))||0;
+      });
+      var newText='$'+sum.toFixed(2);
+      if((totalEl.textContent||'').trim()!==newText){totalEl.textContent=newText;}
+    });
+  }
+  function updateFooterV85(){
+    document.querySelectorAll('.v73-footer-copy').forEach(function(el){
+      if(el&&el.textContent&&el.textContent.indexOf('V84')!==-1){
+        el.textContent=el.textContent.replace('V84','V85');
+      }
+    });
+  }
+  var _t=false;
+  function tick(){
+    if(_t)return;_t=true;
+    setTimeout(function(){
+      try{regroupAllTimeAggressive();fixMissedHero();fixLeakTotals();updateFooterV85();}catch(e){}
+      _t=false;
+    },100);
   }
   var mo=null;
   function init(){
