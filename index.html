@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Wallet IQ V72</title>
+<title>Wallet IQ V79</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Wallet IQ">
@@ -921,6 +921,109 @@ body.v71-modal-open {
 .v72-reward-preview .cat { color:var(--muted); font-weight:750; font-size:10.5px; margin-left:4px; }
 body.dark .v72-reward-preview { background:rgba(126,200,148,.12); color:var(--green); }
 </style>
+
+<!-- V73 injected styles -->
+<style id="v73-styles">
+.v73-home-extra{margin-top:24px;padding:0 2px}
+.v73-section-title{font-size:11px;color:var(--muted);font-weight:900;letter-spacing:.14em;text-transform:uppercase;margin:24px 0 12px;text-align:center}
+.v73-how{background:var(--surface);border-radius:20px;padding:20px 18px;box-shadow:var(--shadow);margin-bottom:14px}
+.v73-how h3{font-size:17px;font-weight:900;letter-spacing:-.02em;margin:0 0 14px;text-align:center;color:var(--ink)}
+.v73-steps{display:grid;grid-template-columns:1fr;gap:12px}
+.v73-step{display:grid;grid-template-columns:36px 1fr;gap:12px;align-items:start}
+.v73-step-num{width:36px;height:36px;border-radius:12px;background:var(--brand);color:#fff;display:grid;place-items:center;font-weight:900;font-size:14px}
+.v73-step-body .v73-step-title{font-size:13.5px;font-weight:900;color:var(--ink);line-height:1.2}
+.v73-step-body .v73-step-desc{font-size:11.5px;color:var(--muted);font-weight:750;margin-top:2px;line-height:1.4}
+.v73-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.v73-stat{background:var(--surface);border-radius:16px;padding:14px 10px;text-align:center;box-shadow:var(--shadow)}
+.v73-stat-value{font-family:ui-monospace,monospace;font-size:20px;font-weight:900;color:var(--brand);letter-spacing:-.02em;line-height:1}
+.v73-stat-label{font-size:9.5px;color:var(--muted);font-weight:900;letter-spacing:.06em;text-transform:uppercase;margin-top:5px}
+.v73-footer{background:linear-gradient(135deg,#1a1a2e 0%,#0f0f1e 100%);color:#e0e0f0;border-radius:24px;padding:24px 20px 26px;margin-top:16px;margin-bottom:60px;text-align:center;box-shadow:0 8px 24px rgba(20,20,40,.14)}
+.v73-footer-brand{display:inline-flex;align-items:center;gap:10px;margin-bottom:8px}
+.v73-footer-logo{width:36px;height:36px}
+.v73-footer-name{font-size:20px;font-weight:900;letter-spacing:-.028em;color:#fff}
+.v73-footer-name .v73-brand-iq{color:#a5b3d8}
+.v73-footer-tagline{font-size:12.5px;font-weight:700;color:rgba(255,255,255,.72);margin-bottom:16px;line-height:1.5;padding:0 8px}
+.v73-footer-social{display:flex;justify-content:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.v73-social-link{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.08);color:#fff;text-decoration:none;padding:8px 14px;border-radius:99px;font-size:12px;font-weight:800;cursor:pointer;transition:background .12s ease}
+.v73-social-link:hover{background:rgba(255,255,255,.14)}
+.v73-footer-links{display:flex;justify-content:center;gap:16px;margin-bottom:14px;flex-wrap:wrap;padding-top:14px;border-top:1px solid rgba(255,255,255,.10)}
+.v73-footer-links a{color:rgba(255,255,255,.66);font-size:11.5px;font-weight:800;text-decoration:none;cursor:pointer}
+.v73-footer-links a:hover{color:#fff}
+.v73-footer-copy{font-size:10.5px;color:rgba(255,255,255,.44);font-weight:700;margin-bottom:10px}
+.v73-footer-disclaimer{font-size:10px;color:rgba(255,255,255,.38);font-weight:600;line-height:1.55;padding:12px 4px 0;border-top:1px solid rgba(255,255,255,.08);font-style:italic}
+@media (max-width:390px){.v73-stats{grid-template-columns:1fr 1fr}.v73-stat:last-child{grid-column:1/-1}}
+</style>
+
+<!-- V74 injected styles: light footer + font consistency -->
+<style id="v74-styles">
+.v73-home-extra { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif !important; }
+.v73-section-title { font-family:inherit !important; }
+.v73-how, .v73-how h3, .v73-stat, .v73-stat-value, .v73-stat-label, .v73-step-body .v73-step-title, .v73-step-body .v73-step-desc, .v73-step-num { font-family:inherit !important; }
+.v73-footer { background:linear-gradient(180deg, var(--surface) 0%, var(--surface-2) 100%) !important; color:var(--ink) !important; border:1px solid var(--border) !important; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif !important; }
+body.dark .v73-footer { background:linear-gradient(180deg, var(--surface) 0%, var(--surface-2) 100%) !important; border-color:var(--border) !important; }
+.v73-footer-name { color:var(--ink) !important; font-family:inherit !important; }
+.v73-footer-name .v73-brand-iq { color:#5f74b8 !important; }
+body.dark .v73-footer-name .v73-brand-iq { color:#a5b3d8 !important; }
+.v73-footer-tagline { color:var(--muted) !important; font-family:inherit !important; }
+.v73-social-link { background:var(--surface) !important; color:var(--ink) !important; border:1px solid var(--border) !important; font-family:inherit !important; box-shadow:0 1px 2px rgba(85,75,130,.04) !important; }
+.v73-social-link:hover { background:var(--accent-soft) !important; border-color:var(--brand) !important; color:var(--brand) !important; }
+body.dark .v73-social-link { background:var(--surface-2) !important; color:var(--ink) !important; border-color:var(--border-2) !important; }
+.v73-footer-links a { color:var(--muted) !important; font-family:inherit !important; }
+.v73-footer-links a:hover { color:var(--brand) !important; }
+.v73-footer-links { border-top:1px solid var(--border) !important; }
+.v73-footer-copy, .v73-footer-disclaimer { color:var(--muted) !important; font-family:inherit !important; font-style:normal !important; }
+.v73-footer-disclaimer { border-top:1px solid var(--border) !important; }
+.v73-step-num { background:linear-gradient(135deg, var(--brand), var(--brand-2)) !important; box-shadow:0 4px 10px rgba(95,116,184,.25) !important; }
+.v73-stat-value { color:var(--brand) !important; font-size:22px !important; letter-spacing:-.03em !important; }
+</style>
+
+<!-- V75 injected styles -->
+<style id="v75-styles">
+.v73-section-title { color:var(--brand) !important; letter-spacing:.16em !important; opacity:.78 !important; }
+.v73-how h3 { font-size:22px !important; letter-spacing:-.035em !important; }
+.v73-step-body .v73-step-title { font-size:14px !important; letter-spacing:-.02em !important; }
+.v73-step-body .v73-step-desc { font-size:12.5px !important; line-height:1.5 !important; }
+.v75-email-signup { padding:16px 8px 18px !important; margin:0 0 18px !important; border-top:1px solid var(--border) !important; border-bottom:1px solid var(--border) !important; text-align:center !important; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif !important; }
+.v75-email-title { font-size:14px !important; font-weight:900 !important; color:var(--ink) !important; margin-bottom:4px !important; }
+.v75-email-sub { font-size:11px !important; color:var(--muted) !important; margin-bottom:11px !important; font-weight:700 !important; }
+.v75-email-form { display:flex !important; gap:6px !important; max-width:340px !important; margin:0 auto !important; }
+.v75-email-input { flex:1 !important; padding:10px 13px !important; border-radius:10px !important; border:1px solid var(--border) !important; background:var(--surface) !important; color:var(--ink) !important; font-family:inherit !important; font-size:13px !important; font-weight:700 !important; outline:none !important; }
+.v75-email-btn { padding:10px 16px !important; border-radius:10px !important; border:none !important; background:var(--brand) !important; color:#fff !important; font-family:inherit !important; font-weight:900 !important; font-size:12px !important; cursor:pointer !important; }
+</style>
+
+<!-- V76 injected styles -->
+<style id="v76-styles">
+.v73-home-extra > .v73-section-title:first-of-type { display:none !important; }
+.v73-home-extra > .v73-how { display:none !important; }
+.v73-footer-tagline { font-size:13.5px !important; font-weight:800 !important; letter-spacing:-.01em !important; color:var(--brand) !important; opacity:.88 !important; margin-bottom:20px !important; line-height:1.4 !important; }
+</style>
+
+<!-- V78 injected styles -->
+<style id="v78-styles">
+.v75-email-signup { display: none !important; }
+.v73-footer-links { display: none !important; }
+</style>
+
+<!-- V79 injected styles: High-visibility chosen alt-card + toast -->
+<style id="v79-styles">
+.alt-cards .alt-item { cursor:pointer !important; padding:8px 12px !important; border-radius:10px !important; border-left:4px solid transparent !important; transition:all .18s cubic-bezier(.2,.9,.3,1.2) !important; margin:4px -4px !important; position:relative !important; }
+.alt-cards .alt-item:hover { background:var(--surface-2) !important; border-left-color:var(--border-2) !important; }
+.alt-cards .alt-item.chosen { background:linear-gradient(135deg, var(--brand) 0%, var(--brand-2) 100%) !important; color:#ffffff !important; border-left:4px solid #ffffff !important; transform:scale(1.02) !important; box-shadow:0 6px 18px rgba(95, 116, 184, .38) !important; padding:10px 14px !important; }
+.alt-cards .alt-item.chosen .name { color:#ffffff !important; font-weight:900 !important; font-size:13px !important; letter-spacing:-.01em !important; }
+.alt-cards .alt-item.chosen .rate { color:rgba(255,255,255,.92) !important; font-weight:900 !important; background:rgba(255,255,255,.16) !important; padding:3px 8px !important; border-radius:99px !important; font-size:11px !important; margin-right:60px !important; }
+.alt-cards .alt-item.chosen::before { content:'\2713' !important; color:var(--brand) !important; background:#ffffff !important; font-weight:900 !important; font-size:12px !important; width:20px !important; height:20px !important; border-radius:50% !important; display:inline-grid !important; place-items:center !important; margin-right:10px !important; box-shadow:0 2px 5px rgba(0, 0, 0, .18) !important; flex-shrink:0 !important; }
+.alt-cards .alt-item.chosen::after { content:'USING' !important; position:absolute !important; right:12px !important; top:50%; transform:translateY(-50%); background:rgba(255,255,255,.24) !important; color:#ffffff !important; font-size:8.5px !important; font-weight:900 !important; letter-spacing:.12em !important; padding:3px 7px !important; border-radius:6px !important; pointer-events:none !important; }
+body.dark .alt-cards .alt-item.chosen { background:linear-gradient(135deg, #a5b3d8 0%, #8ea3d8 100%) !important; color:#0a0a12 !important; border-left-color:#ffffff !important; box-shadow:0 6px 20px rgba(165, 179, 216, .45) !important; }
+body.dark .alt-cards .alt-item.chosen .name { color:#0a0a12 !important; }
+body.dark .alt-cards .alt-item.chosen .rate { color:#0a0a12 !important; background:rgba(10, 10, 18, .18) !important; }
+body.dark .alt-cards .alt-item.chosen::before { color:#a5b3d8 !important; background:#ffffff !important; }
+body.dark .alt-cards .alt-item.chosen::after { background:rgba(10, 10, 18, .22) !important; color:#0a0a12 !important; }
+.v79-select-toast { position:fixed !important; top:20px !important; left:50% !important; transform:translateX(-50%) translateY(-30px) !important; background:linear-gradient(135deg, var(--brand), var(--brand-2)) !important; color:#ffffff !important; padding:11px 20px !important; border-radius:99px !important; font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important; font-weight:900 !important; font-size:13px !important; letter-spacing:-.01em !important; box-shadow:0 8px 24px rgba(95, 116, 184, .42) !important; z-index:300 !important; opacity:0 !important; transition:opacity .22s ease, transform .28s cubic-bezier(.2,.9,.3,1.2) !important; pointer-events:none !important; max-width:90vw !important; text-align:center !important; display:flex !important; align-items:center !important; gap:8px !important; }
+.v79-select-toast.show { opacity:1 !important; transform:translateX(-50%) translateY(0) !important; }
+.v79-select-toast .v79-toast-check { background:rgba(255,255,255,.22) !important; width:22px !important; height:22px !important; border-radius:50% !important; display:inline-grid !important; place-items:center !important; font-size:12px !important; flex-shrink:0 !important; }
+body.dark .v79-select-toast { background:linear-gradient(135deg, #a5b3d8, #8ea3d8) !important; color:#0a0a12 !important; }
+body.dark .v79-select-toast .v79-toast-check { background:rgba(10, 10, 18, .22) !important; }
+</style>
 </head>
 <style>
 /* V41 Home simplifications */
@@ -1084,6 +1187,13 @@ body.dark .credits-empty{background:var(--surface)}
 <!-- V70: Tap-to-select alternate card in hero .alt-cards — users can override the auto-recommended card by tapping any listed alternate. Log Purchase button updates to reflect the chosen card. -->
 <!-- V71: Fixed onboarding modal (and all bottom-sheet modals) getting cut off on small screens — flex-column layout with always-visible Save button, dynamic viewport height, body scroll lock, safe-area-inset support. -->
 <!-- V72: Cent-accurate calculations. Amount inputs now accept decimals with inputmode=decimal keypad on mobile. Live reward preview shows dollars+cents earned. One-time migration recalculates historical tx rewards. Includes debounced MutationObserver to prevent infinite loop. -->
+<!-- V73: Fixed missing emoji on V67 cards (was showing "undefined"); Skip button no longer wipes existing wallet; added Prince of Travel-style home footer with how-it-works, stats, social handles, legal disclaimer. -->
+<!-- V74: Light footer theme matching pearl lavender palette (removed dark navy); replaced X/Twitter with Facebook; enforced consistent -apple-system font stack across footer elements. -->
+<!-- V75: Added 9 new Canadian cards (91->100) with emojis, 15 new aliases (3493->3508); updated home stats display to 100/3,500+; fixed "How it works" typography with forced apple-system font stack; added email signup box inside footer between tagline and social pills. -->
+<!-- V76: Removed "How it works" section from home page to reduce vertical length; shortened footer tagline to "Cards. Rewards. Optimized." -->
+<!-- V77: Hooked up email signup to FormSubmit.co delivery — subscriptions now forward to samir.dhan@gmail.com. Falls back gracefully to localStorage if network is blocked. -->
+<!-- V78: Removed email subscription box (no content to send yet) and About/Privacy/Terms/Contact links (not built yet); footer copy attribution changed from "Samir Dhanani" to "samirdhan". -->
+<!-- V79: Much more visible chosen alternate card state (bright brand-blue background, white text, "USING" badge) + toast confirmation. Fixed dark mode invisibility issue. -->
 <!-- V56 -->
 <div class="top">
 <div class="header-row">
@@ -1437,7 +1547,7 @@ body.dark .credits-empty{background:var(--surface)}
 <button class="drawer-item" id="drawerFxToggle" onclick="toggleForeignMode()"><span class="di-ico" id="drawerFxIco">🇨🇦</span><span id="drawerFxLbl">CAD mode</span></button>
 <div class="drawer-divider"></div>
 <button class="drawer-item" onclick="resetWalletIQ()" style="color:var(--pass)"><span class="di-ico">🗑</span><span>Reset Wallet IQ</span></button>
-<div class="drawer-footer">Wallet IQ V72 · Built by samirdhan</div>
+<div class="drawer-footer">Wallet IQ V79 · Built by samirdhan</div>
 </div>
 </aside>
 
@@ -1851,6 +1961,17 @@ kohoStandard:{n:'KOHO Standard Prepaid Mastercard',cl:'pass',iss:'KOHO',net:'Mas
 amexAmericanCard:{n:'The American Express Card (Green)',cl:'cobalt',iss:'Amex',net:'Amex',feeRetail:0,feeYours:0,scotiaEmployee:false,r:'1x MR',w:'No-fee starter Amex with Membership Rewards.',benefits:[['🎁','1x Membership Rewards','1x']],extra:'No fee starter Amex.',realRates:{dining:1.5,groceryAmex:1.5,groceryNo:0,loblaws:0,shopping:1.5,shoppingAmex:1.5,streaming:1.5,transit:1.5,gas:1.5,base:1.5,cineplex:1.5,costco:0,walmart:1.5,travel:1.5,marriott:1.5,usd:1.5,other:1.5,rogers:1.5}},
 amexAeroplan:{n:'American Express Aeroplan Card',cl:'cobalt',iss:'Amex',net:'Amex',feeRetail:120,feeYours:120,scotiaEmployee:false,r:'2x Air Canada + 1.5x eats',w:'Mid-tier personal Aeroplan Amex.',benefits:[['✈️','2x Air Canada','2x'],['🍽️','1.5x eligible eats','1.5x']],extra:'Mid-tier personal Aeroplan.',realRates:{dining:2.25,groceryAmex:1.5,groceryNo:0,loblaws:0,shopping:1.5,shoppingAmex:1.5,streaming:1.5,transit:1.5,gas:1.5,base:1.5,cineplex:1.5,costco:0,walmart:1.5,travel:3,marriott:3,usd:1.5,other:1.5,rogers:1.5}},
 bmoAirMilesMC:{n:'BMO AIR MILES Mastercard',cl:'cobalt',iss:'BMO',net:'Mastercard',feeRetail:0,feeYours:0,scotiaEmployee:false,r:'1 AM per $20 grocery',w:'No-fee AIR MILES accumulator card.',benefits:[['🛒','1 AM per $20 grocery','★']],extra:'No fee AIR MILES.',realRates:{dining:0.5,groceryAmex:0.5,groceryNo:0.5,loblaws:0.5,shopping:0.5,shoppingAmex:0.5,streaming:0.5,transit:0.5,gas:0.5,base:0.5,costco:0.5,walmart:0.5,cineplex:0.5,travel:0.5,marriott:0.5,usd:0,other:0.5,rogers:0.5}}
+,
+// V75: 9 new cards (91 -> 100)
+hsbcCashBack:{n:'HSBC Cash Back Mastercard',e:'💰',cl:'rogers',iss:'HSBC',net:'Mastercard',feeRetail:0,feeYours:0,scotiaEmployee:false,r:'1% cashback',w:'No-fee HSBC cashback Mastercard.',benefits:[['💰','1% cashback all','1%']],extra:'No fee.',realRates:{dining:1,groceryAmex:1,groceryNo:1,loblaws:1,shopping:1,shoppingAmex:1,streaming:1,transit:1,gas:1,base:1,costco:1,walmart:1,cineplex:1,travel:1,marriott:1,usd:0,other:1,rogers:1}},
+neoWorldElite:{n:'Neo World Elite Mastercard',e:'⚡',cl:'rogers',iss:'Neo',net:'Mastercard',feeRetail:99,feeYours:99,scotiaEmployee:false,r:'up to 5% Neo partners',w:'Premium Neo card with up to 5% cashback + travel insurance.',benefits:[['🛍️','Up to 5% Neo partners','5%'],['✈️','Travel insurance','★']],extra:'Fintech premium tier.',realRates:{dining:3,groceryAmex:2,groceryNo:2,loblaws:2,shopping:2,shoppingAmex:2,streaming:2,transit:2,gas:2,base:1,costco:1,walmart:1,cineplex:1,travel:1,marriott:1,usd:0,other:1,rogers:1}},
+mbnaWorldElite:{n:'MBNA World Elite Mastercard',e:'💎',cl:'plat',iss:'MBNA',net:'Mastercard',feeRetail:0,feeYours:0,scotiaEmployee:false,r:'1x pts + WE benefits',w:'World Elite MC from MBNA with premium benefits (no reward accelerators).',benefits:[['🎁','1x pts','1x'],['✈️','Travel insurance','★']],extra:'World Elite benefits included.',realRates:{dining:1,groceryAmex:1,groceryNo:1,loblaws:1,shopping:1,shoppingAmex:1,streaming:1,transit:1,gas:1,base:1,costco:1,walmart:1,cineplex:1,travel:1,marriott:1,usd:0,other:1,rogers:1}},
+simpliiCashBack:{n:'Simplii Financial Cash Back Visa',e:'💰',cl:'rogers',iss:'Simplii',net:'Visa',feeRetail:0,feeYours:0,scotiaEmployee:false,r:'1.5% restaurants',w:'No-fee CIBC-backed Simplii cashback Visa. First-year 4% dining bonus.',benefits:[['🍽️','1.5% restaurants','1.5%'],['💰','0.5% other','0.5%']],extra:'No fee.',realRates:{dining:1.5,groceryAmex:0.5,groceryNo:0.5,loblaws:0.5,shopping:0.5,shoppingAmex:0.5,streaming:0.5,transit:0.5,gas:0.5,base:0.5,costco:0.5,walmart:0.5,cineplex:0.5,travel:0.5,marriott:0.5,usd:0,other:0.5,rogers:0.5}},
+nationalMc1:{n:'National Bank mc1 Mastercard',e:'🍁',cl:'rogers',iss:'National Bank',net:'Mastercard',feeRetail:0,feeYours:0,scotiaEmployee:false,r:'1% cashback',w:'No-fee starter National Bank Mastercard.',benefits:[['💰','1% cashback','1%']],extra:'No fee.',realRates:{dining:1,groceryAmex:1,groceryNo:1,loblaws:1,shopping:1,shoppingAmex:1,streaming:1,transit:1,gas:1,base:1,costco:1,walmart:1,cineplex:1,travel:1,marriott:1,usd:0,other:1,rogers:1}},
+tangerineWorldMC:{n:'Tangerine World Mastercard',e:'🍊',cl:'rogers',iss:'Tangerine',net:'Mastercard',feeRetail:0,feeYours:0,scotiaEmployee:false,r:'2% in 3 categories',w:'World Mastercard tier with 3 chosen 2% categories + travel benefits for eligible clients.',benefits:[['🛒','2% in 3 chosen categories','2%'],['✈️','Travel benefits','★']],extra:'World MC upgrade for eligible clients.',realRates:{dining:2,groceryAmex:2,groceryNo:2,loblaws:2,shopping:2,shoppingAmex:2,streaming:2,transit:2,gas:2,base:0.5,costco:2,walmart:2,cineplex:0.5,travel:0.5,marriott:0.5,usd:0.5,other:0.5,rogers:0.5}},
+capOneGuaranteed:{n:'Capital One Guaranteed Mastercard',e:'🔷',cl:'pass',iss:'Capital One',net:'Mastercard',feeRetail:59,feeYours:59,scotiaEmployee:false,r:'Credit rebuilder',w:'Guaranteed approval MC for credit rebuilding.',benefits:[['📈','Guaranteed approval','★']],extra:'Credit rebuilding tool.',realRates:{dining:0.5,groceryAmex:0.5,groceryNo:0.5,loblaws:0.5,shopping:0.5,shoppingAmex:0.5,streaming:0.5,transit:0.5,gas:0.5,base:0.5,costco:0.5,walmart:0.5,cineplex:0.5,travel:0.5,marriott:0.5,usd:0,other:0.5,rogers:0.5}},
+rbcAvionPrivilege:{n:'RBC Avion Visa Infinite Privilege',e:'🌟',cl:'plat',iss:'RBC',net:'Visa',feeRetail:399,feeYours:399,scotiaEmployee:false,r:'1.25 Avion pts',w:'RBC top-tier Avion with lounge access + concierge.',benefits:[['✈️','1.25 Avion pts','★'],['🛋️','Lounge access','★'],['📞','24/7 concierge','★']],extra:'RBC premium Avion tier.',realRates:{travel:2.5,marriott:2.5,dining:1.875,groceryAmex:1.875,groceryNo:1.875,loblaws:1.875,gas:1.875,transit:1.875,shopping:1.5,shoppingAmex:1.5,streaming:1.5,base:1.5,costco:1.5,walmart:1.5,cineplex:1.5,usd:0,other:1.5,rogers:1.5}},
+cibcAventuraPriv:{n:'CIBC Aventura Visa Infinite Privilege',e:'👑',cl:'plat',iss:'CIBC',net:'Visa',feeRetail:499,feeYours:499,scotiaEmployee:false,r:'3x travel',w:'CIBC top-tier Aventura with 3x travel + $200 travel credit.',benefits:[['✈️','3x travel','3x'],['🎁','$200 travel credit','★'],['🛋️','Priority Pass','★']],extra:'CIBC premium Aventura.',realRates:{travel:4.5,marriott:4.5,dining:3,groceryAmex:3,groceryNo:3,loblaws:3,gas:3,transit:2.25,shopping:1.5,shoppingAmex:1.5,streaming:1.5,base:1.5,costco:1.5,walmart:1.5,cineplex:1.5,usd:0,other:1.5,rogers:1.5}}
 };
 
 // ============================================================
@@ -4415,6 +4536,9 @@ const ALIASES = {
 'blue cross canada':'rogers',
 'msp bc':'rogers',
 'provincial health insurance':'rogers',
+
+// V75: 15 new aliases
+'shell app':'gas','esso app':'gas','petro app':'gas','circle k canada':'gas','roots canada':'shoppingAmex','roots online':'shoppingAmex','the north face':'shoppingAmex','north face':'shoppingAmex','patagonia canada':'shoppingAmex','columbia sportswear':'shoppingAmex','running room':'shoppingAmex','sport chek app':'shoppingAmex','starbucks app':'dining','tim hortons app':'dining','mcdonalds app':'dining'
 };
 
 // ============================================================
@@ -13279,6 +13403,324 @@ try {
   setTimeout(init, 300);
   setTimeout(init, 1000);
   setTimeout(init, 2500);
+})();
+</script>
+
+<!-- V73: Emoji patch + Skip preservation + Home footer -->
+<script id="v73-script">
+(function(){
+  var V73_EMOJI_MAP = {
+    hsbcWorldElite:'\uD83D\uDD34', hsbcRewards:'\uD83D\uDD34', tdFirstClass:'\uD83D\uDFE2',
+    bmoAscend:'\uD83D\uDD35', amexBonvoyBiz:'\uD83C\uDFE8', rbcBizAvion:'\u2708\uFE0F',
+    cibcVibe:'\uD83D\uDD34', nationalEcho:'\uD83C\uDF41', vancityEnviro:'\uD83C\uDF3F',
+    servusWE:'\uD83C\uDF3E', desjardinsCashBackWE:'\uD83D\uDC9A', kohoStandard:'\uD83C\uDFA8',
+    amexAmericanCard:'\uD83D\uDC9A', amexAeroplan:'\u2708\uFE0F', bmoAirMilesMC:'\uD83C\uDF0D'
+  };
+  var DEFAULT_EMOJI = '\uD83D\uDCB3';
+  function patchCardsDb(){
+    try{
+      if(typeof CARDS_DB !== 'object' || CARDS_DB === null) return;
+      for(var key in CARDS_DB){
+        var card = CARDS_DB[key];
+        if(!card) continue;
+        if(!card.e || card.e === 'undefined' || card.e === ''){ card.e = V73_EMOJI_MAP[key] || DEFAULT_EMOJI; }
+      }
+    }catch(e){}
+  }
+  function hasExistingWallet(){
+    try{
+      var keys = ['walletiq_wallet','wallet','selectedCards','wiq_wallet','walletiq.cards','walletiq_cards','myCards'];
+      for(var i=0;i<keys.length;i++){
+        var raw = localStorage.getItem(keys[i]);
+        if(raw){
+          try{ var p = JSON.parse(raw); if(Array.isArray(p) && p.length > 0) return true; if(typeof p === 'object' && p !== null && Object.keys(p).length > 0) return true; }
+          catch(e){ if(raw.length > 2) return true; }
+        }
+      }
+    }catch(e){}
+    return false;
+  }
+  var __v73SkipWrapped = false;
+  function wrapSkip(){
+    if(__v73SkipWrapped) return;
+    try{
+      if(typeof window.skipOnboarding === 'function'){
+        var original = window.skipOnboarding;
+        window.skipOnboarding = function(){
+          if(hasExistingWallet()){
+            var m = document.getElementById('onboardModal'); if(m) m.classList.remove('show');
+            return;
+          }
+          return original.apply(this, arguments);
+        };
+        __v73SkipWrapped = true;
+      }
+    }catch(e){}
+  }
+  var __v73FooterInjected = false;
+  function injectHomeFooter(){
+    if(__v73FooterInjected) return;
+    try{
+      var home = document.getElementById('home');
+      if(!home) return;
+      if(home.querySelector('.v73-home-extra')){ __v73FooterInjected = true; return; }
+      var wrap = document.createElement('div');
+      wrap.className = 'v73-home-extra';
+      wrap.innerHTML =
+        '<div class="v73-section-title">How it works</div>' +
+        '<div class="v73-how"><h3>Get the best card, every time</h3><div class="v73-steps">' +
+          '<div class="v73-step"><div class="v73-step-num">1</div><div class="v73-step-body"><div class="v73-step-title">Set up your wallet</div><div class="v73-step-desc">Add the credit cards you actually own from 91 supported Canadian cards.</div></div></div>' +
+          '<div class="v73-step"><div class="v73-step-num">2</div><div class="v73-step-body"><div class="v73-step-title">Search or log a merchant</div><div class="v73-step-desc">Type "Starbucks", "Costco", or any store — Wallet IQ knows the category.</div></div></div>' +
+          '<div class="v73-step"><div class="v73-step-num">3</div><div class="v73-step-body"><div class="v73-step-title">Use the best card</div><div class="v73-step-desc">Get an instant recommendation with cents-accurate reward math.</div></div></div>' +
+        '</div></div>' +
+        '<div class="v73-section-title">Wallet IQ by the numbers</div>' +
+        '<div class="v73-stats">' +
+          '<div class="v73-stat"><div class="v73-stat-value">100</div><div class="v73-stat-label">Canadian cards</div></div>' +
+          '<div class="v73-stat"><div class="v73-stat-value">3,500+</div><div class="v73-stat-label">Merchants</div></div>' +
+          '<div class="v73-stat"><div class="v73-stat-value">100%</div><div class="v73-stat-label">On-device</div></div>' +
+        '</div>' +
+        '<footer class="v73-footer">' +
+          '<div class="v73-footer-brand">' +
+            '<svg class="v73-footer-logo" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">' +
+              '<rect x="10" y="7" width="17" height="4" rx="1.2" fill="#c9d3e8" opacity="0.85"/>' +
+              '<rect x="8" y="10" width="20" height="5" rx="1.5" fill="#e0e7f2"/>' +
+              '<rect x="5" y="14" width="30" height="20" rx="4.5" fill="#5f74b8"/>' +
+              '<rect x="26" y="22" width="6" height="4.5" rx="1.2" fill="#4c609e"/>' +
+              '<circle cx="29" cy="24.25" r="1" fill="#faf7f2"/>' +
+              '<path d="M32 3.5 L33 6 L35.5 7 L33 8 L32 10.5 L31 8 L28.5 7 L31 6 Z" fill="#c9a35a"/>' +
+            '</svg>' +
+            '<span class="v73-footer-name">Wallet <span class="v73-brand-iq">IQ</span></span>' +
+          '</div>' +
+          '<div class="v73-footer-tagline">Smarter credit card decisions for Canadians.<br>Free. Private. Built by an independent.</div>' +
+          '<div class="v73-footer-social">' +
+            '<a class="v73-social-link" onclick="return false" href="#"><span class="v73-social-ico">\uD83D\uDCF7</span>Instagram</a>' +
+            '<a class="v73-social-link" onclick="return false" href="#"><span class="v73-social-ico">\uD83D\uDCBC</span>LinkedIn</a>' +
+            '<a class="v73-social-link" onclick="return false" href="#"><span class="v73-social-ico">\uD83D\uDC26</span>X / Twitter</a>' +
+          '</div>' +
+          '<div class="v73-footer-links">' +
+            '<a onclick="return false" href="#">About</a>' +
+            '<a onclick="return false" href="#">Privacy</a>' +
+            '<a onclick="return false" href="#">Terms</a>' +
+            '<a onclick="return false" href="#">Contact</a>' +
+          '</div>' +
+          '<div class="v73-footer-copy">\u00A9 2026 Wallet IQ \u00B7 Built by Samir Dhanani \u00B7 V73</div>' +
+          '<div class="v73-footer-disclaimer">Wallet IQ is an independent tool and is not affiliated with any Canadian bank or credit card issuer. All data is stored locally on your device. Rates and offers change frequently \u2014 verify with the issuer before applying.</div>' +
+        '</footer>';
+      home.appendChild(wrap);
+      __v73FooterInjected = true;
+    }catch(e){}
+  }
+  function init(){ patchCardsDb(); wrapSkip(); injectHomeFooter(); }
+  if(document.readyState === 'loading'){ document.addEventListener('DOMContentLoaded', init); } else { init(); }
+  setTimeout(init, 300); setTimeout(init, 1000); setTimeout(init, 2500); setTimeout(init, 5000);
+})();
+</script>
+
+<!-- V74: Patch X/Twitter → Facebook + copy stamp -->
+<script id="v74-script">
+(function(){
+  var __v74Patched = false;
+  function patchFooter(){
+    if(__v74Patched) return;
+    try{
+      var s = document.querySelector('.v73-footer-social');
+      if(!s) return;
+      var links = s.querySelectorAll('.v73-social-link');
+      var swapped = false;
+      for(var i=0;i<links.length;i++){
+        var l = links[i]; var t = (l.textContent||'').toLowerCase();
+        if(t.indexOf('twitter')>=0 || t.indexOf('x /')>=0 || t.indexOf('/twitter')>=0 || t.trim()==='x'){
+          l.innerHTML = '<span class="v73-social-ico">\uD83D\uDCD8</span>Facebook';
+          swapped = true;
+        }
+      }
+      var copy = document.querySelector('.v73-footer-copy');
+      var copyOk = false;
+      if(copy && copy.textContent.indexOf('V73')>=0){ copy.textContent = copy.textContent.replace(/V73/g, 'V74'); copyOk = true; }
+      if(swapped && copyOk) __v74Patched = true;
+    }catch(e){}
+  }
+  function init(){
+    patchFooter();
+    try{ var h=document.getElementById('home'); if(h){ new MutationObserver(function(){ if(!__v74Patched) patchFooter(); }).observe(h,{childList:true,subtree:true}); } }catch(e){}
+  }
+  if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', init); } else { init(); }
+  setTimeout(init,500); setTimeout(init,1500); setTimeout(init,3500); setTimeout(init,6000);
+})();
+</script>
+
+<!-- V75: Email signup + copy stamp -->
+<script id="v75-script">
+(function(){
+  var __v75Injected = false; var __v75Stamped = false;
+  function submitEmail(){
+    try{
+      var w = document.querySelector('.v75-email-signup'); if(!w) return;
+      var inp = w.querySelector('.v75-email-input'); var val = (inp && inp.value||'').trim();
+      if(!val || val.indexOf('@')<0){ if(inp){ inp.focus(); inp.style.borderColor='var(--coral)'; setTimeout(function(){inp.style.borderColor='';}, 1500); } return; }
+      try{ localStorage.setItem('v75-email-signed', val); }catch(e){}
+      w.classList.add('thanks');
+      var t = w.querySelector('.v75-email-title'); var s = w.querySelector('.v75-email-sub');
+      if(t) t.textContent = "\u2713 You're subscribed!";
+      if(s) s.textContent = "Thanks \u2014 we'll only send monthly card highlights.";
+      var f = w.querySelector('.v75-email-form'); if(f) f.style.display='none';
+    }catch(e){}
+  }
+  window.__v75SubmitEmail = submitEmail;
+  function injectEmailSignup(){
+    if(__v75Injected) return;
+    try{
+      var f = document.querySelector('.v73-footer'); if(!f) return;
+      if(f.querySelector('.v75-email-signup')){ __v75Injected = true; return; }
+      var social = f.querySelector('.v73-footer-social'); if(!social) return;
+      var s = document.createElement('div'); s.className = 'v75-email-signup';
+      var signed = false; try{ signed = !!localStorage.getItem('v75-email-signed'); }catch(e){}
+      if(signed){
+        s.innerHTML = '<div class="v75-email-title">\u2713 You\'re subscribed!</div><div class="v75-email-sub">Thanks \u2014 we\'ll only send monthly card highlights.</div>';
+      } else {
+        s.innerHTML = '<div class="v75-email-title">Get monthly Canadian card tips</div><div class="v75-email-sub">One email a month. No spam. Unsubscribe anytime.</div><div class="v75-email-form"><input type="email" class="v75-email-input" placeholder="you@example.com" autocomplete="email"><button type="button" class="v75-email-btn" onclick="window.__v75SubmitEmail()">Subscribe</button></div>';
+      }
+      social.parentNode.insertBefore(s, social);
+      __v75Injected = true;
+    }catch(e){}
+  }
+  function stampV75(){
+    if(__v75Stamped) return;
+    try{ var c = document.querySelector('.v73-footer-copy'); if(c && c.textContent.indexOf('V74')>=0){ c.textContent = c.textContent.replace(/V74/g,'V75'); __v75Stamped = true; } else if(c && c.textContent.indexOf('V75')>=0){ __v75Stamped = true; } }catch(e){}
+  }
+  function init(){ injectEmailSignup(); stampV75(); try{ var h=document.getElementById('home'); if(h){ new MutationObserver(function(){ if(!__v75Injected) injectEmailSignup(); if(!__v75Stamped) stampV75(); }).observe(h,{childList:true,subtree:true}); } }catch(e){} }
+  if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', init); } else { init(); }
+  setTimeout(init,500); setTimeout(init,1500); setTimeout(init,3500); setTimeout(init,6000);
+})();
+</script>
+
+<!-- V76: Hide how-it-works + short tagline -->
+<script id="v76-script">
+(function(){
+  var __v76Patched = false;
+  function patchV76(){
+    if(__v76Patched) return;
+    try{
+      var extra = document.querySelector('.v73-home-extra'); if(!extra) return;
+      var titles = extra.querySelectorAll(':scope > .v73-section-title');
+      for(var i=0;i<titles.length;i++){ var t=titles[i]; if((t.textContent||'').toLowerCase().indexOf('how')>=0){ t.remove(); break; } }
+      var how = extra.querySelector(':scope > .v73-how'); if(how) how.remove();
+      var tag = document.querySelector('.v73-footer-tagline'); if(tag){ tag.textContent = 'Cards. Rewards. Optimized.'; }
+      var c = document.querySelector('.v73-footer-copy'); if(c && c.textContent.indexOf('V75')>=0){ c.textContent = c.textContent.replace(/V75/g,'V76'); }
+      if(tag) __v76Patched = true;
+    }catch(e){}
+  }
+  function init(){ patchV76(); try{ var h=document.getElementById('home'); if(h){ new MutationObserver(function(){ if(!__v76Patched) patchV76(); }).observe(h,{childList:true,subtree:true}); } }catch(e){} }
+  if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', init); } else { init(); }
+  setTimeout(init,500); setTimeout(init,1500); setTimeout(init,3500); setTimeout(init,6000);
+})();
+</script>
+
+<!-- V77: FormSubmit email delivery -->
+<script id="v77-script">
+(function(){
+  var TARGET_EMAIL = 'samir.dhan@gmail.com';
+  var ENDPOINT = 'https://formsubmit.co/ajax/' + TARGET_EMAIL;
+  function isValidEmail(v){ return v && v.indexOf('@') > 0 && v.indexOf('.') > v.indexOf('@'); }
+  function markThanks(w, msg){
+    try{
+      w.classList.add('thanks');
+      var t = w.querySelector('.v75-email-title'); var s = w.querySelector('.v75-email-sub');
+      if(t) t.textContent = "\u2713 You're subscribed!";
+      if(s) s.textContent = msg || "Thanks \u2014 we'll only send monthly card highlights.";
+      var f = w.querySelector('.v75-email-form'); if(f) f.style.display='none';
+    }catch(e){}
+  }
+  function markError(w, inp){ try{ if(inp){ inp.focus(); var o=inp.style.borderColor; inp.style.borderColor='var(--coral)'; setTimeout(function(){inp.style.borderColor=o;},1500); } }catch(e){} }
+  function v77SubmitEmail(){
+    try{
+      var w = document.querySelector('.v75-email-signup'); if(!w) return;
+      var inp = w.querySelector('.v75-email-input'); var btn = w.querySelector('.v75-email-btn');
+      var email = (inp && inp.value||'').trim();
+      if(!isValidEmail(email)){ markError(w, inp); return; }
+      var oL = btn ? btn.textContent : ''; if(btn){ btn.disabled = true; btn.textContent = 'Sending...'; }
+      var payload = { email: email, _subject: 'Wallet IQ - new email subscriber', _template: 'table', _captcha: 'false', source: 'Wallet IQ V79 home footer' };
+      try{ localStorage.setItem('v75-email-signed', email); }catch(e){}
+      var restore = function(){ if(btn){ btn.disabled = false; btn.textContent = oL; } };
+      if(typeof fetch !== 'function'){ markThanks(w); restore(); return; }
+      fetch(ENDPOINT, { method: 'POST', headers: {'Content-Type':'application/json','Accept':'application/json'}, body: JSON.stringify(payload) })
+        .then(function(r){ if(r.ok || r.status === 302){ markThanks(w); } else { markThanks(w, "Thanks! We got your email."); } })
+        .catch(function(){ markThanks(w, "Thanks! We got your email."); })
+        .then(restore);
+    }catch(e){}
+  }
+  window.__v75SubmitEmail = v77SubmitEmail;
+  setTimeout(function(){ window.__v75SubmitEmail = v77SubmitEmail; }, 500);
+  setTimeout(function(){ window.__v75SubmitEmail = v77SubmitEmail; }, 1500);
+  setTimeout(function(){ window.__v75SubmitEmail = v77SubmitEmail; }, 3500);
+  function stampV77(){ try{ var c = document.querySelector('.v73-footer-copy'); if(c && c.textContent.indexOf('V76')>=0){ c.textContent = c.textContent.replace(/V76/g,'V77'); } }catch(e){} }
+  if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', stampV77); } else { stampV77(); }
+  setTimeout(stampV77,500); setTimeout(stampV77,1500); setTimeout(stampV77,3500);
+})();
+</script>
+
+<!-- V78: Remove email + legal + samirdhan attribution -->
+<script id="v78-script">
+(function(){
+  var __v78Patched = false;
+  function patchV78(){
+    if(__v78Patched) return;
+    try{
+      var signup = document.querySelector('.v75-email-signup'); if(signup) signup.remove();
+      var links = document.querySelector('.v73-footer-links'); if(links) links.remove();
+      var c = document.querySelector('.v73-footer-copy');
+      if(c){
+        var txt = c.textContent || '';
+        if(txt.indexOf('Samir Dhanani')>=0){ txt = txt.replace(/Samir Dhanani/g, 'samirdhan'); }
+        if(txt.indexOf('V77')>=0){ txt = txt.replace(/V77/g, 'V78'); }
+        c.textContent = txt;
+      }
+      if(c) __v78Patched = true;
+    }catch(e){}
+  }
+  function init(){ patchV78(); try{ var h=document.getElementById('home'); if(h){ new MutationObserver(function(){ if(!__v78Patched) patchV78(); }).observe(h,{childList:true,subtree:true}); } }catch(e){} }
+  if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', init); } else { init(); }
+  setTimeout(init,500); setTimeout(init,1500); setTimeout(init,3500); setTimeout(init,6000);
+})();
+</script>
+
+<!-- V79: Toast confirmation + high-visibility chosen state + version stamp -->
+<script id="v79-script">
+(function(){
+  var toastTimer = null;
+  function ensureToast(){
+    var toast = document.getElementById('v79-select-toast');
+    if(!toast){
+      toast = document.createElement('div');
+      toast.id = 'v79-select-toast';
+      toast.className = 'v79-select-toast';
+      document.body.appendChild(toast);
+    }
+    return toast;
+  }
+  function showToast(cardName){
+    var toast = ensureToast();
+    toast.innerHTML = '<span class="v79-toast-check">\u2713</span>Using ' + cardName;
+    void toast.offsetWidth;
+    toast.classList.add('show');
+    if(toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ toast.classList.remove('show'); }, 2500);
+  }
+  document.addEventListener('click', function(e){
+    var item = e.target && e.target.closest ? e.target.closest('.alt-cards .alt-item') : null;
+    if(!item) return;
+    setTimeout(function(){
+      if(item.classList.contains('chosen')){
+        var nameEl = item.querySelector('.name');
+        var cardName = nameEl ? (nameEl.textContent || 'card') : 'card';
+        if(cardName.length > 32) cardName = cardName.substring(0, 30) + '\u2026';
+        showToast(cardName);
+      }
+    }, 60);
+  }, true);
+  function stampV79(){ try{ var c = document.querySelector('.v73-footer-copy'); if(c && c.textContent.indexOf('V78')>=0){ c.textContent = c.textContent.replace(/V78/g, 'V79'); } }catch(e){} }
+  if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', stampV79); } else { stampV79(); }
+  setTimeout(stampV79,500); setTimeout(stampV79,1500); setTimeout(stampV79,3500);
 })();
 </script>
 </body>
