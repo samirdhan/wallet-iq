@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Wallet IQ V81</title>
+<title>Wallet IQ V83</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Wallet IQ">
@@ -1214,16 +1214,12 @@ input#q { padding-right: 46px !important; }
 body.dark .v80-help-view .v80-tip { background: rgba(142,163,216,.10); }
 </style>
 <style id="v81-styles">
-/* V81 Fix #1: hide amber tip cards in the Points Vault only */
 #viewVault .tip-card,
 #viewVault .warn-box,
 #viewVault .info-box { display: none !important; }
-
-/* V81 Fix #2: Add-membership button + membership cards + modal */
 .v81-add-wrap { margin: 6px 0 12px; }
 .v81-add-btn { width: 100%; padding: 12px 16px; border-radius: 14px; border: 1.5px dashed var(--brand); background: var(--accent-soft); color: var(--brand); font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; font-weight: 900; font-size: 13.5px; letter-spacing: -.01em; cursor: pointer; transition: transform .1s ease; display: flex; align-items: center; justify-content: center; gap: 6px; }
 .v81-add-btn:active { transform: scale(.97); }
-
 .v81-membership-list { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
 .v81-membership-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px; display: grid; grid-template-columns: 32px 1fr auto 26px; gap: 12px; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,.04); font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; }
 .v81-membership-card .v81-emo { font-size: 24px; text-align: center; }
@@ -1235,7 +1231,6 @@ body.dark .v80-help-view .v80-tip { background: rgba(142,163,216,.10); }
 .v81-membership-card .v81-eq { font-size: 11px; color: var(--green); font-weight: 900; margin-top: 2px; font-family: ui-monospace,SFMono-Regular,Menlo,monospace; }
 .v81-del-btn { width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--border); background: transparent; color: var(--muted); font-size: 15px; font-weight: 900; cursor: pointer; padding: 0; line-height: 1; display: grid; place-items: center; transition: all .12s ease; }
 .v81-del-btn:hover { background: var(--coral-soft); color: var(--coral); border-color: var(--coral); }
-
 .v81-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 250; display: none; align-items: flex-end; justify-content: center; }
 .v81-modal-overlay.show { display: flex; }
 .v81-modal { background: var(--surface); width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; border-radius: 24px 24px 0 0; padding: 20px 18px calc(20px + env(safe-area-inset-bottom)); box-shadow: 0 -8px 30px rgba(0,0,0,.2); font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; color: var(--ink); animation: v81SlideUp .28s cubic-bezier(.2,.9,.3,1.2); }
@@ -1250,26 +1245,54 @@ body.dark .v80-help-view .v80-tip { background: rgba(142,163,216,.10); }
 .v81-form-row input:focus, .v81-form-row select:focus { border-color: var(--brand); }
 .v81-custom-fields { display: none; padding: 12px; background: var(--accent-soft); border-radius: 12px; margin-bottom: 12px; }
 .v81-custom-fields.show { display: block; }
-.v81-custom-fields .v81-form-row { margin-bottom: 8px; }
-.v81-custom-fields .v81-form-row:last-child { margin-bottom: 0; }
 .v81-cash-hint { font-size: 12px; font-weight: 900; color: var(--green); background: rgba(0,150,60,.08); padding: 8px 12px; border-radius: 10px; margin-top: 6px; display: none; letter-spacing: -.01em; font-family: ui-monospace,SFMono-Regular,Menlo,monospace; }
 .v81-cash-hint.show { display: block; }
 .v81-modal-actions { display: flex; gap: 8px; margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border); }
 .v81-modal-actions button { flex: 1; padding: 13px; font-size: 14px; border-radius: 14px; font-weight: 900; border: 1px solid var(--border); background: var(--surface); color: var(--ink); cursor: pointer; font-family: inherit; }
 .v81-modal-actions .v81-primary { background: var(--brand); color: #fff; border-color: var(--brand); box-shadow: 0 4px 12px rgba(37,99,235,.22); }
-
 body.dark .v81-add-btn { background: var(--accent-soft); color: var(--brand); border-color: var(--brand); }
 body.dark .v81-membership-card { background: var(--surface); border-color: var(--border); color: var(--ink); }
-body.dark .v81-membership-card .v81-bal { color: var(--brand); }
-body.dark .v81-membership-card .v81-eq { color: var(--green); }
-body.dark .v81-del-btn { color: var(--muted); border-color: var(--border); }
-body.dark .v81-del-btn:hover { background: rgba(230,80,80,.15); color: #ff8080; border-color: #ff8080; }
-body.dark .v81-modal { background: var(--surface); color: var(--ink); box-shadow: 0 -8px 30px rgba(0,0,0,.5); }
+body.dark .v81-modal { background: var(--surface); color: var(--ink); }
 body.dark .v81-form-row input, body.dark .v81-form-row select { background: var(--surface-2); color: var(--ink); border-color: var(--border); }
 body.dark .v81-custom-fields { background: rgba(142,163,216,.10); }
 body.dark .v81-cash-hint { background: rgba(126,200,148,.14); color: var(--green); }
 body.dark .v81-modal-actions button { background: var(--surface-2); color: var(--ink); border-color: var(--border); }
 body.dark .v81-modal-actions .v81-primary { background: var(--brand); color: #0f0d1a; border-color: var(--brand); }
+</style>
+<style id="v82-styles">
+.v82-hist-btn { background: linear-gradient(135deg, var(--brand), var(--brand-2)) !important; color: #fff !important; border: none !important; padding: 12px 14px !important; border-radius: 14px !important; font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif !important; font-weight: 900 !important; font-size: 12.5px !important; letter-spacing: -.01em !important; cursor: pointer !important; box-shadow: 0 4px 12px rgba(37,99,235,.22) !important; flex: 1 !important; line-height: 1.25 !important; text-align: center !important; margin-top: 8px !important; width: 100% !important; }
+.v82-hist-btn:active { transform: scale(.97); }
+.v82-hist-sub { display: block; font-size: 10px; font-weight: 700; opacity: .85; margin-top: 2px; letter-spacing: .02em; }
+.v82-orphan-btn { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; padding: 8px 14px; border-radius: 999px; background: var(--brand); color: #fff; border: none; font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; font-weight: 900; font-size: 12px; cursor: pointer; box-shadow: 0 3px 10px rgba(37,99,235,.22); }
+.v82-orphan-btn:active { transform: scale(.96); }
+.v82-hist-badge { display: inline-block; margin-left: 6px; padding: 2px 7px; border-radius: 6px; font-size: 9.5px; font-weight: 900; background: var(--accent-soft); color: var(--brand); letter-spacing: .04em; vertical-align: middle; }
+body.dark .v82-hist-badge { background: rgba(142,163,216,.15); color: var(--brand); }
+.tx-item[data-v82-hist="1"] .txrew, .tx-item[data-v82-hist="1"] .txmiss, .tx-item[data-v82-hist="1"] .tx-tag.miss { display: none !important; }
+.v82-dismiss-btn { position: absolute; top: 6px; right: 6px; width: 22px; height: 22px; border-radius: 50%; border: none; background: rgba(0,0,0,.06); color: var(--muted); font-size: 14px; font-weight: 900; cursor: pointer; padding: 0; line-height: 1; display: grid; place-items: center; transition: all .12s ease; z-index: 3; }
+.v82-dismiss-btn:hover { background: var(--coral-soft); color: var(--coral); }
+body.dark .v82-dismiss-btn { background: rgba(255,255,255,.08); color: var(--muted); }
+body.dark .v82-dismiss-btn:hover { background: rgba(230,80,80,.20); color: #ff8080; }
+.leak-item { position: relative !important; padding-right: 34px !important; }
+.sub-card { position: relative !important; padding-right: 34px !important; }
+.v82-month-group { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; margin-bottom: 8px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,.04); font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; }
+.v82-month-header { width: 100%; display: grid; grid-template-columns: 20px 1fr auto auto; gap: 10px; align-items: center; padding: 12px 14px; background: transparent; border: none; cursor: pointer; font-family: inherit; text-align: left; color: var(--ink); transition: background .12s ease; }
+.v82-month-header:hover { background: var(--surface-2); }
+.v82-month-group.v82-open .v82-month-header { border-bottom: 1px solid var(--border); background: var(--surface-2); }
+.v82-month-chevron { font-size: 11px; color: var(--muted); font-weight: 900; text-align: center; transition: transform .18s ease; }
+.v82-month-label { font-size: 13.5px; font-weight: 900; letter-spacing: -.015em; color: var(--ink); }
+.v82-month-count { font-size: 10px; font-weight: 900; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; padding: 3px 8px; border-radius: 99px; background: var(--surface-2); }
+.v82-month-total { font-family: ui-monospace,SFMono-Regular,Menlo,monospace; font-weight: 900; font-size: 13.5px; color: var(--brand); letter-spacing: -.01em; }
+.v82-month-body { padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+.v82-toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-20px); background: linear-gradient(135deg, var(--brand), var(--brand-2)); color: #fff; padding: 12px 22px; border-radius: 99px; font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; font-weight: 900; font-size: 13px; letter-spacing: -.01em; box-shadow: 0 8px 24px rgba(37,99,235,.36); z-index: 300; opacity: 0; transition: opacity .22s ease, transform .28s cubic-bezier(.2,.9,.3,1.2); pointer-events: none; max-width: 90vw; text-align: center; }
+.v82-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+body.dark .v82-toast { background: linear-gradient(135deg, #a5b3d8, #8ea3d8); color: #0a0a12; }
+</style>
+<style id="v83-styles">
+/* V83 Fix #1: Remove Sweet spots section from Points Vault */
+#vaultSweetspots { display: none !important; }
+#viewVault .section:has(+ #vaultSweetspots) { display: none !important; }
+/* V83 Fix #2: Remove Top move tip from Insights/Overview */
+#overviewTip { display: none !important; }
 </style>
 </head>
 <style>
@@ -1443,6 +1466,8 @@ body.dark .credits-empty{background:var(--surface)}
 <!-- V79: Much more visible chosen alternate card state (bright brand-blue background, white text, "USING" badge) + toast confirmation. Fixed dark mode invisibility issue. -->
 <!-- V80: Fixed onboarding modal buttons not visible on mobile (stronger sticky/fixed positioning + safe-area); stronger Skip preservation via delegated click; added X clear button in main search bar; brought back How-It-Works + added Rewards Studio guide as new modal accessible from hamburger drawer. -->
 <!-- V81: Points Vault now supports adding non-credit-card loyalty memberships (PC Optimum, Scene+, AIR MILES, Bonvoy, etc.) with balance tracking + cash-equivalent estimates. Removed yellow tip notes from vault area for a cleaner look. -->
+<!-- V82: Adds 'Mark as historical' bulk action for imported CSV transactions (excludes them from missed-rewards + leak detection). Insights leak items auto-filter known bill-pay merchants (mortgage/rent/strata/insurance/hydro) + individual x dismiss buttons on each leak/subscription card. All-Time transactions view groups into collapsible monthly accordions. -->
+<!-- V83: Hid the Sweet spots block in Points Vault (unnecessary once you add several memberships) and removed the Top move tip from Insights/Overview for a cleaner view. -->
 <!-- V56 -->
 <div class="top">
 <div class="header-row">
@@ -1796,7 +1821,7 @@ body.dark .credits-empty{background:var(--surface)}
 <button class="drawer-item" id="drawerFxToggle" onclick="toggleForeignMode()"><span class="di-ico" id="drawerFxIco">🇨🇦</span><span id="drawerFxLbl">CAD mode</span></button>
 <div class="drawer-divider"></div>
 <button class="drawer-item" onclick="resetWalletIQ()" style="color:var(--pass)"><span class="di-ico">🗑</span><span>Reset Wallet IQ</span></button>
-<div class="drawer-footer">Wallet IQ V81 · Built by samirdhan</div>
+<div class="drawer-footer">Wallet IQ V83 · Built by samirdhan</div>
 </div>
 </aside>
 
@@ -13960,288 +13985,322 @@ setTimeout(stampV79,500);setTimeout(stampV79,1500);
   'use strict';
   var STORAGE_KEY = 'walletiq_memberships';
   var V81_PROGRAMS = [
-    {key:'aeroplan',       name:'Aeroplan',            emoji:'\u2708\uFE0F', unit:'points', cpp:1.5},
-    {key:'avion',          name:'RBC Avion',           emoji:'\u2708\uFE0F', unit:'points', cpp:1.5},
-    {key:'mr',             name:'Amex MR',             emoji:'\uD83D\uDCB3', unit:'points', cpp:1.5},
-    {key:'scene',          name:'Scene+',              emoji:'\uD83C\uDFAC', unit:'points', cpp:1.0},
-    {key:'airmiles',       name:'AIR MILES Cash',      emoji:'\uD83C\uDF0D', unit:'miles',  cpp:10.5},
-    {key:'airmilesdream',  name:'AIR MILES Dream',     emoji:'\uD83C\uDF0D', unit:'miles',  cpp:12.5},
-    {key:'pcoptimum',      name:'PC Optimum',          emoji:'\uD83D\uDED2', unit:'points', cpp:0.1},
-    {key:'bonvoy',         name:'Marriott Bonvoy',     emoji:'\uD83C\uDFE8', unit:'points', cpp:0.8},
-    {key:'hilton',         name:'Hilton Honors',       emoji:'\uD83C\uDFE8', unit:'points', cpp:0.5},
-    {key:'ihg',            name:'IHG One Rewards',     emoji:'\uD83C\uDFE8', unit:'points', cpp:0.5},
-    {key:'hyatt',          name:'World of Hyatt',      emoji:'\uD83C\uDFE8', unit:'points', cpp:1.7},
-    {key:'westjet',        name:'WestJet Rewards',     emoji:'\u2708\uFE0F', unit:'WJ$',    cpp:100},
-    {key:'baavios',        name:'BA Avios',            emoji:'\u2708\uFE0F', unit:'avios',  cpp:1.6},
-    {key:'petropoints',    name:'Petro-Points',        emoji:'\u26FD',       unit:'points', cpp:0.1},
-    {key:'starbucks',      name:'Starbucks Stars',     emoji:'\u2615',       unit:'stars',  cpp:3.5},
-    {key:'timrewards',     name:'Tim Hortons Rewards', emoji:'\u2615',       unit:'points', cpp:0.1},
-    {key:'shoppers',       name:'Shoppers Optimum',    emoji:'\uD83D\uDC8A', unit:'points', cpp:0.1},
-    {key:'ctmoney',        name:'Canadian Tire Money', emoji:'\uD83D\uDD34', unit:'CT$',    cpp:100}
+    {key:'aeroplan',name:'Aeroplan',emoji:'\u2708\uFE0F',unit:'points',cpp:1.5},
+    {key:'avion',name:'RBC Avion',emoji:'\u2708\uFE0F',unit:'points',cpp:1.5},
+    {key:'mr',name:'Amex MR',emoji:'\uD83D\uDCB3',unit:'points',cpp:1.5},
+    {key:'scene',name:'Scene+',emoji:'\uD83C\uDFAC',unit:'points',cpp:1.0},
+    {key:'airmiles',name:'AIR MILES Cash',emoji:'\uD83C\uDF0D',unit:'miles',cpp:10.5},
+    {key:'airmilesdream',name:'AIR MILES Dream',emoji:'\uD83C\uDF0D',unit:'miles',cpp:12.5},
+    {key:'pcoptimum',name:'PC Optimum',emoji:'\uD83D\uDED2',unit:'points',cpp:0.1},
+    {key:'bonvoy',name:'Marriott Bonvoy',emoji:'\uD83C\uDFE8',unit:'points',cpp:0.8},
+    {key:'hilton',name:'Hilton Honors',emoji:'\uD83C\uDFE8',unit:'points',cpp:0.5},
+    {key:'ihg',name:'IHG One Rewards',emoji:'\uD83C\uDFE8',unit:'points',cpp:0.5},
+    {key:'hyatt',name:'World of Hyatt',emoji:'\uD83C\uDFE8',unit:'points',cpp:1.7},
+    {key:'westjet',name:'WestJet Rewards',emoji:'\u2708\uFE0F',unit:'WJ$',cpp:100},
+    {key:'baavios',name:'BA Avios',emoji:'\u2708\uFE0F',unit:'avios',cpp:1.6},
+    {key:'petropoints',name:'Petro-Points',emoji:'\u26FD',unit:'points',cpp:0.1},
+    {key:'starbucks',name:'Starbucks Stars',emoji:'\u2615',unit:'stars',cpp:3.5},
+    {key:'timrewards',name:'Tim Hortons Rewards',emoji:'\u2615',unit:'points',cpp:0.1},
+    {key:'shoppers',name:'Shoppers Optimum',emoji:'\uD83D\uDC8A',unit:'points',cpp:0.1},
+    {key:'ctmoney',name:'Canadian Tire Money',emoji:'\uD83D\uDD34',unit:'CT$',cpp:100}
   ];
-
-  function loadMemberships(){
-    try {
-      var raw = localStorage.getItem(STORAGE_KEY);
-      if(!raw) return [];
-      var arr = JSON.parse(raw);
-      return Array.isArray(arr) ? arr : [];
-    } catch(e){ return []; }
-  }
-  function saveMemberships(arr){
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(arr||[])); } catch(e){}
-  }
-
-  function esc(s){
-    return String(s==null?'':s).replace(/[&<>"']/g, function(c){
-      return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
-    });
-  }
-  function computeCash(balance, cpp){
-    var b = parseFloat(balance)||0;
-    var c = parseFloat(cpp)||0;
-    return (b * c) / 100;
-  }
-
-  var _rendering = false;
-  var _mo = null;
-
+  function loadMemberships(){try{var r=localStorage.getItem(STORAGE_KEY);if(!r)return[];var a=JSON.parse(r);return Array.isArray(a)?a:[];}catch(e){return[];}}
+  function saveMemberships(a){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(a||[]));}catch(e){}}
+  function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];});}
+  function computeCash(b,c){var x=parseFloat(b)||0,y=parseFloat(c)||0;return(x*y)/100;}
+  var _r=false,_mo=null;
   function renderMemberships(){
-    var wrap = document.getElementById('vaultPrograms');
-    if(!wrap) return;
-    _rendering = true;
-
-    var oldBtn = wrap.querySelector('.v81-add-wrap');
-    if(oldBtn) oldBtn.parentNode.removeChild(oldBtn);
-    var oldList = wrap.querySelector('.v81-membership-list');
-    if(oldList) oldList.parentNode.removeChild(oldList);
-
-    var addWrap = document.createElement('div');
-    addWrap.className = 'v81-add-wrap';
-    var btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'v81-add-btn';
-    btn.innerHTML = '\u2795 Add membership';
-    btn.addEventListener('click', function(){
-      if(typeof window.__v81OpenAddMembership === 'function') window.__v81OpenAddMembership();
+    var w=document.getElementById('vaultPrograms');if(!w)return;_r=true;
+    var ob=w.querySelector('.v81-add-wrap');if(ob)ob.parentNode.removeChild(ob);
+    var ol=w.querySelector('.v81-membership-list');if(ol)ol.parentNode.removeChild(ol);
+    var aw=document.createElement('div');aw.className='v81-add-wrap';
+    var b=document.createElement('button');b.type='button';b.className='v81-add-btn';b.innerHTML='\u2795 Add membership';
+    b.addEventListener('click',function(){if(typeof window.__v81OpenAddMembership==='function')window.__v81OpenAddMembership();});
+    aw.appendChild(b);
+    if(w.firstChild)w.insertBefore(aw,w.firstChild);else w.appendChild(aw);
+    var l=document.createElement('div');l.className='v81-membership-list';
+    var ms=loadMemberships();
+    ms.forEach(function(m,i){
+      var c=document.createElement('div');c.className='v81-membership-card';
+      var ca=computeCash(m.balance,m.cpp);
+      var bs;try{bs=Number(m.balance||0).toLocaleString();}catch(e){bs=String(m.balance||0);}
+      c.innerHTML='<div class="v81-emo">'+esc(m.emoji||'\u2B50')+'</div><div class="v81-mid"><div class="v81-name">'+esc(m.name||'Membership')+'</div><div class="v81-unit">'+esc(m.unit||'points')+'</div></div><div class="v81-right"><div class="v81-bal">'+esc(bs)+'</div><div class="v81-eq">\u2248 $'+ca.toFixed(2)+'</div></div><button class="v81-del-btn" type="button">\u00D7</button>';
+      c.querySelector('.v81-del-btn').addEventListener('click',function(){var a=loadMemberships();a.splice(i,1);saveMemberships(a);renderMemberships();});
+      l.appendChild(c);
     });
-    addWrap.appendChild(btn);
-    if(wrap.firstChild) wrap.insertBefore(addWrap, wrap.firstChild);
-    else wrap.appendChild(addWrap);
-
-    var list = document.createElement('div');
-    list.className = 'v81-membership-list';
-    var memberships = loadMemberships();
-    memberships.forEach(function(m, idx){
-      var card = document.createElement('div');
-      card.className = 'v81-membership-card';
-      var cash = computeCash(m.balance, m.cpp);
-      var balanceStr;
-      try { balanceStr = Number(m.balance||0).toLocaleString(); } catch(e){ balanceStr = String(m.balance||0); }
-      card.innerHTML =
-        '<div class="v81-emo">' + esc(m.emoji||'\u2B50') + '</div>' +
-        '<div class="v81-mid">' +
-          '<div class="v81-name">' + esc(m.name||'Membership') + '</div>' +
-          '<div class="v81-unit">' + esc(m.unit||'points') + '</div>' +
-        '</div>' +
-        '<div class="v81-right">' +
-          '<div class="v81-bal">' + esc(balanceStr) + '</div>' +
-          '<div class="v81-eq">\u2248 $' + cash.toFixed(2) + '</div>' +
-        '</div>' +
-        '<button class="v81-del-btn" type="button" aria-label="Delete membership">\u00D7</button>';
-      var delBtn = card.querySelector('.v81-del-btn');
-      delBtn.addEventListener('click', function(){
-        var arr = loadMemberships();
-        arr.splice(idx, 1);
-        saveMemberships(arr);
-        renderMemberships();
-      });
-      list.appendChild(card);
-    });
-    wrap.appendChild(list);
-
-    _rendering = false;
+    w.appendChild(l);_r=false;
   }
-
   function ensureModal(){
-    if(document.getElementById('v81Modal')) return;
-    var overlay = document.createElement('div');
-    overlay.id = 'v81Modal';
-    overlay.className = 'v81-modal-overlay';
-
-    var optionsHtml = V81_PROGRAMS.map(function(p){
-      return '<option value="' + esc(p.key) + '">' + esc(p.emoji) + '  ' + esc(p.name) + '</option>';
-    }).join('');
-    optionsHtml += '<option value="__custom__">\u2795 Custom (other program)</option>';
-
-    overlay.innerHTML =
-      '<div class="v81-modal" role="dialog" aria-label="Add loyalty membership">' +
-        '<div class="v81-modal-head">' +
-          '<div class="v81-modal-title">Add loyalty membership</div>' +
-          '<button class="v81-modal-close" type="button" aria-label="Close" id="v81Close">\u00D7</button>' +
-        '</div>' +
-        '<div class="v81-form-row">' +
-          '<label>Program</label>' +
-          '<select id="v81Prog">' + optionsHtml + '</select>' +
-        '</div>' +
-        '<div class="v81-custom-fields" id="v81CustomFields">' +
-          '<div class="v81-form-row"><label>Program name</label><input id="v81CustName" type="text" placeholder="e.g. Best Western Rewards" maxlength="60"></div>' +
-          '<div class="v81-form-row"><label>Emoji</label><input id="v81CustEmoji" type="text" placeholder="\u2B50" maxlength="4"></div>' +
-          '<div class="v81-form-row"><label>Unit label</label><input id="v81CustUnit" type="text" placeholder="e.g. points, miles, stars" maxlength="20"></div>' +
-          '<div class="v81-form-row"><label>Cents per unit (cpp)</label><input id="v81CustCpp" type="number" step="0.01" min="0" placeholder="e.g. 1.5"></div>' +
-        '</div>' +
-        '<div class="v81-form-row">' +
-          '<label>Current balance</label>' +
-          '<input id="v81Balance" type="number" step="1" min="0" inputmode="decimal" placeholder="0">' +
-          '<div class="v81-cash-hint" id="v81Hint"></div>' +
-        '</div>' +
-        '<div class="v81-modal-actions">' +
-          '<button type="button" id="v81Cancel">Cancel</button>' +
-          '<button type="button" class="v81-primary" id="v81Save">Save membership</button>' +
-        '</div>' +
-      '</div>';
-    document.body.appendChild(overlay);
-
-    var progSel = overlay.querySelector('#v81Prog');
-    var custWrap = overlay.querySelector('#v81CustomFields');
-    var balInp = overlay.querySelector('#v81Balance');
-    var hint = overlay.querySelector('#v81Hint');
-    var custNameInp = overlay.querySelector('#v81CustName');
-    var custEmojiInp = overlay.querySelector('#v81CustEmoji');
-    var custUnitInp = overlay.querySelector('#v81CustUnit');
-    var custCppInp = overlay.querySelector('#v81CustCpp');
-
-    function currentCpp(){
-      if(progSel.value === '__custom__') return parseFloat(custCppInp.value)||0;
-      var p = V81_PROGRAMS.find(function(x){return x.key===progSel.value;});
-      return p ? p.cpp : 0;
-    }
-    function updateHint(){
-      var b = parseFloat(balInp.value)||0;
-      var c = currentCpp();
-      if(b>0 && c>0){
-        var cash = (b*c)/100;
-        hint.textContent = '\u2248 $' + cash.toFixed(2);
-        hint.classList.add('show');
-      } else {
-        hint.classList.remove('show');
+    if(document.getElementById('v81Modal'))return;
+    var o=document.createElement('div');o.id='v81Modal';o.className='v81-modal-overlay';
+    var oh=V81_PROGRAMS.map(function(p){return'<option value="'+esc(p.key)+'">'+esc(p.emoji)+'  '+esc(p.name)+'</option>';}).join('');
+    oh+='<option value="__custom__">\u2795 Custom (other program)</option>';
+    o.innerHTML='<div class="v81-modal"><div class="v81-modal-head"><div class="v81-modal-title">Add loyalty membership</div><button class="v81-modal-close" type="button" id="v81Close">\u00D7</button></div><div class="v81-form-row"><label>Program</label><select id="v81Prog">'+oh+'</select></div><div class="v81-custom-fields" id="v81CustomFields"><div class="v81-form-row"><label>Program name</label><input id="v81CustName" type="text" placeholder="e.g. Best Western" maxlength="60"></div><div class="v81-form-row"><label>Emoji</label><input id="v81CustEmoji" type="text" placeholder="\u2B50" maxlength="4"></div><div class="v81-form-row"><label>Unit label</label><input id="v81CustUnit" type="text" placeholder="e.g. points, miles" maxlength="20"></div><div class="v81-form-row"><label>Cents per unit</label><input id="v81CustCpp" type="number" step="0.01" min="0" placeholder="e.g. 1.5"></div></div><div class="v81-form-row"><label>Current balance</label><input id="v81Balance" type="number" step="1" min="0" inputmode="decimal" placeholder="0"><div class="v81-cash-hint" id="v81Hint"></div></div><div class="v81-modal-actions"><button type="button" id="v81Cancel">Cancel</button><button type="button" class="v81-primary" id="v81Save">Save membership</button></div></div>';
+    document.body.appendChild(o);
+    var ps=o.querySelector('#v81Prog'),cw=o.querySelector('#v81CustomFields'),bi=o.querySelector('#v81Balance'),h=o.querySelector('#v81Hint');
+    var cn=o.querySelector('#v81CustName'),ce=o.querySelector('#v81CustEmoji'),cu=o.querySelector('#v81CustUnit'),cc=o.querySelector('#v81CustCpp');
+    function cCpp(){if(ps.value==='__custom__')return parseFloat(cc.value)||0;var p=V81_PROGRAMS.find(function(x){return x.key===ps.value;});return p?p.cpp:0;}
+    function uH(){var b=parseFloat(bi.value)||0,c=cCpp();if(b>0&&c>0){var x=(b*c)/100;h.textContent='\u2248 $'+x.toFixed(2);h.classList.add('show');}else{h.classList.remove('show');}}
+    function uCV(){if(ps.value==='__custom__')cw.classList.add('show');else cw.classList.remove('show');uH();}
+    ps.addEventListener('change',uCV);bi.addEventListener('input',uH);cc.addEventListener('input',uH);
+    function close(){o.classList.remove('show');}
+    o.querySelector('#v81Close').addEventListener('click',close);
+    o.querySelector('#v81Cancel').addEventListener('click',close);
+    o.addEventListener('click',function(e){if(e.target===o)close();});
+    document.addEventListener('keydown',function(e){if(e.key==='Escape'&&o.classList.contains('show'))close();});
+    o.querySelector('#v81Save').addEventListener('click',function(){
+      var b=parseFloat(bi.value);
+      if(!(b>0)){bi.focus();bi.style.borderColor='var(--coral,#d94b4b)';return;}
+      var r;
+      if(ps.value==='__custom__'){
+        var nm=(cn.value||'').trim();
+        if(!nm){cn.focus();cn.style.borderColor='var(--coral,#d94b4b)';return;}
+        r={key:'custom_'+Date.now(),name:nm,emoji:(ce.value||'\u2B50').trim()||'\u2B50',unit:(cu.value||'points').trim()||'points',cpp:parseFloat(cc.value)||0,balance:b};
+      }else{
+        var p=V81_PROGRAMS.find(function(x){return x.key===ps.value;});
+        if(!p)return;
+        r={key:p.key,name:p.name,emoji:p.emoji,unit:p.unit,cpp:p.cpp,balance:b};
       }
-    }
-    function updateCustomVisibility(){
-      if(progSel.value === '__custom__') custWrap.classList.add('show');
-      else custWrap.classList.remove('show');
-      updateHint();
-    }
-    progSel.addEventListener('change', updateCustomVisibility);
-    balInp.addEventListener('input', updateHint);
-    custCppInp.addEventListener('input', updateHint);
-
-    function close(){ overlay.classList.remove('show'); }
-    overlay.querySelector('#v81Close').addEventListener('click', close);
-    overlay.querySelector('#v81Cancel').addEventListener('click', close);
-    overlay.addEventListener('click', function(e){
-      if(e.target === overlay) close();
-    });
-    document.addEventListener('keydown', function(e){
-      if(e.key === 'Escape' && overlay.classList.contains('show')) close();
-    });
-
-    overlay.querySelector('#v81Save').addEventListener('click', function(){
-      var bal = parseFloat(balInp.value);
-      if(!(bal > 0)){
-        balInp.focus();
-        balInp.style.borderColor = 'var(--coral, #d94b4b)';
-        return;
-      }
-      var record;
-      if(progSel.value === '__custom__'){
-        var nm = (custNameInp.value||'').trim();
-        if(!nm){
-          custNameInp.focus();
-          custNameInp.style.borderColor = 'var(--coral, #d94b4b)';
-          return;
-        }
-        record = {
-          key: 'custom_' + Date.now(),
-          name: nm,
-          emoji: (custEmojiInp.value||'\u2B50').trim() || '\u2B50',
-          unit: (custUnitInp.value||'points').trim() || 'points',
-          cpp: parseFloat(custCppInp.value)||0,
-          balance: bal
-        };
-      } else {
-        var p = V81_PROGRAMS.find(function(x){return x.key===progSel.value;});
-        if(!p) return;
-        record = { key:p.key, name:p.name, emoji:p.emoji, unit:p.unit, cpp:p.cpp, balance:bal };
-      }
-      var arr = loadMemberships();
-      arr.push(record);
-      saveMemberships(arr);
-      close();
-      renderMemberships();
+      var a=loadMemberships();a.push(r);saveMemberships(a);close();renderMemberships();
     });
   }
-
   function openAddMembership(){
     ensureModal();
-    var overlay = document.getElementById('v81Modal');
-    if(!overlay) return;
-    var progSel = overlay.querySelector('#v81Prog');
-    if(progSel) progSel.value = V81_PROGRAMS[0].key;
-    var balInp = overlay.querySelector('#v81Balance');
-    if(balInp){ balInp.value = ''; balInp.style.borderColor = ''; }
-    var hint = overlay.querySelector('#v81Hint');
-    if(hint) hint.classList.remove('show');
-    ['#v81CustName','#v81CustEmoji','#v81CustUnit','#v81CustCpp'].forEach(function(sel){
-      var el = overlay.querySelector(sel);
-      if(el){ el.value = ''; el.style.borderColor = ''; }
+    var o=document.getElementById('v81Modal');if(!o)return;
+    var ps=o.querySelector('#v81Prog');if(ps)ps.value=V81_PROGRAMS[0].key;
+    var bi=o.querySelector('#v81Balance');if(bi){bi.value='';bi.style.borderColor='';}
+    var h=o.querySelector('#v81Hint');if(h)h.classList.remove('show');
+    ['#v81CustName','#v81CustEmoji','#v81CustUnit','#v81CustCpp'].forEach(function(s){var e=o.querySelector(s);if(e){e.value='';e.style.borderColor='';}});
+    var c=o.querySelector('#v81CustomFields');if(c)c.classList.remove('show');
+    o.classList.add('show');
+  }
+  window.__v81OpenAddMembership=openAddMembership;
+  function updateFooter(){try{document.querySelectorAll('.v73-footer-copy').forEach(function(e){if(e&&e.textContent&&e.textContent.indexOf('V80')!==-1)e.textContent=e.textContent.replace('V80','V81');});}catch(e){}}
+  function watchVault(){if(_mo)return;var v=document.getElementById('viewVault');if(!v)return;_mo=new MutationObserver(function(){if(_r)return;var vp=document.getElementById('vaultPrograms');if(!vp)return;if(!vp.querySelector('.v81-add-wrap'))setTimeout(renderMemberships,50);});_mo.observe(v,{childList:true,subtree:true});}
+  function init(){try{renderMemberships();}catch(e){}try{watchVault();}catch(e){}try{updateFooter();}catch(e){}}
+  if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',init);}else{init();}
+  setTimeout(init,500);setTimeout(init,1500);setTimeout(init,3500);setTimeout(init,6000);
+})();
+</script>
+<script id="v82-script">
+(function(){
+  'use strict';
+  var HISTORICAL_KEY='walletiq_v82_historical_ids';
+  var LEAK_DISMISSED_KEY='walletiq_v82_leak_dismissed';
+  var SUB_DISMISSED_KEY='walletiq_v82_sub_dismissed';
+  var MERCHANT_BLOCKLIST_KEY='walletiq_v82_merchant_blocklist';
+  var DEFAULT_BILL_PATTERNS=['mortgage','rent','strata','insurance','hydro','property tax','utility','utilities','bc hydro','fortisbc','enmax','atco','water bill','gas bill'];
+  function load(k,d){try{var v=JSON.parse(localStorage.getItem(k)||'null');return v!==null?v:d;}catch(e){return d;}}
+  function save(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+  function loadHistoricalIds(){return new Set(load(HISTORICAL_KEY,[]));}
+  function saveHistoricalIds(s){save(HISTORICAL_KEY,Array.from(s));}
+  function loadLeakDismissed(){return new Set(load(LEAK_DISMISSED_KEY,[]));}
+  function saveLeakDismissed(s){save(LEAK_DISMISSED_KEY,Array.from(s));}
+  function loadSubDismissed(){return new Set(load(SUB_DISMISSED_KEY,[]));}
+  function saveSubDismissed(s){save(SUB_DISMISSED_KEY,Array.from(s));}
+  function loadMerchantBlocklist(){var s=load(MERCHANT_BLOCKLIST_KEY,null);if(s&&Array.isArray(s))return new Set(s);return new Set(DEFAULT_BILL_PATTERNS);}
+  function isBillPay(t){if(!t)return false;var x=String(t).toLowerCase();var bl=loadMerchantBlocklist();var a=Array.from(bl);for(var i=0;i<a.length;i++){if(x.indexOf(a[i])!==-1)return true;}return false;}
+  function findTxKey(){for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(!k)continue;if(k.indexOf('walletiq')!==0)continue;if(k.indexOf('walletiq_v82')===0)continue;if(!/(tx|transaction)/i.test(k))continue;try{var v=JSON.parse(localStorage.getItem(k));if(Array.isArray(v))return k;}catch(e){}}return null;}
+  function getAllTx(){var k=findTxKey();if(!k)return[];try{return JSON.parse(localStorage.getItem(k))||[];}catch(e){return[];}}
+  function saveTx(l){var k=findTxKey();if(!k)return;try{localStorage.setItem(k,JSON.stringify(l));}catch(e){}}
+  function fingerprint(d,m,a){return d+'|'+(m||'').toLowerCase().trim()+'|'+Number(a||0).toFixed(2);}
+  function showToast(m){var t=document.createElement('div');t.className='v82-toast';t.textContent=m;document.body.appendChild(t);setTimeout(function(){t.classList.add('show');},10);setTimeout(function(){t.classList.remove('show');setTimeout(function(){if(t.parentNode)t.parentNode.removeChild(t);},400);},2500);}
+  function markAllUnassignedHistorical(){
+    var tx=getAllTx();var h=loadHistoricalIds();var c=0;
+    tx.forEach(function(t){if(!t.card||t.card===''||t.card==='unassigned'){h.add(fingerprint(t.date,t.merchant,t.amount));t.historical=true;c++;}});
+    saveHistoricalIds(h);saveTx(tx);
+    showToast('\u2705 '+c+' transactions marked as historical');
+    document.dispatchEvent(new CustomEvent('v82:refresh'));
+    ['renderTx','renderOverview','renderRewardsHero','render'].forEach(function(fn){try{if(typeof window[fn]==='function')window[fn]();}catch(e){}});
+  }
+  function injectHistoricalOption(){
+    var m=document.getElementById('bulkAssignModal');
+    if(!m||m.querySelector('.v82-hist-btn'))return;
+    var a=m.querySelector('.modal-actions');if(!a)return;
+    var b=document.createElement('button');b.className='v82-hist-btn';b.type='button';
+    b.innerHTML='\uD83D\uDCCB Mark as historical<span class="v82-hist-sub">rewards already earned</span>';
+    b.addEventListener('click',function(){markAllUnassignedHistorical();m.classList.remove('show','open');m.style.display='';});
+    a.parentNode.insertBefore(b,a.nextSibling);
+  }
+  function injectOrphanBannerAction(){
+    var bn=document.getElementById('txOrphanBanner');
+    if(!bn)return;if(bn.style.display==='none')return;if(!bn.children.length)return;
+    if(bn.querySelector('.v82-orphan-btn'))return;
+    var b=document.createElement('button');b.className='v82-orphan-btn';b.type='button';
+    b.innerHTML='\uD83D\uDCCB Skip \u2014 these are historical';
+    b.addEventListener('click',function(){markAllUnassignedHistorical();bn.style.display='none';});
+    bn.appendChild(b);
+  }
+  function processLeakItems(){
+    document.querySelectorAll('.leak-item').forEach(function(item){
+      if(item.dataset.v82Processed)return;
+      var mEl=item.querySelector('.lm');var merchant='';
+      if(mEl){var cl=mEl.cloneNode(true);cl.querySelectorAll('small').forEach(function(s){s.parentNode.removeChild(s);});merchant=cl.textContent.trim();}
+      else{merchant=(item.textContent||'').split('\n')[0].trim();}
+      if(isBillPay(merchant)){item.style.display='none';item.dataset.v82Hidden='billpay';item.dataset.v82Processed='1';return;}
+      var d=loadLeakDismissed();var fp=merchant.toLowerCase();
+      if(d.has(fp)){item.style.display='none';item.dataset.v82Processed='1';return;}
+      var x=document.createElement('button');x.className='v82-dismiss-btn';x.type='button';x.title='Dismiss';x.innerHTML='\u00D7';
+      x.addEventListener('click',function(e){e.stopPropagation();var dd=loadLeakDismissed();dd.add(fp);saveLeakDismissed(dd);item.style.display='none';});
+      item.appendChild(x);item.dataset.v82Processed='1';
     });
-    var cust = overlay.querySelector('#v81CustomFields');
-    if(cust) cust.classList.remove('show');
-    overlay.classList.add('show');
+    document.querySelectorAll('.leak-card').forEach(function(card){
+      var its=card.querySelectorAll('.leak-item');if(!its.length)return;
+      var v=0;its.forEach(function(i){if(i.style.display!=='none')v++;});
+      card.style.display=v===0?'none':'';
+    });
   }
-  window.__v81OpenAddMembership = openAddMembership;
-
-  function updateFooter(){
-    try {
-      var els = document.querySelectorAll('.v73-footer-copy');
-      els.forEach(function(el){
-        if(el && el.textContent && el.textContent.indexOf('V80') !== -1){
-          el.textContent = el.textContent.replace('V80', 'V81');
-        }
-      });
-    } catch(e){}
+  function processSubItems(){
+    document.querySelectorAll('.sub-card').forEach(function(card){
+      if(card.dataset.v82Processed)return;
+      var nEl=card.querySelector('.sn');var name='';
+      if(nEl){var cl=nEl.cloneNode(true);cl.querySelectorAll('small').forEach(function(s){s.parentNode.removeChild(s);});name=cl.textContent.trim();}
+      var key=name.toLowerCase();var d=loadSubDismissed();
+      if(d.has(key)){card.style.display='none';card.dataset.v82Processed='1';return;}
+      var x=document.createElement('button');x.className='v82-dismiss-btn v82-sub-dismiss';x.type='button';x.title='Not a subscription';x.innerHTML='\u00D7';
+      x.addEventListener('click',function(e){e.stopPropagation();var dd=loadSubDismissed();dd.add(key);saveSubDismissed(dd);card.style.display='none';});
+      card.appendChild(x);card.dataset.v82Processed='1';
+    });
   }
-
-  function watchVault(){
-    if(_mo) return;
-    var vault = document.getElementById('viewVault');
-    if(!vault) return;
-    _mo = new MutationObserver(function(muts){
-      if(_rendering) return;
-      var vp = document.getElementById('vaultPrograms');
-      if(!vp) return;
-      if(!vp.querySelector('.v81-add-wrap')){
-        setTimeout(renderMemberships, 50);
+  function markHistoricalTx(){
+    var h=loadHistoricalIds();if(h.size===0)return;
+    document.querySelectorAll('.tx-item').forEach(function(item){
+      if(item.dataset.v82Checked)return;item.dataset.v82Checked='1';
+      var mEl=item.querySelector('.txmerch');var aEl=item.querySelector('.txamt');var metaEl=item.querySelector('.txmeta');
+      if(!mEl||!aEl)return;
+      var merchant=mEl.textContent.trim();
+      var amt=parseFloat((aEl.textContent||'').replace(/[^\d.-]/g,''))||0;
+      var text=(metaEl?metaEl.textContent:'')+' '+item.textContent;
+      var m1=text.match(/(\d{4})-(\d{2})-(\d{2})/);
+      var m2=text.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+      var date=null;
+      if(m1){date=m1[1]+'-'+m1[2]+'-'+m1[3];}
+      else if(m2){var mm=m2[1].length===1?'0'+m2[1]:m2[1];var dd=m2[2].length===1?'0'+m2[2]:m2[2];date=m2[3]+'-'+mm+'-'+dd;}
+      if(!date)return;
+      if(h.has(fingerprint(date,merchant,amt))){
+        item.setAttribute('data-v82-hist','1');
+        var main=item.querySelector('.txmain');
+        if(main&&!main.querySelector('.v82-hist-badge')){var bd=document.createElement('span');bd.className='v82-hist-badge';bd.textContent='\uD83D\uDCCB Imported';main.appendChild(bd);}
       }
     });
-    _mo.observe(vault, {childList:true, subtree:true});
   }
-
+  function isAllTimeActive(){
+    var p=document.querySelectorAll('#monthPills .month-pill');
+    for(var i=0;i<p.length;i++){
+      if(p[i].classList.contains('on')||p[i].classList.contains('active')){
+        var t=(p[i].textContent||'').trim().toLowerCase();
+        if(t==='all'||t==='all time'||t==='alltime')return true;
+      }
+    }
+    return false;
+  }
+  function ungroupAllTime(list){
+    list.querySelectorAll('.v82-month-group').forEach(function(g){
+      var b=g.querySelector('.v82-month-body');
+      if(b){while(b.firstChild){list.appendChild(b.firstChild);}}
+      g.parentNode.removeChild(g);
+    });
+  }
+  function groupAllTimeTx(){
+    var list=document.getElementById('txList');if(!list)return;
+    if(!isAllTimeActive()){ungroupAllTime(list);return;}
+    if(list.querySelector('.v82-month-group'))return;
+    var items=[];Array.prototype.forEach.call(list.children,function(c){if(c.classList&&c.classList.contains('tx-item'))items.push(c);});
+    if(items.length<10)return;
+    var g={};
+    items.forEach(function(item){
+      var t=item.textContent||'';
+      var m1=t.match(/(\d{4})-(\d{2})-(\d{2})/);
+      var m2=t.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+      var ym='Unknown';
+      if(m1){ym=m1[1]+'-'+m1[2];}
+      else if(m2){var mm=m2[1].length===1?'0'+m2[1]:m2[1];ym=m2[3]+'-'+mm;}
+      if(!g[ym])g[ym]=[];
+      g[ym].push(item);
+    });
+    while(list.firstChild)list.removeChild(list.firstChild);
+    var ks=Object.keys(g).sort().reverse();
+    var now=new Date();var curYm=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+    ks.forEach(function(ym){
+      var grp=document.createElement('div');grp.className='v82-month-group';
+      var arr=g[ym];var total=0;
+      arr.forEach(function(it){var a=it.querySelector('.txamt');if(a){total+=parseFloat((a.textContent||'').replace(/[^\d.-]/g,''))||0;}});
+      var label=ym;var parts=ym.split('-');
+      if(parts.length===2){try{var d=new Date(parseInt(parts[0],10),parseInt(parts[1],10)-1,1);label=d.toLocaleDateString('en-US',{month:'long',year:'numeric'});}catch(e){}}
+      var isOpen=(ym===curYm);
+      var header=document.createElement('button');header.className='v82-month-header';header.type='button';
+      header.innerHTML='<span class="v82-month-chevron">'+(isOpen?'\u25BC':'\u25B6')+'</span><span class="v82-month-label">'+label+'</span><span class="v82-month-count">'+arr.length+' tx</span><span class="v82-month-total">$'+total.toFixed(2)+'</span>';
+      var body=document.createElement('div');body.className='v82-month-body';
+      if(!isOpen)body.style.display='none';
+      arr.forEach(function(it){body.appendChild(it);});
+      if(isOpen)grp.classList.add('v82-open');
+      header.addEventListener('click',function(){
+        var open=body.style.display!=='none';
+        body.style.display=open?'none':'';
+        var ch=header.querySelector('.v82-month-chevron');
+        if(ch)ch.textContent=open?'\u25B6':'\u25BC';
+        grp.classList.toggle('v82-open',!open);
+      });
+      grp.appendChild(header);grp.appendChild(body);list.appendChild(grp);
+    });
+  }
+  function updateFooterV82(){document.querySelectorAll('.v73-footer-copy').forEach(function(e){if(e&&e.textContent&&e.textContent.indexOf('V81')!==-1)e.textContent=e.textContent.replace('V81','V82');});}
+  var _t=false;
+  function tick(){
+    if(_t)return;_t=true;
+    setTimeout(function(){
+      try{injectHistoricalOption();injectOrphanBannerAction();processLeakItems();processSubItems();markHistoricalTx();groupAllTimeTx();updateFooterV82();}catch(e){}
+      _t=false;
+    },50);
+  }
+  var mo=null;
   function init(){
-    try { renderMemberships(); } catch(e){}
-    try { watchVault(); } catch(e){}
-    try { updateFooter(); } catch(e){}
+    tick();
+    if(!mo){mo=new MutationObserver(function(){tick();});mo.observe(document.body,{childList:true,subtree:true});}
+    document.addEventListener('v82:refresh',tick);
   }
-  if(document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
+  if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',init);}else{init();}
+  setTimeout(init,500);setTimeout(init,1500);setTimeout(init,3500);setTimeout(init,6000);
+})();
+</script>
+<script id="v83-script">
+(function(){
+  'use strict';
+  function hideSweetSpotsHeader(){
+    var sw=document.getElementById('vaultSweetspots');
+    if(!sw)return;
+    var prev=sw.previousElementSibling;
+    if(prev && prev.classList && prev.classList.contains('section')){
+      prev.style.display='none';
+      prev.setAttribute('data-v83-hidden','1');
+    }
   }
-  setTimeout(init, 500);
-  setTimeout(init, 1500);
-  setTimeout(init, 3500);
-  setTimeout(init, 6000);
+  function hideOverviewTip(){
+    var t=document.getElementById('overviewTip');
+    if(t) t.style.display='none';
+  }
+  function updateFooterV83(){
+    document.querySelectorAll('.v73-footer-copy').forEach(function(el){
+      if(el && el.textContent && el.textContent.indexOf('V82')!==-1){
+        el.textContent=el.textContent.replace('V82','V83');
+      }
+    });
+  }
+  var _t=false;
+  function tick(){
+    if(_t)return;_t=true;
+    setTimeout(function(){
+      try{hideSweetSpotsHeader();hideOverviewTip();updateFooterV83();}catch(e){}
+      _t=false;
+    },50);
+  }
+  var mo=null;
+  function init(){
+    tick();
+    if(!mo){mo=new MutationObserver(function(){tick();});mo.observe(document.body,{childList:true,subtree:true});}
+  }
+  if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',init);}else{init();}
+  setTimeout(init,500);setTimeout(init,1500);setTimeout(init,3500);setTimeout(init,6000);
 })();
 </script>
 </body>
