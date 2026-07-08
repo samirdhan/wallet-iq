@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Wallet IQ V100</title>
+<title>Wallet IQ V102</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Wallet IQ">
@@ -1689,6 +1689,8 @@ body.dark .credits-empty{background:var(--surface)}
 <!-- V98: Three critical fixes. (a) CPP math bug: the vault stores cpp in cents-per-point (Petro-Points cpp=0.1 means 0.1c/pt), but the V96 optimizer multiplied balance*cpp as if cpp was dollars/point — giving 57,514 Petro-Points a value of $5,751 instead of the correct $57.51. Fixed by using (balance*cpp)/100 everywhere. (b) Missing programs: added the 8 programs the vault knows but the V96 optimizer did not (Hilton Honors, IHG One Rewards, World of Hyatt, WestJet Rewards, BA Avios, Petro-Points, Starbucks Stars, Tim Hortons Rewards, Shoppers Optimum, CT Money). Total: 24 programs now supported with proper redemption charts. (c) Homepage counter: reads live ALIASES total (verified 4,844 unique keys) and clamps to [3500-5000] range; logs the count to console so you can verify. -->
 <!-- V99: Credit Rescue accuracy pass. Removed three fabricated statement credits that do NOT exist on the Canadian versions of these cards: (a) Amex Cobalt "$10/mo Streaming Credit" - Cobalt earns 3x MR on streaming purchases but has NO automatic statement credit for streaming. (b) Amex Platinum "$100 Saks Credit" - Saks credit is a US-only benefit; Canadian Amex Platinum does not include it. (c) CIBC Aventura Gold "$100 NEXUS" - Only the Aventura Visa Infinite and Visa Infinite Privilege include NEXUS; the Aventura Gold tier does not. -->
 <!-- V100: Final dedupe cleanup — the V92/V93/V94 dedupers missed several edge cases the user flagged in the autocomplete list: (a) "Costco Wholesale" appeared alongside "Costco" because "wholesale" was not in the strip list. (b) "Nike Store", "Nike.Com", "Nike Canada" appeared alongside "Nike" because "com", "canada" (as separate token from valid "usa"), "auto", "online" were not stripped. (c) "Marks Work Wearhouse" stayed because the misspelled "wearhouse" (vs "warehouse") was not in strip. (d) Winner selection was picking run-together names like "Bestbuycanada" over clean "Best Buy" because both had 0 special characters. V100 adds a "cleanScore" metric that penalizes run-together strings longer than 6 chars, and prefers proper spaced/apostrophed names as canonical. -->
+<!-- V101: Four focused fixes bundled into V102. (a) Homepage counter oscillation - two competing scripts (v94 no clamp, v98 with 5000 clamp) fought every 1.5-2s. Neutralized both. (b) Recommendation card wording: "Earns 7.5% here" changed to "Up to 7.5% here" (Cobalt maxes at 5x MR earn rate, 7.5% is effective value via Aeroplan). (c) Removed version numbers from footer copy and drawer. (d) Merged Optimize tab into Vault - hidden diamond subtab, redirect optimize->vault, moved optimize hero+body into vault view. -->
+<!-- V102: Confirmed true merchant count = 5,508 unique aliases (I earlier missed an 824-entry Object.assign(ALIASES,{...}) block in my audit). Homepage counter now displays "5,500+" honestly. Also restored "© 2026 Wallet IQ · Built by samirdhan" on the homepage footer per user request (drawer stays clean as just "Built by samirdhan"). -->
 <!-- V56 -->
 <div class="top">
 <div class="header-row">
@@ -2042,7 +2044,7 @@ body.dark .credits-empty{background:var(--surface)}
 <button class="drawer-item" id="drawerFxToggle" onclick="toggleForeignMode()"><span class="di-ico" id="drawerFxIco">🇨🇦</span><span id="drawerFxLbl">CAD mode</span></button>
 <div class="drawer-divider"></div>
 <button class="drawer-item" onclick="resetWalletIQ()" style="color:var(--pass)"><span class="di-ico">🗑</span><span>Reset Wallet IQ</span></button>
-<div class="drawer-footer">Wallet IQ V100 · Built by samirdhan</div>
+<div class="drawer-footer">Built by samirdhan</div>
 </div>
 </aside>
 
@@ -8270,7 +8272,7 @@ function renderRecommendation(query){
    <div class="dot ${c.cl}">${c.e}</div>
    <div>
     <h2>${c.n}</h2>
-    <p class="sub">Earns ${b.rate.toFixed(1)}% here${b.boosted?' <span style="color:var(--green);font-weight:900">(+'+b.boostAmount+'% loyalty)</span>':''}</p>
+    <p class="sub">Up to ${b.rate.toFixed(1)}% here${b.boosted?' <span style="color:var(--green);font-weight:900">(+'+b.boostAmount+'% loyalty)</span>':''}</p>
    </div>
   </div>
   <div class="pills">
@@ -9197,7 +9199,7 @@ function renderLocResult(data,lat,lon){
   html+='<div style="font-size:9.5px;color:var(--muted);font-weight:900;letter-spacing:.1em;text-transform:uppercase;text-align:center;margin-bottom:10px">Use this card</div>';
   html+='<div style="display:flex;justify-content:center;margin-bottom:12px">'+svgCard(c,locCardKey)+'</div>';
   html+='<div style="font-size:18px;font-weight:900;letter-spacing:-.02em;margin-top:4px;text-align:center">'+c.n+'</div>';
-  html+='<div style="font-family:ui-monospace,monospace;font-size:14px;font-weight:900;color:var(--green);margin-top:4px;text-align:center">Earns '+b.rate.toFixed(1)+'% here</div>';
+  html+='<div style="font-family:ui-monospace,monospace;font-size:14px;font-weight:900;color:var(--green);margin-top:4px;text-align:center">Up to '+b.rate.toFixed(1)+'% here</div>';
   html+='</div>';
   html+='<div style="font-size:11.5px;color:var(--muted);font-weight:700;line-height:1.5"><b style="color:var(--ink)">Why:</b> '+(c.w||'Best rate from your wallet.')+'</div>';
   if(acc.note)html+='<div class="info-box" style="margin-top:10px">'+acc.note+'</div>';
@@ -16022,21 +16024,7 @@ setTimeout(stampV79,500);setTimeout(stampV79,1500);
   function updateFooterV87(){
     try{
       document.querySelectorAll('.v73-footer-copy').forEach(function(el){
-        if(el && el.textContent){
-          if(el.textContent.indexOf('V99') !== -1) el.textContent = el.textContent.replace('V99','V100');
-          else if(el.textContent.indexOf('V98') !== -1) el.textContent = el.textContent.replace('V98','V100');
-          else if(el.textContent.indexOf('V97') !== -1) el.textContent = el.textContent.replace('V97','V100');
-          else if(el.textContent.indexOf('V96') !== -1) el.textContent = el.textContent.replace('V96','V100');
-          else if(el.textContent.indexOf('V95') !== -1) el.textContent = el.textContent.replace('V95','V100');
-          else if(el.textContent.indexOf('V94') !== -1) el.textContent = el.textContent.replace('V94','V100');
-          else if(el.textContent.indexOf('V93') !== -1) el.textContent = el.textContent.replace('V93','V100');
-          else if(el.textContent.indexOf('V92') !== -1) el.textContent = el.textContent.replace('V92','V100');
-          else if(el.textContent.indexOf('V91') !== -1) el.textContent = el.textContent.replace('V91','V100');
-          else if(el.textContent.indexOf('V90') !== -1) el.textContent = el.textContent.replace('V90','V100');
-          else if(el.textContent.indexOf('V89') !== -1) el.textContent = el.textContent.replace('V89','V100');
-          else if(el.textContent.indexOf('V88') !== -1) el.textContent = el.textContent.replace('V88','V100');
-          else if(el.textContent.indexOf('V87') !== -1) el.textContent = el.textContent.replace('V87','V100');
-          else if(el.textContent.indexOf('V86') !== -1) el.textContent = el.textContent.replace('V86','V100');
+        if(false){ /* V102: version stamping disabled */
         }
       });
     }catch(e){}
@@ -18062,6 +18050,7 @@ setTimeout(stampV79,500);setTimeout(stampV79,1500);
 <script id="v94-homepage-stat">
 (function(){
   function updateStat(){
+    return; /* V102: disabled - v101-fixes handles counter */
     try{
       var el = document.getElementById('v89StatMerchants');
       if(!el) return;
@@ -18912,6 +18901,7 @@ setTimeout(stampV79,500);setTimeout(stampV79,1500);
 (function(){
   var _lastLogged = 0;
   function updateStat(){
+    return; /* V102: disabled - v101-fixes handles counter (removes 5000 clamp) */
     try{
       var el = document.getElementById('v89StatMerchants');
       if(!el) return;
@@ -19097,6 +19087,121 @@ setTimeout(stampV79,500);setTimeout(stampV79,1500);
     setTimeout(apply, 2000);
     setTimeout(apply, 5000);
     setInterval(apply, 3000);
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+
+
+<style id="v101-styles">
+/* V101: Hide optimize subtab button - merged into vault */
+#rewardsSubtabs button[data-view="optimize"] { display: none !important; }
+#rewardsSubtabs[data-v96-tabs="1"] { grid-template-columns: repeat(4, 1fr) !important; }
+</style>
+<script id="v101-fixes">
+(function(){
+  // FIX 1: Stable homepage counter — reads live ALIASES.length, floor 3500, NO upper cap
+  function updateHomepageCounter(){
+    try{
+      var el = document.getElementById('v89StatMerchants');
+      if(!el) return;
+      if(typeof ALIASES !== 'object' || !ALIASES) return;
+      var total = Object.keys(ALIASES).length;
+      if(total <= 0) return;
+      var rounded = Math.floor(total / 50) * 50;
+      if(rounded < 3500) rounded = 3500;
+      // NO upper clamp - shows real 5,500+
+      var target = rounded.toLocaleString('en-US') + '+';
+      if(el.textContent !== target) el.textContent = target;
+    }catch(e){}
+  }
+
+  // FIX 3 (V102): Restore "© 2026 Wallet IQ · Built by samirdhan" on homepage footer
+  function updateFooterCopy(){
+    try{
+      var wanted = '\u00a9 2026 Wallet IQ \u00b7 Built by samirdhan';
+      document.querySelectorAll('.v73-footer-copy').forEach(function(el){
+        if(el && el.textContent !== wanted){
+          el.textContent = wanted;
+        }
+      });
+    }catch(e){}
+  }
+
+  // FIX 4: Merge Optimize content into Vault view
+  function mergeOptimizeIntoVault(){
+    try{
+      var vault = document.getElementById('viewVault');
+      var opt = document.getElementById('viewOptimize');
+      if(!vault || !opt) return;
+      if(vault.dataset.v101Merged === '1') return;
+
+      var hero = opt.querySelector('.v96-opt-hero');
+      var body = document.getElementById('v96OptBody');
+      if(hero && vault.firstChild !== hero){
+        vault.insertBefore(hero, vault.firstChild);
+      }
+      if(body){
+        if(hero && hero.nextSibling !== body){
+          vault.insertBefore(body, hero.nextSibling);
+        }
+      }
+      opt.style.display = 'none';
+      vault.dataset.v101Merged = '1';
+    }catch(e){}
+  }
+
+  function wrapSwitch(){
+    try{
+      if(window.__v101SwitchWrapped) return;
+      if(typeof window.switchRewardsView !== 'function') return;
+      var orig = window.switchRewardsView;
+      window.switchRewardsView = function(view){
+        if(view === 'optimize') view = 'vault';
+        var result = orig.apply(this, arguments);
+        if(view === 'vault'){
+          setTimeout(function(){
+            mergeOptimizeIntoVault();
+            try{
+              if(window.__v98RenderOptimizer) window.__v98RenderOptimizer();
+            }catch(e){}
+          }, 50);
+        }
+        return result;
+      };
+      window.__v101SwitchWrapped = true;
+      try{ console.log('[V102] switchRewardsView wrapped: optimize -> vault'); }catch(e){}
+    }catch(e){}
+  }
+
+  function tick(){
+    updateHomepageCounter();
+    updateFooterCopy();
+    wrapSwitch();
+    try{
+      var vault = document.getElementById('viewVault');
+      if(vault && vault.classList.contains('active')){
+        mergeOptimizeIntoVault();
+      }
+    }catch(e){}
+  }
+
+  function init(){
+    tick();
+    setTimeout(tick, 300);
+    setTimeout(tick, 1000);
+    setTimeout(tick, 3000);
+    setInterval(tick, 2500);
+    try{
+      if(typeof ALIASES === 'object' && ALIASES){
+        console.log('[V102] Total ALIASES:', Object.keys(ALIASES).length);
+      }
+    }catch(e){}
   }
 
   if(document.readyState === 'loading'){
