@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Wallet IQ V97</title>
+<title>Wallet IQ V100</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Wallet IQ">
@@ -1686,6 +1686,9 @@ body.dark .credits-empty{background:var(--surface)}
 <!-- V95: Cleaned up ambiguous alias sources (removed 'cactus club mexican' and redundant Mary Brown variants), added a hardcoded brand-canonicalize map that runs on interval to force consistent display names ("Cactus Club Cafe", "Mary Brown's Chicken"), and added 200+ new merchant aliases covering major US chains (Target, Kroger, Publix, Trader Joe's, Chipotle, Chick-fil-A, Taco Bell, Panera, Cheesecake Factory, Whataburger, Chick-fil-A, Nike, Sephora, Ulta, and more) plus more Canadian regional retailers. Homepage counter now shows raw alias recognition count (~4,000+ merchants recognized). -->
 <!-- V96: Big Rewards Studio upgrade. (a) Merged Insights + Transactions tabs into a single unified Activity view - the insights strip (Missed hero, Hidden subs/leaks note) now lives at the TOP of the transactions list. (b) Added a new Optimize tab (diamond icon) that reads your memberships + wallet cards, then shows the BEST redemption for every points program plus contextual sweet-spot synergy tips that unlock only when you own the qualifying cards. Cent-accurate value estimates for every point. -->
 <!-- V97: Merchant coverage push — added 621 net-new aliases (after dedup vs existing 4,223) to cross the 4,800+ threshold. Categories filled: USA convenience/gas (Speedway, Wawa, Sheetz, QuikTrip, Casey's, Kwik Trip, Chevron, Marathon, Valero, Sunoco), USA grocery (Giant Eagle, Save Mart, ShopRite, Winco, Erewhon, Sprouts, King Kullen), USA dining (Chuy's, Cheddar's, Sweetgreen, Cava, Sizzler, Golden Corral, Steak n Shake, Peet's, Blue Bottle, Stumptown), US pharmacy (Walgreens, CVS, Rite Aid, Duane Reade), streaming (Crave, DAZN, ESPN+, MLB.tv, NHL.tv, Pluto, Tubi, Sling, Fubo), ride/delivery (Uber, Lyft, DoorDash, GrubHub, Instacart, Turo, Zipcar), Canadian gas (Petro-Canada, Esso, Shell, Husky, Pioneer, Ultramar, Irving), fintech (Wealthsimple, Questrade, Coinbase, Robinhood, Fidelity, Vanguard, Schwab, Kraken), SaaS (1Password, LastPass, ProtonVPN, NordVPN, Notion, Airtable), fitness (Peloton, Tonal, Planet Fitness, Equinox, F45, Barry's, ClassPass, Calm, Headspace), beauty (Sephora, Ulta, MAC, Estée Lauder, Charlotte Tilbury, Fenty, Glossier), auto (AutoZone, Firestone, Goodyear, Jiffy Lube), travel/rental (U-Haul, Hertz, Avis, Enterprise, Kayak, Booking.com, Expedia). Homepage merchant counter accurately displays "4,800+" from the live ALIASES.length count. -->
+<!-- V98: Three critical fixes. (a) CPP math bug: the vault stores cpp in cents-per-point (Petro-Points cpp=0.1 means 0.1c/pt), but the V96 optimizer multiplied balance*cpp as if cpp was dollars/point — giving 57,514 Petro-Points a value of $5,751 instead of the correct $57.51. Fixed by using (balance*cpp)/100 everywhere. (b) Missing programs: added the 8 programs the vault knows but the V96 optimizer did not (Hilton Honors, IHG One Rewards, World of Hyatt, WestJet Rewards, BA Avios, Petro-Points, Starbucks Stars, Tim Hortons Rewards, Shoppers Optimum, CT Money). Total: 24 programs now supported with proper redemption charts. (c) Homepage counter: reads live ALIASES total (verified 4,844 unique keys) and clamps to [3500-5000] range; logs the count to console so you can verify. -->
+<!-- V99: Credit Rescue accuracy pass. Removed three fabricated statement credits that do NOT exist on the Canadian versions of these cards: (a) Amex Cobalt "$10/mo Streaming Credit" - Cobalt earns 3x MR on streaming purchases but has NO automatic statement credit for streaming. (b) Amex Platinum "$100 Saks Credit" - Saks credit is a US-only benefit; Canadian Amex Platinum does not include it. (c) CIBC Aventura Gold "$100 NEXUS" - Only the Aventura Visa Infinite and Visa Infinite Privilege include NEXUS; the Aventura Gold tier does not. -->
+<!-- V100: Final dedupe cleanup — the V92/V93/V94 dedupers missed several edge cases the user flagged in the autocomplete list: (a) "Costco Wholesale" appeared alongside "Costco" because "wholesale" was not in the strip list. (b) "Nike Store", "Nike.Com", "Nike Canada" appeared alongside "Nike" because "com", "canada" (as separate token from valid "usa"), "auto", "online" were not stripped. (c) "Marks Work Wearhouse" stayed because the misspelled "wearhouse" (vs "warehouse") was not in strip. (d) Winner selection was picking run-together names like "Bestbuycanada" over clean "Best Buy" because both had 0 special characters. V100 adds a "cleanScore" metric that penalizes run-together strings longer than 6 chars, and prefers proper spaced/apostrophed names as canonical. -->
 <!-- V56 -->
 <div class="top">
 <div class="header-row">
@@ -2039,7 +2042,7 @@ body.dark .credits-empty{background:var(--surface)}
 <button class="drawer-item" id="drawerFxToggle" onclick="toggleForeignMode()"><span class="di-ico" id="drawerFxIco">🇨🇦</span><span id="drawerFxLbl">CAD mode</span></button>
 <div class="drawer-divider"></div>
 <button class="drawer-item" onclick="resetWalletIQ()" style="color:var(--pass)"><span class="di-ico">🗑</span><span>Reset Wallet IQ</span></button>
-<div class="drawer-footer">Wallet IQ V97 · Built by samirdhan</div>
+<div class="drawer-footer">Wallet IQ V100 · Built by samirdhan</div>
 </div>
 </aside>
 
@@ -11196,10 +11199,7 @@ document.addEventListener('DOMContentLoaded',function(){
 // ============================================================
 
 window.CARD_CREDITS = {
-  cobalt:[
-    {id:'streaming',label:'Streaming Credit',emoji:'\ud83d\udcfa',amount:10,period:'month',
-     desc:'Bill Netflix, Disney+, Crave, Spotify, Prime Video, Apple TV+/Music to Cobalt for automatic $10/mo credit.'}
-  ],
+  cobalt:[] /* V99: Removed - Cobalt has no automatic streaming statement credit */,
   amexGold:[
     {id:'travel',label:'Travel Credit',emoji:'\u2708\ufe0f',amount:100,period:'year',
      desc:'Book any travel via Amex Travel Online \u2014 $100 auto-credit each year.'}
@@ -11208,9 +11208,7 @@ window.CARD_CREDITS = {
     {id:'travel',label:'Travel Credit',emoji:'\u2708\ufe0f',amount:200,period:'year',
      desc:'$200 travel credit via Amex Travel each calendar year.'},
     {id:'dining',label:'Dining Credit',emoji:'\ud83c\udf7d\ufe0f',amount:200,period:'year',
-     desc:'$50/quarter at select Canadian restaurants (Amex Dining Program).'},
-    {id:'saks',label:'Saks Credit',emoji:'\ud83d\udecd\ufe0f',amount:100,period:'year',
-     desc:'$50 semi-annually at Saks Fifth Avenue (Jan-Jun + Jul-Dec).'}
+     desc:'$50/quarter at select Canadian restaurants (Amex Dining Program).'}
   ],
   amexBusinessPlat:[
     {id:'travel',label:'Travel Credit',emoji:'\u2708\ufe0f',amount:200,period:'year',
@@ -11236,10 +11234,7 @@ window.CARD_CREDITS = {
     {id:'nexus',label:'NEXUS Credit',emoji:'\ud83d\udec2',amount:100,period:'4year',
      desc:'$100 NEXUS reimbursement \u2014 one per 4-year cycle.'}
   ],
-  cibcAventuraGold:[
-    {id:'nexus',label:'NEXUS Credit',emoji:'\ud83d\udec2',amount:100,period:'4year',
-     desc:'$100 NEXUS reimbursement \u2014 one per 4-year cycle.'}
-  ],
+  cibcAventuraGold:[] /* V99: Removed - Aventura Gold tier does not include NEXUS credit */,
   wsInfinitePrivilege:[
     {id:'lounge',label:'Visa Airport Companion',emoji:'\ud83d\udecb\ufe0f',amount:210,period:'year',
      desc:'6 Visa Airport Companion lounge passes/year (~$35 each).'}
@@ -16028,17 +16023,20 @@ setTimeout(stampV79,500);setTimeout(stampV79,1500);
     try{
       document.querySelectorAll('.v73-footer-copy').forEach(function(el){
         if(el && el.textContent){
-          if(el.textContent.indexOf('V96') !== -1) el.textContent = el.textContent.replace('V96','V97');
-          else if(el.textContent.indexOf('V95') !== -1) el.textContent = el.textContent.replace('V95','V97');
-          else if(el.textContent.indexOf('V94') !== -1) el.textContent = el.textContent.replace('V94','V97');
-          else if(el.textContent.indexOf('V93') !== -1) el.textContent = el.textContent.replace('V93','V97');
-          else if(el.textContent.indexOf('V92') !== -1) el.textContent = el.textContent.replace('V92','V97');
-          else if(el.textContent.indexOf('V91') !== -1) el.textContent = el.textContent.replace('V91','V97');
-          else if(el.textContent.indexOf('V90') !== -1) el.textContent = el.textContent.replace('V90','V97');
-          else if(el.textContent.indexOf('V89') !== -1) el.textContent = el.textContent.replace('V89','V97');
-          else if(el.textContent.indexOf('V88') !== -1) el.textContent = el.textContent.replace('V88','V97');
-          else if(el.textContent.indexOf('V87') !== -1) el.textContent = el.textContent.replace('V87','V97');
-          else if(el.textContent.indexOf('V86') !== -1) el.textContent = el.textContent.replace('V86','V97');
+          if(el.textContent.indexOf('V99') !== -1) el.textContent = el.textContent.replace('V99','V100');
+          else if(el.textContent.indexOf('V98') !== -1) el.textContent = el.textContent.replace('V98','V100');
+          else if(el.textContent.indexOf('V97') !== -1) el.textContent = el.textContent.replace('V97','V100');
+          else if(el.textContent.indexOf('V96') !== -1) el.textContent = el.textContent.replace('V96','V100');
+          else if(el.textContent.indexOf('V95') !== -1) el.textContent = el.textContent.replace('V95','V100');
+          else if(el.textContent.indexOf('V94') !== -1) el.textContent = el.textContent.replace('V94','V100');
+          else if(el.textContent.indexOf('V93') !== -1) el.textContent = el.textContent.replace('V93','V100');
+          else if(el.textContent.indexOf('V92') !== -1) el.textContent = el.textContent.replace('V92','V100');
+          else if(el.textContent.indexOf('V91') !== -1) el.textContent = el.textContent.replace('V91','V100');
+          else if(el.textContent.indexOf('V90') !== -1) el.textContent = el.textContent.replace('V90','V100');
+          else if(el.textContent.indexOf('V89') !== -1) el.textContent = el.textContent.replace('V89','V100');
+          else if(el.textContent.indexOf('V88') !== -1) el.textContent = el.textContent.replace('V88','V100');
+          else if(el.textContent.indexOf('V87') !== -1) el.textContent = el.textContent.replace('V87','V100');
+          else if(el.textContent.indexOf('V86') !== -1) el.textContent = el.textContent.replace('V86','V100');
         }
       });
     }catch(e){}
@@ -18465,6 +18463,647 @@ setTimeout(stampV79,500);setTimeout(stampV79,1500);
   }
 
   if(document.readyState === 'loading'){ document.addEventListener('DOMContentLoaded', init); } else { init(); }
+})();
+</script>
+
+
+<script id="v98-optimizer-fix">
+(function(){
+  // V98: Full 24-program catalog matching vault. cpp values are in CENTS per point.
+  // dollars = balance * cpp / 100
+  var PROGRAMS = {
+    aeroplan: { name:'Aeroplan', icon:'\u2708\uFE0F', unit:'pts',
+      redemptions: [
+        { label:'\u2708\uFE0F Sweet-spot flight chart', cpp:2.1, best:true, tip:'The Aeroplan chart lets you book 10-15k pts for short-haul flights or 50-70k for business-class transatlantic. Best-case ~2.1cpp.' },
+        { label:'\u2708\uFE0F Any Aeroplan flight', cpp:1.5 },
+        { label:'\uD83C\uDFE8 Hotels / vacations', cpp:1.0 },
+        { label:'\uD83D\uDCB5 Cash / statement credit', cpp:1.0 }
+      ]
+    },
+    mr: { name:'Amex Membership Rewards', icon:'\uD83D\uDD35', unit:'MR',
+      redemptions: [
+        { label:'\u2708\uFE0F Transfer to Aeroplan (1:1)', cpp:1.5, best:true, tip:'The single best MR use in Canada. Transfer 1:1 to Aeroplan then redeem on the sweet-spot chart.' },
+        { label:'\uD83C\uDFE8 Transfer to Marriott Bonvoy (5:6)', cpp:1.0 },
+        { label:'\uD83D\uDCB5 Statement credit', cpp:1.0 },
+        { label:'\uD83D\uDECD\uFE0F Amazon.ca / online', cpp:0.7 }
+      ]
+    },
+    scene: { name:'Scene+', icon:'\uD83C\uDFAC', unit:'pts',
+      redemptions: [
+        { label:'\uD83D\uDCB5 Statement credit (Scotia CC)', cpp:1.0, best:true, tip:'Open the Scene+ app, tap Redeem then Statement Credit. Scene+ points cash out 1:1 against your Scotia CC statement.' },
+        { label:'\uD83C\uDFAC Cineplex tickets', cpp:1.0 },
+        { label:'\uD83D\uDED2 Sobeys / Empire grocery', cpp:1.0 },
+        { label:'\u2708\uFE0F Scene+ Travel', cpp:1.0 }
+      ]
+    },
+    airmiles: { name:'AIR MILES (Cash)', icon:'\uD83C\uDF0D', unit:'miles',
+      redemptions: [
+        { label:'\uD83D\uDCB5 Cash Miles at checkout', cpp:10.5, best:true, tip:'Cash Miles redeem at 95 miles = $10 (10.5c/mile). Straight cash at partner stores.' }
+      ]
+    },
+    airmilesdream: { name:'AIR MILES (Dream)', icon:'\uD83C\uDF0D', unit:'miles',
+      redemptions: [
+        { label:'\u2708\uFE0F Flights (Dream)', cpp:12.5, best:true, tip:'Dream Miles are 15-30% better than Cash Miles when used on flights.' },
+        { label:'\uD83D\uDECD\uFE0F Merchandise', cpp:10.5 }
+      ]
+    },
+    pcoptimum: { name:'PC Optimum', icon:'\uD83D\uDED2', unit:'pts',
+      redemptions: [
+        { label:'\uD83D\uDED2 Loblaws / Superstore / No Frills', cpp:0.1, best:true, tip:'Wait for a 20x-the-points weekend or Spend Your Points day to nearly double effective value. Check the PC Optimum app every week.' },
+        { label:'\uD83D\uDC8A Shoppers Drug Mart', cpp:0.1 }
+      ]
+    },
+    bonvoy: { name:'Marriott Bonvoy', icon:'\uD83C\uDFE8', unit:'pts',
+      redemptions: [
+        { label:'\uD83C\uDFE8 Peak nights + 5th night free', cpp:1.1, best:true, tip:'On 5+ night stays, Bonvoy waives the cheapest night. Peak category 4-6 hotels punch above weight.' },
+        { label:'\uD83C\uDFE8 Standard hotel nights', cpp:0.8 },
+        { label:'\u2708\uFE0F Airline transfer (3:1)', cpp:0.6 }
+      ]
+    },
+    hilton: { name:'Hilton Honors', icon:'\uD83C\uDFE8', unit:'pts',
+      redemptions: [
+        { label:'\uD83C\uDFE8 Aspire annual free-night cert', cpp:0.7, best:true, tip:'The Aspire free-night cert applied at peak Cat 6-8 hotels can hit 0.7-1.0c/pt. Regular redemptions are ~0.5c.' },
+        { label:'\uD83C\uDFE8 Standard hotel nights', cpp:0.5 },
+        { label:'\u2708\uFE0F Airline transfer (10:1)', cpp:0.2 }
+      ]
+    },
+    ihg: { name:'IHG One Rewards', icon:'\uD83C\uDFE8', unit:'pts',
+      redemptions: [
+        { label:'\uD83C\uDFE8 4th Night Free (Premier CC)', cpp:0.6, best:true, tip:'The Premier CC 4th-night-free perk on 4+ night stays pushes IHG value from 0.5c to ~0.6c/pt.' },
+        { label:'\uD83C\uDFE8 Standard hotel nights', cpp:0.5 }
+      ]
+    },
+    hyatt: { name:'World of Hyatt', icon:'\uD83C\uDFE8', unit:'pts',
+      redemptions: [
+        { label:'\uD83C\uDFE8 Cat 1-4 hotels + FNC', cpp:2.0, best:true, tip:'Hyatt is the best hotel currency in Canada. Cat 1-4 properties frequently return 2c+/pt on peak nights.' },
+        { label:'\uD83C\uDFE8 Standard hotel nights', cpp:1.7 }
+      ]
+    },
+    westjet: { name:'WestJet Rewards', icon:'\u2708\uFE0F', unit:'WJ$',
+      redemptions: [
+        { label:'\u2708\uFE0F Flights (WJ$ = $1 CAD)', cpp:100, best:true, tip:'WestJet dollars are literal 1:1 cash toward flights. Every WJ$1 = $1 off any WestJet flight.' }
+      ]
+    },
+    baavios: { name:'BA Avios', icon:'\u2708\uFE0F', unit:'avios',
+      redemptions: [
+        { label:'\u2708\uFE0F Short-haul partner flights', cpp:1.6, best:true, tip:'BA short-haul distance-based chart is 3-4k Avios for many partner (Alaska/AA) flights under 650mi.' },
+        { label:'\u2708\uFE0F Long-haul flights', cpp:1.2 }
+      ]
+    },
+    petropoints: { name:'Petro-Points', icon:'\u26FD', unit:'pts',
+      redemptions: [
+        { label:'\u26FD Fuel / snacks at Petro-Canada', cpp:0.1, best:true, tip:'Petro-Points are 0.1c each. 1,000 pts = $1 off fuel. Link your RBC card for an extra 3c/L discount on top.' }
+      ]
+    },
+    starbucks: { name:'Starbucks Stars', icon:'\u2615', unit:'stars',
+      redemptions: [
+        { label:'\u2615 Handcrafted drink (200 stars)', cpp:3.5, best:true, tip:'The 200-star free-drink tier is the best value. Grande espresso drinks push 3.5c/star.' },
+        { label:'\u2615 Bakery item (100 stars)', cpp:2.5 }
+      ]
+    },
+    timrewards: { name:'Tim Hortons Rewards', icon:'\u2615', unit:'pts',
+      redemptions: [
+        { label:'\u2615 Free coffee/food item', cpp:0.1, best:true, tip:'Tims points are ~0.1c/pt. Redeem when you have 800+ for the best item on the reward menu.' }
+      ]
+    },
+    shoppers: { name:'Shoppers Optimum', icon:'\uD83D\uDC8A', unit:'pts',
+      redemptions: [
+        { label:'\uD83D\uDC8A Shoppers Drug Mart', cpp:0.1, best:true, tip:'Same rate as PC Optimum. Watch for 50x-the-points weekends to boost effective earn on cosmetics.' }
+      ]
+    },
+    ctmoney: { name:'Canadian Tire Money', icon:'\uD83D\uDD34', unit:'CT$',
+      redemptions: [
+        { label:'\uD83D\uDD34 Any Canadian Tire purchase', cpp:100, best:true, tip:'CT Money is literal 1:1 cash at Canadian Tire. 100 CT$ = $100 off.' }
+      ]
+    },
+    rogers: { name:'Rogers Cash', icon:'\uD83D\uDCF1', unit:'$', cashLike:true,
+      redemptions: [
+        { label:'\uD83D\uDCF1 Rogers / Fido bill (1.5x boost)', cpp:1.5, best:true, tip:'Redeem Rogers Cash directly against a Rogers/Fido/chatr bill for a 50% boost. $100 Rogers Cash = $150 off your bill.' },
+        { label:'\uD83D\uDCB5 Statement credit (any purchase)', cpp:1.0 }
+      ]
+    },
+    avion: { name:'RBC Avion', icon:'\u2708\uFE0F', unit:'pts',
+      redemptions: [
+        { label:'\u2708\uFE0F Air Travel Redemption chart', cpp:2.0, best:true, tip:'Fixed short-haul chart (~15,000 pts for a $350 flight) beats the 1pt=1c travel calculator every time.' },
+        { label:'\u2708\uFE0F British Airways Avios (1:1)', cpp:1.5 },
+        { label:'\uD83D\uDCB5 Cash / statement credit', cpp:1.0 }
+      ]
+    },
+    aventura: { name:'CIBC Aventura', icon:'\u2708\uFE0F', unit:'pts',
+      redemptions: [
+        { label:'\u2708\uFE0F Fixed flight chart', cpp:2.0, best:true, tip:'The Aventura chart gives 2c/pt on short-haul flights. Beats travel dollars for anything under $700.' },
+        { label:'\uD83D\uDCB5 Travel dollars / cash', cpp:1.0 }
+      ]
+    },
+    td: { name:'TD Rewards', icon:'\uD83D\uDFE2', unit:'pts',
+      redemptions: [
+        { label:'\u2708\uFE0F Expedia for TD (best)', cpp:0.5, best:true },
+        { label:'\uD83D\uDCB5 Cash', cpp:0.25 }
+      ]
+    },
+    bmo: { name:'BMO Rewards', icon:'\uD83D\uDD35', unit:'pts',
+      redemptions: [
+        { label:'\u2708\uFE0F Travel', cpp:0.7, best:true },
+        { label:'\uD83D\uDECD\uFE0F Merchandise', cpp:0.5 },
+        { label:'\uD83D\uDCB5 Cash', cpp:0.5 }
+      ]
+    },
+    hsbc: { name:'HSBC Rewards', icon:'\uD83C\uDF39', unit:'pts',
+      redemptions: [
+        { label:'\u2708\uFE0F Travel', cpp:0.5, best:true },
+        { label:'\uD83D\uDCB5 Cash', cpp:0.5 }
+      ]
+    },
+    bluerewards: { name:'BMO Blue Rewards', icon:'\uD83D\uDD35', unit:'pts',
+      redemptions: [
+        { label:'\uD83D\uDECD\uFE0F BMO merchandise / travel', cpp:0.67, best:true },
+        { label:'\uD83D\uDCB5 Cash / statement credit', cpp:0.67 }
+      ]
+    },
+    morerewards: { name:'More Rewards', icon:'\uD83D\uDED2', unit:'pts',
+      redemptions: [
+        { label:'\uD83D\uDED2 Save-On-Foods (best)', cpp:1.0, best:true },
+        { label:'\u2708\uFE0F Travel', cpp:1.0 }
+      ]
+    }
+  };
+
+  // Card name -> program key that card earns
+  var CARD_TO_PROGRAM = [
+    { rx:/cobalt|amex gold|amex platinum|business gold|business platinum|amex green|simplyC amex/i, prog:'mr' },
+    { rx:/aeroplan/i, prog:'aeroplan' },
+    { rx:/bonvoy|marriott/i, prog:'bonvoy' },
+    { rx:/hilton/i, prog:'hilton' },
+    { rx:/ihg/i, prog:'ihg' },
+    { rx:/hyatt/i, prog:'hyatt' },
+    { rx:/westjet/i, prog:'westjet' },
+    { rx:/avion|ion\+|ion plus|rbc rewards/i, prog:'avion' },
+    { rx:/aventura|cibc rewards/i, prog:'aventura' },
+    { rx:/scene\+|scotia scene|scotia amex|passport|momentum visa|scotia gold|tangerine/i, prog:'scene' },
+    { rx:/td rewards|td first class|td platinum travel|td aeroplan/i, prog:'td' },
+    { rx:/bmo eclipse|bmo world elite mc|bmo rewards|bmo cashback/i, prog:'bmo' },
+    { rx:/bmo air miles|amex air miles/i, prog:'airmilesdream' },
+    { rx:/pc mastercard|pc financial|pc insiders/i, prog:'pcoptimum' },
+    { rx:/shoppers optimum|pc optimum mc/i, prog:'shoppers' },
+    { rx:/rogers world elite|rogers red|rogers mc|rogers mastercard|fido mastercard/i, prog:'rogers' },
+    { rx:/petro|petro-canada/i, prog:'petropoints' },
+    { rx:/canadian tire|triangle/i, prog:'ctmoney' },
+    { rx:/hsbc/i, prog:'hsbc' }
+  ];
+
+  function normalizeKey(k){
+    return String(k || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  }
+
+  function programFor(m){
+    if(!m) return null;
+    var k = normalizeKey(m.key || m.name || '');
+    // Aliases the vault uses
+    var alias = {
+      'aeroplan':'aeroplan', 'aircanada':'aeroplan',
+      'mr':'mr', 'amexmr':'mr', 'membershiprewards':'mr',
+      'scene':'scene', 'sceneplus':'scene',
+      'airmiles':'airmiles', 'airmilescash':'airmiles',
+      'airmilesdream':'airmilesdream',
+      'pcoptimum':'pcoptimum', 'pcpoints':'pcoptimum',
+      'bonvoy':'bonvoy', 'marriott':'bonvoy', 'marriottbonvoy':'bonvoy',
+      'hilton':'hilton', 'hiltonhonors':'hilton',
+      'ihg':'ihg', 'ihgonerewards':'ihg',
+      'hyatt':'hyatt', 'worldofhyatt':'hyatt',
+      'westjet':'westjet', 'westjetrewards':'westjet',
+      'baavios':'baavios', 'avios':'baavios',
+      'petropoints':'petropoints', 'petrocanada':'petropoints',
+      'starbucks':'starbucks', 'starbucksstars':'starbucks',
+      'timrewards':'timrewards', 'timhortons':'timrewards',
+      'shoppers':'shoppers', 'shoppersoptimum':'shoppers',
+      'ctmoney':'ctmoney', 'canadiantire':'ctmoney',
+      'rogers':'rogers', 'rogerscash':'rogers',
+      'avion':'avion', 'rbcavion':'avion', 'rbcrewards':'avion',
+      'aventura':'aventura', 'cibcaventura':'aventura',
+      'td':'td', 'tdrewards':'td',
+      'bmo':'bmo', 'bmorewards':'bmo',
+      'hsbc':'hsbc', 'hsbcrewards':'hsbc',
+      'bluerewards':'bluerewards', 'bmobluerewards':'bluerewards',
+      'morerewards':'morerewards'
+    };
+    return PROGRAMS[alias[k]] || null;
+  }
+
+  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  function fmtDollars(v){ if(!isFinite(v) || v == null) return '$0.00'; return '$' + (Math.round(v*100)/100).toFixed(2); }
+  function fmtInt(v){ return String(Math.round(v || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+
+  function readMemberships(){
+    try{
+      var raw = localStorage.getItem('walletiq_memberships');
+      var arr = raw ? JSON.parse(raw) : [];
+      return Array.isArray(arr) ? arr : [];
+    }catch(e){ return []; }
+  }
+
+  function readCardNames(){
+    try{
+      if(typeof userWallet !== 'undefined' && userWallet && typeof userWallet.forEach === 'function' && typeof CARDS_DB !== 'undefined'){
+        var out = [];
+        userWallet.forEach(function(key){
+          var c = CARDS_DB && CARDS_DB[key];
+          if(c && c.n) out.push(c.n);
+        });
+        return out;
+      }
+    }catch(e){}
+    return [];
+  }
+
+  function programsEarnedByCards(cardNames){
+    var earned = {};
+    cardNames.forEach(function(cn){
+      CARD_TO_PROGRAM.forEach(function(m){
+        if(m.rx.test(cn)) earned[m.prog] = true;
+      });
+    });
+    return earned;
+  }
+
+  function synergiesFor(cardStr){
+    var list = [
+      { icon:'\uD83D\uDCF1', title:'Rogers Cash \u2192 1.5x bill boost', trigger:/rogers|fido/i, badge:'1.5x REDEMPTION',
+        body:'You own a <b>Rogers/Fido card</b>. Redeem your Rogers Cash directly against your Rogers, Fido, or chatr bill for a full <b>50% boost</b> - $100 Rogers Cash = $150 off your bill. Never redeem as statement credit unless you have to.' },
+      { icon:'\u2708\uFE0F', title:'Amex MR \u2192 Aeroplan transfer', trigger:/cobalt|amex|american express|mr\b|membership rewards|amex gold|amex platinum|business gold|business platinum/i, badge:'BEST MR USE',
+        body:'You have an <b>MR-earning Amex</b>. Transfer MR to Aeroplan 1:1, then book on the sweet-spot flight chart. 10-15k pts = short-haul flights; 50-70k pts = business-class transatlantic. Effectively <b>1.5c+/pt</b>.' },
+      { icon:'\uD83C\uDFAC', title:'Scene+ statement credit hack', trigger:/scotia|scene|tangerine|momentum|passport|gold amex/i, badge:'1cpp CASH',
+        body:'You own a <b>Scotia/Scene+ earning card</b>. Open the Scene+ app, tap Redeem, then <b>Statement Credit</b>. Scene+ points cash out 1:1 against your Scotia CC statement - no travel booking, no minimums.' },
+      { icon:'\uD83C\uDFE8', title:'Bonvoy free-night certificate', trigger:/bonvoy|marriott/i, badge:'ANNUAL PERK',
+        body:'You own a <b>Marriott Bonvoy Amex</b>. The annual <b>35,000-pt free-night certificate</b> alone is often worth $200-400+ (peak Cat 4-5 hotels). Keep this card even in a keep-or-cancel year - the cert pays the $120 fee.' },
+      { icon:'\uD83D\uDED2', title:'PC Optimum 20x days', trigger:/./i, badge:'FREE STACK',
+        body:'Everyone benefits: watch the PC Optimum app for <b>20x targeted offers</b> (usually on weekends). Stack it with the <b>PC Insiders World Elite MC</b> (45 pts/$) at Loblaws for effectively <b>6.5%+ back</b>.' },
+      { icon:'\u26FD', title:'RBC \u2192 Petro-Canada 3c/L link', trigger:/rbc|royal bank|avion|ion/i, badge:'3c/L SAVE',
+        body:'You have an <b>RBC card</b>. Link it to your Petro-Points account for an instant <b>3c off/L</b> at every Petro-Canada fillup. On top of base rewards, this is an extra 2% back on fuel.' }
+    ];
+    return list.map(function(s){ s.unlocked = s.trigger.test(cardStr); return s; });
+  }
+
+  function renderOptimizer(){
+    try{
+      var body = document.getElementById('v96OptBody');
+      if(!body) return;
+      var mems = readMemberships();
+      var cards = readCardNames();
+      var cardStr = cards.join(' ').toLowerCase();
+      var syns = synergiesFor(cardStr);
+      var earnedProgs = programsEarnedByCards(cards);
+
+      var totalDollars = 0;
+      var programCount = 0;
+      var bestCPP = 0;
+      var trackedKeys = {};
+
+      if(mems.length === 0 && cards.length === 0){
+        body.innerHTML = '<div class="v96-opt-empty"><div class="big">\uD83D\uDCB0</div><h4>No memberships or cards yet</h4><p>Add cards to your wallet and loyalty programs (Aeroplan, PC Optimum, Scene+, Bonvoy, Rogers Cash, etc.) in the Points Vault. We\u2019ll show you the exact best way to burn each one.</p><button type="button" onclick="switchRewardsView(\'vault\')">Open Points Vault \u2192</button></div>';
+      } else {
+        var out = '';
+
+        if(mems.length > 0){
+          out += '<div class="v96-opt-section-title"><span>Your programs \u2014 best redemptions</span></div>';
+          mems.forEach(function(m){
+            if(!m) return;
+            var prog = programFor(m);
+            var balance = parseFloat(m.balance) || 0;
+            var name = esc(m.name || (prog ? prog.name : 'Points'));
+            var icon = m.emoji || (prog ? prog.icon : '\uD83D\uDCB3');
+            var unit = m.unit || (prog ? prog.unit : 'pts');
+
+            // Track which programs are covered
+            if(prog){
+              var progKey = Object.keys(PROGRAMS).find(function(k){ return PROGRAMS[k] === prog; });
+              if(progKey) trackedKeys[progKey] = true;
+            }
+
+            // Determine redemptions
+            var redemptions;
+            if(prog){
+              redemptions = prog.redemptions;
+            } else {
+              // Fallback uses cpp stored on membership (which is in CENTS from vault)
+              var fallbackCPP = parseFloat(m.cpp);
+              if(!isFinite(fallbackCPP) || fallbackCPP <= 0) fallbackCPP = 0.5;
+              redemptions = [{ label:'\uD83D\uDCB5 Cash equivalent', cpp: fallbackCPP, best:true, tip:'' }];
+            }
+            var best = redemptions.find(function(r){ return r.best; }) || redemptions[0];
+
+            // CORRECT MATH: dollars = balance * cpp / 100  (because cpp is in CENTS)
+            var bestDollars = (balance * (best.cpp || 0)) / 100;
+            totalDollars += bestDollars;
+            programCount++;
+            if(best.cpp > bestCPP) bestCPP = best.cpp;
+
+            var balDisplay = (unit === '$' || unit === 'WJ$' || unit === 'CT$') ? fmtDollars(balance) : fmtInt(balance) + ' ' + esc(unit);
+
+            out += '<div class="v96-opt-card">';
+            out += '<div class="v96-opt-card-head">';
+            out += '<div class="v96-opt-card-icon">' + icon + '</div>';
+            out += '<div class="v96-opt-card-mid"><div class="v96-opt-card-title">' + name + '</div><div class="v96-opt-card-sub">Balance</div></div>';
+            out += '<div class="v96-opt-card-bal"><div class="b">' + balDisplay + '</div><div class="bl">Best = ' + fmtDollars(bestDollars) + '</div></div>';
+            out += '</div>';
+
+            redemptions.forEach(function(r){
+              var v = (balance * (r.cpp || 0)) / 100;
+              var cls = r.best ? 'rv best' : (v <= 0 ? 'rv dim' : 'rv');
+              var cppStr = r.cpp ? (r.cpp >= 1 ? r.cpp.toFixed(1) : r.cpp.toFixed(2)) : '\u2014';
+              var cppLabel = ' <span class="v96-cpp">' + cppStr + 'c/pt</span>';
+              out += '<div class="v96-redemption"><span class="rl">' + r.label + '</span><span class="' + cls + '">' + fmtDollars(v) + '</span><span>' + (r.best ? '<span class="v96-best-tag">BEST</span>' : cppLabel) + '</span></div>';
+            });
+
+            if(best.tip){
+              out += '<div class="v96-opt-tip"><strong>\uD83D\uDCA1 Tip:</strong> ' + best.tip + '</div>';
+            }
+            out += '</div>';
+          });
+        }
+
+        // Programs earned but not tracked
+        var untracked = Object.keys(earnedProgs).filter(function(k){ return !trackedKeys[k] && PROGRAMS[k]; });
+        if(untracked.length > 0){
+          out += '<div class="v96-opt-section-title" style="margin-top:20px;"><span>Programs you earn (untracked) \u2014 add balances \u2192</span></div>';
+          untracked.forEach(function(k){
+            var prog = PROGRAMS[k];
+            out += '<div class="v96-opt-card" style="opacity:.72; border-style:dashed;">';
+            out += '<div class="v96-opt-card-head">';
+            out += '<div class="v96-opt-card-icon">' + prog.icon + '</div>';
+            out += '<div class="v96-opt-card-mid"><div class="v96-opt-card-title">' + prog.name + '</div><div class="v96-opt-card-sub">Not tracked</div></div>';
+            out += '<div class="v96-opt-card-bal"><button type="button" onclick="switchRewardsView(\'vault\')" style="background:var(--brand);color:#fff;border:none;padding:8px 14px;border-radius:99px;font-family:inherit;font-weight:900;font-size:11px;cursor:pointer;">Add \u2192</button></div>';
+            out += '</div>';
+            out += '<div style="font-size:12px; color:var(--muted); font-weight:700; padding-top:8px; border-top:1px dashed var(--border);">Your wallet earns ' + prog.name + '. Add your balance in the Points Vault to see the best redemption strategies for these points.</div>';
+            out += '</div>';
+          });
+        }
+
+        // Synergies
+        var unlockedCount = syns.filter(function(s){return s.unlocked;}).length;
+        out += '<div class="v96-opt-section-title" style="margin-top:20px;"><span>Sweet-spot synergies (' + unlockedCount + ' unlocked)</span></div>';
+        syns.forEach(function(s){
+          var lockedCls = s.unlocked ? '' : ' locked';
+          out += '<div class="v96-synergy-card' + lockedCls + '">';
+          out += '<div class="v96-syn-head"><div class="v96-syn-icon">' + s.icon + '</div><div class="v96-syn-title-wrap"><div class="v96-syn-title">' + s.title + (s.unlocked ? ' <span class="v96-syn-badge">' + s.badge + '</span>' : '') + '</div><div class="v96-syn-locked-lbl">Add a qualifying card to unlock</div></div></div>';
+          out += '<div class="v96-syn-body">' + s.body + '</div>';
+          out += '</div>';
+        });
+
+        body.innerHTML = out;
+
+        var totalEl = document.getElementById('v96OptTotal');
+        if(totalEl) totalEl.textContent = fmtDollars(totalDollars);
+        var progEl = document.getElementById('v96OptPrograms');
+        if(progEl) progEl.textContent = programCount;
+        var bestEl = document.getElementById('v96OptBestCPP');
+        if(bestEl) bestEl.textContent = bestCPP ? bestCPP.toFixed(2) + 'c' : '\u2014';
+        var synEl = document.getElementById('v96OptSyn');
+        if(synEl) synEl.textContent = unlockedCount;
+      }
+    }catch(e){ try{ console.warn('[V98] renderOptimizer error:', e); }catch(e2){} }
+  }
+
+  // Override V96 renderOptimizer: expose globally so v96-rewards-studio finds ours instead
+  window.__v98RenderOptimizer = renderOptimizer;
+
+  // Also intercept: if the optimize view becomes active, run our render
+  function tick(){
+    try{
+      var opt = document.getElementById('viewOptimize');
+      if(opt && opt.classList.contains('active')){
+        renderOptimizer();
+      }
+    }catch(e){}
+  }
+
+  // Wrap switchRewardsView to always run OUR render for optimize view
+  function wrap(){
+    if(window.__v98SwitchWrapped) return;
+    if(typeof window.switchRewardsView !== 'function') return;
+    var orig = window.switchRewardsView;
+    window.switchRewardsView = function(view){
+      var result = orig.apply(this, arguments);
+      if(view === 'optimize'){
+        setTimeout(renderOptimizer, 50);
+      }
+      return result;
+    };
+    window.__v98SwitchWrapped = true;
+    try{ console.log('[V98] switchRewardsView wrapped for optimizer fix'); }catch(e){}
+  }
+
+  function init(){
+    wrap();
+    tick();
+    setTimeout(function(){ wrap(); tick(); }, 500);
+    setTimeout(function(){ wrap(); tick(); }, 2000);
+    setInterval(tick, 2000);
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+  try{ console.log('[V98] optimizer-fix loaded'); }catch(e){}
+})();
+</script>
+<script id="v98-homepage-stat-fix">
+(function(){
+  var _lastLogged = 0;
+  function updateStat(){
+    try{
+      var el = document.getElementById('v89StatMerchants');
+      if(!el) return;
+      if(typeof ALIASES !== 'object' || !ALIASES) return;
+      var total = Object.keys(ALIASES).length;
+      if(total <= 0) return;
+      if(_lastLogged !== total){
+        _lastLogged = total;
+        try{ console.log('[V98] ALIASES total =', total); }catch(e){}
+      }
+      var rounded = Math.floor(total / 50) * 50;
+      if(rounded < 3500) rounded = 3500;
+      if(rounded > 5000) rounded = 5000;
+      var target = rounded.toLocaleString('en-US') + '+';
+      if(el.textContent !== target) el.textContent = target;
+    }catch(e){}
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', updateStat);
+  } else {
+    updateStat();
+  }
+  setTimeout(updateStat, 400);
+  setTimeout(updateStat, 1500);
+  setTimeout(updateStat, 4000);
+  setInterval(updateStat, 2000);
+})();
+</script>
+
+
+<script id="v100-dedupe-final">
+(function(){
+  var _last = 0;
+
+  function apply(){
+    if(typeof MERCHANT_DIRECTORY === 'undefined' || !Array.isArray(MERCHANT_DIRECTORY)) return;
+    if(MERCHANT_DIRECTORY.length === _last) return; // nothing new to do
+    _last = MERCHANT_DIRECTORY.length;
+
+    // Extended strip list (V100 additions marked)
+    var STRIP_ARR = [
+      'kitchen','kitchens','bar','bars','grill','grille','restaurant','restaurants',
+      'cafe','cafes','coffee','coffeehouse','coffeeroasters','roasters','roasted',
+      'pizza','pizzas','bakery','bakeries','steakhouse','steak','roadhouse','cookhouse','bistro',
+      'family','market','markets','mart','marts','foods','food','grocery','groceries',
+      'pharmacy','pharmacies','drug','wines','wine','beer','beers','shop','shoppe','shops',
+      'club','clubs','centre','center','store','stores','espresso','sushi','shawarma','gyros',
+      'burger','burgers','chicken','deli','delis','house','houses','place','places',
+      'joint','joints','spot','spots','company','co','corp','inc','ltd','of','greece',
+      'canada','usa','world','elite','signature','platinum','preferred','classic','expert',
+      'business','gourmet','fine','fresh','organic','socialhouse','social','local','locations',
+      'locale','warehouse',
+      // V100 additions:
+      'com','ca','net','org','io','app','wholesale','wearhouse','auto','automotive',
+      'online','llc','plc','pharma','plus','mobile','wireless','digital','express','retail',
+      'canadian','american','centre','centres','discount','depot','plaza','mall','outlet'
+    ];
+    var STRIP_SET = {};
+    STRIP_ARR.forEach(function(w){ STRIP_SET[w] = 1; });
+    var STRIP_SORTED = STRIP_ARR.slice().filter(function(w){return w.length >= 3;}).sort(function(a,b){return b.length - a.length;});
+    var FILLER_MID = {and:1, plus:1, the:1, a:1, an:1, of:1, de:1, du:1};
+
+    function canonKey(name){
+      var s = String(name||'').toLowerCase();
+      s = s.replace(/&/g,' and ').replace(/\+/g,' plus ');
+      s = s.replace(/[^a-z0-9\s]+/g,' ').replace(/\s+/g,' ').trim();
+      var words = s.split(' ').filter(function(w){ return w.length >= 2; });
+      words = words.filter(function(w){ return !FILLER_MID[w]; });
+      while(words.length > 1 && words[0] === 'the') words.shift();
+      while(words.length > 1 && STRIP_SET[words[words.length-1]]) words.pop();
+      words = words.map(function(w){
+        return (w.length > 3 && w.charAt(w.length-1) === 's' && w.charAt(w.length-2) !== 's') ? w.substring(0, w.length-1) : w;
+      });
+      var compact = words.join('');
+      var changed = true;
+      while(changed && compact.length > 3){
+        changed = false;
+        for(var i = 0; i < STRIP_SORTED.length; i++){
+          var sw = STRIP_SORTED[i];
+          if(compact.length - sw.length >= 3 && compact.substring(compact.length - sw.length) === sw){
+            compact = compact.substring(0, compact.length - sw.length);
+            changed = true;
+            break;
+          }
+        }
+      }
+      return compact;
+    }
+
+    // Score to pick best display name when multiple aliases collapse to same key
+    function nameScore(name){
+      var s = String(name||'');
+      // High score = "clean" name (has spaces or apostrophes, isn't mashed together)
+      var specials = (s.match(/[\s'&+\-]/g) || []).length;
+      var length = s.length;
+
+      // Penalty if name is a long run-together string (>6 chars, all alnum, no space)
+      var isMashed = length > 6 && /^[A-Za-z0-9]+$/.test(s);
+      if(isMashed) return -10 - length; // very low
+
+      // Bonus for having spaces (proper multi-word name)
+      var bonus = specials * 5;
+      // Smaller bonus for reasonable length (avoid picking "A" over "Nike")
+      if(length < 3) return -5;
+      return bonus - length * 0.1;
+    }
+
+    // Group by (canonKey, category)
+    var byKey = {};
+    var order = [];
+    var beforeCount = MERCHANT_DIRECTORY.length;
+
+    MERCHANT_DIRECTORY.forEach(function(e){
+      if(!e || !e.name) return;
+      var key = canonKey(e.name);
+      var cat = e.category || 'other';
+      if(!key) key = String(e.name).toLowerCase().replace(/[^a-z0-9]/g, '');
+      var gid = key + '|' + cat;
+      var existing = byKey[gid];
+      if(!existing){
+        byKey[gid] = e;
+        order.push(gid);
+      } else {
+        var eScore = nameScore(e.name);
+        var xScore = nameScore(existing.name);
+        if(eScore > xScore) byKey[gid] = e;
+      }
+    });
+
+    var kept = order.map(function(id){ return byKey[id]; });
+
+    // Ambiguous single-word removal (same as V93)
+    function firstTokens(name){
+      var s = String(name||'').toLowerCase();
+      s = s.replace(/&/g,' and ').replace(/\+/g,' plus ');
+      s = s.replace(/[^a-z0-9\s]+/g,' ').replace(/\s+/g,' ').trim();
+      return s.split(' ').filter(function(w){ return w.length >= 2; });
+    }
+
+    var byCat = {};
+    kept.forEach(function(e){
+      var cat = e.category || 'other';
+      if(!byCat[cat]) byCat[cat] = [];
+      byCat[cat].push({tokens: firstTokens(e.name), ref: e});
+    });
+
+    var toRemove = new Set();
+    kept.forEach(function(e){
+      var tokens = firstTokens(e.name);
+      if(tokens.length !== 1) return;
+      var word = tokens[0];
+      var siblings = byCat[e.category || 'other'] || [];
+      for(var i = 0; i < siblings.length; i++){
+        var s = siblings[i];
+        if(s.ref === e) continue;
+        if(s.tokens.length < 2) continue;
+        if(s.tokens[0] !== word) continue;
+        var hasDist = false;
+        for(var j = 1; j < s.tokens.length; j++){
+          if(!STRIP_SET[s.tokens[j]]){ hasDist = true; break; }
+        }
+        if(hasDist){ toRemove.add(e); break; }
+      }
+    });
+
+    var finalList = kept.filter(function(e){ return !toRemove.has(e); });
+
+    // Rebuild in-place
+    MERCHANT_DIRECTORY.length = 0;
+    finalList.forEach(function(e){ MERCHANT_DIRECTORY.push(e); });
+
+    _last = MERCHANT_DIRECTORY.length;
+
+    window.__v100Deduped = true;
+    window.__v100BeforeCount = beforeCount;
+    window.__v100AfterCount = MERCHANT_DIRECTORY.length;
+    try{ console.log('[V100] MERCHANT_DIRECTORY dedupe: '+beforeCount+' -> '+MERCHANT_DIRECTORY.length); }catch(e){}
+  }
+
+  function init(){
+    apply();
+    setTimeout(apply, 500);
+    setTimeout(apply, 2000);
+    setTimeout(apply, 5000);
+    setInterval(apply, 3000);
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
 })();
 </script>
 
