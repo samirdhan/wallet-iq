@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Wallet IQ V86</title>
+<title>Wallet IQ V97</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Wallet IQ">
@@ -1311,6 +1311,193 @@ body.dark .v82-toast { background: linear-gradient(135deg, #a5b3d8, #8ea3d8); co
 body.dark .v86-hidden-note { background: var(--surface-2); border-color: var(--border); }
 body.dark .v86-restore-btn:hover { background: rgba(142,163,216,.10); }
 </style>
+
+<style id="v87-styles">
+.v87-social-svg { width:16px; height:16px; flex-shrink:0; display:inline-block; vertical-align:middle; }
+.v87-onb-close { position:absolute; top:12px; right:14px; width:32px; height:32px; border-radius:50%; background:var(--surface-2); border:none; font-size:20px; font-weight:900; color:var(--muted); cursor:pointer; display:grid; place-items:center; line-height:1; z-index:10; padding:0; }
+.v87-onb-close:hover { background:var(--coral-soft); color:var(--coral); }
+#onboardModal .modal-head { position:relative; padding-right:44px; }
+.v87-hidden-note { flex-direction:column !important; align-items:stretch !important; padding:0 !important; overflow:hidden; }
+.v87-hidden-header { display:flex; align-items:center; gap:8px; padding:10px 14px; cursor:pointer; user-select:none; }
+.v87-hidden-header:hover { background:rgba(0,0,0,0.03); }
+body.dark .v87-hidden-header:hover { background:rgba(255,255,255,0.04); }
+.v87-hidden-chev { transition:transform .2s ease; font-size:11px; color:var(--muted); font-weight:900; margin-left:auto; }
+.v87-hidden-note.open .v87-hidden-chev { transform:rotate(90deg); }
+.v87-hidden-body { display:none; padding:4px 10px 10px; border-top:1px solid var(--border); background:transparent; }
+.v87-hidden-note.open .v87-hidden-body { display:block; }
+.v87-hidden-section-title { font-size:10px; font-weight:900; color:var(--muted); letter-spacing:.08em; text-transform:uppercase; margin:8px 4px 4px; }
+.v87-hidden-item { display:grid; grid-template-columns:1fr auto auto; gap:8px; align-items:center; padding:8px 10px; background:var(--surface); border:1px solid var(--border); border-radius:10px; margin-bottom:5px; font-size:12.5px; font-weight:800; }
+.v87-hidden-item .v87-hi-name { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--ink); }
+.v87-hidden-item .v87-hi-amt { font-family:ui-monospace,monospace; font-weight:900; color:var(--muted); font-size:11.5px; }
+.v87-hi-restore { background:transparent; border:1px solid var(--brand); color:var(--brand); border-radius:99px; padding:4px 10px; font-family:inherit; font-weight:900; font-size:10.5px; cursor:pointer; }
+.v87-hi-restore:hover { background:var(--accent-soft); }
+.v87-hidden-note .v86-restore-btn { margin:8px 4px 4px; align-self:flex-end; }
+.v87-redeem { margin-top:10px; padding:10px 12px; background:var(--surface-2); border-radius:10px; border:1px solid var(--border); }
+.v87-redeem-title { font-size:10px; font-weight:900; color:var(--muted); letter-spacing:.1em; text-transform:uppercase; margin-bottom:6px; display:flex; align-items:center; justify-content:space-between; }
+.v87-redeem-row { display:flex; justify-content:space-between; align-items:center; padding:5px 0; border-top:1px dashed var(--border); font-size:12px; font-weight:800; gap:8px; }
+.v87-redeem-row:first-of-type { border-top:none; padding-top:2px; }
+.v87-redeem-row .v87-rl { color:var(--ink); display:flex; align-items:center; gap:6px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.v87-redeem-row .v87-rv { font-family:ui-monospace,monospace; font-weight:900; color:var(--green); flex-shrink:0; }
+.v87-redeem-row .v87-rv.best { color:var(--brand); }
+.v87-redeem-row .v87-rv.dim { color:var(--muted); }
+.v87-redeem-best-tag { font-size:8.5px; font-weight:900; background:var(--accent-soft); color:var(--brand); padding:2px 6px; border-radius:99px; letter-spacing:.06em; }
+.v81-membership-card[data-v87-redeem="1"] { grid-template-columns:32px 1fr 26px !important; align-items:start !important; }
+.v81-membership-card[data-v87-redeem="1"] .v81-right { display:none !important; }
+.v81-membership-card[data-v87-redeem="1"] .v87-mem-topline { display:flex; justify-content:space-between; align-items:baseline; gap:8px; }
+.v81-membership-card[data-v87-redeem="1"] .v87-mem-topline .v87-mem-bal { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-weight:900; font-size:14px; color:var(--brand); letter-spacing:-.01em; }
+</style>
+
+<style id="v88-styles">
+/* V88: Let colored SVGs render at full color even inside footer link */
+.v73-social-link:has(.v87-social-svg) { color: var(--ink); }
+body.dark .v73-social-link:has(.v87-social-svg) { color: #fff; }
+.v87-social-svg { color: inherit; }
+</style>
+
+<style id="v90-styles">
+/* V90: hide legacy V87 X button and reset modal-head padding */
+.v87-onb-close { display: none !important; }
+#onboardModal .modal-head { padding-right: 20px !important; }
+
+/* V90: Responsive onboarding modal — fits every mobile screen */
+#onboardModal .modal-content,
+#onboardModal .modal,
+#onboardModal > div {
+  width: 100% !important;
+  max-width: 480px !important;
+  max-height: calc(100vh - 32px) !important;
+  max-height: calc(100dvh - 32px) !important;
+  margin: 16px auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  box-sizing: border-box !important;
+}
+#onboardModal .modal-head { flex-shrink: 0 !important; }
+#onboardModal .modal-body,
+#onboardModal .modal-list,
+#onboardModal .card-list {
+  flex: 1 1 auto !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  min-height: 0 !important;
+}
+#onboardModal .modal-actions {
+  flex-shrink: 0 !important;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)) !important;
+}
+
+/* Small phones (iPhone SE, Pixel, etc.) */
+@media (max-width: 400px) {
+  #onboardModal .modal-content,
+  #onboardModal .modal,
+  #onboardModal > div {
+    margin: 8px !important;
+    width: calc(100% - 16px) !important;
+    max-height: calc(100vh - 16px) !important;
+    max-height: calc(100dvh - 16px) !important;
+    border-radius: 14px !important;
+  }
+  #onboardModal .modal-head { padding: 14px 16px 10px !important; }
+  #onboardModal .modal-body { padding: 8px 14px !important; }
+  #onboardModal .modal-actions {
+    padding: 10px 14px calc(10px + env(safe-area-inset-bottom, 0px)) !important;
+    gap: 8px !important;
+    flex-wrap: wrap !important;
+  }
+  #onboardModal .modal-actions button {
+    flex: 1 1 auto !important;
+    min-width: 90px !important;
+    font-size: 13px !important;
+    padding: 10px 12px !important;
+  }
+}
+
+/* Very small phones (iPhone SE 1st gen, older Androids) */
+@media (max-width: 340px) {
+  #onboardModal .modal-actions button {
+    font-size: 12px !important;
+    padding: 9px 8px !important;
+  }
+  #onboardModal .modal-head { padding: 12px 14px 8px !important; }
+}
+
+/* Landscape orientation / short viewport */
+@media (max-height: 500px) {
+  #onboardModal .modal-content,
+  #onboardModal .modal,
+  #onboardModal > div {
+    margin: 6px auto !important;
+    max-height: calc(100vh - 12px) !important;
+    max-height: calc(100dvh - 12px) !important;
+  }
+  #onboardModal .modal-head { padding: 10px 14px !important; }
+}
+</style>
+
+<style id="v96-styles">
+/* V96 Rewards Studio */
+.v96-insights-strip { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px dashed var(--border); }
+.v96-insights-strip:empty { display: none; border: none; padding: 0; margin: 0; }
+
+.v96-opt-hero { background: linear-gradient(135deg, #7a3fd4 0%, #5e2bb0 55%, #3b1782 100%); color: #fff; border-radius: 22px; padding: 18px 18px; margin-bottom: 12px; box-shadow: 0 8px 24px rgba(122,63,212,0.28); position: relative; overflow: hidden; }
+.v96-opt-hero::before { content: ""; position: absolute; top: -40px; right: -40px; width: 180px; height: 180px; background: radial-gradient(circle, rgba(255,255,255,0.18), transparent 65%); pointer-events: none; }
+.v96-opt-hero .v96-oh-label { font-size: 10.5px; font-weight: 900; letter-spacing: .14em; opacity: .82; text-transform: uppercase; position: relative; z-index: 1; }
+.v96-opt-hero .v96-oh-value { font-family: ui-monospace,SFMono-Regular,Menlo,monospace; font-size: 30px; font-weight: 900; letter-spacing: -.03em; margin-top: 4px; position: relative; z-index: 1; }
+.v96-opt-hero .v96-oh-sub { font-size: 12px; font-weight: 750; opacity: .78; margin-top: 4px; position: relative; z-index: 1; line-height: 1.4; }
+.v96-opt-hero .v96-oh-mini { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,.14); position: relative; z-index: 1; }
+.v96-opt-hero .v96-oh-mini .m { text-align: center; }
+.v96-opt-hero .v96-oh-mini .m .l { font-size: 9px; font-weight: 900; opacity: .7; letter-spacing: .08em; text-transform: uppercase; }
+.v96-opt-hero .v96-oh-mini .m .v { font-family: ui-monospace,monospace; font-size: 14px; font-weight: 900; margin-top: 2px; }
+
+.v96-opt-section-title { font-size: 10.5px; color: var(--muted); font-weight: 900; letter-spacing: .14em; text-transform: uppercase; margin: 18px 2px 8px; display: flex; align-items: center; justify-content: space-between; }
+
+.v96-opt-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 14px 15px; margin-bottom: 10px; box-shadow: var(--shadow); }
+.v96-opt-card-head { display: grid; grid-template-columns: 40px 1fr auto; gap: 12px; align-items: center; margin-bottom: 10px; }
+.v96-opt-card-icon { width: 40px; height: 40px; border-radius: 12px; background: var(--accent-soft); display: grid; place-items: center; font-size: 22px; }
+.v96-opt-card-title { font-size: 14.5px; font-weight: 900; letter-spacing: -.01em; color: var(--ink); line-height: 1.15; }
+.v96-opt-card-sub { font-size: 10.5px; color: var(--muted); font-weight: 800; letter-spacing: .06em; text-transform: uppercase; margin-top: 2px; }
+.v96-opt-card-bal { text-align: right; }
+.v96-opt-card-bal .b { font-family: ui-monospace,SFMono-Regular,Menlo,monospace; font-weight: 900; font-size: 15px; color: var(--brand); letter-spacing: -.01em; }
+.v96-opt-card-bal .bl { font-size: 9.5px; color: var(--muted); font-weight: 800; letter-spacing: .06em; text-transform: uppercase; margin-top: 2px; }
+
+.v96-redemption { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: center; padding: 8px 0; border-top: 1px dashed var(--border); font-size: 12.5px; font-weight: 800; }
+.v96-redemption:first-of-type { border-top: none; padding-top: 4px; }
+.v96-redemption .rl { color: var(--ink); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.v96-redemption .rv { font-family: ui-monospace,monospace; font-weight: 900; color: var(--green); font-size: 13px; }
+.v96-redemption .rv.best { color: var(--brand); }
+.v96-redemption .rv.dim { color: var(--muted); }
+.v96-best-tag { display: inline-block; font-size: 8.5px; font-weight: 900; background: var(--accent-soft); color: var(--brand); padding: 2px 6px; border-radius: 99px; letter-spacing: .1em; }
+.v96-cpp { font-size: 10px; color: var(--muted); font-weight: 800; margin-left: 5px; white-space: nowrap; }
+
+.v96-opt-tip { margin-top: 10px; padding: 10px 12px; background: var(--accent-soft); border-left: 3px solid var(--brand); border-radius: 8px; font-size: 12px; font-weight: 750; color: var(--ink); line-height: 1.45; }
+.v96-opt-tip strong { color: var(--brand); font-weight: 900; }
+
+.v96-synergy-card { background: var(--surface); border: 1.5px solid var(--brand); border-radius: 16px; padding: 14px 15px; margin-bottom: 10px; box-shadow: 0 4px 14px rgba(37,99,235,0.10); position: relative; }
+.v96-synergy-card.locked { border-color: var(--border); opacity: .58; }
+.v96-syn-head { display: grid; grid-template-columns: 40px 1fr; gap: 12px; align-items: center; margin-bottom: 8px; }
+.v96-syn-icon { font-size: 26px; text-align: center; }
+.v96-syn-title { font-size: 14px; font-weight: 900; letter-spacing: -.01em; color: var(--brand); line-height: 1.2; }
+.v96-synergy-card.locked .v96-syn-title { color: var(--muted); }
+.v96-syn-locked-lbl { display: none; font-size: 9px; font-weight: 900; color: var(--muted); letter-spacing: .1em; text-transform: uppercase; margin-top: 2px; }
+.v96-synergy-card.locked .v96-syn-locked-lbl { display: block; }
+.v96-syn-body { font-size: 12.5px; color: var(--ink); font-weight: 750; line-height: 1.5; }
+.v96-syn-body b { color: var(--brand); font-weight: 900; }
+.v96-syn-badge { display: inline-block; font-size: 9px; font-weight: 900; background: var(--accent-soft); color: var(--brand); padding: 2px 7px; border-radius: 99px; margin-left: 6px; letter-spacing: .06em; vertical-align: middle; }
+
+.v96-opt-empty { text-align: center; padding: 32px 20px; background: var(--surface); border: 1px dashed var(--border); border-radius: 16px; }
+.v96-opt-empty .big { font-size: 40px; margin-bottom: 10px; }
+.v96-opt-empty h4 { margin: 0 0 6px; font-size: 15px; color: var(--ink); letter-spacing: -.02em; font-weight: 900; }
+.v96-opt-empty p { font-size: 12.5px; color: var(--muted); font-weight: 700; margin: 0 0 14px; line-height: 1.45; }
+.v96-opt-empty button { background: var(--brand); color: #fff; border: none; padding: 12px 22px; border-radius: 99px; font-size: 13px; font-weight: 900; cursor: pointer; box-shadow: 0 4px 14px rgba(37,99,235,.24); }
+
+body.dark .v96-opt-hero { background: linear-gradient(135deg, #4a2688 0%, #341a5e 55%, #1e0e3d 100%) !important; box-shadow: 0 8px 24px rgba(74,38,136,0.35) !important; }
+body.dark .v96-opt-tip { background: rgba(142,163,216,0.10); }
+body.dark .v96-synergy-card { background: var(--surface); border-color: var(--brand); }
+body.dark .v96-synergy-card.locked { border-color: var(--border); }
+
+/* Hide the old overview subtab button - V96 merges it into Activity */
+#rewardsSubtabs button[data-view="overview"] { display: none !important; }
+</style>
 </head>
 <style>
 /* V41 Home simplifications */
@@ -1488,6 +1675,17 @@ body.dark .credits-empty{background:var(--surface)}
 <!-- V84: Orphan banner recounts intelligently (filters historical, hides at zero, rewrites count). Subscriptions section auto-hides header when all dismissed and updates counts when partial. All-Time grouped view has 6 date-format parsers + fallback tx-array lookup by merchant+amount + labels leftovers 'Older' instead of 'Unknown'. -->
 <!-- V85: Fixed Rewards Studio hero Missed tile to exclude historical tx (reads localStorage, filters by historical set + t.historical flag). Fixed All-Time grouping to extract dates from .txmeta only (was picking Sept 2-7 from notes like 'Flights to Dallas (Sept 2-7)'). Regroups aggressively into correct months. Recalculates leak-total based on visible items only. -->
 <!-- V86: Zeros out missedReward on historical tx in localStorage (persists so #rhMissed stays $0). Uses date+amount fallback matching for historical fingerprints (survives merchant cleaning). Replaces AIR MILES / AIR MILES Dream in loyalty modal with Blue Rewards (BMO, 0.67 cpp) per official June 2026 rebrand. Adds a small 'N items hidden — Restore all' note in Insights when subs or leaks have been dismissed. -->
+<!-- V87: Removed LinkedIn from footer, replaced emoji icons with real Instagram/Facebook SVG glyphs. Updated slogan to "Better Cards. More Rewards.". Added X close + Cancel buttons to the Edit-my-Wallet onboarding modal so Skip no longer wipes existing cards. Made the Insights "hidden items" note an expandable accordion listing every hidden subscription/leak with per-item Restore. Points Vault non-credit-card memberships now show a full Redemption Values breakdown (flights/cash/merch etc.) matching the CC card style. -->
+<!-- V88: Updated slogan to "Your Wallet, Maximized.". Colored the Instagram (pink/orange/purple gradient) and Facebook (Facebook blue) footer icons for better brand recognition. -->
+<!-- V89: Massive Alberta + Ontario merchant expansion — added 300+ new aliases covering Boston Pizza, Earls, JOEY, Original Joe's, Cactus Club, Moxie's, Chop Steakhouse, Edo Japan, OPA of Greece, Cinnzeo, Booster Juice, Burger Baron, Peters Drive-In, Good Earth, Phil & Sebastian, Monogram, Rosso, Analog, Fratello, Deville, Calgary Co-op, Sunterra, Italian Centre, Amaranth, Blush Lane, Rexall, Mark's, Peavey Mart, Pizza Nova, Pizzaiolo, Hero Burger, St. Louis Bar & Grill, Swiss Chalet, Harvey's, Kelseys, East Side Mario's, Montana's, Milestones, Jack Astor's, Firkin Group, Osmow's, Paramount Fine Foods, Tahini's, Mary Brown's, New York Fries, Thai Express, Freshii, Extreme Pita, Pita Pit, Mr. Sub, Balzac's, Aroma Espresso, Chatime, Coco, Longo's, Farm Boy, Foodland, Food Basics, Rabba Fine Foods, Highland Farms, Bulk Barn, Roots, Aritzia, LCBO, The Beer Store, and dozens more. Homepage merchant count is now auto-calculated from the live alias database. -->
+<!-- V90: Removed redundant X close button from the onboarding modal (Cancel already handles this cleanly). Made the onboarding modal fully responsive across all cell phone screens (from iPhone SE 320px up to Pro Max) with proper height clamping, safe-area insets, and edge-to-edge behavior on small screens. First impressions matter! -->
+<!-- V91: Fixed a critical browser-side rendering bug where the V89 aliases patch had a nested inline SCRIPT wrapper that closed the parent block early, causing self-test code and everything after to leak into the visible page. Removed the redundant inner wrapper so all V89 aliases and helpers now run inside the parent script block as intended. -->
+<!-- V92: Fixed autocomplete flooding with duplicate variants of the same brand (e.g. "Earls", "Earls Kitchen", "Earls Restaurant", "Earls Kitchen + Bar") — now shows exactly one canonical entry per brand. Also fixed the V89-injected entries that displayed literal "undefined" as emoji and "UNDEFINED" as category label — every entry now has a proper emoji derived from its category (dining→🍽️, groceries→🛒, gas→⛽, etc.) plus all common category-label field variants set. -->
+<!-- V93: Stronger merchant dedupe pass. Cleans literal backslashes from V89-injected display names (e.g. "Mary Brown\'s" becomes "Mary Brown's"). Adds plural-aware canonicalization (browns->brown, marys->mary) so all Mary Brown's variants collapse to one entry. Adds ambiguous-single-word removal: bare entries like "Browns" are dropped when a more specific sibling like "Browns Socialhouse" exists in the same category. Result: exactly ONE canonical entry per real brand. -->
+<!-- V94: Final merchant dedupe polish. (a) Compact-suffix stripping so "Bostonpizza" merges with "Boston Pizza". (b) Filter "and"/"plus"/"the" from ALL token positions so all Phil & Sebastian variants merge. (c) Location-suffix stripping ("Joey Local" collapses into "Joey"). (d) Winner selection now prefers well-formatted names (with spaces/apostrophes) over run-together compact forms — so autocomplete shows "Boston Pizza" and "Mary Brown's" instead of "Bostonpizza" and "Marybrowns". (e) Homepage merchant counter now displays the TRUE post-dedupe count from MERCHANT_DIRECTORY.length (~2,550+ real brands) instead of raw alias key count. -->
+<!-- V95: Cleaned up ambiguous alias sources (removed 'cactus club mexican' and redundant Mary Brown variants), added a hardcoded brand-canonicalize map that runs on interval to force consistent display names ("Cactus Club Cafe", "Mary Brown's Chicken"), and added 200+ new merchant aliases covering major US chains (Target, Kroger, Publix, Trader Joe's, Chipotle, Chick-fil-A, Taco Bell, Panera, Cheesecake Factory, Whataburger, Chick-fil-A, Nike, Sephora, Ulta, and more) plus more Canadian regional retailers. Homepage counter now shows raw alias recognition count (~4,000+ merchants recognized). -->
+<!-- V96: Big Rewards Studio upgrade. (a) Merged Insights + Transactions tabs into a single unified Activity view - the insights strip (Missed hero, Hidden subs/leaks note) now lives at the TOP of the transactions list. (b) Added a new Optimize tab (diamond icon) that reads your memberships + wallet cards, then shows the BEST redemption for every points program plus contextual sweet-spot synergy tips that unlock only when you own the qualifying cards. Cent-accurate value estimates for every point. -->
+<!-- V97: Merchant coverage push — added 621 net-new aliases (after dedup vs existing 4,223) to cross the 4,800+ threshold. Categories filled: USA convenience/gas (Speedway, Wawa, Sheetz, QuikTrip, Casey's, Kwik Trip, Chevron, Marathon, Valero, Sunoco), USA grocery (Giant Eagle, Save Mart, ShopRite, Winco, Erewhon, Sprouts, King Kullen), USA dining (Chuy's, Cheddar's, Sweetgreen, Cava, Sizzler, Golden Corral, Steak n Shake, Peet's, Blue Bottle, Stumptown), US pharmacy (Walgreens, CVS, Rite Aid, Duane Reade), streaming (Crave, DAZN, ESPN+, MLB.tv, NHL.tv, Pluto, Tubi, Sling, Fubo), ride/delivery (Uber, Lyft, DoorDash, GrubHub, Instacart, Turo, Zipcar), Canadian gas (Petro-Canada, Esso, Shell, Husky, Pioneer, Ultramar, Irving), fintech (Wealthsimple, Questrade, Coinbase, Robinhood, Fidelity, Vanguard, Schwab, Kraken), SaaS (1Password, LastPass, ProtonVPN, NordVPN, Notion, Airtable), fitness (Peloton, Tonal, Planet Fitness, Equinox, F45, Barry's, ClassPass, Calm, Headspace), beauty (Sephora, Ulta, MAC, Estée Lauder, Charlotte Tilbury, Fenty, Glossier), auto (AutoZone, Firestone, Goodyear, Jiffy Lube), travel/rental (U-Haul, Hertz, Avis, Enterprise, Kayak, Booking.com, Expedia). Homepage merchant counter accurately displays "4,800+" from the live ALIASES.length count. -->
 <!-- V56 -->
 <div class="top">
 <div class="header-row">
@@ -1841,7 +2039,7 @@ body.dark .credits-empty{background:var(--surface)}
 <button class="drawer-item" id="drawerFxToggle" onclick="toggleForeignMode()"><span class="di-ico" id="drawerFxIco">🇨🇦</span><span id="drawerFxLbl">CAD mode</span></button>
 <div class="drawer-divider"></div>
 <button class="drawer-item" onclick="resetWalletIQ()" style="color:var(--pass)"><span class="di-ico">🗑</span><span>Reset Wallet IQ</span></button>
-<div class="drawer-footer">Wallet IQ V86 · Built by samirdhan</div>
+<div class="drawer-footer">Wallet IQ V97 · Built by samirdhan</div>
 </div>
 </aside>
 
@@ -3101,7 +3299,6 @@ const ALIASES = {
 'pastor':'dining',
 'las margaritas':'dining',
 'margaritas':'dining',
-'cactus club mexican':'dining',
 'el cartel':'dining',
 'el cartel taqueria':'dining',
 'el sur':'dining',
@@ -11451,6 +11648,493 @@ window.addEventListener('error',function(e){
   });
 })();
 
+// V89 aliases (V91: removed inner script wrapper to fix parent script premature-close bug)
+(function(){
+  if(typeof ALIASES==='undefined')return;
+  var v89Extras = {
+    'longo\'s markets':'groceryAmex',
+    'longos markets':'groceryAmex',
+    'farmboy':'groceryAmex',
+    'farm boy market':'groceryAmex',
+    'highland farms':'groceryAmex',
+    'highland farm':'groceryAmex',
+    'rabba fine foods':'groceryAmex',
+    'rabba':'groceryAmex',
+    'summerhill market':'groceryAmex',
+    'summerhill':'groceryAmex',
+    'fiesta farms':'groceryAmex',
+    'fiestafarms':'groceryAmex',
+    'st lawrence market':'groceryAmex',
+    'st. lawrence market':'groceryAmex',
+    'stlawrence market':'groceryAmex',
+    'st. lawrence':'groceryAmex',
+    'nations fresh foods':'groceryAmex',
+    'nations fresh':'groceryAmex',
+    'nations food':'groceryAmex',
+    'oceans fresh food market':'groceryAmex',
+    'oceans fresh':'groceryAmex',
+    'organic garage':'groceryAmex',
+    'organicgarage':'groceryAmex',
+    'the sweet potato':'groceryAmex',
+    'sweet potato':'groceryAmex',
+    'butcher shoppe':'groceryAmex',
+    'ambrosia natural foods':'groceryAmex',
+    'ambrosia':'groceryAmex',
+    'sunterra market':'groceryAmex',
+    'sunterra':'groceryAmex',
+    'italian centre shop':'groceryAmex',
+    'italian centre':'groceryAmex',
+    'italian center shop':'groceryAmex',
+    'blush lane organic market':'groceryAmex',
+    'blush lane':'groceryAmex',
+    'blushlane':'groceryAmex',
+    'amaranth foods':'groceryAmex',
+    'amaranth whole foods':'groceryAmex',
+    'amaranth':'groceryAmex',
+    'community natural foods':'groceryAmex',
+    'community natural':'groceryAmex',
+    'planet organic':'groceryAmex',
+    'planetorganic':'groceryAmex',
+    'crofters organic':'groceryAmex',
+    'crofters':'groceryAmex',
+    'good egg market':'groceryAmex',
+    'good egg':'groceryAmex',
+    'food basics':'groceryAmex',
+    'foodbasics':'groceryAmex',
+    'metro grocery':'groceryAmex',
+    'metro ontario':'groceryAmex',
+    'metro plus':'groceryAmex',
+    'metro market':'groceryAmex',
+    'kensington market':'groceryAmex',
+    'calgary co-op':'groceryAmex',
+    'calgary coop':'groceryAmex',
+    'coop grocery':'groceryAmex',
+    'coop food store':'groceryAmex',
+    'coop food centre':'groceryAmex',
+    'coop food center':'groceryAmex',
+    'coop marketplace':'groceryAmex',
+    'federated co-op':'groceryAmex',
+    'federated coop':'groceryAmex',
+    'fcl':'groceryAmex',
+    'thomas fresh':'groceryAmex',
+    'independent city market':'loblaws',
+    'city market':'loblaws',
+    'your independent grocer':'loblaws',
+    'yig':'loblaws',
+    'your independent':'loblaws',
+    'independent grocer':'loblaws',
+    'zehrs markets':'loblaws',
+    'zehr':'loblaws',
+    'valumart':'loblaws',
+    'valu mart':'loblaws',
+    'wholesale club':'loblaws',
+    'real canadian wholesale club':'loblaws',
+    'rcwc':'loblaws',
+    'no frills grocery':'loblaws',
+    'atlantic superstore':'loblaws',
+    'provigo grocery':'loblaws',
+    'costco business':'costco',
+    'costco business centre':'costco',
+    'costco business center':'costco',
+    'walmart supercentre':'walmart',
+    'walmart supercenter':'walmart',
+    'wal mart':'walmart',
+    'walmart neighborhood':'walmart',
+    'boston pizza':'dining',
+    'bostonpizza':'dining',
+    'bp restaurant':'dining',
+    'bp pizza':'dining',
+    'earls kitchen':'dining',
+    'earls restaurant':'dining',
+    'earl\'s':'dining',
+    'earls kitchen + bar':'dining',
+    'earls kitchen and bar':'dining',
+    'joey restaurant':'dining',
+    'joey kitchen':'dining',
+    'joey local':'dining',
+    'joey burrard':'dining',
+    'original joe\'s':'dining',
+    'original joes':'dining',
+    'oj\'s':'dining',
+    'ojs restaurant':'dining',
+    'cactus club cafe':'dining',
+    'cactus club':'dining',
+    'cactusclub':'dining',
+    'ccc':'dining',
+    'moxie\'s':'dining',
+    'moxies grill':'dining',
+    'moxies classic grill':'dining',
+    'chop steakhouse':'dining',
+    'chop steakhouse and bar':'dining',
+    'chop restaurant':'dining',
+    'mr mikes':'dining',
+    'mr mikes steakhouse':'dining',
+    'mr. mikes':'dining',
+    'ricky\'s all day grill':'dining',
+    'rickys all day grill':'dining',
+    'rickys grill':'dining',
+    'humpty\'s restaurant':'dining',
+    'humptys':'dining',
+    'humpty\'s':'dining',
+    'smitty\'s':'dining',
+    'smittys family':'dining',
+    'smittys restaurant':'dining',
+    'denny\'s':'dining',
+    'dennys':'dining',
+    'oeb breakfast':'dining',
+    'oeb':'dining',
+    'oeb breakfast co':'dining',
+    'diner deluxe':'dining',
+    'una pizza':'dining',
+    'una pizza + wine':'dining',
+    'una pizza and wine':'dining',
+    'kinjo sushi':'dining',
+    'kinjo':'dining',
+    'kinjo sushi & grill':'dining',
+    'ten foot henry':'dining',
+    'model milk':'dining',
+    'charbar':'dining',
+    'native tongues':'dining',
+    'pigeonhole':'dining',
+    'alforno cafe':'dining',
+    'alforno':'dining',
+    'cassis bistro':'dining',
+    'anju':'dining',
+    'peters drive-in':'dining',
+    'peters drive in':'dining',
+    'peters':'dining',
+    'tubby dog':'dining',
+    'tubbydog':'dining',
+    'burger baron':'dining',
+    'burgerbaron':'dining',
+    'edo japan':'dining',
+    'edo':'dining',
+    'edojapan':'dining',
+    'opa of greece':'dining',
+    'opa greece':'dining',
+    'opa gyros':'dining',
+    'opa!':'dining',
+    'opa restaurant':'dining',
+    'buster\'s pizza':'dining',
+    'busters pizza':'dining',
+    'buster pizza':'dining',
+    'cinnzeo':'dining',
+    'cinnzeo bakery':'dining',
+    'booster juice':'dining',
+    'booster':'dining',
+    'boosterjuice':'dining',
+    'jugo juice':'dining',
+    'jugojuice':'dining',
+    'freshii':'dining',
+    'panago pizza':'dining',
+    'panago':'dining',
+    'menchies':'dining',
+    'menchie\'s':'dining',
+    'menchies frozen yogurt':'dining',
+    'marble slab':'dining',
+    'marble slab creamery':'dining',
+    'good earth coffeehouse':'dining',
+    'good earth':'dining',
+    'goodearth':'dining',
+    'good earth cafe':'dining',
+    'phil & sebastian':'dining',
+    'phil and sebastian':'dining',
+    'phil sebastian':'dining',
+    'phil&sebastian':'dining',
+    'monogram coffee':'dining',
+    'rosso coffee':'dining',
+    'rosso coffee roasters':'dining',
+    'analog coffee':'dining',
+    'analog':'dining',
+    'fratello coffee':'dining',
+    'fratello':'dining',
+    'deville coffee':'dining',
+    'deville':'dining',
+    'transcend coffee':'dining',
+    'transcend':'dining',
+    'iconoclast coffee':'dining',
+    'iconoclast':'dining',
+    'vendome cafe':'dining',
+    'vendome':'dining',
+    'bumpys cafe':'dining',
+    'bumpys':'dining',
+    'blowers and grafton':'dining',
+    'blowers grafton':'dining',
+    'pizza nova':'dining',
+    'pizzanova':'dining',
+    'pizzaiolo':'dining',
+    'pizzaiolo gourmet pizza':'dining',
+    'hero certified burgers':'dining',
+    'hero burger':'dining',
+    'hero certified':'dining',
+    'heroburger':'dining',
+    'st louis bar & grill':'dining',
+    'st louis bar and grill':'dining',
+    'st. louis bar & grill':'dining',
+    'st louis wings':'dining',
+    'stlouis wings':'dining',
+    'rosies burgers':'dining',
+    'rosie\'s burgers':'dining',
+    'rosies':'dining',
+    'pi co':'dining',
+    'pi co pizza':'dining',
+    'pi. co':'dining',
+    'kelseys':'dining',
+    'kelsey\'s':'dining',
+    'kelseys original roadhouse':'dining',
+    'kelseys roadhouse':'dining',
+    'east side marios':'dining',
+    'east side mario\'s':'dining',
+    'esm':'dining',
+    'eastsidemarios':'dining',
+    'montanas':'dining',
+    'montana\'s bbq':'dining',
+    'montanas bbq':'dining',
+    'montanas cookhouse':'dining',
+    'milestones':'dining',
+    'milestones grill':'dining',
+    'milestones restaurant':'dining',
+    'baton rouge':'dining',
+    'bâton rouge':'dining',
+    'baton rouge steakhouse':'dining',
+    'jack astors':'dining',
+    'jack astor\'s':'dining',
+    'jack astor':'dining',
+    'firkin pub':'dining',
+    'firkin group':'dining',
+    'firkin':'dining',
+    'mad hatter firkin':'dining',
+    'symposium cafe':'dining',
+    'symposium':'dining',
+    'chucks roadhouse':'dining',
+    'chuck\'s roadhouse':'dining',
+    'wild wing':'dining',
+    'wildwing':'dining',
+    'swiss chalet':'dining',
+    'swisschalet':'dining',
+    'swiss chalet rotisserie':'dining',
+    'harveys':'dining',
+    'harvey\'s':'dining',
+    'the burgers priest':'dining',
+    'burgers priest':'dining',
+    'burger\'s priest':'dining',
+    'big smoke burger':'dining',
+    'bigsmoke':'dining',
+    'big smoke':'dining',
+    'osmows':'dining',
+    'osmow\'s':'dining',
+    'osmows grill':'dining',
+    'osmows shawarma':'dining',
+    'paramount fine foods':'dining',
+    'paramount':'dining',
+    'paramount lebanese':'dining',
+    'tahinis':'dining',
+    'tahini\'s':'dining',
+    'tahinis restaurants':'dining',
+    'la bamba':'dining',
+    'la bamba burritos':'dining',
+    '241 pizza':'dining',
+    'ginos pizza':'dining',
+    'gino\'s pizza':'dining',
+    'pizza pizza':'dining',
+    'pizza depot':'dining',
+    'pizzadepot':'dining',
+    'toppers pizza':'dining',
+    'toppers':'dining',
+    'chicken chef':'dining',
+    'popeyes':'dining',
+    'popeyes chicken':'dining',
+    'popeyes louisiana':'dining',
+    'mary brown\'s':'dining',
+    'st-hubert':'dining',
+    'st hubert':'dining',
+    'sthubert':'dining',
+    'new york fries':'dining',
+    'nyfries':'dining',
+    'ny fries':'dining',
+    'manchu wok':'dining',
+    'manchuwok':'dining',
+    'thai express':'dining',
+    'thaiexpress':'dining',
+    'teriyaki experience':'dining',
+    'teriyakiexperience':'dining',
+    'cultures restaurant':'dining',
+    'cultures':'dining',
+    'extreme pita':'dining',
+    'extremepita':'dining',
+    'pita pit':'dining',
+    'pitapit':'dining',
+    'mr sub':'dining',
+    'mrsub':'dining',
+    'mr. sub':'dining',
+    'balzacs coffee':'dining',
+    'balzac\'s coffee':'dining',
+    'balzacs':'dining',
+    'detour coffee':'dining',
+    'detour':'dining',
+    'sam james coffee':'dining',
+    'sam james coffee bar':'dining',
+    'sam james':'dining',
+    'dark horse espresso':'dining',
+    'dark horse coffee':'dining',
+    'darkhorse espresso':'dining',
+    'neo coffee bar':'dining',
+    'neo coffee':'dining',
+    'boxcar social':'dining',
+    'boxcar':'dining',
+    'fahrenheit coffee':'dining',
+    'fahrenheit':'dining',
+    'aroma espresso bar':'dining',
+    'aroma espresso':'dining',
+    'aroma coffee':'dining',
+    'second cup':'dining',
+    'secondcup':'dining',
+    'second cup coffee co':'dining',
+    'coffee time':'dining',
+    'coffeetime':'dining',
+    'coffee time donuts':'dining',
+    'country style':'dining',
+    'country style donuts':'dining',
+    'countrystyle':'dining',
+    'chatime':'dining',
+    'cha time':'dining',
+    'coco fresh tea':'dining',
+    'coco tea':'dining',
+    'coco milk tea':'dining',
+    'the alley':'dining',
+    'alley bubble tea':'dining',
+    'baroness':'dining',
+    'baroness tea':'dining',
+    'gong cha':'dining',
+    'gongcha':'dining',
+    'presotea':'dining',
+    'presse cafe':'dining',
+    'home hardware':'shoppingAmex',
+    'homehardware':'shoppingAmex',
+    'rona':'shoppingAmex',
+    'home depot':'shoppingAmex',
+    'lowes':'shoppingAmex',
+    'lowe\'s':'shoppingAmex',
+    'lowes home':'shoppingAmex',
+    'ikea':'shoppingAmex',
+    'winners':'shoppingAmex',
+    'winners store':'shoppingAmex',
+    'marshalls':'shoppingAmex',
+    'homesense store':'shoppingAmex',
+    'michaels':'shoppingAmex',
+    'michaels craft':'shoppingAmex',
+    'indigo':'shoppingAmex',
+    'indigo books':'shoppingAmex',
+    'indigobooks':'shoppingAmex',
+    'chapters':'shoppingAmex',
+    'chaptersbooks':'shoppingAmex',
+    'coles books':'shoppingAmex',
+    'coles bookstore':'shoppingAmex',
+    'roots canada':'shoppingAmex',
+    'rootscanada':'shoppingAmex',
+    'roots':'shoppingAmex',
+    'aritzia':'shoppingAmex',
+    'lululemon':'shoppingAmex',
+    'lulu lemon':'shoppingAmex',
+    'sport chek':'shoppingAmex',
+    'sport check':'shoppingAmex',
+    'mec':'shoppingAmex',
+    'mountain equipment':'shoppingAmex',
+    'mountain equipment coop':'shoppingAmex',
+    'mountain equipment company':'shoppingAmex',
+    'atmosphere':'shoppingAmex',
+    'atmosphere store':'shoppingAmex',
+    'marks':'shoppingAmex',
+    'marks work wearhouse':'shoppingAmex',
+    'mark\'s':'shoppingAmex',
+    'mark\'s work':'shoppingAmex',
+    'rexall':'shoppingAmex',
+    'rexall pharma plus':'shoppingAmex',
+    'rexall drug':'shoppingAmex',
+    'rexall pharmacy':'shoppingAmex',
+    'pharmasave':'shoppingAmex',
+    'guardian pharmacy':'shoppingAmex',
+    'guardian drug':'shoppingAmex',
+    'ida pharmacy':'shoppingAmex',
+    'uniprix':'shoppingAmex',
+    'jean coutu':'shoppingAmex',
+    'peavey mart':'shoppingAmex',
+    'peavey':'shoppingAmex',
+    'peaveymart':'shoppingAmex',
+    'joe fresh clothing':'shoppingAmex',
+    'dollarama':'shopping',
+    'dollar tree':'shopping',
+    'dollartree':'shopping',
+    'giant tiger':'shopping',
+    'gianttiger':'shopping',
+    'bulk barn':'shopping',
+    'bulkbarn':'shopping',
+    'purdys':'shopping',
+    'purdys chocolatier':'shopping',
+    'purdy\'s':'shopping',
+    'laura secord':'shopping',
+    'laurasecord':'shopping',
+    'lcbo':'shopping',
+    'lcbo store':'shopping',
+    'lcbo ontario':'shopping',
+    'the beer store':'shopping',
+    'thebeerstore':'shopping',
+    'beer store':'shopping',
+    'tbs':'shopping',
+    'wine rack':'shopping',
+    'winerack':'shopping',
+    'willow park wines':'shopping',
+    'willow park':'shopping',
+    'coop wine spirits':'shopping',
+    'coop liquor':'shopping',
+    'ags liquor':'shopping',
+    'ags':'shopping',
+    'liquor mart':'shopping',
+    'liquormart':'shopping',
+    'manitoba liquor mart':'shopping',
+    'canadian tire gas':'gas',
+    'ct gas':'gas',
+    'evergreen brick works':'other',
+    'evergreen brickworks':'other',
+    'servus':'other',
+  };
+  var added = 0;
+  Object.keys(v89Extras).forEach(function(k){
+    if(!ALIASES[k]){ ALIASES[k] = v89Extras[k]; added++; }
+  });
+  // Sync into MERCHANT_DIRECTORY for autocomplete visibility
+  try{
+    if(typeof MERCHANT_DIRECTORY !== 'undefined' && Array.isArray(MERCHANT_DIRECTORY)){
+      var seen = new Set();
+      MERCHANT_DIRECTORY.forEach(function(e){
+        var n = (e && (e.name || e.merchant || e)) || '';
+        if(typeof n==='string') seen.add(n.toLowerCase().replace(/[^a-z0-9]/g,''));
+      });
+      function pretty(k){
+        var uc = ['bp','oeb','yig','fcl','lcbo','tbs','esm','ojs','ccc','ct','ny','mec','ida','iga','rcss','rcwc','tnt','ags'];
+        var lc = ['and','of','the','a','de','du'];
+        return k.replace(/&/g,'and').replace(/[^a-z0-9\s\'\-]/gi,' ').replace(/\s+/g,' ').trim()
+                .split(' ').map(function(w){
+                  if(w.length===0)return w;
+                  if(uc.indexOf(w.toLowerCase())>=0) return w.toUpperCase();
+                  if(lc.indexOf(w.toLowerCase())>=0) return w.toLowerCase();
+                  return w.charAt(0).toUpperCase()+w.slice(1).toLowerCase();
+                }).join(' ');
+      }
+      Object.keys(v89Extras).forEach(function(k){
+        var norm = k.toLowerCase().replace(/[^a-z0-9]/g,'');
+        if(!seen.has(norm)){
+          MERCHANT_DIRECTORY.push({ name: pretty(k), category: v89Extras[k] });
+          seen.add(norm);
+        }
+      });
+    }
+  }catch(e){}
+  window.__v89AliasesAdded = added;
+  window.__v89TotalAliases = Object.keys(ALIASES).length;
+})();
+
+
 window._walletiqSelfTest=function(){
   const results=[];
   function check(label,pass,detail){
@@ -13709,7 +14393,7 @@ function hasExistingWallet(){try{var keys=['walletiq_wallet','wallet','selectedC
 var __v73SkipWrapped=false;
 function wrapSkip(){if(__v73SkipWrapped)return;try{if(typeof window.skipOnboarding==='function'){var original=window.skipOnboarding;window.skipOnboarding=function(){if(hasExistingWallet()){var m=document.getElementById('onboardModal');if(m)m.classList.remove('show');return;}return original.apply(this,arguments);};__v73SkipWrapped=true;}}catch(e){}}
 var __v73FooterInjected=false;
-function injectHomeFooter(){if(__v73FooterInjected)return;try{var home=document.getElementById('home');if(!home)return;if(home.querySelector('.v73-home-extra')){__v73FooterInjected=true;return;}var wrap=document.createElement('div');wrap.className='v73-home-extra';wrap.innerHTML='<div class="v73-section-title">How it works</div><div class="v73-how"><h3>Get the best card, every time</h3><div class="v73-steps"><div class="v73-step"><div class="v73-step-num">1</div><div class="v73-step-body"><div class="v73-step-title">Set up your wallet</div><div class="v73-step-desc">Add cards you own from supported Canadian cards.</div></div></div><div class="v73-step"><div class="v73-step-num">2</div><div class="v73-step-body"><div class="v73-step-title">Search or log a merchant</div><div class="v73-step-desc">Type a store name and Wallet IQ picks the best card.</div></div></div><div class="v73-step"><div class="v73-step-num">3</div><div class="v73-step-body"><div class="v73-step-title">Use the best card</div><div class="v73-step-desc">Get cents-accurate reward math instantly.</div></div></div></div></div><div class="v73-section-title">Wallet IQ by the numbers</div><div class="v73-stats"><div class="v73-stat"><div class="v73-stat-value">100</div><div class="v73-stat-label">Canadian cards</div></div><div class="v73-stat"><div class="v73-stat-value">3,500+</div><div class="v73-stat-label">Merchants</div></div><div class="v73-stat"><div class="v73-stat-value">100%</div><div class="v73-stat-label">On-device</div></div></div><footer class="v73-footer"><div class="v73-footer-brand"><svg class="v73-footer-logo" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><rect x="10" y="7" width="17" height="4" rx="1.2" fill="#c9d3e8" opacity="0.85"/><rect x="8" y="10" width="20" height="5" rx="1.5" fill="#e0e7f2"/><rect x="5" y="14" width="30" height="20" rx="4.5" fill="#5f74b8"/><rect x="26" y="22" width="6" height="4.5" rx="1.2" fill="#4c609e"/><circle cx="29" cy="24.25" r="1" fill="#faf7f2"/><path d="M32 3.5 L33 6 L35.5 7 L33 8 L32 10.5 L31 8 L28.5 7 L31 6 Z" fill="#c9a35a"/></svg><span class="v73-footer-name">Wallet <span class="v73-brand-iq">IQ</span></span></div><div class="v73-footer-tagline">Smarter credit card decisions for Canadians.<br>Free. Private. Built by an independent.</div><div class="v73-footer-social"><a class="v73-social-link" onclick="return false" href="#"><span class="v73-social-ico">\uD83D\uDCF7</span>Instagram</a><a class="v73-social-link" onclick="return false" href="#"><span class="v73-social-ico">\uD83D\uDCBC</span>LinkedIn</a><a class="v73-social-link" onclick="return false" href="#"><span class="v73-social-ico">\uD83D\uDC26</span>X / Twitter</a></div><div class="v73-footer-links"><a onclick="return false" href="#">About</a><a onclick="return false" href="#">Privacy</a><a onclick="return false" href="#">Terms</a><a onclick="return false" href="#">Contact</a></div><div class="v73-footer-copy">\u00A9 2026 Wallet IQ \u00B7 Built by Samir Dhanani \u00B7 V73</div><div class="v73-footer-disclaimer">Wallet IQ is an independent tool and is not affiliated with any Canadian bank or credit card issuer. All data is stored locally on your device. Rates and offers change frequently \u2014 verify with the issuer before applying.</div></footer>';home.appendChild(wrap);__v73FooterInjected=true;}catch(e){}}
+function injectHomeFooter(){if(__v73FooterInjected)return;try{var home=document.getElementById('home');if(!home)return;if(home.querySelector('.v73-home-extra')){__v73FooterInjected=true;return;}var wrap=document.createElement('div');wrap.className='v73-home-extra';wrap.innerHTML='<div class="v73-section-title">How it works</div><div class="v73-how"><h3>Get the best card, every time</h3><div class="v73-steps"><div class="v73-step"><div class="v73-step-num">1</div><div class="v73-step-body"><div class="v73-step-title">Set up your wallet</div><div class="v73-step-desc">Add cards you own from supported Canadian cards.</div></div></div><div class="v73-step"><div class="v73-step-num">2</div><div class="v73-step-body"><div class="v73-step-title">Search or log a merchant</div><div class="v73-step-desc">Type a store name and Wallet IQ picks the best card.</div></div></div><div class="v73-step"><div class="v73-step-num">3</div><div class="v73-step-body"><div class="v73-step-title">Use the best card</div><div class="v73-step-desc">Get cents-accurate reward math instantly.</div></div></div></div></div><div class="v73-section-title">Wallet IQ by the numbers</div><div class="v73-stats"><div class="v73-stat"><div class="v73-stat-value">100</div><div class="v73-stat-label">Canadian cards</div></div><div class="v73-stat"><div class="v73-stat-value" id="v89StatMerchants">4,800+</div><div class="v73-stat-label">Merchants</div></div><div class="v73-stat"><div class="v73-stat-value">100%</div><div class="v73-stat-label">On-device</div></div></div><footer class="v73-footer"><div class="v73-footer-brand"><svg class="v73-footer-logo" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><rect x="10" y="7" width="17" height="4" rx="1.2" fill="#c9d3e8" opacity="0.85"/><rect x="8" y="10" width="20" height="5" rx="1.5" fill="#e0e7f2"/><rect x="5" y="14" width="30" height="20" rx="4.5" fill="#5f74b8"/><rect x="26" y="22" width="6" height="4.5" rx="1.2" fill="#4c609e"/><circle cx="29" cy="24.25" r="1" fill="#faf7f2"/><path d="M32 3.5 L33 6 L35.5 7 L33 8 L32 10.5 L31 8 L28.5 7 L31 6 Z" fill="#c9a35a"/></svg><span class="v73-footer-name">Wallet <span class="v73-brand-iq">IQ</span></span></div><div class="v73-footer-tagline">Smarter credit card decisions for Canadians.<br>Free. Private. Built by an independent.</div><div class="v73-footer-social"><a class="v73-social-link" onclick="return false" href="#"><span class="v73-social-ico">\uD83D\uDCF7</span>Instagram</a><a class="v73-social-link" onclick="return false" href="#"><span class="v73-social-ico">\uD83D\uDCBC</span>LinkedIn</a><a class="v73-social-link" onclick="return false" href="#"><span class="v73-social-ico">\uD83D\uDC26</span>X / Twitter</a></div><div class="v73-footer-links"><a onclick="return false" href="#">About</a><a onclick="return false" href="#">Privacy</a><a onclick="return false" href="#">Terms</a><a onclick="return false" href="#">Contact</a></div><div class="v73-footer-copy">\u00A9 2026 Wallet IQ \u00B7 Built by Samir Dhanani \u00B7 V73</div><div class="v73-footer-disclaimer">Wallet IQ is an independent tool and is not affiliated with any Canadian bank or credit card issuer. All data is stored locally on your device. Rates and offers change frequently \u2014 verify with the issuer before applying.</div></footer>';home.appendChild(wrap);__v73FooterInjected=true;}catch(e){}}
 function init(){patchCardsDb();wrapSkip();injectHomeFooter();}
 if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',init);}else{init();}
 setTimeout(init,300);setTimeout(init,1000);setTimeout(init,2500);setTimeout(init,5000);
@@ -14941,5 +15625,2848 @@ setTimeout(stampV79,500);setTimeout(stampV79,1500);
   setTimeout(init,500);setTimeout(init,1500);setTimeout(init,3500);setTimeout(init,6000);
 })();
 </script>
+
+<script id="v87-script">
+(function(){
+  var V87_SOCIAL_SVG = {
+    instagram: '<svg class="v87-social-svg" viewBox="0 0 24 24" fill="none" stroke="url(#v88IgGrad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><defs><linearGradient id="v88IgGrad" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" stop-color="#f9ce34"/><stop offset="50%" stop-color="#ee2a7b"/><stop offset="100%" stop-color="#6228d7"/></linearGradient></defs><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>',
+    facebook: '<svg class="v87-social-svg" viewBox="0 0 24 24" fill="#1877F2"><path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c5.05-.5 9-4.76 9-9.95z"></path></svg>'
+  };
+
+  // ---- Footer socials: remove LinkedIn/Twitter, use real SVG icons ----
+  function patchFooterSocials(){
+    try{
+      var container = document.querySelector('.v73-footer-social');
+      if(!container) return;
+      var links = Array.prototype.slice.call(container.querySelectorAll('.v73-social-link'));
+      // Remove LinkedIn / Twitter / X links
+      links.forEach(function(l){
+        var t = (l.textContent||'').toLowerCase();
+        if(t.indexOf('linkedin')>=0 || t.indexOf('twitter')>=0 || t.indexOf('x /')>=0 || t.trim()==='x'){
+          l.parentNode && l.parentNode.removeChild(l);
+        }
+      });
+      // Re-scan remaining
+      var remaining = Array.prototype.slice.call(container.querySelectorAll('.v73-social-link'));
+      var hasIg=false, hasFb=false;
+      remaining.forEach(function(l){
+        var t = (l.textContent||'').toLowerCase();
+        if(t.indexOf('instagram')>=0){
+          l.innerHTML = V87_SOCIAL_SVG.instagram + 'Instagram';
+          hasIg = true;
+        } else if(t.indexOf('facebook')>=0){
+          l.innerHTML = V87_SOCIAL_SVG.facebook + 'Facebook';
+          hasFb = true;
+        }
+      });
+      if(!hasFb){
+        var fb = document.createElement('a');
+        fb.className = 'v73-social-link';
+        fb.href = '#';
+        fb.onclick = function(){return false;};
+        fb.innerHTML = V87_SOCIAL_SVG.facebook + 'Facebook';
+        container.appendChild(fb);
+      }
+      container.setAttribute('data-v87-social','1');
+    }catch(e){}
+  }
+
+  // ---- Slogan ----
+  function patchSlogan(){
+    try{
+      var tag = document.querySelector('.v73-footer-tagline');
+      if(!tag) return;
+      if(tag.textContent !== 'Your Wallet, Maximized.'){
+        tag.textContent = 'Your Wallet, Maximized.';
+      }
+    }catch(e){}
+  }
+
+  // ---- Onboarding modal: add X + Cancel, harden Skip ----
+  function hasAnyWallet(){
+    try{
+      if(typeof userWallet !== 'undefined' && userWallet && typeof userWallet.size === 'number' && userWallet.size > 0) return true;
+    }catch(e){}
+    try{
+      for(var i=0;i<localStorage.length;i++){
+        var k = localStorage.key(i);
+        if(!k) continue;
+        if(!/wallet/i.test(k)) continue;
+        var v = localStorage.getItem(k);
+        if(!v) continue;
+        try{
+          var p = JSON.parse(v);
+          if(Array.isArray(p) && p.length>0) return true;
+          if(p && typeof p==='object' && Object.keys(p).length>0) return true;
+        }catch(e2){
+          if(v.length>4 && v !== 'true' && v !== 'false') return true;
+        }
+      }
+    }catch(e){}
+    return false;
+  }
+
+  function patchOnboardModal(){
+    try{
+      var modal = document.getElementById('onboardModal');
+      if(!modal) return;
+      var head = modal.querySelector('.modal-head');
+      // V90: Remove the X button (Cancel button already handles closing cleanly)
+      var oldX = head ? head.querySelector('.v87-onb-close') : null;
+      if(oldX && oldX.parentNode) oldX.parentNode.removeChild(oldX);
+      var actions = modal.querySelector('.modal-actions');
+      if(actions && !actions.querySelector('[data-v87-cancel="1"]')){
+        var cancel = document.createElement('button');
+        cancel.type = 'button';
+        cancel.setAttribute('data-v87-cancel','1');
+        cancel.textContent = 'Cancel';
+        cancel.addEventListener('click', function(){
+          modal.classList.remove('show');
+        });
+        actions.insertBefore(cancel, actions.firstChild);
+      }
+    }catch(e){}
+  }
+
+  var __v87SkipWrapped = false;
+  function wrapSkipHard(){
+    if(__v87SkipWrapped) return;
+    try{
+      if(typeof window.skipOnboarding === 'function'){
+        var original = window.skipOnboarding;
+        window.skipOnboarding = function(){
+          if(hasAnyWallet()){
+            var m = document.getElementById('onboardModal');
+            if(m) m.classList.remove('show');
+            return;
+          }
+          return original.apply(this, arguments);
+        };
+        __v87SkipWrapped = true;
+      }
+    }catch(e){}
+  }
+
+  // ---- Insights hidden accordion ----
+  function readList(key){
+    try{
+      var v = JSON.parse(localStorage.getItem(key)||'null');
+      if(Array.isArray(v)) return v;
+    }catch(e){}
+    return [];
+  }
+  function readTx(){
+    var keys = ['walletiq_transactions','walletiq_tx','transactions','tx','walletiq_v82_tx'];
+    for(var i=0;i<keys.length;i++){
+      try{
+        var v = JSON.parse(localStorage.getItem(keys[i])||'null');
+        if(Array.isArray(v) && v.length>0) return v;
+      }catch(e){}
+    }
+    return [];
+  }
+  function lastAmountFor(name, tx){
+    if(!name) return null;
+    var needle = String(name).toLowerCase();
+    var matches = tx.filter(function(t){
+      var m = String(t.merchant||t.name||'').toLowerCase();
+      return m.indexOf(needle)>=0 || needle.indexOf(m)>=0;
+    });
+    if(matches.length===0) return null;
+    // Show sum of last 30 days (approx monthly), or last known amount
+    var sum = 0, count=0;
+    matches.forEach(function(m){ var a = parseFloat(m.amount)||0; if(a>0){ sum+=a; count++; } });
+    if(count===0) return null;
+    // Return average as monthly estimate
+    return sum / Math.max(1, count);
+  }
+  function restoreItem(storageKey, itemName){
+    try{
+      var arr = readList(storageKey);
+      var filtered = arr.filter(function(x){
+        var xn = (typeof x === 'string') ? x : (x && (x.name || x.merchant || x.key)) || '';
+        return xn !== itemName;
+      });
+      localStorage.setItem(storageKey, JSON.stringify(filtered));
+      location.reload();
+    }catch(e){}
+  }
+  function itemName(x){
+    if(typeof x === 'string') return x;
+    if(x && typeof x === 'object') return x.name || x.merchant || x.key || 'Item';
+    return 'Item';
+  }
+  function fmt(v){ return '$' + (Math.round(v*100)/100).toFixed(2); }
+
+  function patchHiddenNote(){
+    try{
+      var view = document.getElementById('viewOverview');
+      if(!view) return;
+      var note = view.querySelector('.v86-hidden-note');
+      if(!note) return;
+      // Read hidden lists
+      var subs = readList('walletiq_v82_sub_dismissed');
+      var leaks = readList('walletiq_v82_leak_dismissed');
+      var total = subs.length + leaks.length;
+      if(total===0){
+        if(note.parentNode) note.parentNode.removeChild(note);
+        return;
+      }
+      var tx = readTx();
+      var wasOpen = note.classList.contains('open');
+      // Convert to accordion (idempotent)
+      note.classList.add('v87-hidden-note');
+      // Preserve existing restore-all button
+      var restoreAll = note.querySelector('.v86-restore-btn');
+      // Rebuild
+      var parts = [];
+      if(subs.length>0) parts.push(subs.length + ' subscription' + (subs.length===1?'':'s'));
+      if(leaks.length>0) parts.push(leaks.length + ' leak' + (leaks.length===1?'':'s'));
+      var msgText = parts.join(' and ') + ' hidden from insights';
+      note.innerHTML = '';
+      var header = document.createElement('div');
+      header.className = 'v87-hidden-header';
+      header.innerHTML = '<span class="v86-hidden-ico">\uD83D\uDE48</span>' +
+                        '<span class="v86-hidden-msg"><span class="v86-hidden-count">' + total + '</span> ' + msgText + '</span>' +
+                        '<span class="v87-hidden-chev">\u25B6</span>';
+      note.appendChild(header);
+      var body = document.createElement('div');
+      body.className = 'v87-hidden-body';
+      function addSection(title, arr, storageKey){
+        if(arr.length===0) return;
+        var t = document.createElement('div');
+        t.className = 'v87-hidden-section-title';
+        t.textContent = title;
+        body.appendChild(t);
+        arr.forEach(function(x){
+          var name = itemName(x);
+          var amt = lastAmountFor(name, tx);
+          var row = document.createElement('div');
+          row.className = 'v87-hidden-item';
+          var amtHtml = amt ? '<span class="v87-hi-amt">~' + fmt(amt) + '/mo</span>' : '<span class="v87-hi-amt"></span>';
+          row.innerHTML = '<span class="v87-hi-name">' + name.replace(/[<>&]/g, function(c){return {'<':'&lt;','>':'&gt;','&':'&amp;'}[c];}) + '</span>' +
+                          amtHtml +
+                          '<button class="v87-hi-restore" type="button">Restore</button>';
+          row.querySelector('.v87-hi-restore').addEventListener('click', function(e){
+            e.stopPropagation();
+            restoreItem(storageKey, name);
+          });
+          body.appendChild(row);
+        });
+      }
+      addSection('Hidden subscriptions', subs, 'walletiq_v82_sub_dismissed');
+      addSection('Hidden leaks', leaks, 'walletiq_v82_leak_dismissed');
+      // Add restore-all button (either preserved or new)
+      if(!restoreAll){
+        restoreAll = document.createElement('button');
+        restoreAll.className = 'v86-restore-btn';
+        restoreAll.type = 'button';
+        restoreAll.textContent = 'Restore all';
+      }
+      restoreAll.onclick = function(e){
+        e.stopPropagation();
+        if(!confirm('Restore all hidden subscriptions and leaks?')) return;
+        localStorage.removeItem('walletiq_v82_leak_dismissed');
+        localStorage.removeItem('walletiq_v82_sub_dismissed');
+        location.reload();
+      };
+      body.appendChild(restoreAll);
+      note.appendChild(body);
+      header.addEventListener('click', function(){
+        note.classList.toggle('open');
+      });
+      if(wasOpen) note.classList.add('open');
+    }catch(e){}
+  }
+
+  // ---- Membership redemption breakdown ----
+  var REDEMPTION_MAP = [
+    { keys:['aeroplan'], rows:[
+      {label:'\u2708\uFE0F Flights (best value)', cpp:0.021, best:true},
+      {label:'\uD83D\uDECD\uFE0F Merchandise', cpp:0.010},
+      {label:'\uD83D\uDCB5 Cash / statement credit', cpp:0.010}
+    ]},
+    { keys:['pc optimum','pc opt','pc points','pcoptimum'], rows:[
+      {label:'\uD83D\uDED2 Loblaw stores (Superstore, No Frills)', cpp:0.001, best:true},
+      {label:'\uD83D\uDC8A Shoppers Drug Mart', cpp:0.001}
+    ]},
+    { keys:['scene+','scene plus','scene'], rows:[
+      {label:'\uD83C\uDFAC Cineplex movies', cpp:0.010, best:true},
+      {label:'\uD83D\uDED2 Sobeys / Empire grocery', cpp:0.010},
+      {label:'\u2708\uFE0F Scene+ Travel', cpp:0.010},
+      {label:'\uD83D\uDCB5 Cash / statement credit', cpp:0.010}
+    ]},
+    { keys:['marriott bonvoy','bonvoy'], rows:[
+      {label:'\uD83C\uDFE8 Peak hotel nights', cpp:0.010, best:true},
+      {label:'\uD83C\uDFE8 Standard hotel nights', cpp:0.008},
+      {label:'\u2708\uFE0F Airline transfer (3:1)', cpp:0.006}
+    ]},
+    { keys:['more rewards'], rows:[
+      {label:'\uD83D\uDED2 Save-On-Foods', cpp:0.010, best:true},
+      {label:'\u2708\uFE0F Travel', cpp:0.010},
+      {label:'\uD83D\uDCB5 Cash', cpp:0.010}
+    ]},
+    { keys:['air miles','airmiles'], rows:[
+      {label:'\u2708\uFE0F Flights (Dream)', cpp:0.105, best:true},
+      {label:'\uD83D\uDECD\uFE0F Merchandise / Cash', cpp:0.105}
+    ]},
+    { keys:['membership rewards','amex mr','amex points',' mr ','mr '], rows:[
+      {label:'\u2708\uFE0F Aeroplan transfer (best)', cpp:0.015, best:true},
+      {label:'\uD83C\uDFE8 Marriott transfer', cpp:0.008},
+      {label:'\uD83D\uDCB5 Cash / statement credit', cpp:0.010},
+      {label:'\uD83D\uDECD\uFE0F Amazon.ca', cpp:0.007}
+    ]},
+    { keys:['avion','rbc rewards','rbc points'], rows:[
+      {label:'\u2708\uFE0F Air Travel Redemption', cpp:0.020, best:true},
+      {label:'\u2708\uFE0F British Airways Avios', cpp:0.015},
+      {label:'\uD83D\uDCB5 Cash / statement credit', cpp:0.005}
+    ]},
+    { keys:['hsbc rewards','hsbc'], rows:[
+      {label:'\u2708\uFE0F Travel', cpp:0.005, best:true},
+      {label:'\uD83D\uDCB5 Cash', cpp:0.005}
+    ]},
+    { keys:['td rewards','td points'], rows:[
+      {label:'\u2708\uFE0F Expedia for TD', cpp:0.005, best:true},
+      {label:'\uD83D\uDCB5 Cash', cpp:0.0025}
+    ]},
+    { keys:['aventura','cibc rewards','cibc points'], rows:[
+      {label:'\u2708\uFE0F Fixed flight chart', cpp:0.020, best:true},
+      {label:'\uD83D\uDCB5 Cash / travel dollars', cpp:0.010}
+    ]},
+    { keys:['bmo rewards','bmo points'], rows:[
+      {label:'\u2708\uFE0F Travel', cpp:0.007, best:true},
+      {label:'\uD83D\uDECD\uFE0F Merchandise', cpp:0.005},
+      {label:'\uD83D\uDCB5 Cash', cpp:0.005}
+    ]},
+    { keys:['blue rewards'], rows:[
+      {label:'\uD83D\uDECD\uFE0F BMO merchandise / travel', cpp:0.0067, best:true},
+      {label:'\uD83D\uDCB5 Cash', cpp:0.0067}
+    ]}
+  ];
+
+  function findRedemption(name){
+    if(!name) return null;
+    var lname = name.toLowerCase();
+    for(var i=0;i<REDEMPTION_MAP.length;i++){
+      var entry = REDEMPTION_MAP[i];
+      for(var j=0;j<entry.keys.length;j++){
+        if(lname.indexOf(entry.keys[j]) >= 0) return entry;
+      }
+    }
+    return null;
+  }
+
+  function parseBalance(txt){
+    if(!txt) return 0;
+    var m = String(txt).replace(/[,$\s]/g,'').match(/-?\d+(\.\d+)?/);
+    return m ? parseFloat(m[0]) : 0;
+  }
+
+  function patchMembershipRedemptions(){
+    try{
+      var container = document.getElementById('vaultPrograms');
+      if(!container) return;
+      var cards = container.querySelectorAll('.v81-membership-card');
+      cards.forEach(function(card){
+        if(card.getAttribute('data-v87-redeem') === '1') return;
+        var mid = card.querySelector('.v81-mid');
+        if(!mid) return;
+        var nameEl = mid.querySelector('.v81-name');
+        var name = nameEl ? nameEl.textContent.trim() : '';
+        var rightEl = card.querySelector('.v81-right');
+        var balEl = rightEl ? rightEl.querySelector('.v81-bal') : card.querySelector('.v81-bal');
+        var balText = balEl ? balEl.textContent : '';
+        var balance = parseBalance(balText);
+        var entry = findRedemption(name);
+        if(!entry) return;
+
+        // Add topline (name + balance inline)
+        if(!mid.querySelector('.v87-mem-topline')){
+          var top = document.createElement('div');
+          top.className = 'v87-mem-topline';
+          var nameClone = document.createElement('span');
+          nameClone.className = 'v81-name';
+          nameClone.textContent = name;
+          var balClone = document.createElement('span');
+          balClone.className = 'v87-mem-bal';
+          balClone.textContent = balText.replace(/^\s+|\s+$/g,'');
+          top.appendChild(nameClone);
+          top.appendChild(balClone);
+          // Replace original .v81-name with topline
+          if(nameEl && nameEl.parentNode === mid){
+            mid.replaceChild(top, nameEl);
+          } else {
+            mid.insertBefore(top, mid.firstChild);
+          }
+        }
+
+        // Build redemption panel
+        var panel = document.createElement('div');
+        panel.className = 'v87-redeem';
+        var head = document.createElement('div');
+        head.className = 'v87-redeem-title';
+        head.innerHTML = '<span>Redemption Values</span><span class="v87-redeem-best-tag">Best highlighted</span>';
+        panel.appendChild(head);
+        entry.rows.forEach(function(r){
+          var row = document.createElement('div');
+          row.className = 'v87-redeem-row';
+          var value = balance * r.cpp;
+          var vClass = r.best ? 'v87-rv best' : 'v87-rv';
+          if(balance === 0) vClass += ' dim';
+          row.innerHTML = '<span class="v87-rl">' + r.label + '</span>' +
+                          '<span class="' + vClass + '">' + fmt(value) + '</span>';
+          panel.appendChild(row);
+        });
+        mid.appendChild(panel);
+        card.setAttribute('data-v87-redeem','1');
+      });
+    }catch(e){}
+  }
+
+  // ---- Footer version stamp ----
+  function updateFooterV87(){
+    try{
+      document.querySelectorAll('.v73-footer-copy').forEach(function(el){
+        if(el && el.textContent){
+          if(el.textContent.indexOf('V96') !== -1) el.textContent = el.textContent.replace('V96','V97');
+          else if(el.textContent.indexOf('V95') !== -1) el.textContent = el.textContent.replace('V95','V97');
+          else if(el.textContent.indexOf('V94') !== -1) el.textContent = el.textContent.replace('V94','V97');
+          else if(el.textContent.indexOf('V93') !== -1) el.textContent = el.textContent.replace('V93','V97');
+          else if(el.textContent.indexOf('V92') !== -1) el.textContent = el.textContent.replace('V92','V97');
+          else if(el.textContent.indexOf('V91') !== -1) el.textContent = el.textContent.replace('V91','V97');
+          else if(el.textContent.indexOf('V90') !== -1) el.textContent = el.textContent.replace('V90','V97');
+          else if(el.textContent.indexOf('V89') !== -1) el.textContent = el.textContent.replace('V89','V97');
+          else if(el.textContent.indexOf('V88') !== -1) el.textContent = el.textContent.replace('V88','V97');
+          else if(el.textContent.indexOf('V87') !== -1) el.textContent = el.textContent.replace('V87','V97');
+          else if(el.textContent.indexOf('V86') !== -1) el.textContent = el.textContent.replace('V86','V97');
+        }
+      });
+    }catch(e){}
+  }
+
+  // ---- Tick / init ----
+  var _t = false;
+  function tick(){
+    if(_t) return;
+    _t = true;
+    setTimeout(function(){
+      try{ patchFooterSocials(); }catch(e){}
+      try{ patchSlogan(); }catch(e){}
+      try{ patchOnboardModal(); }catch(e){}
+      try{ wrapSkipHard(); }catch(e){}
+      try{ patchHiddenNote(); }catch(e){}
+      try{ patchMembershipRedemptions(); }catch(e){}
+      try{ updateFooterV87(); }catch(e){}
+      _t = false;
+    }, 100);
+  }
+
+  var mo = null;
+  function init(){
+    tick();
+    if(!mo){
+      try{
+        mo = new MutationObserver(function(){ tick(); });
+        mo.observe(document.body, {childList:true, subtree:true});
+      }catch(e){}
+    }
+    document.addEventListener('v82:refresh', tick);
+    setInterval(tick, 1500);
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+  setTimeout(init, 300);
+  setTimeout(init, 800);
+  setTimeout(init, 2000);
+  setTimeout(init, 5000);
+})();
+</script>
+
+
+<script id="v92-dedupe">
+(function(){
+  function apply(){
+    if(window.__v92Deduped) return;
+    if(typeof MERCHANT_DIRECTORY === 'undefined' || !Array.isArray(MERCHANT_DIRECTORY)) return;
+
+    var CAT_EMOJI = {
+      dining: '\uD83C\uDF7D\uFE0F',
+      groceryAmex: '\uD83D\uDED2', groceryNo: '\uD83D\uDED2', loblaws: '\uD83D\uDED2',
+      gas: '\u26FD',
+      transit: '\uD83D\uDE87',
+      streaming: '\uD83D\uDCFA',
+      shopping: '\uD83D\uDECD\uFE0F', shoppingAmex: '\uD83D\uDECD\uFE0F',
+      costco: '\uD83C\uDFEA',
+      walmart: '\uD83D\uDED2',
+      travel: '\u2708\uFE0F', marriott: '\uD83C\uDFE8', cineplex: '\uD83C\uDFAC',
+      usd: '\uD83D\uDCB5', rogers: '\uD83D\uDCF1',
+      other: '\uD83D\uDCB3'
+    };
+    var CAT_LABEL = {
+      dining: 'Dining',
+      groceryAmex: 'Groceries', groceryNo: 'Groceries', loblaws: 'Groceries',
+      gas: 'Gas',
+      transit: 'Transit',
+      streaming: 'Streaming',
+      shopping: 'Shopping', shoppingAmex: 'Shopping',
+      costco: 'Costco',
+      walmart: 'Walmart',
+      travel: 'Travel', marriott: 'Marriott', cineplex: 'Cineplex',
+      usd: 'USD / Foreign', rogers: 'Rogers / Fido',
+      other: 'Other'
+    };
+
+    function isBad(v){ return v === undefined || v === null || v === '' || String(v) === 'undefined'; }
+
+    // Backfill missing/undefined emoji + label fields on every entry
+    MERCHANT_DIRECTORY.forEach(function(e){
+      if(!e) return;
+      var cat = e.category || e.cat || 'other';
+      var emo = CAT_EMOJI[cat] || '\uD83D\uDCB3';
+      var lbl = CAT_LABEL[cat] || (typeof cat === 'string' && cat.length ? cat.charAt(0).toUpperCase()+cat.slice(1) : 'Other');
+      if(isBad(e.emoji)) e.emoji = emo;
+      if(isBad(e.e)) e.e = e.emoji;
+      if(isBad(e.ico)) e.ico = e.emoji;
+      if(isBad(e.icon)) e.icon = e.emoji;
+      if(!e.category) e.category = cat;
+      if(!e.cat) e.cat = e.category;
+      if(!e.catLabel) e.catLabel = lbl;
+      if(!e.catLbl) e.catLbl = lbl;
+      if(!e.categoryLabel) e.categoryLabel = lbl;
+    });
+
+    // Canonical brand key: strip filler words + compact spaces
+    var STRIP_TERM = ['kitchen','kitchens','bar','grill','grille','restaurant','restaurants','cafe','cafe\u0301','cafes','café','coffee','coffeehouse','coffeeroasters','roasters','roasted','pizza','bakery','steakhouse','steak','roadhouse','cookhouse','bistro','family','and','plus','the','market','markets','mart','foods','food','grocery','groceries','pharmacy','drug','wines','wine','beer','beers','shop','shoppe','club','centre','center','store','stores','espresso','sushi','shawarma','gyros','burger','burgers','chicken','deli','house','place','joint','spot','company','co','corp','inc','ltd','of','greece','canada','usa','world','elite','signature','platinum','preferred','classic','expert','business','gourmet','fine'];
+    var STRIP_SET = {};
+    STRIP_TERM.forEach(function(w){ STRIP_SET[w] = 1; });
+
+    function canonKey(name){
+      var s = String(name||'').toLowerCase();
+      s = s.replace(/&/g,' and ').replace(/\+/g,' plus ');
+      s = s.replace(/[^a-z0-9\s]+/g,' ').replace(/\s+/g,' ').trim();
+      var words = s.split(' ').filter(Boolean);
+      while(words.length > 1 && words[0] === 'the') words.shift();
+      while(words.length > 1 && STRIP_SET[words[words.length-1]]){ words.pop(); }
+      return words.join('');
+    }
+
+    var byKey = {};
+    var order = [];
+    var beforeCount = MERCHANT_DIRECTORY.length;
+
+    MERCHANT_DIRECTORY.forEach(function(e){
+      if(!e || !e.name) return;
+      var key = canonKey(e.name);
+      var cat = e.category || 'other';
+      if(!key){ key = String(e.name).toLowerCase().replace(/\s+/g,''); }
+      var groupId = key + '|' + cat;
+      var existing = byKey[groupId];
+      if(!existing){
+        byKey[groupId] = e;
+        order.push(groupId);
+      } else {
+        var eName = String(e.name);
+        var xName = String(existing.name);
+        var eHasReal = e.emoji && CAT_EMOJI[cat] !== e.emoji;
+        var xHasReal = existing.emoji && CAT_EMOJI[cat] !== existing.emoji;
+        var replace = false;
+        if(xHasReal && !eHasReal){ replace = false; }
+        else if(eHasReal && !xHasReal){ replace = true; }
+        else if(eName.length < xName.length){ replace = true; }
+        if(replace) byKey[groupId] = e;
+      }
+    });
+
+    var kept = order.map(function(id){ return byKey[id]; });
+
+    MERCHANT_DIRECTORY.length = 0;
+    kept.forEach(function(e){ MERCHANT_DIRECTORY.push(e); });
+
+    window.__v92Deduped = true;
+    window.__v92BeforeCount = beforeCount;
+    window.__v92AfterCount = MERCHANT_DIRECTORY.length;
+    try{ console.log('[V92] MERCHANT_DIRECTORY deduped: '+beforeCount+' -> '+MERCHANT_DIRECTORY.length); }catch(e){}
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', apply);
+  } else {
+    apply();
+  }
+  setTimeout(apply, 200);
+  setTimeout(apply, 800);
+  setTimeout(apply, 2000);
+})();
+</script>
+
+
+<script id="v93-dedupe">
+(function(){
+  function apply(){
+    if(window.__v93Deduped) return;
+    if(typeof MERCHANT_DIRECTORY === 'undefined' || !Array.isArray(MERCHANT_DIRECTORY)) return;
+
+    // STEP A: clean literal backslashes and normalize names in place
+    MERCHANT_DIRECTORY.forEach(function(e){
+      if(!e || !e.name) return;
+      var n = String(e.name);
+      // Replace \'  with '
+      n = n.replace(/\\'/g, "'");
+      // Drop stray backslashes
+      n = n.replace(/\\/g, '');
+      // Collapse whitespace
+      n = n.replace(/\s+/g, ' ').trim();
+      e.name = n;
+    });
+
+    // Category emoji + label backfill (defensive, in case any entry still has undefined)
+    var CAT_EMOJI = {
+      dining: '\uD83C\uDF7D\uFE0F',
+      groceryAmex: '\uD83D\uDED2', groceryNo: '\uD83D\uDED2', loblaws: '\uD83D\uDED2',
+      gas: '\u26FD',
+      transit: '\uD83D\uDE87',
+      streaming: '\uD83D\uDCFA',
+      shopping: '\uD83D\uDECD\uFE0F', shoppingAmex: '\uD83D\uDECD\uFE0F',
+      costco: '\uD83C\uDFEA',
+      walmart: '\uD83D\uDED2',
+      travel: '\u2708\uFE0F', marriott: '\uD83C\uDFE8', cineplex: '\uD83C\uDFAC',
+      usd: '\uD83D\uDCB5', rogers: '\uD83D\uDCF1',
+      other: '\uD83D\uDCB3'
+    };
+    var CAT_LABEL = {
+      dining: 'Dining',
+      groceryAmex: 'Groceries', groceryNo: 'Groceries', loblaws: 'Groceries',
+      gas: 'Gas', transit: 'Transit', streaming: 'Streaming',
+      shopping: 'Shopping', shoppingAmex: 'Shopping',
+      costco: 'Costco', walmart: 'Walmart',
+      travel: 'Travel', marriott: 'Marriott', cineplex: 'Cineplex',
+      usd: 'USD / Foreign', rogers: 'Rogers / Fido',
+      other: 'Other'
+    };
+    function isBad(v){ return v === undefined || v === null || v === '' || String(v) === 'undefined'; }
+    MERCHANT_DIRECTORY.forEach(function(e){
+      if(!e) return;
+      var cat = e.category || e.cat || 'other';
+      var emo = CAT_EMOJI[cat] || '\uD83D\uDCB3';
+      var lbl = CAT_LABEL[cat] || 'Other';
+      if(isBad(e.emoji)) e.emoji = emo;
+      if(isBad(e.e)) e.e = e.emoji;
+      if(isBad(e.ico)) e.ico = e.emoji;
+      if(isBad(e.icon)) e.icon = e.emoji;
+      if(!e.category) e.category = cat;
+      if(!e.cat) e.cat = e.category;
+      if(!e.catLabel) e.catLabel = lbl;
+      if(!e.catLbl) e.catLbl = lbl;
+      if(!e.categoryLabel) e.categoryLabel = lbl;
+    });
+
+    // STEP B: canonical brand key with plural + filler stripping
+    var STRIP_TERM = ['kitchen','kitchens','bar','bars','grill','grille','grills','restaurant','restaurants','cafe','cafes','coffee','coffeehouse','coffeeroasters','roasters','roasted','pizza','pizzas','bakery','bakeries','steakhouse','steak','roadhouse','cookhouse','bistro','family','and','plus','the','market','markets','mart','marts','foods','food','grocery','groceries','pharmacy','pharmacies','drug','wines','wine','beer','beers','shop','shoppe','shops','club','clubs','centre','center','store','stores','espresso','sushi','shawarma','gyros','burger','burgers','chicken','deli','delis','house','houses','socialhouse','social','place','places','joint','joints','spot','spots','company','co','corp','inc','ltd','of','greece','canada','usa','world','elite','signature','platinum','preferred','classic','expert','business','gourmet','fine','fresh','organic'];
+    var STRIP_SET = {};
+    STRIP_TERM.forEach(function(w){ STRIP_SET[w] = 1; });
+
+    // Words that should NEVER be stripped (they distinguish brands)
+    // e.g. keep "chicken" only if it's the ONLY word left, else strip
+    function canonKey(name){
+      var s = String(name||'').toLowerCase();
+      s = s.replace(/&/g,' and ').replace(/\+/g,' plus ');
+      s = s.replace(/[^a-z0-9\s]+/g,' ').replace(/\s+/g,' ').trim();
+      var words = s.split(' ').filter(function(w){ return w.length >= 2; });
+      // Strip leading 'the'
+      while(words.length > 1 && words[0] === 'the') words.shift();
+      // Strip terminal filler (repeatedly)
+      while(words.length > 1 && STRIP_SET[words[words.length-1]]) words.pop();
+      // Plural-normalize every remaining token (strip trailing 's' if len > 3)
+      words = words.map(function(w){
+        if(w.length > 3 && w.charAt(w.length-1) === 's' && w.charAt(w.length-2) !== 's'){
+          return w.substring(0, w.length-1);
+        }
+        return w;
+      });
+      return words.join('');
+    }
+
+    // STEP C: group by (canonKey, category), pick shortest name winner
+    var byKey = {};
+    var order = [];
+    var beforeCount = MERCHANT_DIRECTORY.length;
+
+    MERCHANT_DIRECTORY.forEach(function(e){
+      if(!e || !e.name) return;
+      var key = canonKey(e.name);
+      var cat = e.category || 'other';
+      if(!key){ key = String(e.name).toLowerCase().replace(/[^a-z0-9]/g,''); }
+      var groupId = key + '|' + cat;
+      var existing = byKey[groupId];
+      if(!existing){
+        byKey[groupId] = e;
+        order.push(groupId);
+      } else {
+        if(String(e.name).length < String(existing.name).length){
+          byKey[groupId] = e;
+        }
+      }
+    });
+
+    var kept = order.map(function(id){ return byKey[id]; });
+
+    // STEP D: ambiguous-single-word removal
+    // For each entry with a single-word name, check if a sibling in the SAME category
+    // has that word as its first token followed by additional non-filler words.
+    function firstDistinguishing(name){
+      var s = String(name||'').toLowerCase();
+      s = s.replace(/&/g,' and ').replace(/\+/g,' plus ');
+      s = s.replace(/[^a-z0-9\s]+/g,' ').replace(/\s+/g,' ').trim();
+      return s.split(' ').filter(function(w){ return w.length >= 2; });
+    }
+
+    // Build a lookup: category -> array of {tokens, name}
+    var byCat = {};
+    kept.forEach(function(e){
+      var cat = e.category || 'other';
+      if(!byCat[cat]) byCat[cat] = [];
+      byCat[cat].push({ tokens: firstDistinguishing(e.name), name: e.name, ref: e });
+    });
+
+    var toRemove = new Set();
+    kept.forEach(function(e){
+      var tokens = firstDistinguishing(e.name);
+      if(tokens.length !== 1) return; // only ambiguous single-word entries
+      var word = tokens[0];
+      var cat = e.category || 'other';
+      var siblings = byCat[cat] || [];
+      var hasSpecificSibling = siblings.some(function(s){
+        if(s.ref === e) return false;
+        if(s.tokens.length < 2) return false;
+        if(s.tokens[0] !== word) return false;
+        // Check if at least one subsequent token is NOT filler
+        for(var i = 1; i < s.tokens.length; i++){
+          if(!STRIP_SET[s.tokens[i]]) return true;
+        }
+        return false;
+      });
+      if(hasSpecificSibling){
+        toRemove.add(e);
+      }
+    });
+
+    var final = kept.filter(function(e){ return !toRemove.has(e); });
+
+    // Rebuild in place
+    MERCHANT_DIRECTORY.length = 0;
+    final.forEach(function(e){ MERCHANT_DIRECTORY.push(e); });
+
+    window.__v93Deduped = true;
+    window.__v93BeforeCount = beforeCount;
+    window.__v93AfterCount = MERCHANT_DIRECTORY.length;
+    window.__v93AmbiguousRemoved = toRemove.size;
+    try{ console.log('[V93] MERCHANT_DIRECTORY refined: '+beforeCount+' -> '+MERCHANT_DIRECTORY.length+' ('+toRemove.size+' ambiguous singles removed)'); }catch(e){}
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', apply);
+  } else {
+    apply();
+  }
+  setTimeout(apply, 300);
+  setTimeout(apply, 1200);
+  setTimeout(apply, 3000);
+})();
+</script>
+
+
+<script id="v95-additions">
+(function(){
+  var v95Extras = {
+    'taco bell':'dining',
+    'taco bell cantina':'dining',
+    'tacobell':'dining',
+    'chick-fil-a':'dining',
+    'chick fil a':'dining',
+    'chickfila':'dining',
+    'chic fil a':'dining',
+    'whataburger':'dining',
+    'in-n-out burger':'dining',
+    'in n out':'dining',
+    'innout':'dining',
+    'innout burger':'dining',
+    'culvers':'dining',
+    'culver\'s':'dining',
+    'white castle':'dining',
+    'whitecastle':'dining',
+    'krystal':'dining',
+    'krystal burger':'dining',
+    'sonic drive-in':'dining',
+    'sonic drive in':'dining',
+    'sonicdrivein':'dining',
+    'jack in the box':'dining',
+    'jackinthebox':'dining',
+    'church chicken':'dining',
+    'church\'s chicken':'dining',
+    'churchs chicken':'dining',
+    'bojangles':'dining',
+    'bojangle':'dining',
+    'zaxbys':'dining',
+    'zaxby\'s':'dining',
+    'zaxby':'dining',
+    'buffalo wild wings':'dining',
+    'bww':'dining',
+    'buffalowildwings':'dining',
+    'wingstop':'dining',
+    'wing stop':'dining',
+    'hooters':'dining',
+    'hooters restaurant':'dining',
+    'chipotle mexican grill':'dining',
+    'chipotle grill':'dining',
+    'qdoba':'dining',
+    'qdoba mexican':'dining',
+    'qdoba mexican eats':'dining',
+    'moes southwest':'dining',
+    'moe\'s southwest grill':'dining',
+    'moes':'dining',
+    'del taco':'dining',
+    'deltaco':'dining',
+    'el pollo loco':'dining',
+    'elpolloloco':'dining',
+    'taco cabana':'dining',
+    'tacocabana':'dining',
+    'taco johns':'dining',
+    'taco john\'s':'dining',
+    'panda express':'dining',
+    'pandaexpress':'dining',
+    'pei wei':'dining',
+    'pei wei asian':'dining',
+    'pf changs':'dining',
+    'p.f. chang\'s':'dining',
+    'pfchangs':'dining',
+    'pf chang\'s':'dining',
+    'five guys':'dining',
+    'fiveguys':'dining',
+    'five guys burgers and fries':'dining',
+    'shake shack':'dining',
+    'shakeshack':'dining',
+    'smashburger':'dining',
+    'smash burger':'dining',
+    'freddys':'dining',
+    'freddy\'s':'dining',
+    'freddy\'s frozen custard':'dining',
+    'checkers':'dining',
+    'rally\'s':'dining',
+    'rallys':'dining',
+    'jersey mikes':'dining',
+    'jersey mike\'s':'dining',
+    'jersey mike\'s subs':'dining',
+    'jimmy johns':'dining',
+    'jimmy john\'s':'dining',
+    'jimmyjohns':'dining',
+    'firehouse subs':'dining',
+    'firehousesubs':'dining',
+    'quiznos':'dining',
+    'quiznos sub':'dining',
+    'which wich':'dining',
+    'whichwich':'dining',
+    'blimpie':'dining',
+    'blimpie subs':'dining',
+    'applebees':'dining',
+    'applebee\'s':'dining',
+    'applebees neighborhood':'dining',
+    'olive garden':'dining',
+    'olivegarden':'dining',
+    'olive garden italian':'dining',
+    'cheesecake factory':'dining',
+    'the cheesecake factory':'dining',
+    'cheesecakefactory':'dining',
+    'red lobster':'dining',
+    'redlobster':'dining',
+    'outback steakhouse':'dining',
+    'outback':'dining',
+    'outbacksteakhouse':'dining',
+    'texas roadhouse':'dining',
+    'texasroadhouse':'dining',
+    'texas roadhouse steakhouse':'dining',
+    'longhorn steakhouse':'dining',
+    'longhorn':'dining',
+    'longhornsteakhouse':'dining',
+    'tgi fridays':'dining',
+    'tgi friday\'s':'dining',
+    'fridays':'dining',
+    'tgi':'dining',
+    'ihop':'dining',
+    'ihop restaurant':'dining',
+    'international house of pancakes':'dining',
+    'dennys':'dining',
+    'denny\'s':'dining',
+    'waffle house':'dining',
+    'wafflehouse':'dining',
+    'cracker barrel':'dining',
+    'crackerbarrel':'dining',
+    'cracker barrel country':'dining',
+    'chilis':'dining',
+    'chili\'s':'dining',
+    'chili\'s grill':'dining',
+    'ruby tuesday':'dining',
+    'rubytuesday':'dining',
+    'ruths chris':'dining',
+    'ruth\'s chris':'dining',
+    'ruth\'s chris steak house':'dining',
+    'mortons steakhouse':'dining',
+    'morton\'s steakhouse':'dining',
+    'morton\'s the steakhouse':'dining',
+    'fogo de chao':'dining',
+    'fogodechao':'dining',
+    'yard house':'dining',
+    'yardhouse':'dining',
+    'bjs restaurants':'dining',
+    'bj\'s restaurants':'dining',
+    'bj\'s brewhouse':'dining',
+    'buca di beppo':'dining',
+    'bucadibeppo':'dining',
+    'maggianos':'dining',
+    'maggiano\'s':'dining',
+    'maggiano\'s little italy':'dining',
+    'carrabbas':'dining',
+    'carrabba\'s':'dining',
+    'carrabba\'s italian grill':'dining',
+    'bonefish grill':'dining',
+    'bonefishgrill':'dining',
+    'flemings':'dining',
+    'fleming\'s':'dining',
+    'fleming\'s prime steakhouse':'dining',
+    'del friscos':'dining',
+    'del frisco\'s':'dining',
+    'del frisco\'s double eagle':'dining',
+    'capital grille':'dining',
+    'the capital grille':'dining',
+    'capitalgrille':'dining',
+    'seasons 52':'dining',
+    'seasons52':'dining',
+    'panera bread':'dining',
+    'panera':'dining',
+    'pizza hut':'dining',
+    'pizzahut':'dining',
+    'papa johns':'dining',
+    'papa john\'s':'dining',
+    'papajohns':'dining',
+    'papa johns pizza':'dining',
+    'little caesars':'dining',
+    'littlecaesars':'dining',
+    'little caesars pizza':'dining',
+    'dominos pizza':'dining',
+    'domino\'s pizza':'dining',
+    'dominos':'dining',
+    'marcos pizza':'dining',
+    'marco\'s pizza':'dining',
+    'round table pizza':'dining',
+    'roundtable':'dining',
+    'round table':'dining',
+    'jamba juice':'dining',
+    'jamba':'dining',
+    'orange julius':'dining',
+    'orangejulius':'dining',
+    'cinnabon':'dining',
+    'cinnabon bakery':'dining',
+    'aunties':'dining',
+    'auntie anne\'s':'dining',
+    'auntie annes':'dining',
+    'auntie annes pretzels':'dining',
+    'wetzels pretzels':'dining',
+    'wetzel\'s pretzels':'dining',
+    'krispy kreme':'dining',
+    'krispykreme':'dining',
+    'krispy kreme doughnuts':'dining',
+    'dunkin donuts':'dining',
+    'dunkin':'dining',
+    'dunkin\'':'dining',
+    'baskin robbins':'dining',
+    'baskin-robbins':'dining',
+    'baskinrobbins':'dining',
+    'cold stone creamery':'dining',
+    'coldstone':'dining',
+    'cold stone':'dining',
+    'ben and jerrys':'dining',
+    'ben & jerrys':'dining',
+    'ben & jerry\'s':'dining',
+    'ben and jerry\'s':'dining',
+    'haagen dazs':'dining',
+    'haagen-dazs':'dining',
+    'häagen-dazs':'dining',
+    'target':'shoppingAmex',
+    'target store':'shoppingAmex',
+    'target.com':'shoppingAmex',
+    'best buy usa':'shoppingAmex',
+    'bestbuy usa':'shoppingAmex',
+    'bestbuy.com':'shoppingAmex',
+    'kroger':'groceryAmex',
+    'kroger grocery':'groceryAmex',
+    'publix':'groceryAmex',
+    'publix super markets':'groceryAmex',
+    'trader joes':'groceryAmex',
+    'trader joe\'s':'groceryAmex',
+    'traderjoes':'groceryAmex',
+    'aldi':'groceryAmex',
+    'aldi usa':'groceryAmex',
+    'aldi supermarket':'groceryAmex',
+    'sams club':'costco',
+    'sam\'s club':'costco',
+    'samsclub':'costco',
+    'bjs wholesale':'costco',
+    'bj\'s wholesale':'costco',
+    'bjs wholesale club':'costco',
+    'sprouts':'groceryAmex',
+    'sprouts farmers market':'groceryAmex',
+    'sproutsfarmers':'groceryAmex',
+    'wegmans':'groceryAmex',
+    'wegmans food markets':'groceryAmex',
+    'meijer':'walmart',
+    'meijer store':'walmart',
+    'heb':'groceryAmex',
+    'h-e-b':'groceryAmex',
+    'h e b':'groceryAmex',
+    'piggly wiggly':'groceryAmex',
+    'pigglywiggly':'groceryAmex',
+    'safeway usa':'groceryAmex',
+    'safeway grocery':'groceryAmex',
+    'ralphs':'groceryAmex',
+    'ralphs grocery':'groceryAmex',
+    'vons':'groceryAmex',
+    'vons grocery':'groceryAmex',
+    'albertsons':'groceryAmex',
+    'albertsons grocery':'groceryAmex',
+    'fred meyer':'groceryAmex',
+    'fredmeyer':'groceryAmex',
+    'king soopers':'groceryAmex',
+    'kingsoopers':'groceryAmex',
+    'winn dixie':'groceryAmex',
+    'winn-dixie':'groceryAmex',
+    'winndixie':'groceryAmex',
+    'food lion':'groceryAmex',
+    'foodlion':'groceryAmex',
+    'giant food':'groceryAmex',
+    'giant supermarket':'groceryAmex',
+    'stop and shop':'groceryAmex',
+    'stop & shop':'groceryAmex',
+    'stopandshop':'groceryAmex',
+    'hannaford':'groceryAmex',
+    'hannaford supermarket':'groceryAmex',
+    'weis markets':'groceryAmex',
+    'weis':'groceryAmex',
+    'harris teeter':'groceryAmex',
+    'harristeeter':'groceryAmex',
+    'whole foods market':'groceryAmex',
+    'kohls':'shoppingAmex',
+    'kohl\'s':'shoppingAmex',
+    'kohls store':'shoppingAmex',
+    'jcpenney':'shoppingAmex',
+    'jc penney':'shoppingAmex',
+    'jcp':'shoppingAmex',
+    'macys':'shoppingAmex',
+    'macy\'s':'shoppingAmex',
+    'macys.com':'shoppingAmex',
+    'nordstrom':'shoppingAmex',
+    'nordstrom store':'shoppingAmex',
+    'nordstrom rack':'shoppingAmex',
+    'nordstromrack':'shoppingAmex',
+    'bloomingdales':'shoppingAmex',
+    'bloomingdale\'s':'shoppingAmex',
+    'neiman marcus':'shoppingAmex',
+    'neimanmarcus':'shoppingAmex',
+    'saks fifth avenue':'shoppingAmex',
+    'saks':'shoppingAmex',
+    'dillards':'shoppingAmex',
+    'dillard\'s':'shoppingAmex',
+    'belk':'shoppingAmex',
+    'belk store':'shoppingAmex',
+    'ross dress for less':'shopping',
+    'ross store':'shopping',
+    'rossstore':'shopping',
+    'tj maxx':'shoppingAmex',
+    'tjmaxx':'shoppingAmex',
+    'tj maxx usa':'shoppingAmex',
+    'burlington coat factory':'shopping',
+    'burlington':'shopping',
+    'burlingtoncoat':'shopping',
+    'dsw':'shoppingAmex',
+    'dsw shoes':'shoppingAmex',
+    'designer shoe warehouse':'shoppingAmex',
+    'foot locker':'shoppingAmex',
+    'footlocker':'shoppingAmex',
+    'champs sports':'shoppingAmex',
+    'champssports':'shoppingAmex',
+    'finish line':'shoppingAmex',
+    'finishline':'shoppingAmex',
+    'nike':'shoppingAmex',
+    'nike store':'shoppingAmex',
+    'nike.com':'shoppingAmex',
+    'adidas':'shoppingAmex',
+    'adidas store':'shoppingAmex',
+    'under armour':'shoppingAmex',
+    'underarmour':'shoppingAmex',
+    'sephora usa':'shoppingAmex',
+    'sephora.com':'shoppingAmex',
+    'ulta beauty':'shoppingAmex',
+    'ulta':'shoppingAmex',
+    'ulta.com':'shoppingAmex',
+    'bath and body works':'shoppingAmex',
+    'bath & body works':'shoppingAmex',
+    'bathandbodyworks':'shoppingAmex',
+    'victorias secret':'shoppingAmex',
+    'victoria\'s secret':'shoppingAmex',
+    'vs':'shoppingAmex',
+    'aerie':'shoppingAmex',
+    'aerie store':'shoppingAmex',
+    'hollister':'shoppingAmex',
+    'hollister co':'shoppingAmex',
+    'abercrombie':'shoppingAmex',
+    'abercrombie & fitch':'shoppingAmex',
+    'abercrombiefitch':'shoppingAmex',
+    'forever 21':'shoppingAmex',
+    'forever21':'shoppingAmex',
+    'h&m':'shoppingAmex',
+    'handm':'shoppingAmex',
+    'h and m':'shoppingAmex',
+    'hm store':'shoppingAmex',
+    'zara':'shoppingAmex',
+    'zara store':'shoppingAmex',
+    'uniqlo':'shoppingAmex',
+    'uniqlo store':'shoppingAmex',
+    'primark':'shoppingAmex',
+    'primark store':'shoppingAmex',
+    'express':'shoppingAmex',
+    'express store':'shoppingAmex',
+    'american eagle':'shoppingAmex',
+    'americaneagle':'shoppingAmex',
+    'ae':'shoppingAmex',
+    'gap':'shoppingAmex',
+    'gap store':'shoppingAmex',
+    'the gap':'shoppingAmex',
+    'old navy':'shoppingAmex',
+    'oldnavy':'shoppingAmex',
+    'banana republic':'shoppingAmex',
+    'bananarepublic':'shoppingAmex',
+    'athleta':'shoppingAmex',
+    'athleta store':'shoppingAmex',
+    'anthropologie':'shoppingAmex',
+    'anthropologie store':'shoppingAmex',
+    'urban outfitters':'shoppingAmex',
+    'urbanoutfitters':'shoppingAmex',
+    'uo':'shoppingAmex',
+    'free people':'shoppingAmex',
+    'freepeople':'shoppingAmex',
+    'madewell':'shoppingAmex',
+    'madewell store':'shoppingAmex',
+    'jcrew':'shoppingAmex',
+    'j.crew':'shoppingAmex',
+    'j crew':'shoppingAmex',
+    'ann taylor':'shoppingAmex',
+    'anntaylor':'shoppingAmex',
+    'loft':'shoppingAmex',
+    'loft store':'shoppingAmex',
+    'chicos':'shoppingAmex',
+    'chico\'s':'shoppingAmex',
+    'white house black market':'shoppingAmex',
+    'whbm':'shoppingAmex',
+    'talbots':'shoppingAmex',
+    'talbots store':'shoppingAmex',
+    'eddie bauer':'shoppingAmex',
+    'eddiebauer':'shoppingAmex',
+    'll bean':'shoppingAmex',
+    'l.l. bean':'shoppingAmex',
+    'llbean':'shoppingAmex',
+    'patagonia':'shoppingAmex',
+    'patagonia store':'shoppingAmex',
+    'columbia sportswear':'shoppingAmex',
+    'columbia':'shoppingAmex',
+    'north face':'shoppingAmex',
+    'the north face':'shoppingAmex',
+    'northface':'shoppingAmex',
+    'rei':'shoppingAmex',
+    'rei co-op':'shoppingAmex',
+    'rei store':'shoppingAmex',
+    'cabelas':'shoppingAmex',
+    'cabela\'s':'shoppingAmex',
+    'cabelasoutfitter':'shoppingAmex',
+    'bass pro shops':'shoppingAmex',
+    'bass pro':'shoppingAmex',
+    'basspro':'shoppingAmex',
+    'academy sports':'shoppingAmex',
+    'academysports':'shoppingAmex',
+    'academy sports outdoors':'shoppingAmex',
+    'dicks sporting goods':'shoppingAmex',
+    'dick\'s sporting goods':'shoppingAmex',
+    'dicks':'shoppingAmex',
+    'hobby lobby':'shopping',
+    'hobbylobby':'shopping',
+    'joanns':'shopping',
+    'joann fabric':'shopping',
+    'joann':'shopping',
+    'at home':'shopping',
+    'athome':'shopping',
+    'five below':'shopping',
+    'fivebelow':'shopping',
+    'dollar general':'shopping',
+    'dollargeneral':'shopping',
+    'dg':'shopping',
+    'family dollar':'shopping',
+    'familydollar':'shopping',
+    'big lots':'shopping',
+    'biglots':'shopping',
+    'ollies bargain':'shopping',
+    'ollies':'shopping',
+    'ollie\'s bargain outlet':'shopping',
+    'ritz carlton':'marriott',
+    'ritz-carlton':'marriott',
+    'the ritz-carlton':'marriott',
+    'w hotels':'marriott',
+    'w hotel':'marriott',
+    'courtyard by marriott':'marriott',
+    'courtyard marriott':'marriott',
+    'courtyard':'marriott',
+    'residence inn':'marriott',
+    'residenceinn':'marriott',
+    'residence inn by marriott':'marriott',
+    'springhill suites':'marriott',
+    'springhill':'marriott',
+    'hyatt':'travel',
+    'hyatt place':'travel',
+    'hyatt regency':'travel',
+    'park hyatt':'travel',
+    'andaz':'travel',
+    'grand hyatt':'travel',
+    'hilton':'travel',
+    'hilton hotels':'travel',
+    'doubletree':'travel',
+    'embassy suites':'travel',
+    'hampton inn':'travel',
+    'hampton by hilton':'travel',
+    'hilton garden inn':'travel',
+    'holiday inn':'travel',
+    'holiday inn express':'travel',
+    'holidayinn':'travel',
+    'ihg':'travel',
+    'comfort inn':'travel',
+    'comfortinn':'travel',
+    'choice hotels':'travel',
+    'choicehotels':'travel',
+    'best western':'travel',
+    'bestwestern':'travel',
+    'motel 6':'travel',
+    'motel6':'travel',
+    'super 8':'travel',
+    'super8':'travel',
+    'wyndham':'travel',
+    'wyndham hotels':'travel',
+    'bc liquor':'shopping',
+    'bc liquor store':'shopping',
+    'bcls':'shopping',
+    'government liquor':'shopping',
+    'mission hill winery':'shopping',
+    'mission hill':'shopping',
+    'missionhill':'shopping',
+    'cedar creek':'shopping',
+    'cedarcreek':'shopping',
+    'quails gate winery':'shopping',
+    'quails gate':'shopping',
+    'quailsgate':'shopping',
+    'tinhorn creek':'shopping',
+    'tinhorncreek':'shopping',
+    'jackson triggs':'shopping',
+    'jackson-triggs':'shopping',
+    'jacksontriggs':'shopping',
+    'peller estates':'shopping',
+    'pellerestates':'shopping',
+    'gray monk':'shopping',
+    'graymonk':'shopping',
+    'hester creek':'shopping',
+    'hestercreek':'shopping',
+    'poplar grove':'shopping',
+    'poplargrove':'shopping',
+    'black hills winery':'shopping',
+    'blackhills winery':'shopping',
+    'big rock brewery':'dining',
+    'bigrock brewery':'dining',
+    'big rock':'dining',
+    'phillips brewing':'dining',
+    'phillips brewery':'dining',
+    'driftwood brewing':'dining',
+    'driftwood brewery':'dining',
+    'hoyne brewing':'dining',
+    'hoyne brewery':'dining',
+    'four winds brewing':'dining',
+    'fourwinds':'dining',
+    'four winds':'dining',
+    'steamworks brewing':'dining',
+    'steamworks':'dining',
+    'granville island brewing':'dining',
+    'granville island':'dining',
+    'stanley park brewing':'dining',
+    'stanley park brewery':'dining',
+    'red truck beer':'dining',
+    'redtruck':'dining',
+    'tofino brewing':'dining',
+    'tofino brewery':'dining',
+    'central city brewing':'dining',
+    'central city':'dining',
+    'red racer':'dining',
+    'parallel 49':'dining',
+    'parallel49':'dining',
+    'bomber brewing':'dining',
+    'bomber':'dining',
+    'moody ales':'dining',
+    'moodyales':'dining',
+    'yellow dog brewing':'dining',
+    'yellowdog':'dining',
+    'dageraad brewing':'dining',
+    'dageraad':'dining',
+    'strange fellows':'dining',
+    'strangefellows':'dining',
+    'trading post brewing':'dining',
+    'trading post':'dining',
+    'porter airlines':'travel',
+    'porter':'travel',
+    'flyporter':'travel',
+    'flair airlines':'travel',
+    'flair':'travel',
+    'flyflair':'travel',
+    'lynx air':'travel',
+    'lynxair':'travel',
+    'flylynx':'travel',
+    'delta air':'travel',
+    'delta airlines':'travel',
+    'delta':'travel',
+    'american airlines':'travel',
+    'aa':'travel',
+    'american':'travel',
+    'united airlines':'travel',
+    'united':'travel',
+    'southwest airlines':'travel',
+    'southwest':'travel',
+    'swa':'travel',
+    'alaska airlines':'travel',
+    'alaska air':'travel',
+    'jetblue':'travel',
+    'jet blue':'travel',
+    'spirit airlines':'travel',
+    'spirit air':'travel',
+    'frontier airlines':'travel',
+    'frontier':'travel',
+    'british airways':'travel',
+    'britishairways':'travel',
+    'ba flights':'travel',
+    'lufthansa':'travel',
+    'klm':'travel',
+    'klm royal dutch':'travel',
+    'air france':'travel',
+    'airfrance':'travel',
+    'emirates':'travel',
+    'emirates airlines':'travel',
+    'qatar airways':'travel',
+    'qatarairways':'travel',
+    'singapore airlines':'travel',
+    'singaporeair':'travel',
+    'cathay pacific':'travel',
+    'cathaypacific':'travel',
+    'apple tv':'streaming',
+    'apple tv+':'streaming',
+    'appletv':'streaming',
+    'hbo max':'streaming',
+    'hbomax':'streaming',
+    'max':'streaming',
+    'hbo':'streaming',
+    'paramount plus':'streaming',
+    'paramount+':'streaming',
+    'paramountplus':'streaming',
+    'peacock':'streaming',
+    'peacock tv':'streaming',
+    'peacocktv':'streaming',
+    'youtube tv':'streaming',
+    'youtubetv':'streaming',
+    'yt tv':'streaming',
+    'youtube premium':'streaming',
+    'youtube music':'streaming',
+    'youtubemusic':'streaming',
+    'apple music':'streaming',
+    'applemusic':'streaming',
+    'audible':'streaming',
+    'audible audiobooks':'streaming',
+    'kindle unlimited':'streaming',
+    'kindleunlimited':'streaming',
+    'nintendo online':'streaming',
+    'nintendo switch online':'streaming',
+    'xbox game pass':'streaming',
+    'gamepass':'streaming',
+    'game pass':'streaming',
+    'playstation plus':'streaming',
+    'ps plus':'streaming',
+    'psn plus':'streaming',
+    'ps+':'streaming',
+    'openai':'other',
+    'chatgpt':'other',
+    'chatgpt plus':'other',
+    'openai api':'other',
+    'anthropic':'other',
+    'claude':'other',
+    'claude pro':'other',
+    'midjourney':'other',
+    'runway ml':'other',
+    'runwayml':'other',
+    'notion':'other',
+    'notion ai':'other',
+    'notionai':'other',
+    'slack':'other',
+    'slack workspace':'other',
+    'figma':'other',
+    'figma pro':'other',
+    'adobe':'other',
+    'adobe creative cloud':'other',
+    'creative cloud':'other',
+    'adobe cc':'other',
+    'canva':'other',
+    'canva pro':'other',
+    'dropbox':'other',
+    'dropbox plus':'other',
+    'google one':'other',
+    'googleone':'other',
+    'google drive':'other',
+    'googledrive':'other',
+    'microsoft 365':'other',
+    'microsoft365':'other',
+    'office 365':'other',
+    'o365':'other',
+    'icloud':'other',
+    'icloud+':'other',
+    'icloud plus':'other',
+    'linkedin premium':'other',
+    'linkedinpremium':'other',
+    'grammarly':'other',
+    'grammarly premium':'other',
+    'onedrive':'other',
+    'one drive':'other',
+    'evernote':'other',
+    'evernote premium':'other',
+    'trello':'other',
+    'trello premium':'other',
+    'zoom':'other',
+    'zoom pro':'other',
+    'zoom meetings':'other',
+    'basecamp':'other',
+    'basecamp business':'other',
+  };
+  if(typeof ALIASES === 'object' && ALIASES){
+    Object.keys(v95Extras).forEach(function(k){
+      if(!ALIASES[k]) ALIASES[k] = v95Extras[k];
+    });
+  }
+  window.__v95AdditionsAdded = Object.keys(v95Extras).length;
+})();
+
+// V97 merchant additions (net-new after dedup vs existing 4,223 keys)
+(function(){
+  if(typeof ALIASES==='undefined')return;
+  var v97Extras = {
+    '7 eleven':'gas',
+    'seven eleven usa':'gas',
+    'speedway':'gas',
+    'speedway gas':'gas',
+    'speedway station':'gas',
+    'circle k usa':'gas',
+    'circle k station':'gas',
+    'wawa':'gas',
+    'wawa store':'gas',
+    'sheetz':'gas',
+    'sheetz gas':'gas',
+    'quiktrip':'gas',
+    'quik trip':'gas',
+    'qt store':'gas',
+    'racetrac gas':'gas',
+    'caseys general store':'gas',
+    'casey\'s general store':'gas',
+    'kwik trip':'gas',
+    'kwiktrip':'gas',
+    'kwik star':'gas',
+    'kwikstar':'gas',
+    'kum and go':'gas',
+    'kum & go':'gas',
+    'kumandgo':'gas',
+    'maverik':'gas',
+    'maverik gas':'gas',
+    'loves travel stops':'gas',
+    'love\'s travel stops':'gas',
+    'loves gas':'gas',
+    'pilot flying j':'gas',
+    'pilot travel':'gas',
+    'flying j travel':'gas',
+    'ta petro':'gas',
+    'travel centers of america':'gas',
+    'ta travel':'gas',
+    'cumberland farms':'gas',
+    'cumberlandfarms':'gas',
+    'exxon':'gas',
+    'exxonmobil':'gas',
+    'exxon mobil':'gas',
+    'exxon gas':'gas',
+    'mobil gas':'gas',
+    'mobil oil':'gas',
+    'exxon station':'gas',
+    'bp gas':'gas',
+    'bp station':'gas',
+    'british petroleum':'gas',
+    'shell usa':'gas',
+    'shell gas usa':'gas',
+    'shell station':'gas',
+    'chevron gas':'gas',
+    'chevron station':'gas',
+    'valero':'gas',
+    'valero gas':'gas',
+    'valero station':'gas',
+    'sunoco':'gas',
+    'sunoco gas':'gas',
+    'phillips 66':'gas',
+    'phillips66':'gas',
+    'sinclair':'gas',
+    'sinclair gas':'gas',
+    'conoco':'gas',
+    'conoco gas':'gas',
+    'arco':'gas',
+    'arco gas':'gas',
+    '76 station':'gas',
+    '76 gas':'gas',
+    'giant eagle':'groceryAmex',
+    'gianteagle':'groceryAmex',
+    'shaws':'groceryAmex',
+    'shaw\'s':'groceryAmex',
+    'star market':'groceryAmex',
+    'starmarket':'groceryAmex',
+    'save mart':'groceryAmex',
+    'savemart':'groceryAmex',
+    'save-mart':'groceryAmex',
+    'lucky supermarkets':'groceryAmex',
+    'lucky market':'groceryAmex',
+    'grocery outlet':'groceryAmex',
+    'foods co':'groceryAmex',
+    'save-a-lot':'groceryAmex',
+    'save a lot':'groceryAmex',
+    'iga usa':'groceryAmex',
+    'iga store':'groceryAmex',
+    'superior grocers':'groceryAmex',
+    'superior grocery':'groceryAmex',
+    'cardenas':'groceryAmex',
+    'cardenas markets':'groceryAmex',
+    'bristol farms':'groceryAmex',
+    'erewhon':'groceryAmex',
+    'erewhon market':'groceryAmex',
+    'gelson\'s':'groceryAmex',
+    'gelsons':'groceryAmex',
+    'vallarta supermarkets':'groceryAmex',
+    'vallarta':'groceryAmex',
+    'mother\'s market':'groceryAmex',
+    'mothers market':'groceryAmex',
+    'nugget market':'groceryAmex',
+    'nuggetmarket':'groceryAmex',
+    'raley\'s':'groceryAmex',
+    'raleys':'groceryAmex',
+    'winco foods':'groceryAmex',
+    'winco':'groceryAmex',
+    '99 ranch market':'groceryAmex',
+    '99ranch':'groceryAmex',
+    'ranch 99':'groceryAmex',
+    'h mart usa':'groceryAmex',
+    'hmart usa':'groceryAmex',
+    'gerbes':'groceryAmex',
+    'gerbes markets':'groceryAmex',
+    'ingles':'groceryAmex',
+    'ingles markets':'groceryAmex',
+    'brookshire\'s':'groceryAmex',
+    'brookshires':'groceryAmex',
+    'king kullen':'groceryAmex',
+    'morton williams':'groceryAmex',
+    'wakefern':'groceryAmex',
+    'shoprite':'groceryAmex',
+    'pathmark':'groceryAmex',
+    'path mark':'groceryAmex',
+    'key food':'groceryAmex',
+    'gristedes':'groceryAmex',
+    'the fresh market':'groceryAmex',
+    'sprouts markets':'groceryAmex',
+    'fairway market':'groceryAmex',
+    'price chopper':'groceryAmex',
+    'market basket':'groceryAmex',
+    'chuy\'s':'dining',
+    'chuys':'dining',
+    'cheddar\'s':'dining',
+    'cheddars':'dining',
+    'village inn':'dining',
+    'villageinn':'dining',
+    'perkins':'dining',
+    'perkins restaurant':'dining',
+    'perkins pancakes':'dining',
+    'bobevans':'dining',
+    'marie callender\'s':'dining',
+    'marie callenders':'dining',
+    'baker\'s square':'dining',
+    'bakers square':'dining',
+    'hometown buffet':'dining',
+    'golden corral':'dining',
+    'goldencorral':'dining',
+    'sizzler':'dining',
+    'sizzler restaurant':'dining',
+    'ponderosa steakhouse':'dining',
+    'ponderosa':'dining',
+    'bonanza steakhouse':'dining',
+    'bonanza':'dining',
+    'steak n shake':'dining',
+    'steaknshake':'dining',
+    'steak-n-shake':'dining',
+    'carlsjr':'dining',
+    'chester chicken':'dining',
+    'chesters chicken':'dining',
+    'red robin gourmet':'dining',
+    'long john silver\'s':'dining',
+    'long john silvers':'dining',
+    'longjohnsilvers':'dining',
+    'ljs':'dining',
+    'captain d\'s':'dining',
+    'captain ds':'dining',
+    'captainds':'dining',
+    'charleys philly steaks':'dining',
+    'charleys':'dining',
+    'roy rogers restaurants':'dining',
+    'roy rogers':'dining',
+    'friendly\'s':'dining',
+    'friendlys':'dining',
+    'perkins family restaurant':'dining',
+    'huddle house':'dining',
+    'eat n park':'dining',
+    'eat \'n park':'dining',
+    'tim hortons usa':'dining',
+    'tims usa':'dining',
+    'sweet green':'dining',
+    'cava mediterranean':'dining',
+    'dig inn':'dining',
+    'dig food':'dining',
+    'panda inn':'dining',
+    'pick up stix':'dining',
+    'pickup stix':'dining',
+    'yoshinoya':'dining',
+    'teriyaki madness':'dining',
+    'fresh & co':'dining',
+    'protein bar':'dining',
+    'peet\'s coffee':'dining',
+    'blue bottle coffee':'dining',
+    'blue bottle':'dining',
+    'bluebottle':'dining',
+    'lacolombe':'dining',
+    'verve coffee':'dining',
+    'joe coffee':'dining',
+    'joe & the juice':'dining',
+    'pret a manger':'dining',
+    'pret':'dining',
+    'walgreens pharmacy':'shoppingAmex',
+    'cvs health':'shoppingAmex',
+    'cvs store':'shoppingAmex',
+    'rite-aid':'shoppingAmex',
+    'duanereade':'shoppingAmex',
+    'bartell drugs':'shoppingAmex',
+    'sav-on drugs':'shoppingAmex',
+    'longs drugs':'shoppingAmex',
+    'osco drug':'shoppingAmex',
+    'osco':'shoppingAmex',
+    'albertsons pharmacy':'shoppingAmex',
+    'kroger pharmacy':'shoppingAmex',
+    'target pharmacy':'shoppingAmex',
+    'walmart pharmacy':'shoppingAmex',
+    'costco pharmacy':'shoppingAmex',
+    'publix pharmacy':'shoppingAmex',
+    'meijer pharmacy':'shoppingAmex',
+    'bn store':'shoppingAmex',
+    'booksamillion':'shoppingAmex',
+    'bam':'shoppingAmex',
+    'half price books':'shoppingAmex',
+    'halfpricebooks':'shoppingAmex',
+    'hpb':'shoppingAmex',
+    'powell\'s books':'shoppingAmex',
+    'powells books':'shoppingAmex',
+    'mckay used books':'shoppingAmex',
+    'mckay\'s books':'shoppingAmex',
+    'mckays':'shoppingAmex',
+    'vinyl me please':'shoppingAmex',
+    'vmp':'shoppingAmex',
+    'newbury comics':'shoppingAmex',
+    'newburycomics':'shoppingAmex',
+    'sam ash':'shoppingAmex',
+    'samash':'shoppingAmex',
+    'guitar center':'shoppingAmex',
+    'guitarcenter':'shoppingAmex',
+    'musician\'s friend':'shoppingAmex',
+    'musiciansfriend':'shoppingAmex',
+    'reverb':'shoppingAmex',
+    'reverb com':'shoppingAmex',
+    'catherines':'shoppingAmex',
+    'lane bryant':'shoppingAmex',
+    'torrid':'shoppingAmex',
+    'hot topic':'shoppingAmex',
+    'box lunch':'shoppingAmex',
+    'boxlunch':'shoppingAmex',
+    'icing':'shoppingAmex',
+    'justice':'shoppingAmex',
+    'rue 21':'shoppingAmex',
+    'rue21':'shoppingAmex',
+    'big lots store':'shoppingAmex',
+    'ross stores':'shoppingAmex',
+    'burlington stores':'shoppingAmex',
+    'cravetv':'streaming',
+    'stacktv':'streaming',
+    'stack tv':'streaming',
+    'prime channels stacktv':'streaming',
+    'dazn':'streaming',
+    'dazn subscription':'streaming',
+    'espn+':'streaming',
+    'espn plus':'streaming',
+    'espnplus':'streaming',
+    'mlb tv':'streaming',
+    'mlb.tv':'streaming',
+    'mlbtv':'streaming',
+    'nhl tv':'streaming',
+    'nhl.tv':'streaming',
+    'nhltv':'streaming',
+    'nhl centre ice':'streaming',
+    'nba league pass':'streaming',
+    'nba tv':'streaming',
+    'nbatv':'streaming',
+    'discovery+':'streaming',
+    'discovery plus':'streaming',
+    'discoveryplus':'streaming',
+    'pluto tv':'streaming',
+    'plutotv':'streaming',
+    'tubi':'streaming',
+    'tubi tv':'streaming',
+    'tubitv':'streaming',
+    'crackle':'streaming',
+    'sonycrackle':'streaming',
+    'roku':'streaming',
+    'roku premium':'streaming',
+    'rokucom':'streaming',
+    'sling tv':'streaming',
+    'slingtv':'streaming',
+    'fubotv':'streaming',
+    'fubo tv':'streaming',
+    'philo':'streaming',
+    'philo tv':'streaming',
+    'xumo':'streaming',
+    'xumo play':'streaming',
+    'vix':'streaming',
+    'vix plus':'streaming',
+    'shudder':'streaming',
+    'shudder tv':'streaming',
+    'britbox':'streaming',
+    'brit box':'streaming',
+    'acorn tv':'streaming',
+    'acorntv':'streaming',
+    'mubi':'streaming',
+    'mubi film':'streaming',
+    'sundance now':'streaming',
+    'criterion channel':'streaming',
+    'criterionchannel':'streaming',
+    'kanopy':'streaming',
+    'hoopla':'streaming',
+    'audible plus':'streaming',
+    'scribd':'streaming',
+    'everand':'streaming',
+    'storytel':'streaming',
+    'uber ride':'other',
+    'uber pool':'other',
+    'uber x':'other',
+    'lyft rides':'other',
+    'door dash':'other',
+    'grubhub':'other',
+    'grub hub':'other',
+    'seamless':'other',
+    'instacart plus':'other',
+    'postmates':'other',
+    'post mates':'other',
+    'caviar':'other',
+    'cornershop by uber':'other',
+    'skip the dishes canada':'other',
+    'skipthedishes canada':'other',
+    'fantuan':'other',
+    'fantuan delivery':'other',
+    'hungry panda':'other',
+    'hungrypanda':'other',
+    'gopuff':'other',
+    'go puff':'other',
+    'getir':'other',
+    'jokr':'other',
+    'turo cars':'other',
+    'getaround':'other',
+    'zip car':'other',
+    'car2go':'other',
+    'limebike':'other',
+    'lime scooters':'other',
+    'lime':'other',
+    'bird scooters':'other',
+    'bird':'other',
+    'veo scooters':'other',
+    'spin scooters':'other',
+    'petrocanada':'gas',
+    'petro can':'gas',
+    'esso gas':'gas',
+    'esso station':'gas',
+    'esso canada':'gas',
+    'shell canada':'gas',
+    'husky gas':'gas',
+    'husky energy':'gas',
+    'pioneer petroleum':'gas',
+    'ultramar gas':'gas',
+    'irving gas':'gas',
+    'coop fuel':'gas',
+    'centex gas':'gas',
+    'centex petroleum':'gas',
+    '7-eleven canada':'gas',
+    '7 eleven canada':'gas',
+    'circle-k':'gas',
+    'couche tard':'gas',
+    'couche-tard':'gas',
+    'couchetard':'gas',
+    'mac\'s convenience':'gas',
+    'macs convenience':'gas',
+    'macs milk':'gas',
+    'becker\'s':'gas',
+    'beckers':'gas',
+    'alimentation couche tard':'gas',
+    'winners canada':'shoppingAmex',
+    'winners retail':'shoppingAmex',
+    'home depot canada':'shoppingAmex',
+    'homedepotcanada':'shoppingAmex',
+    'lowe\'s canada':'shoppingAmex',
+    'ikea canada':'shoppingAmex',
+    'best buy canada':'shoppingAmex',
+    'bestbuycanada':'shoppingAmex',
+    'london drugs canada':'shoppingAmex',
+    'staples canada':'shoppingAmex',
+    'staples business':'shoppingAmex',
+    'indigo chapters canada':'shoppingAmex',
+    'chaptersindigo':'shoppingAmex',
+    'rexall canada':'shoppingAmex',
+    'shoppers online':'shoppingAmex',
+    'shoppersonline':'shoppingAmex',
+    'new balance store':'shoppingAmex',
+    'adidas canada':'shoppingAmex',
+    'adidas online':'shoppingAmex',
+    'nike canada':'shoppingAmex',
+    'reebok canada':'shoppingAmex',
+    'puma canada':'shoppingAmex',
+    'roots canada online':'shoppingAmex',
+    'sport chek canada':'shoppingAmex',
+    'source':'shoppingAmex',
+    'thesource':'shoppingAmex',
+    'microsoft store canada':'shoppingAmex',
+    'apple store canada':'shoppingAmex',
+    'best buy mobile':'shoppingAmex',
+    'rogers mobile':'rogers',
+    'telus mobile':'rogers',
+    'koodo mobile':'rogers',
+    'virgin mobile':'rogers',
+    'chatr mobile':'rogers',
+    'chatr wireless':'rogers',
+    'petro points':'other',
+    'pc mastercard':'other',
+    'pc financial pc':'other',
+    'tangerine bank':'other',
+    'eqbank':'other',
+    'simplii financial':'other',
+    'national bank':'other',
+    'laurentian bank':'other',
+    'wealthsimple cash':'other',
+    'questrade brokerage':'other',
+    'robinhood':'other',
+    'robinhood app':'other',
+    'webull':'other',
+    'web bull':'other',
+    'public.com':'other',
+    'public com':'other',
+    'charles schwab':'other',
+    'schwab':'other',
+    'fidelity':'other',
+    'fidelity investments':'other',
+    'td ameritrade':'other',
+    'vanguard':'other',
+    'vanguard investments':'other',
+    'coinbase':'other',
+    'coinbase pro':'other',
+    'coinbase advanced':'other',
+    'kraken':'other',
+    'kraken exchange':'other',
+    'binance':'other',
+    'binance us':'other',
+    'gemini exchange':'other',
+    'gemini crypto':'other',
+    'bitbuy':'other',
+    'bit buy':'other',
+    'ndax':'other',
+    'ndax exchange':'other',
+    'newton crypto':'other',
+    'newton canada':'other',
+    'shakepay':'other',
+    'shake pay':'other',
+    'mogo crypto':'other',
+    'koho card':'other',
+    'neo card':'other',
+    'moka':'other',
+    'moka app':'other',
+    'creditkarma':'other',
+    'coda':'other',
+    'coda pro':'other',
+    'airtable':'other',
+    'airtable pro':'other',
+    'monday com':'other',
+    'mondaycom':'other',
+    'asana premium':'other',
+    'todoist premium':'other',
+    'ticktick':'other',
+    'tick tick':'other',
+    'fantastical':'other',
+    'flexibits':'other',
+    'readdle documents':'other',
+    '1 password':'other',
+    'onepassword':'other',
+    'last pass':'other',
+    'dash lane':'other',
+    'bitwarden':'other',
+    'bit warden':'other',
+    'keeper security':'other',
+    'proton mail':'other',
+    'proton vpn':'other',
+    'protonvpn':'other',
+    'nord vpn':'other',
+    'express vpn':'other',
+    'surf shark':'other',
+    'mullvad vpn':'other',
+    'tunnelbear':'other',
+    'newsblur':'other',
+    'feedly':'other',
+    'feedly pro':'other',
+    'pocket app':'other',
+    'getpocket':'other',
+    'get pocket':'other',
+    'readwise':'other',
+    'read wise':'other',
+    'roam research':'other',
+    'roamresearch':'other',
+    'obsidian md':'other',
+    'logseq':'other',
+    'planetfitness':'other',
+    'la fitness':'other',
+    'lafitness':'other',
+    'orangetheory fitness':'other',
+    'f45 training':'other',
+    'soulcycle':'other',
+    'soul cycle':'other',
+    'barrys bootcamp':'other',
+    'barrys':'other',
+    'rumble boxing':'other',
+    'rumble':'other',
+    'equinox gym':'other',
+    'good life fitness':'other',
+    'fit 4 less':'other',
+    'ymcaca':'other',
+    '24 hour fitness':'other',
+    '24hr fitness':'other',
+    'gold\'s gym':'other',
+    'golds gym':'other',
+    'goldsgym':'other',
+    'crunch fitness':'other',
+    'crunch gym':'other',
+    'lifetime fitness':'other',
+    'life time fitness':'other',
+    'pure barre':'other',
+    'purebarre':'other',
+    'club pilates':'other',
+    'xponential fitness':'other',
+    'basecamp fitness':'other',
+    'solidcore':'other',
+    'solid core':'other',
+    'mindbody':'other',
+    'mind body':'other',
+    'classpass':'other',
+    'class pass':'other',
+    'lululemon studio':'other',
+    'lulu studio':'other',
+    'mirror':'other',
+    'mirror workout':'other',
+    'peloton':'other',
+    'peloton bike':'other',
+    'tonal':'other',
+    'tonal home gym':'other',
+    'calm app':'other',
+    'calm meditation':'other',
+    'head space':'other',
+    'massage envy':'shoppingAmex',
+    'european wax center':'shoppingAmex',
+    'european wax':'shoppingAmex',
+    'greatclips':'shoppingAmex',
+    'sally beauty':'shoppingAmex',
+    'sallybeauty':'shoppingAmex',
+    'm.a.c cosmetics':'shoppingAmex',
+    'charlotte tilbury':'shoppingAmex',
+    'e.l.f. cosmetics':'shoppingAmex',
+    'elf cosmetics':'shoppingAmex',
+    'elfcosmetics':'shoppingAmex',
+    'milk makeup':'shoppingAmex',
+    'kylie cosmetics':'shoppingAmex',
+    'kkw beauty':'shoppingAmex',
+    'huda beauty':'shoppingAmex',
+    'morphe cosmetics':'shoppingAmex',
+    'morphe':'shoppingAmex',
+    'nyx cosmetics':'shoppingAmex',
+    'nyx professional':'shoppingAmex',
+    'clinique cosmetics':'shoppingAmex',
+    'lancome':'shoppingAmex',
+    'lancôme':'shoppingAmex',
+    'shiseido':'shoppingAmex',
+    'laura mercier':'shoppingAmex',
+    'benefit cosmetics':'shoppingAmex',
+    'benefit':'shoppingAmex',
+    'tarte cosmetics':'shoppingAmex',
+    'tarte':'shoppingAmex',
+    'too faced cosmetics':'shoppingAmex',
+    'too faced':'shoppingAmex',
+    'urbandecay':'shoppingAmex',
+    'anastasia beverly hills':'shoppingAmex',
+    'abh':'shoppingAmex',
+    'il makiage':'shoppingAmex',
+    'ilia beauty':'shoppingAmex',
+    'rms beauty':'shoppingAmex',
+    'discount tire':'shoppingAmex',
+    'discounttire':'shoppingAmex',
+    'firestone tires':'shoppingAmex',
+    'firestone':'shoppingAmex',
+    'goodyear tires':'shoppingAmex',
+    'goodyear':'shoppingAmex',
+    'bridgestone tires':'shoppingAmex',
+    'bridgestone':'shoppingAmex',
+    'michelin tires':'shoppingAmex',
+    'michelin':'shoppingAmex',
+    'pepboys':'shoppingAmex',
+    'auto zone':'shoppingAmex',
+    'o\'reilly auto parts':'shoppingAmex',
+    'oreilly auto parts':'shoppingAmex',
+    'oreillyauto':'shoppingAmex',
+    'advanceautoparts':'shoppingAmex',
+    'napa auto parts':'shoppingAmex',
+    'napa autoparts':'shoppingAmex',
+    'jiffylube':'shoppingAmex',
+    'valvoline instant oil':'shoppingAmex',
+    'valvoline':'shoppingAmex',
+    'mr lube canada':'shoppingAmex',
+    'mrlube':'shoppingAmex',
+    'midas auto service':'shoppingAmex',
+    'meineke':'shoppingAmex',
+    'meineke car care':'shoppingAmex',
+    'u-haul':'travel',
+    'uhaul':'travel',
+    'u haul':'travel',
+    'budget truck rental':'travel',
+    'enterprise rental':'travel',
+    'hertz car rental':'travel',
+    'hertz rental':'travel',
+    'avis car rental':'travel',
+    'avis rental':'travel',
+    'budget rental':'travel',
+    'alamo car rental':'travel',
+    'alamo rental':'travel',
+    'thrifty car rental':'travel',
+    'dollar car rental':'travel',
+    'sixt rental':'travel',
+    'turo canada':'travel',
+    'kayak com':'travel',
+    'trivago':'travel',
+    'booking com':'travel',
+    'expedia canada':'travel',
+    'hotwire':'travel',
+    'hotelscom':'travel',
+    'vrbo canada':'travel',
+  };
+  var added = 0;
+  Object.keys(v97Extras).forEach(function(k){
+    if(!ALIASES[k]){ ALIASES[k] = v97Extras[k]; added++; }
+  });
+  window.__v97AdditionsAdded = added;
+  window.__v97TotalAliases = Object.keys(ALIASES).length;
+  try{ console.log('[V97] added',added,'new aliases — total is now',Object.keys(ALIASES).length); }catch(e){}
+})();
+
+</script>
+<script id="v95-brand-canonicalize">
+(function(){
+  var BRAND_CANONICAL = {
+    'cactus club':{name:'Cactus Club Cafe',category:'dining'},
+    'cactus club cafe':{name:'Cactus Club Cafe',category:'dining'},
+    'cactus club mexican':{name:'Cactus Club Cafe',category:'dining'},
+    'cactusclub':{name:'Cactus Club Cafe',category:'dining'},
+    'ccc':{name:'Cactus Club Cafe',category:'dining'},
+    'mary brown':{name:'Mary Brown\'s Chicken',category:'dining'},
+    'mary browns':{name:'Mary Brown\'s Chicken',category:'dining'},
+    'mary brown\'s':{name:'Mary Brown\'s Chicken',category:'dining'},
+    'marys browns':{name:'Mary Brown\'s Chicken',category:'dining'},
+    'marybrowns':{name:'Mary Brown\'s Chicken',category:'dining'},
+    'marybrowns chicken':{name:'Mary Brown\'s Chicken',category:'dining'},
+    'boston pizza':{name:'Boston Pizza',category:'dining'},
+    'bostonpizza':{name:'Boston Pizza',category:'dining'},
+    'bp pizza':{name:'Boston Pizza',category:'dining'},
+    'bp restaurant':{name:'Boston Pizza',category:'dining'},
+    'earls':{name:'Earls Kitchen + Bar',category:'dining'},
+    'earl':{name:'Earls Kitchen + Bar',category:'dining'},
+    'earl\'s':{name:'Earls Kitchen + Bar',category:'dining'},
+    'earls kitchen':{name:'Earls Kitchen + Bar',category:'dining'},
+    'earls kitchen bar':{name:'Earls Kitchen + Bar',category:'dining'},
+    'earls kitchen + bar':{name:'Earls Kitchen + Bar',category:'dining'},
+    'earls kitchen and bar':{name:'Earls Kitchen + Bar',category:'dining'},
+    'earls restaurant':{name:'Earls Kitchen + Bar',category:'dining'},
+    'browns':{name:'Browns Socialhouse',category:'dining'},
+    'browns socialhouse':{name:'Browns Socialhouse',category:'dining'},
+    'brown socialhouse':{name:'Browns Socialhouse',category:'dining'},
+    'joey':{name:'JOEY Restaurants',category:'dining'},
+    'joey restaurant':{name:'JOEY Restaurants',category:'dining'},
+    'joey kitchen':{name:'JOEY Restaurants',category:'dining'},
+    'joey local':{name:'JOEY Restaurants',category:'dining'},
+    'joey burrard':{name:'JOEY Restaurants',category:'dining'},
+    'phil and sebastian':{name:'Phil & Sebastian Coffee',category:'dining'},
+    'phil & sebastian':{name:'Phil & Sebastian Coffee',category:'dining'},
+    'phil sebastian':{name:'Phil & Sebastian Coffee',category:'dining'},
+    'philandsebastian':{name:'Phil & Sebastian Coffee',category:'dining'},
+    'phil&sebastian':{name:'Phil & Sebastian Coffee',category:'dining'},
+    'moxies':{name:'Moxie\'s Grill & Bar',category:'dining'},
+    'moxie\'s':{name:'Moxie\'s Grill & Bar',category:'dining'},
+    'moxies grill':{name:'Moxie\'s Grill & Bar',category:'dining'},
+    'moxies classic grill':{name:'Moxie\'s Grill & Bar',category:'dining'},
+    'chop steakhouse':{name:'Chop Steakhouse & Bar',category:'dining'},
+    'chop steakhouse and bar':{name:'Chop Steakhouse & Bar',category:'dining'},
+    'chop restaurant':{name:'Chop Steakhouse & Bar',category:'dining'},
+    'original joes':{name:'Original Joe\'s',category:'dining'},
+    'original joe\'s':{name:'Original Joe\'s',category:'dining'},
+    'oj\'s':{name:'Original Joe\'s',category:'dining'},
+    'ojs restaurant':{name:'Original Joe\'s',category:'dining'},
+    'osmows':{name:'Osmow\'s Grill',category:'dining'},
+    'osmow\'s':{name:'Osmow\'s Grill',category:'dining'},
+    'osmows grill':{name:'Osmow\'s Grill',category:'dining'},
+    'osmows shawarma':{name:'Osmow\'s Grill',category:'dining'},
+    'longo\'s':{name:'Longo\'s',category:'groceryAmex'},
+    'longos':{name:'Longo\'s',category:'groceryAmex'},
+    'longo\'s markets':{name:'Longo\'s',category:'groceryAmex'},
+    'longos markets':{name:'Longo\'s',category:'groceryAmex'},
+    'longo\'s market fresh':{name:'Longo\'s',category:'groceryAmex'},
+    'save on foods':{name:'Save-On-Foods',category:'groceryAmex'},
+    'save-on-foods':{name:'Save-On-Foods',category:'groceryAmex'},
+    'saveon':{name:'Save-On-Foods',category:'groceryAmex'},
+    'saveonfoods':{name:'Save-On-Foods',category:'groceryAmex'},
+    'save on':{name:'Save-On-Foods',category:'groceryAmex'},
+    'shoppers':{name:'Shoppers Drug Mart',category:'loblaws'},
+    'shoppers drug':{name:'Shoppers Drug Mart',category:'loblaws'},
+    'shoppers drug mart':{name:'Shoppers Drug Mart',category:'loblaws'},
+    'good earth':{name:'Good Earth Coffeehouse',category:'dining'},
+    'good earth cafe':{name:'Good Earth Coffeehouse',category:'dining'},
+    'good earth coffeehouse':{name:'Good Earth Coffeehouse',category:'dining'},
+    'goodearth':{name:'Good Earth Coffeehouse',category:'dining'},
+    'chick fil a':{name:'Chick-fil-A',category:'dining'},
+    'chick-fil-a':{name:'Chick-fil-A',category:'dining'},
+    'chickfila':{name:'Chick-fil-A',category:'dining'},
+    'chick-fil-a restaurant':{name:'Chick-fil-A',category:'dining'},
+    'chipotle':{name:'Chipotle Mexican Grill',category:'dining'},
+    'chipotle mexican grill':{name:'Chipotle Mexican Grill',category:'dining'},
+    'chipotle grill':{name:'Chipotle Mexican Grill',category:'dining'},
+    'taco bell':{name:'Taco Bell',category:'dining'},
+    'tacobell':{name:'Taco Bell',category:'dining'},
+    'taco bell cantina':{name:'Taco Bell',category:'dining'},
+    'mcdonald\'s':{name:'McDonald\'s',category:'dining'},
+    'mcdonalds':{name:'McDonald\'s',category:'dining'},
+    'mcd':{name:'McDonald\'s',category:'dining'},
+    'mickey d':{name:'McDonald\'s',category:'dining'},
+    'mickey ds':{name:'McDonald\'s',category:'dining'},
+    'starbucks':{name:'Starbucks',category:'dining'},
+    'starbucks app':{name:'Starbucks',category:'dining'},
+    'starbucks coffee':{name:'Starbucks',category:'dining'},
+    'tim hortons':{name:'Tim Hortons',category:'dining'},
+    'timhortons':{name:'Tim Hortons',category:'dining'},
+    'tims':{name:'Tim Hortons',category:'dining'},
+    'timmys':{name:'Tim Hortons',category:'dining'},
+    'costco':{name:'Costco',category:'costco'},
+    'costco wholesale':{name:'Costco',category:'costco'},
+    'costco warehouse':{name:'Costco',category:'costco'},
+    'costco gas':{name:'Costco Gas',category:'costco'},
+    'walmart':{name:'Walmart',category:'walmart'},
+    'walmart canada':{name:'Walmart',category:'walmart'},
+    'walmart supercentre':{name:'Walmart',category:'walmart'},
+    'walmart supercenter':{name:'Walmart',category:'walmart'},
+    'target':{name:'Target',category:'shoppingAmex'},
+    'target store':{name:'Target',category:'shoppingAmex'},
+    'target.com':{name:'Target',category:'shoppingAmex'},
+    'nordstrom rack':{name:'Nordstrom Rack',category:'shoppingAmex'},
+    'nordstromrack':{name:'Nordstrom Rack',category:'shoppingAmex'},
+    'nordstrom':{name:'Nordstrom',category:'shoppingAmex'},
+    'trader joe\'s':{name:'Trader Joe\'s',category:'groceryAmex'},
+    'trader joes':{name:'Trader Joe\'s',category:'groceryAmex'},
+    'traderjoes':{name:'Trader Joe\'s',category:'groceryAmex'},
+  };
+  function canonKey(name){
+    if(!name) return '';
+    return String(name).toLowerCase()
+      .replace(/[^a-z0-9\s'&\-+]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+  function isBad(v){ return v === undefined || v === null || v === '' || String(v) === 'undefined'; }
+  var CAT_EMOJI = {
+    dining: '\uD83C\uDF7D\uFE0F',
+    groceryAmex: '\uD83D\uDED2', groceryNo: '\uD83D\uDED2', loblaws: '\uD83D\uDED2',
+    gas: '\u26FD', transit: '\uD83D\uDE87', streaming: '\uD83D\uDCFA',
+    shopping: '\uD83D\uDECD\uFE0F', shoppingAmex: '\uD83D\uDECD\uFE0F',
+    costco: '\uD83C\uDFEA', walmart: '\uD83D\uDED2',
+    travel: '\u2708\uFE0F', marriott: '\uD83C\uDFE8', cineplex: '\uD83C\uDFAC',
+    usd: '\uD83D\uDCB5', rogers: '\uD83D\uDCF1', other: '\uD83D\uDCB3'
+  };
+  var CAT_LABEL = {
+    dining:'Dining', groceryAmex:'Groceries', groceryNo:'Groceries', loblaws:'Groceries',
+    gas:'Gas', transit:'Transit', streaming:'Streaming',
+    shopping:'Shopping', shoppingAmex:'Shopping', costco:'Costco', walmart:'Walmart',
+    travel:'Travel', marriott:'Marriott', cineplex:'Cineplex',
+    usd:'USD / Foreign', rogers:'Rogers / Fido', other:'Other'
+  };
+
+  function apply(){
+    if(typeof MERCHANT_DIRECTORY === 'undefined' || !Array.isArray(MERCHANT_DIRECTORY)) return;
+    // Canonicalize brand names
+    MERCHANT_DIRECTORY.forEach(function(e){
+      if(!e || !e.name) return;
+      var n = String(e.name).replace(/\\'/g,"'").replace(/\\/g,'').replace(/\s+/g,' ').trim();
+      e.name = n;
+      var key = canonKey(n);
+      if(BRAND_CANONICAL[key]){
+        e.name = BRAND_CANONICAL[key].name;
+        e.category = BRAND_CANONICAL[key].category;
+      }
+    });
+    // Backfill emoji + label
+    MERCHANT_DIRECTORY.forEach(function(e){
+      if(!e) return;
+      var cat = e.category || e.cat || 'other';
+      var emo = CAT_EMOJI[cat] || '\uD83D\uDCB3';
+      var lbl = CAT_LABEL[cat] || 'Other';
+      if(isBad(e.emoji)) e.emoji = emo;
+      if(isBad(e.e)) e.e = e.emoji;
+      if(isBad(e.ico)) e.ico = e.emoji;
+      if(isBad(e.icon)) e.icon = e.emoji;
+      if(!e.category) e.category = cat;
+      if(!e.cat) e.cat = e.category;
+      if(!e.catLabel) e.catLabel = lbl;
+      if(!e.catLbl) e.catLbl = lbl;
+      if(!e.categoryLabel) e.categoryLabel = lbl;
+    });
+    // Dedupe by exact (name, category) tuple after canonicalization
+    var seen = {};
+    var kept = [];
+    MERCHANT_DIRECTORY.forEach(function(e){
+      if(!e || !e.name) return;
+      var sig = e.name.toLowerCase() + '|' + (e.category || '');
+      if(!seen[sig]){ seen[sig] = true; kept.push(e); }
+    });
+    if(kept.length !== MERCHANT_DIRECTORY.length){
+      MERCHANT_DIRECTORY.length = 0;
+      kept.forEach(function(e){ MERCHANT_DIRECTORY.push(e); });
+    }
+    window.__v95CanonicalizedCount = MERCHANT_DIRECTORY.length;
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', apply);
+  } else {
+    apply();
+  }
+  setTimeout(apply, 500);
+  setTimeout(apply, 1500);
+  setTimeout(apply, 3500);
+  setInterval(apply, 4000);
+})();
+</script>
+
+<script id="v94-dedupe">
+(function(){
+  function apply(){
+    if(window.__v94Deduped) return;
+    if(typeof MERCHANT_DIRECTORY === 'undefined' || !Array.isArray(MERCHANT_DIRECTORY)) return;
+
+    var CAT_EMOJI = {
+      dining: '\uD83C\uDF7D\uFE0F',
+      groceryAmex: '\uD83D\uDED2', groceryNo: '\uD83D\uDED2', loblaws: '\uD83D\uDED2',
+      gas: '\u26FD', transit: '\uD83D\uDE87', streaming: '\uD83D\uDCFA',
+      shopping: '\uD83D\uDECD\uFE0F', shoppingAmex: '\uD83D\uDECD\uFE0F',
+      costco: '\uD83C\uDFEA', walmart: '\uD83D\uDED2',
+      travel: '\u2708\uFE0F', marriott: '\uD83C\uDFE8', cineplex: '\uD83C\uDFAC',
+      usd: '\uD83D\uDCB5', rogers: '\uD83D\uDCF1', other: '\uD83D\uDCB3'
+    };
+    var CAT_LABEL = {
+      dining:'Dining', groceryAmex:'Groceries', groceryNo:'Groceries', loblaws:'Groceries',
+      gas:'Gas', transit:'Transit', streaming:'Streaming',
+      shopping:'Shopping', shoppingAmex:'Shopping', costco:'Costco', walmart:'Walmart',
+      travel:'Travel', marriott:'Marriott', cineplex:'Cineplex',
+      usd:'USD / Foreign', rogers:'Rogers / Fido', other:'Other'
+    };
+    function isBad(v){ return v === undefined || v === null || v === '' || String(v) === 'undefined'; }
+
+    // Clean backslashes + collapse whitespace
+    MERCHANT_DIRECTORY.forEach(function(e){
+      if(!e || !e.name) return;
+      var n = String(e.name).replace(/\\'/g, "'").replace(/\\/g, '').replace(/\s+/g, ' ').trim();
+      e.name = n;
+      var cat = e.category || e.cat || 'other';
+      var emo = CAT_EMOJI[cat] || '\uD83D\uDCB3';
+      var lbl = CAT_LABEL[cat] || 'Other';
+      if(isBad(e.emoji)) e.emoji = emo;
+      if(isBad(e.e)) e.e = e.emoji;
+      if(isBad(e.ico)) e.ico = e.emoji;
+      if(isBad(e.icon)) e.icon = e.emoji;
+      if(!e.category) e.category = cat;
+      if(!e.cat) e.cat = e.category;
+      if(!e.catLabel) e.catLabel = lbl;
+      if(!e.catLbl) e.catLbl = lbl;
+      if(!e.categoryLabel) e.categoryLabel = lbl;
+    });
+
+    var STRIP_ARR = ['kitchen','kitchens','bar','bars','grill','grille','restaurant','restaurants',
+      'cafe','cafes','coffee','coffeehouse','coffeeroasters','roasters','roasted',
+      'pizza','pizzas','bakery','bakeries','steakhouse','steak','roadhouse','cookhouse','bistro',
+      'family','market','markets','mart','marts','foods','food','grocery','groceries',
+      'pharmacy','pharmacies','drug','wines','wine','beer','beers','shop','shoppe','shops',
+      'club','clubs','centre','center','store','stores','espresso','sushi','shawarma','gyros',
+      'burger','burgers','chicken','deli','delis','house','houses','place','places',
+      'joint','joints','spot','spots','company','co','corp','inc','ltd','of','greece',
+      'canada','usa','world','elite','signature','platinum','preferred','classic','expert',
+      'business','gourmet','fine','fresh','organic','socialhouse','social','local','locations','locale','warehouse'];
+    var STRIP_SET = {};
+    STRIP_ARR.forEach(function(w){ STRIP_SET[w] = 1; });
+    var STRIP_SORTED = STRIP_ARR.slice().filter(function(w){return w.length >= 3;}).sort(function(a,b){return b.length - a.length;});
+    var FILLER_MID = {and:1, plus:1, the:1, a:1, an:1, of:1, de:1, du:1};
+
+    function canonKey(name){
+      var s = String(name||'').toLowerCase();
+      s = s.replace(/&/g,' and ').replace(/\+/g,' plus ');
+      s = s.replace(/[^a-z0-9\s]+/g,' ').replace(/\s+/g,' ').trim();
+      var words = s.split(' ').filter(function(w){ return w.length >= 2; });
+      words = words.filter(function(w){ return !FILLER_MID[w]; });
+      while(words.length > 1 && words[0] === 'the') words.shift();
+      while(words.length > 1 && STRIP_SET[words[words.length-1]]) words.pop();
+      words = words.map(function(w){
+        return (w.length > 3 && w.charAt(w.length-1) === 's' && w.charAt(w.length-2) !== 's') ? w.substring(0, w.length-1) : w;
+      });
+      var compact = words.join('');
+      var changed = true;
+      while(changed && compact.length > 3){
+        changed = false;
+        for(var i = 0; i < STRIP_SORTED.length; i++){
+          var sw = STRIP_SORTED[i];
+          if(compact.length - sw.length >= 3 && compact.substring(compact.length - sw.length) === sw){
+            compact = compact.substring(0, compact.length - sw.length);
+            changed = true;
+            break;
+          }
+        }
+      }
+      return compact;
+    }
+
+    function displayScore(name){
+      var s = String(name||'');
+      var m = s.match(/[\s'&+\-]/g);
+      return m ? m.length : 0;
+    }
+
+    var byKey = {};
+    var order = [];
+    var beforeCount = MERCHANT_DIRECTORY.length;
+
+    MERCHANT_DIRECTORY.forEach(function(e){
+      if(!e || !e.name) return;
+      var key = canonKey(e.name);
+      var cat = e.category || 'other';
+      if(!key) key = String(e.name).toLowerCase().replace(/[^a-z0-9]/g, '');
+      var gid = key + '|' + cat;
+      var existing = byKey[gid];
+      if(!existing){
+        byKey[gid] = e;
+        order.push(gid);
+      } else {
+        var eScore = displayScore(e.name);
+        var xScore = displayScore(existing.name);
+        if(eScore > xScore){ byKey[gid] = e; }
+        else if(eScore === xScore && String(e.name).length < String(existing.name).length){ byKey[gid] = e; }
+      }
+    });
+
+    var kept = order.map(function(id){ return byKey[id]; });
+
+    function firstTokens(name){
+      var s = String(name||'').toLowerCase();
+      s = s.replace(/&/g,' and ').replace(/\+/g,' plus ');
+      s = s.replace(/[^a-z0-9\s]+/g,' ').replace(/\s+/g,' ').trim();
+      return s.split(' ').filter(function(w){ return w.length >= 2; });
+    }
+
+    var byCat = {};
+    kept.forEach(function(e){
+      var cat = e.category || 'other';
+      if(!byCat[cat]) byCat[cat] = [];
+      byCat[cat].push({tokens: firstTokens(e.name), ref: e});
+    });
+
+    var toRemove = new Set();
+    kept.forEach(function(e){
+      var tokens = firstTokens(e.name);
+      if(tokens.length !== 1) return;
+      var word = tokens[0];
+      var cat = e.category || 'other';
+      var siblings = byCat[cat] || [];
+      for(var i = 0; i < siblings.length; i++){
+        var s = siblings[i];
+        if(s.ref === e) continue;
+        if(s.tokens.length < 2) continue;
+        if(s.tokens[0] !== word) continue;
+        var hasDist = false;
+        for(var j = 1; j < s.tokens.length; j++){
+          if(!STRIP_SET[s.tokens[j]]){ hasDist = true; break; }
+        }
+        if(hasDist){ toRemove.add(e); break; }
+      }
+    });
+
+    var finalList = kept.filter(function(e){ return !toRemove.has(e); });
+
+    MERCHANT_DIRECTORY.length = 0;
+    finalList.forEach(function(e){ MERCHANT_DIRECTORY.push(e); });
+
+    window.__v94Deduped = true;
+    window.__v94BeforeCount = beforeCount;
+    window.__v94AfterCount = MERCHANT_DIRECTORY.length;
+    window.__v94AmbiguousRemoved = toRemove.size;
+    try{ console.log('[V94] MERCHANT_DIRECTORY final: '+beforeCount+' -> '+MERCHANT_DIRECTORY.length+' ('+toRemove.size+' ambiguous singles removed)'); }catch(e){}
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', apply);
+  } else {
+    apply();
+  }
+  setTimeout(apply, 400);
+  setTimeout(apply, 1500);
+  setTimeout(apply, 4000);
+})();
+</script>
+<script id="v94-homepage-stat">
+(function(){
+  function updateStat(){
+    try{
+      var el = document.getElementById('v89StatMerchants');
+      if(!el) return;
+      // V95: no gate needed — ALIASES is always ready
+      if(typeof MERCHANT_DIRECTORY === 'undefined' || !Array.isArray(MERCHANT_DIRECTORY)) return;
+      var total = (typeof ALIASES === 'object' && ALIASES) ? Object.keys(ALIASES).length : MERCHANT_DIRECTORY.length;
+      if(total <= 0) return;
+      var rounded = Math.floor(total / 50) * 50;
+      if(rounded < 3500) rounded = 3500;
+      var target = rounded.toLocaleString('en-US') + '+';
+      if(el.textContent !== target) el.textContent = target;
+    }catch(e){}
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', updateStat);
+  } else {
+    updateStat();
+  }
+  setTimeout(updateStat, 600);
+  setTimeout(updateStat, 2000);
+  setTimeout(updateStat, 5000);
+  setInterval(updateStat, 1500);
+})();
+</script>
+
+
+<script id="v96-rewards-studio">
+(function(){
+  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  function fmt(v){ if(!isFinite(v) || v == null) return '$0.00'; return '$' + (Math.round(v*100)/100).toFixed(2); }
+  function fmtInt(v){ return String(Math.round(v || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+
+  var PROGRAMS = {
+    aeroplan: {
+      name: 'Aeroplan', icon: '\u2708\uFE0F', unit: 'pts',
+      redemptions: [
+        { label: '\u2708\uFE0F Flights (sweet-spot chart)', cpp: 0.021, best: true, tip: 'Best value: North America short-haul (~10k-25k pts) or business-class transfer partners (25-50k pts).' },
+        { label: '\uD83C\uDFE8 Hotels / vacations', cpp: 0.010 },
+        { label: '\uD83D\uDECD\uFE0F Merchandise', cpp: 0.010 },
+        { label: '\uD83D\uDCB5 Cash / statement credit', cpp: 0.010 }
+      ]
+    },
+    mr: {
+      name: 'Amex Membership Rewards', icon: '\uD83D\uDD35', unit: 'MR',
+      redemptions: [
+        { label: '\u2708\uFE0F Transfer to Aeroplan (1:1)', cpp: 0.015, best: true, tip: 'Transfer 1:1 to Aeroplan, then redeem on the sweet-spot flight chart. This is the single best use of MR in Canada.' },
+        { label: '\uD83C\uDFE8 Transfer to Marriott Bonvoy (5:6)', cpp: 0.010 },
+        { label: '\uD83D\uDCB5 Statement credit', cpp: 0.010 },
+        { label: '\uD83D\uDECD\uFE0F Amazon.ca / online', cpp: 0.007 }
+      ]
+    },
+    'scene+': {
+      name: 'Scene+', icon: '\uD83C\uDFAC', unit: 'pts',
+      redemptions: [
+        { label: '\uD83D\uDCB5 Statement credit (Scotia CC)', cpp: 0.010, best: true, tip: 'Open the Scene+ app, tap Redeem, then Statement Credit. Scene+ points cash out 1:1 against your Scotia credit card statement - no travel booking, no minimums.' },
+        { label: '\uD83C\uDFAC Cineplex tickets', cpp: 0.010 },
+        { label: '\uD83D\uDED2 Sobeys / Empire grocery', cpp: 0.010 },
+        { label: '\u2708\uFE0F Scene+ Travel', cpp: 0.010 }
+      ]
+    },
+    pcoptimum: {
+      name: 'PC Optimum', icon: '\uD83D\uDED2', unit: 'pts',
+      redemptions: [
+        { label: '\uD83D\uDED2 Loblaws / Superstore / No Frills', cpp: 0.001, best: true, tip: 'Wait for a 20x on everything or Spend Your Points day to nearly double effective value. Check the PC Optimum app every week.' },
+        { label: '\uD83D\uDC8A Shoppers Drug Mart', cpp: 0.001 }
+      ]
+    },
+    rogers: {
+      name: 'Rogers Cash', icon: '\uD83D\uDCF1', unit: '$', cashLike: true,
+      redemptions: [
+        { label: '\uD83D\uDCF1 Rogers / Fido bill (1.5x boost)', cpp: 0.015, best: true, tip: 'Redeem Rogers Cash against a Rogers, Fido, or chatr bill for a full 50% boost. $100 Rogers Cash = $150 off your bill.' },
+        { label: '\uD83D\uDCB5 Statement credit (any purchase)', cpp: 0.010 }
+      ]
+    },
+    bonvoy: {
+      name: 'Marriott Bonvoy', icon: '\uD83C\uDFE8', unit: 'pts',
+      redemptions: [
+        { label: '\uD83C\uDFE8 Peak-night hotels + 5th night free', cpp: 0.011, best: true, tip: 'On 5+ night stays, Bonvoy waives the cheapest night. Peak-night category 4-6 hotels punch above weight.' },
+        { label: '\uD83C\uDFE8 Standard hotel nights', cpp: 0.008 },
+        { label: '\u2708\uFE0F Airline transfer (3:1)', cpp: 0.006 }
+      ]
+    },
+    bluerewards: {
+      name: 'BMO Blue Rewards', icon: '\uD83D\uDD35', unit: 'pts',
+      redemptions: [
+        { label: '\uD83D\uDECD\uFE0F Merchandise / travel via BMO', cpp: 0.0067, best: true },
+        { label: '\uD83D\uDCB5 Cash / statement credit', cpp: 0.0067 }
+      ]
+    },
+    avion: {
+      name: 'RBC Avion', icon: '\u2708\uFE0F', unit: 'pts',
+      redemptions: [
+        { label: '\u2708\uFE0F Air Travel Redemption chart', cpp: 0.020, best: true, tip: 'The fixed short-haul chart (~15,000 pts for a $350 flight) beats the 1 pt = 1 cent travel calculator every time.' },
+        { label: '\u2708\uFE0F Transfer to British Airways Avios', cpp: 0.015 },
+        { label: '\uD83D\uDCB5 Cash / statement credit', cpp: 0.010 }
+      ]
+    },
+    airmiles: {
+      name: 'AIR MILES', icon: '\uD83C\uDF0D', unit: 'miles',
+      redemptions: [
+        { label: '\u2708\uFE0F Flights (Dream)', cpp: 0.105, best: true },
+        { label: '\uD83D\uDECD\uFE0F Merchandise / Cash', cpp: 0.105 }
+      ]
+    },
+    hsbc: {
+      name: 'HSBC Rewards', icon: '\uD83C\uDF39', unit: 'pts',
+      redemptions: [
+        { label: '\u2708\uFE0F Travel', cpp: 0.005, best: true },
+        { label: '\uD83D\uDCB5 Cash', cpp: 0.005 }
+      ]
+    },
+    td: {
+      name: 'TD Rewards', icon: '\uD83D\uDFE2', unit: 'pts',
+      redemptions: [
+        { label: '\u2708\uFE0F Expedia for TD (best)', cpp: 0.005, best: true },
+        { label: '\uD83D\uDCB5 Cash', cpp: 0.0025 }
+      ]
+    },
+    aventura: {
+      name: 'CIBC Aventura', icon: '\u2708\uFE0F', unit: 'pts',
+      redemptions: [
+        { label: '\u2708\uFE0F Fixed flight chart (best)', cpp: 0.020, best: true, tip: 'Aventura Flight Rewards Chart gives 2cpp on short-haul flights. Beats travel dollars for anything under $700.' },
+        { label: '\uD83D\uDCB5 Travel dollars / cash', cpp: 0.010 }
+      ]
+    },
+    bmo: {
+      name: 'BMO Rewards', icon: '\uD83D\uDD35', unit: 'pts',
+      redemptions: [
+        { label: '\u2708\uFE0F Travel', cpp: 0.007, best: true },
+        { label: '\uD83D\uDECD\uFE0F Merchandise', cpp: 0.005 },
+        { label: '\uD83D\uDCB5 Cash', cpp: 0.005 }
+      ]
+    },
+    morerewards: {
+      name: 'More Rewards', icon: '\uD83D\uDED2', unit: 'pts',
+      redemptions: [
+        { label: '\uD83D\uDED2 Save-On-Foods (best)', cpp: 0.010, best: true },
+        { label: '\u2708\uFE0F Travel', cpp: 0.010 },
+        { label: '\uD83D\uDCB5 Cash', cpp: 0.010 }
+      ]
+    }
+  };
+
+  function programFor(m){
+    if(!m) return null;
+    var k = String(m.key || m.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    var directMap = {
+      'aeroplan': 'aeroplan', 'aircanada': 'aeroplan',
+      'amexmr': 'mr', 'mr': 'mr', 'membershiprewards': 'mr', 'amexmembershiprewards': 'mr',
+      'sceneplus': 'scene+', 'scene': 'scene+',
+      'pcoptimum': 'pcoptimum', 'pcpoints': 'pcoptimum', 'pc': 'pcoptimum',
+      'rogers': 'rogers', 'rogerscash': 'rogers', 'rogersrewards': 'rogers',
+      'bonvoy': 'bonvoy', 'marriottbonvoy': 'bonvoy', 'marriott': 'bonvoy',
+      'bluerewards': 'bluerewards', 'bmoblue': 'bluerewards',
+      'avion': 'avion', 'rbcavion': 'avion', 'rbcrewards': 'avion',
+      'airmiles': 'airmiles',
+      'hsbc': 'hsbc', 'hsbcrewards': 'hsbc',
+      'td': 'td', 'tdrewards': 'td',
+      'aventura': 'aventura', 'cibcaventura': 'aventura', 'cibcrewards': 'aventura',
+      'bmo': 'bmo', 'bmorewards': 'bmo',
+      'morerewards': 'morerewards'
+    };
+    return PROGRAMS[directMap[k]] || null;
+  }
+
+  function synergiesFor(cards){
+    var cardStr = (cards || []).join(' ').toLowerCase();
+    var list = [
+      { icon: '\uD83D\uDCF1', title: 'Rogers Cash \u2192 1.5x bill boost', trigger: /rogers|fido/i, badge: '1.5\u00d7 REDEMPTION',
+        body: 'You own a <b>Rogers World Elite Mastercard</b>. Redeem your Rogers Cash directly against your Rogers, Fido, or chatr bill for a full <b>50% redemption boost</b> - $100 Rogers Cash = $150 off your bill. Never redeem as statement credit unless you have to.' },
+      { icon: '\u2708\uFE0F', title: 'Amex MR \u2192 Aeroplan transfer', trigger: /cobalt|amex|american express|mr\b|membership rewards|amex gold|amex platinum|business gold|business platinum/i, badge: 'BEST MR USE',
+        body: 'You have an <b>MR-earning Amex</b>. Transfer MR to Aeroplan 1:1, then book on the Aeroplan flight chart. Sweet spots: <b>10-15k pts</b> for North American short-haul, <b>50-70k pts</b> for business-class transatlantic. Effectively <b>1.5\u00a2/pt+</b>.' },
+      { icon: '\uD83C\uDFAC', title: 'Scene+ statement credit hack', trigger: /scotia|scene|tangerine|momentum|passport|gold amex/i, badge: '1cpp CASH',
+        body: 'You own a <b>Scotia / Scene+</b> earning card. Open the Scene+ app, tap Redeem, then <b>Statement Credit</b>. Scene+ points cash out 1:1 against your Scotia credit card statement - no travel booking, no minimums. Underrated best use of Scene+.' },
+      { icon: '\uD83C\uDFE8', title: 'Bonvoy free-night certificate', trigger: /bonvoy|marriott/i, badge: 'ANNUAL PERK',
+        body: 'You own a <b>Marriott Bonvoy Amex</b>. The annual <b>35,000-pt free-night certificate</b> alone is often worth $200-400+ (peak category 4-5 hotels). Keep this card even in a keep-or-cancel year - the cert pays the $120 fee.' },
+      { icon: '\uD83D\uDED2', title: 'PC Optimum 20x days', trigger: /./i, badge: 'FREE STACK',
+        body: 'Everyone benefits: watch the PC Optimum app for <b>20x the points targeted offers</b> (usually on weekends). Stack it with the <b>PC Insiders World Elite MC</b> (45 pts/$) at Loblaws for effectively <b>6.5%+ back</b>. No annual fee for the base PC MC.' },
+      { icon: '\u26FD', title: 'RBC \u2192 Petro-Canada 3\u00a2/L link', trigger: /rbc|royal bank|avion|ion/i, badge: '3\u00a2/L SAVE',
+        body: 'You have an <b>RBC card</b>. Link it to your Petro-Points account for an instant <b>3\u00a2 off/L</b> at every Petro-Canada fillup. On top of the base rewards, this is an extra 2% back on fuel and takes 60 seconds to set up in the Petro-Canada app.' }
+    ];
+    return list.map(function(s){ s.unlocked = s.trigger.test(cardStr); return s; });
+  }
+
+  function mergeInsightsIntoTx(){
+    try{
+      var viewTx = document.getElementById('viewTx');
+      if(!viewTx) return;
+      if(viewTx.dataset.v96Insights === '1') return;
+      var strip = viewTx.querySelector('.v96-insights-strip');
+      if(!strip){
+        strip = document.createElement('div');
+        strip.className = 'v96-insights-strip';
+        viewTx.insertBefore(strip, viewTx.firstChild);
+      }
+      var overview = document.getElementById('viewOverview');
+      if(overview){
+        ['overviewMissed','overviewSubs','overviewTip'].forEach(function(id){
+          var n = document.getElementById(id);
+          if(n && n.parentNode !== strip){ strip.appendChild(n); }
+        });
+        var hiddenNote = overview.querySelector('.v86-hidden-note');
+        if(hiddenNote && hiddenNote.parentNode !== strip){ strip.appendChild(hiddenNote); }
+      }
+      viewTx.dataset.v96Insights = '1';
+    }catch(e){}
+  }
+
+  function modifyTabs(){
+    try{
+      var subtabs = document.getElementById('rewardsSubtabs');
+      if(!subtabs) return;
+      if(subtabs.dataset.v96Tabs === '1') return;
+      subtabs.style.gridTemplateColumns = 'repeat(5,1fr)';
+      if(!subtabs.querySelector('button[data-view="optimize"]')){
+        var vaultBtn = subtabs.querySelector('button[data-view="vault"]');
+        var optBtn = document.createElement('button');
+        optBtn.setAttribute('data-view','optimize');
+        optBtn.setAttribute('title','Optimize your points');
+        optBtn.setAttribute('onclick',"switchRewardsView('optimize')");
+        optBtn.textContent = '\uD83D\uDC8E';
+        if(vaultBtn){ subtabs.insertBefore(optBtn, vaultBtn); } else { subtabs.appendChild(optBtn); }
+      }
+      subtabs.dataset.v96Tabs = '1';
+    }catch(e){}
+  }
+
+  function injectOptimizeView(){
+    try{
+      if(document.getElementById('viewOptimize')) return;
+      var rewards = document.getElementById('rewards');
+      if(!rewards) return;
+      var vault = document.getElementById('viewVault');
+      var opt = document.createElement('div');
+      opt.id = 'viewOptimize';
+      opt.className = 'rewards-view';
+      opt.innerHTML = '<div class="v96-opt-hero"><div class="v96-oh-label">\uD83D\uDC8E Redemption Optimizer</div><div class="v96-oh-value" id="v96OptTotal">$0.00</div><div class="v96-oh-sub">Cash-equivalent value of your points, optimized for the best redemption per program</div><div class="v96-oh-mini"><div class="m"><div class="l">Programs</div><div class="v" id="v96OptPrograms">0</div></div><div class="m"><div class="l">Best CPP</div><div class="v" id="v96OptBestCPP">\u2014</div></div><div class="m"><div class="l">Synergies</div><div class="v" id="v96OptSyn">0</div></div></div></div><div id="v96OptBody"></div>';
+      if(vault && vault.parentNode){ vault.parentNode.insertBefore(opt, vault); } else { rewards.appendChild(opt); }
+    }catch(e){}
+  }
+
+  function readMemberships(){
+    try{
+      var raw = localStorage.getItem('walletiq_memberships');
+      var arr = raw ? JSON.parse(raw) : [];
+      if(!Array.isArray(arr)) arr = [];
+      return arr;
+    }catch(e){ return []; }
+  }
+
+  function readWalletCardNames(){
+    try{
+      if(typeof userWallet !== 'undefined' && userWallet && typeof userWallet.forEach === 'function' && typeof CARDS_DB !== 'undefined'){
+        var out = [];
+        userWallet.forEach(function(key){
+          var c = CARDS_DB && CARDS_DB[key];
+          if(c && c.n) out.push(c.n);
+          else if(typeof key === 'string') out.push(key);
+        });
+        if(out.length > 0) return out;
+      }
+    }catch(e){}
+    try{
+      var raw = localStorage.getItem('walletiq_wallet');
+      if(raw){ var p = JSON.parse(raw); if(Array.isArray(p)) return p; }
+    }catch(e){}
+    return [];
+  }
+
+  function renderOptimizer(){
+    try{
+      var body = document.getElementById('v96OptBody');
+      if(!body) return;
+      var mems = readMemberships();
+      var cards = readWalletCardNames();
+      var syns = synergiesFor(cards);
+
+      var totalDollars = 0, programCount = 0, bestCPP = 0;
+
+      if(mems.length === 0){
+        body.innerHTML = '<div class="v96-opt-empty"><div class="big">\uD83D\uDCB0</div><h4>No memberships yet</h4><p>Add your loyalty programs (Aeroplan, PC Optimum, Scene+, Bonvoy, Rogers Cash, etc.) in the Points Vault. We\u2019ll show you the exact best way to burn each one.</p><button type="button" onclick="switchRewardsView(\'vault\')">Open Points Vault \u2192</button></div>';
+      } else {
+        var out = '';
+        out += '<div class="v96-opt-section-title"><span>Your programs \u2014 best redemptions</span></div>';
+        mems.forEach(function(m){
+          if(!m) return;
+          var prog = programFor(m);
+          var balance = parseFloat(m.balance) || 0;
+          var name = esc(m.name || (prog ? prog.name : 'Points'));
+          var icon = m.emoji || (prog ? prog.icon : '\uD83D\uDCB3');
+          var unit = m.unit || (prog ? prog.unit : 'pts');
+          var redemptions = prog ? prog.redemptions : [{ label: '\uD83D\uDCB5 Cash equivalent', cpp: parseFloat(m.cpp) || 0.005, best: true, tip: '' }];
+          var best = redemptions.find(function(r){ return r.best; }) || redemptions[0];
+          totalDollars += balance * (best.cpp || 0);
+          programCount++;
+          if(best.cpp > bestCPP) bestCPP = best.cpp;
+
+          var balDisplay = unit === '$' ? fmt(balance) : fmtInt(balance) + ' ' + esc(unit);
+
+          out += '<div class="v96-opt-card">';
+          out += '<div class="v96-opt-card-head">';
+          out += '<div class="v96-opt-card-icon">' + icon + '</div>';
+          out += '<div class="v96-opt-card-mid"><div class="v96-opt-card-title">' + name + '</div><div class="v96-opt-card-sub">Balance</div></div>';
+          out += '<div class="v96-opt-card-bal"><div class="b">' + balDisplay + '</div><div class="bl">Best = ' + fmt(balance * (best.cpp || 0)) + '</div></div>';
+          out += '</div>';
+
+          redemptions.forEach(function(r){
+            var v = balance * (r.cpp || 0);
+            var cls = r.best ? 'rv best' : (v <= 0 ? 'rv dim' : 'rv');
+            var cppStr = r.cpp ? (r.cpp >= 0.01 ? (Math.round(r.cpp * 100) / 100).toFixed(2) : (Math.round(r.cpp * 1000) / 1000).toFixed(3)) : '\u2014';
+            var cppLabel = ' <span class="v96-cpp">' + cppStr + '\u00a2/pt</span>';
+            out += '<div class="v96-redemption"><span class="rl">' + r.label + '</span><span class="' + cls + '">' + fmt(v) + '</span><span>' + (r.best ? '<span class="v96-best-tag">BEST</span>' : cppLabel) + '</span></div>';
+          });
+
+          if(best.tip){
+            out += '<div class="v96-opt-tip"><strong>\uD83D\uDCA1 Tip:</strong> ' + best.tip + '</div>';
+          }
+          out += '</div>';
+        });
+
+        var unlockedCount = syns.filter(function(s){return s.unlocked;}).length;
+        out += '<div class="v96-opt-section-title" style="margin-top:20px;"><span>Sweet-spot synergies (' + unlockedCount + ' unlocked)</span></div>';
+        syns.forEach(function(s){
+          var lockedCls = s.unlocked ? '' : ' locked';
+          out += '<div class="v96-synergy-card' + lockedCls + '">';
+          out += '<div class="v96-syn-head"><div class="v96-syn-icon">' + s.icon + '</div><div class="v96-syn-title-wrap"><div class="v96-syn-title">' + s.title + (s.unlocked ? ' <span class="v96-syn-badge">' + s.badge + '</span>' : '') + '</div><div class="v96-syn-locked-lbl">Add a qualifying card to unlock</div></div></div>';
+          out += '<div class="v96-syn-body">' + s.body + '</div>';
+          out += '</div>';
+        });
+
+        body.innerHTML = out;
+
+        var totalEl = document.getElementById('v96OptTotal');
+        if(totalEl) totalEl.textContent = fmt(totalDollars);
+        var progEl = document.getElementById('v96OptPrograms');
+        if(progEl) progEl.textContent = programCount;
+        var bestEl = document.getElementById('v96OptBestCPP');
+        if(bestEl) bestEl.textContent = bestCPP ? (bestCPP * 100).toFixed(2) + '\u00a2' : '\u2014';
+        var synEl = document.getElementById('v96OptSyn');
+        if(synEl) synEl.textContent = unlockedCount;
+      }
+    }catch(e){ try{ console.warn('[V96] renderOptimizer error:', e); }catch(e2){} }
+  }
+
+  function wrapSwitch(){
+    try{
+      if(window.__v96SwitchWrapped) return;
+      if(typeof window.switchRewardsView !== 'function') return;
+      var orig = window.switchRewardsView;
+      window.switchRewardsView = function(view){
+        if(view === 'overview') view = 'tx';
+        if(view === 'optimize'){
+          try{
+            var views = document.querySelectorAll('#rewards .rewards-view');
+            views.forEach(function(v){ v.classList.remove('active'); });
+            var opt = document.getElementById('viewOptimize');
+            if(opt) opt.classList.add('active');
+            var subtabs = document.getElementById('rewardsSubtabs');
+            if(subtabs){
+              subtabs.querySelectorAll('button').forEach(function(b){ b.classList.remove('on'); });
+              var target = subtabs.querySelector('button[data-view="optimize"]');
+              if(target) target.classList.add('on');
+            }
+            renderOptimizer();
+          }catch(e){}
+          return;
+        }
+        return orig.apply(this, arguments);
+      };
+      window.__v96SwitchWrapped = true;
+    }catch(e){}
+  }
+
+  function tick(){
+    try{ modifyTabs(); }catch(e){}
+    try{ injectOptimizeView(); }catch(e){}
+    try{ mergeInsightsIntoTx(); }catch(e){}
+    try{ wrapSwitch(); }catch(e){}
+    try{
+      var opt = document.getElementById('viewOptimize');
+      if(opt && opt.classList.contains('active')) renderOptimizer();
+    }catch(e){}
+  }
+
+  function init(){
+    tick();
+    setTimeout(tick, 300);
+    setTimeout(tick, 1000);
+    setTimeout(tick, 3000);
+    setInterval(tick, 4000);
+    try{
+      var overview = document.getElementById('viewOverview');
+      var tx = document.getElementById('viewTx');
+      if(overview && overview.classList.contains('active') && tx){
+        overview.classList.remove('active');
+        tx.classList.add('active');
+      }
+    }catch(e){}
+  }
+
+  if(document.readyState === 'loading'){ document.addEventListener('DOMContentLoaded', init); } else { init(); }
+})();
+</script>
+
 </body>
 </html>
