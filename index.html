@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Wallet IQ V103</title>
+<title>Wallet IQ V106</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Wallet IQ">
@@ -1689,7 +1689,9 @@ body.dark .credits-empty{background:var(--surface)}
 <!-- V98: Three critical fixes. (a) CPP math bug: the vault stores cpp in cents-per-point (Petro-Points cpp=0.1 means 0.1c/pt), but the V96 optimizer multiplied balance*cpp as if cpp was dollars/point — giving 57,514 Petro-Points a value of $5,751 instead of the correct $57.51. Fixed by using (balance*cpp)/100 everywhere. (b) Missing programs: added the 8 programs the vault knows but the V96 optimizer did not (Hilton Honors, IHG One Rewards, World of Hyatt, WestJet Rewards, BA Avios, Petro-Points, Starbucks Stars, Tim Hortons Rewards, Shoppers Optimum, CT Money). Total: 24 programs now supported with proper redemption charts. (c) Homepage counter: reads live ALIASES total (verified 4,844 unique keys) and clamps to [3500-5000] range; logs the count to console so you can verify. -->
 <!-- V99: Credit Rescue accuracy pass. Removed three fabricated statement credits that do NOT exist on the Canadian versions of these cards: (a) Amex Cobalt "$10/mo Streaming Credit" - Cobalt earns 3x MR on streaming purchases but has NO automatic statement credit for streaming. (b) Amex Platinum "$100 Saks Credit" - Saks credit is a US-only benefit; Canadian Amex Platinum does not include it. (c) CIBC Aventura Gold "$100 NEXUS" - Only the Aventura Visa Infinite and Visa Infinite Privilege include NEXUS; the Aventura Gold tier does not. -->
 <!-- V100: Final dedupe cleanup — the V92/V93/V94 dedupers missed several edge cases the user flagged in the autocomplete list: (a) "Costco Wholesale" appeared alongside "Costco" because "wholesale" was not in the strip list. (b) "Nike Store", "Nike.Com", "Nike Canada" appeared alongside "Nike" because "com", "canada" (as separate token from valid "usa"), "auto", "online" were not stripped. (c) "Marks Work Wearhouse" stayed because the misspelled "wearhouse" (vs "warehouse") was not in strip. (d) Winner selection was picking run-together names like "Bestbuycanada" over clean "Best Buy" because both had 0 special characters. V100 adds a "cleanScore" metric that penalizes run-together strings longer than 6 chars, and prefers proper spaced/apostrophed names as canonical. -->
-<!-- V103: Complete Points tab redesign. Killed the redundancy that was showing PC Optimum, Blue Rewards, etc. TWICE (vault programs + optimizer breakdown). Killed the separate "Programs You Earn (Untracked)" section - it was just a duplicate of the vault add-button. Killed the separate "Sweet-spot synergies" section at bottom. Replaced with ONE unified collapsible list: each membership shows balance, tap to expand and reveal redemption values AND matching synergy tip nested inside. Priority order: programs you earn via wallet cards first (with earning card badge), then extra tracked programs, then + Add. Also bundles V101/V102 fixes: title V103, counter shows real 5,500+, "Up to X% here" wording, © 2026 Wallet IQ footer, drawer no version. -->
+<!-- V104: Points tab fix. V103 killed the "Programs You Earn (Untracked)" section entirely thinking it was redundant, but that was actually where Amex MR, Scene+, Bonvoy, Rogers Cash (programs the user's wallet cards EARN but no balance was tracked) were shown. V104 brings them back in a MUCH more compact format: a single "Also earned by your wallet" section at the bottom with one-line rows (icon + name + small Add button) - not verbose full cards. Also renamed "Extra tracked programs" to just "Your memberships" (with earning-first sorted inside) since the distinction between earning and non-earning is now shown via the badge on each card. Bundles all V101/V102 fixes. -->
+<!-- V105: Points tab prioritization fix. V104 showed "Your memberships" (tracked) first and "Also earned by your wallet" (untracked) second. But the KEY VALUE of Wallet IQ is that logging a transaction auto-accumulates points on your wallet cards - that's the core magic. V105 restructures priorities: Section 1 is "Programs your cards earn" containing BOTH the tracked-and-earning memberships (as full collapsible cards) AND the untracked ones your cards earn (as compact Add rows). Section 2 is "Extra tracked memberships" for programs you added manually that no wallet card earns. This aligns with the app's core value prop: your cards are the engine, extra memberships are the manual add-ons. -->
+<!-- V106: AUTO-ACCUMULATION. The signature feature: when you log a transaction on a wallet card, the points earned auto-accumulate on the corresponding program balance in the Points tab. Example: $10 at Tim Hortons on Cobalt = +50 MR added to your Amex MR balance. No manual entry ever again. Uses a 30-card CARD_EARN catalog mapping each wallet card to its points program + category-specific earn rates. Storage in walletiq_auto_earnings; tx IDs tracked in walletiq_applied_txs to prevent double-counting. Auto balances sync into walletiq_memberships as virtual entries flagged with __v106Auto:true so the Points tab renderer picks them up seamlessly (they merge with manual balances if present). Runs on 3s interval - silent, safe, idempotent. This is the whole reason Wallet IQ exists: log transactions, watch points grow. -->
 <!-- V56 -->
 <div class="top">
 <div class="header-row">
@@ -16023,7 +16025,7 @@ setTimeout(stampV79,500);setTimeout(stampV79,1500);
   function updateFooterV87(){
     try{
       document.querySelectorAll('.v73-footer-copy').forEach(function(el){
-        if(false){ /* V103: version stamping disabled */
+        if(false){ /* V104: version stamping disabled */
         }
       });
     }catch(e){}
@@ -18049,7 +18051,7 @@ setTimeout(stampV79,500);setTimeout(stampV79,1500);
 <script id="v94-homepage-stat">
 (function(){
   function updateStat(){
-    return; /* V103 */
+    return; /* V104 */
     try{
       var el = document.getElementById('v89StatMerchants');
       if(!el) return;
@@ -18320,7 +18322,7 @@ setTimeout(stampV79,500);setTimeout(stampV79,1500);
   }
 
   function renderOptimizer(){
-    return; /* V103: disabled */
+    return; /* V104 */
     try{
       var body = document.getElementById('v96OptBody');
       if(!body) return;
@@ -18733,7 +18735,7 @@ setTimeout(stampV79,500);setTimeout(stampV79,1500);
   }
 
   function renderOptimizer(){
-    return; /* V103: disabled */
+    return; /* V104 */
     try{
       var body = document.getElementById('v96OptBody');
       if(!body) return;
@@ -18902,7 +18904,7 @@ setTimeout(stampV79,500);setTimeout(stampV79,1500);
 (function(){
   var _lastLogged = 0;
   function updateStat(){
-    return; /* V103 */
+    return; /* V104 */
     try{
       var el = document.getElementById('v89StatMerchants');
       if(!el) return;
@@ -19099,16 +19101,15 @@ setTimeout(stampV79,500);setTimeout(stampV79,1500);
 </script>
 
 
-<style id="v103-styles">
-/* V103: Hide redundant sections in vault */
+<style id="v104-styles">
+/* V104: Hide redundant sections in vault */
 #rewardsSubtabs button[data-view="optimize"] { display: none !important; }
 #rewardsSubtabs[data-v96-tabs="1"] { grid-template-columns: repeat(4, 1fr) !important; }
 #viewOptimize { display: none !important; }
-/* Hide the vault's own separate sections that we're consolidating */
 #vaultSweetspots { display: none !important; }
 #viewVault > .section + #vaultSweetspots { display: none !important; }
 
-/* V103 Hero */
+/* V104 Hero */
 .v103-hero { background: linear-gradient(135deg, #7a3fd4 0%, #5e2bb0 55%, #3b1782 100%); color: #fff; border-radius: 22px; padding: 18px 18px; margin-bottom: 14px; box-shadow: 0 8px 24px rgba(122,63,212,0.28); position: relative; overflow: hidden; }
 .v103-hero::before { content:""; position: absolute; top: -40px; right: -40px; width: 180px; height: 180px; background: radial-gradient(circle, rgba(255,255,255,.18), transparent 65%); pointer-events: none; }
 .v103-hero .v103-h-label { font-size: 10.5px; font-weight: 900; letter-spacing: .14em; opacity: .82; text-transform: uppercase; position: relative; z-index: 1; }
@@ -19159,6 +19160,16 @@ setTimeout(stampV79,500);setTimeout(stampV79,1500);
 .v103-tip strong { color: var(--brand); font-weight: 900; }
 .v103-tip .badge { display: inline-block; font-size: 8.5px; font-weight: 900; background: var(--brand); color: #fff; padding: 2px 7px; border-radius: 99px; letter-spacing: .06em; margin-left: 4px; vertical-align: middle; }
 
+/* V104 NEW: Compact untracked rows */
+.v104-untracked-list { display: flex; flex-direction: column; gap: 6px; }
+.v104-untracked-row { display: grid; grid-template-columns: 32px 1fr auto; gap: 10px; align-items: center; padding: 10px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow); }
+.v104-untracked-row .u-icon { font-size: 20px; text-align: center; opacity: .7; }
+.v104-untracked-row .u-name { font-size: 13px; font-weight: 900; letter-spacing: -.01em; color: var(--ink); }
+.v104-untracked-row .u-sub { font-size: 10px; color: var(--muted); font-weight: 800; letter-spacing: .06em; text-transform: uppercase; margin-top: 1px; }
+.v104-untracked-row .u-add { background: var(--brand); color: #fff; border: none; padding: 8px 14px; border-radius: 99px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 11.5px; font-weight: 900; cursor: pointer; box-shadow: 0 2px 6px rgba(37,99,235,.20); transition: transform .1s ease; letter-spacing: -.01em; }
+.v104-untracked-row .u-add:active { transform: scale(.94); }
+body.dark .v104-untracked-row { background: var(--surface); border-color: var(--border); }
+
 .v103-add-btn { display: block; width: 100%; padding: 14px; margin: 14px 0 0; border-radius: 14px; border: 1.5px dashed var(--brand); background: var(--accent-soft); color: var(--brand); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-weight: 900; font-size: 13.5px; letter-spacing: -.01em; cursor: pointer; transition: transform .1s ease; }
 .v103-add-btn:active { transform: scale(.98); }
 
@@ -19173,15 +19184,13 @@ body.dark .v103-tip { background: rgba(142,163,216,.10); }
 body.dark .v103-add-btn { background: rgba(142,163,216,.10); }
 body.dark .v103-prog-body { background: rgba(0,0,0,.15); }
 
-/* Hide the vault's original programs list rendering AND any V96 sections */
 #viewVault #vaultPrograms { display: none !important; }
 #viewVault > .section:not(.v103-visible) { display: none !important; }
 .v103-visible { display: block !important; }
 </style>
-<script id="v103-optimizer">
+<script id="v104-optimizer">
 (function(){
-  // ============ V103: Unified Points tab renderer ============
-  // Fixes the redundancy: one collapsible list, priorities, nested synergy tips
+  // V104: Points tab renderer with COMPACT untracked rows
 
   var PROGRAMS = {
     aeroplan: { name:'Aeroplan', icon:'\u2708\uFE0F', unit:'pts',
@@ -19209,9 +19218,7 @@ body.dark .v103-prog-body { background: rgba(0,0,0,.15); }
       ]
     },
     airmiles: { name:'AIR MILES (Cash)', icon:'\uD83C\uDF0D', unit:'miles',
-      redemptions: [
-        { label:'\uD83D\uDCB5 Cash Miles at checkout', cpp:10.5, best:true }
-      ]
+      redemptions: [{ label:'\uD83D\uDCB5 Cash Miles at checkout', cpp:10.5, best:true }]
     },
     airmilesdream: { name:'AIR MILES (Dream)', icon:'\uD83C\uDF0D', unit:'miles',
       redemptions: [
@@ -19251,9 +19258,7 @@ body.dark .v103-prog-body { background: rgba(0,0,0,.15); }
       ]
     },
     westjet: { name:'WestJet Rewards', icon:'\u2708\uFE0F', unit:'WJ$',
-      redemptions: [
-        { label:'\u2708\uFE0F Flights (WJ$ = $1 CAD)', cpp:100, best:true }
-      ]
+      redemptions: [{ label:'\u2708\uFE0F Flights (WJ$ = $1 CAD)', cpp:100, best:true }]
     },
     baavios: { name:'BA Avios', icon:'\u2708\uFE0F', unit:'avios',
       redemptions: [
@@ -19262,9 +19267,7 @@ body.dark .v103-prog-body { background: rgba(0,0,0,.15); }
       ]
     },
     petropoints: { name:'Petro-Points', icon:'\u26FD', unit:'pts',
-      redemptions: [
-        { label:'\u26FD Fuel / snacks at Petro-Canada', cpp:0.1, best:true, tip:'1,000 pts = $1 off fuel. Link RBC card for extra 3c/L discount on top.' }
-      ]
+      redemptions: [{ label:'\u26FD Fuel / snacks at Petro-Canada', cpp:0.1, best:true, tip:'1,000 pts = $1 off fuel. Link RBC card for extra 3c/L discount on top.' }]
     },
     starbucks: { name:'Starbucks Stars', icon:'\u2615', unit:'stars',
       redemptions: [
@@ -19273,23 +19276,17 @@ body.dark .v103-prog-body { background: rgba(0,0,0,.15); }
       ]
     },
     timrewards: { name:'Tim Hortons Rewards', icon:'\u2615', unit:'pts',
-      redemptions: [
-        { label:'\u2615 Free coffee/food item', cpp:0.1, best:true }
-      ]
+      redemptions: [{ label:'\u2615 Free coffee/food item', cpp:0.1, best:true }]
     },
     shoppers: { name:'Shoppers Optimum', icon:'\uD83D\uDC8A', unit:'pts',
-      redemptions: [
-        { label:'\uD83D\uDC8A Shoppers Drug Mart', cpp:0.1, best:true }
-      ]
+      redemptions: [{ label:'\uD83D\uDC8A Shoppers Drug Mart', cpp:0.1, best:true }]
     },
     ctmoney: { name:'Canadian Tire Money', icon:'\uD83D\uDD34', unit:'CT$',
-      redemptions: [
-        { label:'\uD83D\uDD34 Any Canadian Tire purchase', cpp:100, best:true }
-      ]
+      redemptions: [{ label:'\uD83D\uDD34 Any Canadian Tire purchase', cpp:100, best:true }]
     },
     rogers: { name:'Rogers Cash', icon:'\uD83D\uDCF1', unit:'$', cashLike:true,
       redemptions: [
-        { label:'\uD83D\uDCF1 Rogers / Fido bill (1.5x boost)', cpp:1.5, best:true, tip:'Redeem against Rogers/Fido/chatr bill for 50% boost. $100 Rogers Cash = $150 off bill. Never redeem as statement credit if you have this option.' },
+        { label:'\uD83D\uDCF1 Rogers / Fido bill (1.5x boost)', cpp:1.5, best:true, tip:'Redeem against Rogers/Fido/chatr bill for 50% boost. $100 Rogers Cash = $150 off bill.' },
         { label:'\uD83D\uDCB5 Statement credit', cpp:1.0 }
       ]
     },
@@ -19338,7 +19335,6 @@ body.dark .v103-prog-body { background: rgba(0,0,0,.15); }
     }
   };
 
-  // Which cards earn which program
   var CARD_TO_PROGRAM = [
     { rx:/cobalt|amex gold|amex platinum|business gold|business platinum|amex green|simplyc amex/i, prog:'mr' },
     { rx:/aeroplan/i, prog:'aeroplan' },
@@ -19361,7 +19357,6 @@ body.dark .v103-prog-body { background: rgba(0,0,0,.15); }
     { rx:/hsbc/i, prog:'hsbc' }
   ];
 
-  // Extra synergy tips beyond just "best redemption"
   var SYNERGY_TIPS = {
     rogers: { badge:'SYNERGY', body:'You have a <b>Rogers/Fido card</b>. Redeem Rogers Cash against your bill for the <b>1.5x boost</b> - $100 = $150 off. Never redeem as statement credit unless you must.' },
     mr: { badge:'SYNERGY', body:'You have an <b>MR-earning Amex</b>. Transfer to Aeroplan 1:1 then book sweet-spot: <b>10-15k</b> = short-haul, <b>50-70k</b> = biz-class transatlantic. Effective <b>1.5c+/pt</b>.' },
@@ -19374,11 +19369,10 @@ body.dark .v103-prog-body { background: rgba(0,0,0,.15); }
   function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
   function fmtDollars(v){ if(!isFinite(v) || v == null) return '$0.00'; return '$' + (Math.round(v*100)/100).toFixed(2); }
   function fmtInt(v){ return String(Math.round(v || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
-
   function normalizeKey(k){ return String(k || '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
 
   function programFor(m){
-    if(!m) return null;
+    if(!m) return { key:null, prog:null };
     var k = normalizeKey(m.key || m.name || '');
     var alias = {
       'aeroplan':'aeroplan','aircanada':'aeroplan',
@@ -19445,8 +19439,6 @@ body.dark .v103-prog-body { background: rgba(0,0,0,.15); }
     var vault = document.getElementById('viewVault');
     if(!vault) return null;
     if(!document.getElementById('v103Container')){
-      // Wipe existing content in vault except keep the raw programs list hidden for delete-sync
-      // We'll insert our container at top
       var container = document.createElement('div');
       container.id = 'v103Container';
       vault.insertBefore(container, vault.firstChild);
@@ -19460,13 +19452,11 @@ body.dark .v103-prog-body { background: rgba(0,0,0,.15); }
       var filtered = arr.filter(function(m){ return (m.name || '') !== name; });
       localStorage.setItem('walletiq_memberships', JSON.stringify(filtered));
       renderPointsTab();
-      // Also sync with vault's own delete flow
       try{ document.dispatchEvent(new CustomEvent('v82:refresh')); }catch(e){}
     }catch(e){}
   }
 
   function openAddMembership(){
-    // Try the existing V81 vault modal
     try{
       var overlay = document.getElementById('v81Modal');
       if(overlay){ overlay.classList.add('show'); return; }
@@ -19474,16 +19464,15 @@ body.dark .v103-prog-body { background: rgba(0,0,0,.15); }
     try{
       if(typeof openV81Modal === 'function'){ openV81Modal(); return; }
     }catch(e){}
-    // Fallback: click the vault's own add button
     try{
       var btn = document.querySelector('.v81-add-btn');
       if(btn) btn.click();
     }catch(e){}
   }
 
-  window.__v103DeleteMembership = deleteMembership;
-  window.__v103OpenAdd = openAddMembership;
-  window.__v103ToggleCard = function(key){
+  window.__v104DeleteMembership = deleteMembership;
+  window.__v104OpenAdd = openAddMembership;
+  window.__v104ToggleCard = function(key){
     var card = document.querySelector('[data-v103-key="' + key + '"]');
     if(card) card.classList.toggle('open');
   };
@@ -19497,33 +19486,43 @@ body.dark .v103-prog-body { background: rgba(0,0,0,.15); }
       var cards = readCardNames();
       var earnedProgs = programsEarnedByCards(cards);
 
-      // Split memberships: earning first, then rest
-      var earning = [];
-      var others = [];
-      mems.forEach(function(m){
+      // Split memberships: earning-first, then rest (all in one list)
+      var trackedEntries = mems.map(function(m){
         var info = programFor(m);
         var isEarning = info.key && earnedProgs[info.key];
-        (isEarning ? earning : others).push({ m: m, info: info, isEarning: isEarning });
+        return { m: m, info: info, isEarning: isEarning };
+      });
+      trackedEntries.sort(function(a, b){
+        if(a.isEarning && !b.isEarning) return -1;
+        if(!a.isEarning && b.isEarning) return 1;
+        return 0;
       });
 
-      // Compute totals
+      // Programs earned by cards but NOT tracked as memberships
+      var trackedKeys = {};
+      trackedEntries.forEach(function(entry){
+        if(entry.info.key) trackedKeys[entry.info.key] = true;
+      });
+      var untrackedEarned = Object.keys(earnedProgs).filter(function(k){
+        return !trackedKeys[k] && PROGRAMS[k];
+      });
+
+      // Compute totals from tracked
       var totalDollars = 0;
-      var programCount = 0;
+      var programCount = trackedEntries.length;
       var bestCPP = 0;
-      mems.forEach(function(m){
-        var info = programFor(m);
-        var balance = parseFloat(m.balance) || 0;
+      trackedEntries.forEach(function(entry){
+        var balance = parseFloat(entry.m.balance) || 0;
         var best = null;
-        if(info.prog){
-          best = info.prog.redemptions.find(function(r){ return r.best; });
+        if(entry.info.prog){
+          best = entry.info.prog.redemptions.find(function(r){ return r.best; });
         } else {
-          var cpp = parseFloat(m.cpp);
+          var cpp = parseFloat(entry.m.cpp);
           if(!isFinite(cpp) || cpp <= 0) cpp = 0.5;
           best = { cpp: cpp };
         }
         if(best){
           totalDollars += (balance * best.cpp) / 100;
-          programCount++;
           if(best.cpp > bestCPP) bestCPP = best.cpp;
         }
       });
@@ -19543,34 +19542,54 @@ body.dark .v103-prog-body { background: rgba(0,0,0,.15); }
       html += '</div></div>';
 
       // Empty state
-      if(mems.length === 0){
-        html += '<div class="v103-empty"><div class="big">\uD83D\uDCB0</div><h4>No memberships yet</h4><p>Add your loyalty programs (Aeroplan, PC Optimum, Scene+, Bonvoy, Rogers Cash, etc.) to see the best redemption strategies.</p><button type="button" onclick="window.__v103OpenAdd()">+ Add membership</button></div>';
+      if(trackedEntries.length === 0 && untrackedEarned.length === 0){
+        html += '<div class="v103-empty"><div class="big">\uD83D\uDCB0</div><h4>No memberships yet</h4><p>Add your loyalty programs (Aeroplan, PC Optimum, Scene+, Bonvoy, Rogers Cash, etc.) to see the best redemption strategies.</p><button type="button" onclick="window.__v104OpenAdd()">+ Add membership</button></div>';
         container.innerHTML = html;
         return;
       }
 
-      // Section: Earning
-      if(earning.length > 0){
-        html += '<div class="v103-section-title"><span>Programs you earn</span><span class="cnt">' + earning.length + '</span></div>';
-        earning.forEach(function(entry){ html += renderCard(entry, true); });
+      // V105: Split tracked into wallet-earning vs extras, prioritize wallet-earning
+      var trackedWalletEarning = trackedEntries.filter(function(e){ return e.isEarning; });
+      var trackedExtras = trackedEntries.filter(function(e){ return !e.isEarning; });
+      var walletTotal = trackedWalletEarning.length + untrackedEarned.length;
+
+      // Section 1: Programs your cards earn (the core value prop)
+      if(walletTotal > 0){
+        html += '<div class="v103-section-title"><span>Programs your cards earn</span><span class="cnt">' + walletTotal + '</span></div>';
+        // Full collapsible cards for tracked wallet-earning programs (auto-accumulating balances)
+        trackedWalletEarning.forEach(function(entry){ html += renderCard(entry); });
+        // Compact rows for untracked programs your cards earn (add to start tracking)
+        if(untrackedEarned.length > 0){
+          html += '<div class="v104-untracked-list" style="margin-top:6px;">';
+          untrackedEarned.forEach(function(k){
+            var prog = PROGRAMS[k];
+            html += '<div class="v104-untracked-row">';
+            html += '<div class="u-icon">' + prog.icon + '</div>';
+            html += '<div><div class="u-name">' + prog.name + '</div><div class="u-sub">Add balance to track</div></div>';
+            html += '<button type="button" class="u-add" onclick="window.__v104OpenAdd()">Add \u2192</button>';
+            html += '</div>';
+          });
+          html += '</div>';
+        }
       }
 
-      // Section: Others
-      if(others.length > 0){
-        html += '<div class="v103-section-title"><span>Extra tracked programs</span><span class="cnt">' + others.length + '</span></div>';
-        others.forEach(function(entry){ html += renderCard(entry, false); });
+      // Section 2: Extra tracked memberships (not earned by any wallet card - manual only)
+      if(trackedExtras.length > 0){
+        html += '<div class="v103-section-title"><span>Extra tracked memberships</span><span class="cnt">' + trackedExtras.length + '</span></div>';
+        trackedExtras.forEach(function(entry){ html += renderCard(entry); });
       }
 
       // Add button
-      html += '<button class="v103-add-btn" onclick="window.__v103OpenAdd()">+ Add another membership</button>';
+      html += '<button class="v103-add-btn" onclick="window.__v104OpenAdd()">+ Add another membership</button>';
 
       container.innerHTML = html;
-    }catch(e){ try{ console.warn('[V103] render error:', e); }catch(e2){} }
+    }catch(e){ try{ console.warn('[V104] render error:', e); }catch(e2){} }
   }
 
-  function renderCard(entry, isEarning){
+  function renderCard(entry){
     var m = entry.m;
     var info = entry.info;
+    var isEarning = entry.isEarning;
     var balance = parseFloat(m.balance) || 0;
     var name = esc(m.name || (info.prog ? info.prog.name : 'Points'));
     var icon = m.emoji || (info.prog ? info.prog.icon : '\uD83D\uDCB3');
@@ -19584,11 +19603,11 @@ body.dark .v103-prog-body { background: rgba(0,0,0,.15); }
     var synergy = info.key ? SYNERGY_TIPS[info.key] : null;
     var showSynergy = isEarning && synergy;
 
-    var uniqueKey = normalizeKey(m.name + '_' + m.key);
+    var uniqueKey = normalizeKey((m.name || '') + '_' + (m.key || ''));
 
     var h = '';
     h += '<div class="v103-prog' + (isEarning ? ' earning' : '') + '" data-v103-key="' + uniqueKey + '">';
-    h += '<div class="v103-prog-head" onclick="window.__v103ToggleCard(\'' + uniqueKey + '\')">';
+    h += '<div class="v103-prog-head" onclick="window.__v104ToggleCard(\'' + uniqueKey + '\')">';
     h += '<div class="v103-prog-icon">' + icon + '</div>';
     h += '<div class="v103-prog-mid">';
     h += '<div class="v103-prog-name">' + name + '</div>';
@@ -19603,7 +19622,7 @@ body.dark .v103-prog-body { background: rgba(0,0,0,.15); }
     h += '<div class="v103-prog-eq">= ' + fmtDollars(bestDollars) + '</div>';
     h += '</div>';
     h += '<div class="v103-prog-chev">\u25B6</div>';
-    h += '<button type="button" class="v103-prog-del" onclick="event.stopPropagation(); if(confirm(\'Remove ' + esc(name).replace(/'/g, "\\'") + '?\')) window.__v103DeleteMembership(\'' + esc(name).replace(/'/g, "\\'") + '\')">\u00D7</button>';
+    h += '<button type="button" class="v103-prog-del" onclick="event.stopPropagation(); if(confirm(\'Remove ' + esc(name).replace(/'/g, "\\'") + '?\')) window.__v104DeleteMembership(\'' + esc(name).replace(/'/g, "\\'") + '\')">\u00D7</button>';
     h += '</div>';
     // Body
     h += '<div class="v103-prog-body">';
@@ -19629,10 +19648,9 @@ body.dark .v103-prog-body { background: rgba(0,0,0,.15); }
     return h;
   }
 
-  // Wrap switchRewardsView: optimize -> vault
   function wrapSwitch(){
     try{
-      if(window.__v103SwitchWrapped) return;
+      if(window.__v104SwitchWrapped) return;
       if(typeof window.switchRewardsView !== 'function') return;
       var orig = window.switchRewardsView;
       window.switchRewardsView = function(view){
@@ -19643,12 +19661,11 @@ body.dark .v103-prog-body { background: rgba(0,0,0,.15); }
         }
         return result;
       };
-      window.__v103SwitchWrapped = true;
-      try{ console.log('[V103] Points tab renderer ready'); }catch(e){}
+      window.__v104SwitchWrapped = true;
+      try{ console.log('[V104] Points tab renderer ready'); }catch(e){}
     }catch(e){}
   }
 
-  // Homepage counter fixes and footer copy
   function updateHomepageCounter(){
     try{
       var el = document.getElementById('v89StatMerchants');
@@ -19694,7 +19711,301 @@ body.dark .v103-prog-body { background: rgba(0,0,0,.15); }
     setInterval(tick, 2500);
     try{
       if(typeof ALIASES === 'object' && ALIASES){
-        console.log('[V103] Total ALIASES:', Object.keys(ALIASES).length);
+        console.log('[V104] Total ALIASES:', Object.keys(ALIASES).length);
+      }
+      var cards = readCardNames();
+      var mems = readMemberships();
+      var earnedProgs = programsEarnedByCards(cards);
+      console.log('[V104] wallet cards:', cards);
+      console.log('[V104] tracked memberships:', mems.map(function(m){ return m.name; }));
+      console.log('[V104] programs earned by cards:', Object.keys(earnedProgs));
+    }catch(e){}
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+
+
+<script id="v106-auto-accum">
+(function(){
+  // ============ V106: Auto-accumulate points from transactions ============
+  // Map each wallet card to its rewards program + category earn rates
+  // Rates for points programs: points-per-dollar
+  // Rates for cashback programs (rogers, wsInfinite): percentage (e.g. 4 = 4%)
+
+  var CARD_EARN = {
+    // Amex Membership Rewards earners
+    cobalt: { prog:'mr', rates:{ dining:5, groceryAmex:5, streaming:3, transit:2, gas:2, base:1 } },
+    amexGold: { prog:'mr', rates:{ dining:2, groceryAmex:2, transit:2, gas:2, travel:2, base:1 } },
+    amexPlatinum: { prog:'mr', rates:{ travel:5, marriott:5, dining:2, base:1 } },
+    amexBusinessPlat: { prog:'mr', rates:{ travel:1.25, dining:1.25, base:1.25 } },
+    // Aeroplan earners
+    amexAeroplan: { prog:'aeroplan', rates:{ dining:2, gas:2, groceryAmex:1, base:1 } },
+    amexAeroReserve: { prog:'aeroplan', rates:{ travel:3, dining:2, gas:2, base:1.25 } },
+    tdAero: { prog:'aeroplan', rates:{ groceryAmex:2.25, gas:2.25, transit:2.25, dining:2.25, travel:3, base:1.5 } },
+    cibcAeroplan: { prog:'aeroplan', rates:{ dining:2, gas:2, groceryAmex:1, base:1 } },
+    // Bonvoy
+    bonvoy: { prog:'bonvoy', rates:{ marriott:5, dining:2, gas:2, base:2 } },
+    // Rogers Cash (cashback %)
+    rogers: { prog:'rogers', cashback:true, rates:{ rogers:3, base:2 } },
+    // Scene+
+    scotiaPass: { prog:'scene', rates:{ groceryAmex:3, groceryNo:3, dining:3, transit:3, travel:2, base:1 } },
+    scotiaGold: { prog:'scene', rates:{ dining:6, groceryAmex:5, streaming:3, transit:3, gas:3, base:1 } },
+    scotiaPlat: { prog:'scene', rates:{ dining:2, groceryAmex:2, transit:2, gas:2, shopping:2, base:2 } },
+    sceneVI: { prog:'scene', rates:{ dining:2, groceryAmex:2, base:1 } },
+    // Momentum Visa Infinite is cashback but let's treat as scene 4x -> not accurate; skip: use rogers cashback bucket
+    scotiaCashbackVisa: { prog:'rogers', cashback:true, rates:{ groceryAmex:4, groceryNo:4, loblaws:4, streaming:4, transit:2, gas:2, base:1 } },
+    // RBC Avion
+    rbcAvion: { prog:'avion', rates:{ travel:2, dining:2, groceryAmex:1.25, base:1 } },
+    rbcION: { prog:'avion', rates:{ groceryAmex:3, streaming:3, gas:1.5, transit:1.5, base:1 } },
+    rbcCashback: { prog:'rogers', cashback:true, rates:{ groceryAmex:2, base:1 } },
+    // CIBC Aventura
+    cibcAventura: { prog:'aventura', rates:{ travel:2, dining:2, groceryAmex:2, base:1 } },
+    cibcDividendVI: { prog:'rogers', cashback:true, rates:{ groceryAmex:4, gas:4, transit:2, dining:2, base:1 } },
+    // TD
+    tdCash: { prog:'rogers', cashback:true, rates:{ groceryAmex:3, groceryNo:3, loblaws:3, gas:3, transit:3, streaming:3, base:1 } },
+    // BMO
+    bmoEclipse: { prog:'bmo', rates:{ dining:5, groceryAmex:5, groceryNo:5, transit:5, base:1 } },
+    bmoCashback: { prog:'rogers', cashback:true, rates:{ groceryAmex:5, transit:4, gas:3, streaming:2, base:1 } },
+    // MBNA
+    mbnaRewards: { prog:'mr', rates:{ dining:5, groceryAmex:5, streaming:5, base:1 } },
+    // PC Optimum
+    pcMC: { prog:'pcoptimum', rates:{ loblaws:45, groceryNo:45, gas:30, transit:30, base:10 } },
+    // AIR MILES Dream
+    amexAirMiles: { prog:'airmilesdream', rates:{ groceryAmex:0.14, gas:0.14, dining:0.14, base:0.07 } },
+    // Amex SimplyCash
+    amexSimplyCash: { prog:'rogers', cashback:true, rates:{ gas:4, groceryAmex:4, base:1.25 } },
+    // Wealthsimple
+    wsCashCard: { prog:'rogers', cashback:true, rates:{ base:1 } },
+    wsInfinite1: { prog:'rogers', cashback:true, rates:{ base:1 } },
+    wsInfinitePlus: { prog:'rogers', cashback:true, rates:{ base:2 } },
+    wsInfinitePrivilege: { prog:'rogers', cashback:true, rates:{ base:2 } }
+  };
+
+  // Program display metadata (matches V104 optimizer PROGRAMS map)
+  var PROG_META = {
+    mr:            { name:'Amex Membership Rewards', icon:'\uD83D\uDD35', unit:'MR' },
+    aeroplan:      { name:'Aeroplan',                icon:'\u2708\uFE0F', unit:'pts' },
+    bonvoy:        { name:'Marriott Bonvoy',         icon:'\uD83C\uDFE8', unit:'pts' },
+    rogers:        { name:'Rogers Cash',             icon:'\uD83D\uDCF1', unit:'$' },
+    scene:         { name:'Scene+',                  icon:'\uD83C\uDFAC', unit:'pts' },
+    avion:         { name:'RBC Avion',               icon:'\u2708\uFE0F', unit:'pts' },
+    aventura:      { name:'CIBC Aventura',           icon:'\u2708\uFE0F', unit:'pts' },
+    bmo:           { name:'BMO Rewards',             icon:'\uD83D\uDD35', unit:'pts' },
+    pcoptimum:     { name:'PC Optimum',              icon:'\uD83D\uDED2', unit:'pts' },
+    airmilesdream: { name:'AIR MILES (Dream)',       icon:'\uD83C\uDF0D', unit:'miles' }
+  };
+
+  var STORAGE_EARNINGS = 'walletiq_auto_earnings';
+  var STORAGE_APPLIED  = 'walletiq_applied_txs';
+  var STORAGE_MEMBERSHIPS = 'walletiq_memberships';
+  var STORAGE_TX_KEYS = ['walletiq_transactions','walletiq_v82_tx','walletiq_tx','transactions'];
+
+  function readJSON(key, fallback){
+    try{
+      var raw = localStorage.getItem(key);
+      if(!raw) return fallback;
+      var p = JSON.parse(raw);
+      return p == null ? fallback : p;
+    }catch(e){ return fallback; }
+  }
+  function writeJSON(key, val){
+    try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){}
+  }
+
+  function readTransactions(){
+    for(var i = 0; i < STORAGE_TX_KEYS.length; i++){
+      var arr = readJSON(STORAGE_TX_KEYS[i], null);
+      if(Array.isArray(arr) && arr.length > 0) return { key: STORAGE_TX_KEYS[i], txs: arr };
+    }
+    return { key: STORAGE_TX_KEYS[0], txs: [] };
+  }
+
+  function txFingerprint(tx){
+    if(tx.id) return String(tx.id);
+    var d = tx.date || tx.d || '';
+    var m = String(tx.merchant || tx.m || '').toLowerCase().slice(0, 30);
+    var a = Number(tx.amount || tx.amt || 0).toFixed(2);
+    var c = tx.card || tx.c || '';
+    return d + '|' + m + '|' + a + '|' + c;
+  }
+
+  function getEarnRate(cardEntry, category){
+    if(!cardEntry || !cardEntry.rates) return 0;
+    return cardEntry.rates[category] != null ? cardEntry.rates[category] : (cardEntry.rates.base || 0);
+  }
+
+  function computeEarnings(tx){
+    var cardKey = tx.card || tx.cardKey || tx.c;
+    if(!cardKey) return null;
+    var entry = CARD_EARN[cardKey];
+    if(!entry) return null;
+    var category = tx.category || tx.cat || 'base';
+    var amount = parseFloat(tx.amount || tx.amt) || 0;
+    if(amount <= 0) return null;
+    var rate = getEarnRate(entry, category);
+    if(rate <= 0) return null;
+    var earned;
+    if(entry.cashback){
+      // rate is percent, output in dollars
+      earned = (amount * rate) / 100;
+    } else {
+      // rate is points-per-dollar
+      earned = amount * rate;
+    }
+    return { prog: entry.prog, earned: earned, cashback: !!entry.cashback };
+  }
+
+  function processTransactions(){
+    var txData = readTransactions();
+    var txs = txData.txs;
+    if(txs.length === 0) return { added: 0, totalEarnings: {} };
+
+    var applied = readJSON(STORAGE_APPLIED, {});
+    if(!applied || typeof applied !== 'object') applied = {};
+    var earnings = readJSON(STORAGE_EARNINGS, {});
+    if(!earnings || typeof earnings !== 'object') earnings = {};
+
+    var addedCount = 0;
+    txs.forEach(function(tx){
+      if(!tx) return;
+      var fp = txFingerprint(tx);
+      if(applied[fp]) return;
+      var earn = computeEarnings(tx);
+      if(!earn) return;
+      if(!earnings[earn.prog]) earnings[earn.prog] = { balance: 0, txCount: 0, lastUpdated: 0 };
+      earnings[earn.prog].balance += earn.earned;
+      earnings[earn.prog].txCount += 1;
+      earnings[earn.prog].lastUpdated = Date.now();
+      earnings[earn.prog].cashback = earn.cashback;
+      applied[fp] = 1;
+      addedCount++;
+    });
+
+    if(addedCount > 0){
+      writeJSON(STORAGE_APPLIED, applied);
+      writeJSON(STORAGE_EARNINGS, earnings);
+      try{ console.log('[V106] auto-accumulated', addedCount, 'transactions. Balances:', earnings); }catch(e){}
+    }
+
+    return { added: addedCount, totalEarnings: earnings };
+  }
+
+  // Sync auto-earnings into walletiq_memberships so V104 renderer picks them up
+  function syncEarningsToMemberships(earnings){
+    var mems = readJSON(STORAGE_MEMBERSHIPS, []);
+    if(!Array.isArray(mems)) mems = [];
+
+    var changed = false;
+
+    Object.keys(earnings).forEach(function(progKey){
+      var meta = PROG_META[progKey];
+      if(!meta) return;
+      var autoBal = earnings[progKey].balance || 0;
+      if(autoBal <= 0) return;
+
+      // Find existing membership for this program (manual or auto)
+      var existing = null;
+      for(var i = 0; i < mems.length; i++){
+        var m = mems[i];
+        var mKey = String(m.key || '').toLowerCase();
+        var mName = String(m.name || '').toLowerCase();
+        if(mKey === progKey || mName === meta.name.toLowerCase()){
+          existing = m; break;
+        }
+      }
+
+      if(existing){
+        // If it's an auto-managed entry, replace balance
+        if(existing.__v106Auto){
+          if(Math.abs((existing.balance || 0) - autoBal) > 0.001){
+            existing.balance = autoBal;
+            existing.__v106Count = earnings[progKey].txCount;
+            changed = true;
+          }
+        } else {
+          // Manual entry: add auto to manual (or just show auto badge?)
+          // Store baseline once so we can compute delta accurately
+          if(existing.__v106ManualBaseline == null){
+            existing.__v106ManualBaseline = existing.balance || 0;
+          }
+          var expected = (existing.__v106ManualBaseline || 0) + autoBal;
+          if(Math.abs((existing.balance || 0) - expected) > 0.001){
+            existing.balance = expected;
+            existing.__v106AutoAdded = autoBal;
+            existing.__v106Count = earnings[progKey].txCount;
+            changed = true;
+          }
+        }
+      } else {
+        // Create new auto membership
+        mems.push({
+          key: progKey,
+          name: meta.name,
+          emoji: meta.icon,
+          unit: meta.unit,
+          balance: autoBal,
+          __v106Auto: true,
+          __v106Count: earnings[progKey].txCount
+        });
+        changed = true;
+      }
+    });
+
+    if(changed){
+      writeJSON(STORAGE_MEMBERSHIPS, mems);
+      try{ document.dispatchEvent(new CustomEvent('v82:refresh')); }catch(e){}
+    }
+    return changed;
+  }
+
+  function tick(){
+    try{
+      var result = processTransactions();
+      syncEarningsToMemberships(result.totalEarnings || readJSON(STORAGE_EARNINGS, {}));
+    }catch(e){
+      try{ console.warn('[V106] tick error:', e); }catch(e2){}
+    }
+  }
+
+  // Reset helper (exposed for debugging)
+  window.__v106Reset = function(){
+    try{
+      localStorage.removeItem(STORAGE_APPLIED);
+      localStorage.removeItem(STORAGE_EARNINGS);
+      // Remove auto-created memberships and reset manual baselines
+      var mems = readJSON(STORAGE_MEMBERSHIPS, []);
+      if(Array.isArray(mems)){
+        mems = mems.filter(function(m){ return !m.__v106Auto; });
+        mems.forEach(function(m){
+          if(m.__v106ManualBaseline != null){
+            m.balance = m.__v106ManualBaseline;
+            delete m.__v106ManualBaseline;
+            delete m.__v106AutoAdded;
+            delete m.__v106Count;
+          }
+        });
+        writeJSON(STORAGE_MEMBERSHIPS, mems);
+      }
+      console.log('[V106] Reset complete. Reload the page.');
+    }catch(e){ console.warn('[V106] Reset error:', e); }
+  };
+
+  function init(){
+    tick();
+    setTimeout(tick, 500);
+    setTimeout(tick, 2000);
+    setInterval(tick, 3000);
+    try{
+      console.log('[V106] Auto-accumulation active. Type __v106Reset() in console to clear all auto balances.');
+      var earnings = readJSON(STORAGE_EARNINGS, {});
+      if(earnings && Object.keys(earnings).length > 0){
+        console.log('[V106] Current auto balances:', earnings);
       }
     }catch(e){}
   }
