@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Wallet IQ V108</title>
+<title>Wallet IQ V120</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Wallet IQ">
@@ -1654,7 +1654,31 @@ body.dark .credits-empty{background:var(--surface)}
 .credit-flash .cf-emoji{font-size:20px}
 </style>
 <body>
-<!-- V108: Welcome offers audit (2026-07-09). Updated Scotia Passport expiry to Aug 3; added BMO eclipse Oct 31 expiry; fixed CIBC Dividend to $350; bumped TD First Class val to $1,300; ADDED Amex Cobalt / Amex Gold / Marriott Bonvoy Amex / TD Aeroplan Privilege / BMO eclipse VI Privilege offers per July 2026 market data (Milesopedia, Rewards Canada, Prince of Travel, Frugal Flyer). -->
+<!-- V120 (2026-07-09): Fixed Vault click lag / pop-in flicker. Root cause: V109 hub rendered only on 3000ms interval, so clicking Vault showed empty panel until next tick fired. Fix: (1) pre-render on DOMContentLoaded, (2) wrap switchRewardsView to force render on Vault click, (3) capture-phase click listener with requestAnimationFrame so render happens before browser paints panel. Also removed conflicting v117 opacity transition — base fadeIn animation now runs alone. -->
+
+<!-- V119 (2026-07-09): Fixed merchant counter flicker (5,000+ ↔ 5,500+). Root cause: V94 wrote raw rounded value while V98 clamped at 5,000 max — both ran on setInterval, overwriting each other. Fix: stripped v98-homepage-stat-fix entirely. V94 is now sole updater and stops polling after boot (ALIASES doesn't change at runtime). -->
+
+<!-- V118 (2026-07-09): Three real fixes. (1) Merchant counter: un-neutered V94 updateStat that reads live ALIASES.length so home shows correct count. (2) Flicker: v116-cleanup was setInterval(1000) causing 1Hz reflow — changed to one-shot; v109 render interval 900→3000ms. (3) Hero stat numbers now GREEN (#1ea54a) matching .v109-hero-val + other tabs' green $ style, not black. -->
+
+<!-- V117 (2026-07-09): Fixed subtab gap (grid was 5 cols but overview button is hidden = empty slot). Stripped redundant V110-V115 runtime kill switches (V116 removed the legacy scripts they defended against). Added smooth subtab transitions. File slimmer. -->
+
+<!-- V116 (2026-07-09): SURGICAL FIX. Stripped V96/V98/V104 legacy Points renderers from source (no more runtime patching needed). Repainted V109 hero to match pearl-lavender palette (white/pearl bg + green $ + subtle purple accent) for consistency with Rewards Studio, Credits, and Offers heroes. -->
+
+<!-- V115 (2026-07-09): FOUND real root cause — V104's ensureHostStructure creates #v103Container inside #viewVault via IIFE (window.renderPointsTab is undefined). Fix: (1) CSS targets #v103Container specifically with max-specificity, (2) deep MutationObserver on #viewVault subtree kills v103Container the moment it appears, (3) hijacks host.insertBefore + host.appendChild to intercept insertion. -->
+
+<!-- V114 (2026-07-09): REAL fix for flicker. Root cause: V104's renderPointsTab function was NOT in V113's neuter list. Plus V104 has setInterval(2500ms) that reinjects. This adds bulletproof switchRewardsView override, MutationObserver that kills on mutation (before paint), and 100ms re-neuter loop. -->
+
+<!-- V113 (2026-07-09): Fixed Rewards Studio tab-switch flicker. Neuters legacy V103/V104 render functions, hooks switchRewardsView + subtab clicks so #viewVault is SYNCHRONOUSLY wiped BEFORE the tab becomes visible. Pre-creates #v109-hub with a loading skeleton so first-tap has zero flash. -->
+
+<!-- V112 (2026-07-09): Global points-total sync. Runs on 500ms interval + hooks localStorage.setItem so #rhTotal (Rewards Studio hero), #rhVault, #homeVaultSummary .vs-big, and #v109-hub .v109-hero-val ALL show the same $ across every tab. -->
+
+<!-- V111 (2026-07-09): DEFINITIVE Points nuke. Empties all legacy containers (v96OptBody, v104Optimizer, vaultPrograms, etc.) and hides every direct child of #viewVault except #v109-hub. Culprit was v103-hero + v103-empty (V103 optimizer, extended by V104/V105). -->
+
+<!-- V110 (2026-07-09): Fixed V109 kill switches that missed the .v96-opt-* class family (Points Optimizer + No memberships yet card). Adds MutationObserver so V96 UI cannot sneak back in on re-render intervals. -->
+
+<!-- V107 (2026-07-09): Points Hub + earn toast (superseded by V109 layout). -->
+<!-- V108 (2026-07-09): Welcome offers audit. -->
+<!-- V109 (2026-07-09): FULL Points tab redesign — ONE hero, wallet memberships on top, extras below, working expandable dropdowns with persistent state. -->
 
 <!-- V66: Removed extra note under each card in My Wallet + hid Recent Activity from Home tab (still shown in Rewards Studio). -->
 <!-- V67: Restored 15 missing cards (76→91) + expanded aliases with Canada-wide merchant depth for deeper category coverage. -->
@@ -1903,13 +1927,8 @@ body.dark .credits-empty{background:var(--surface)}
 
 <!-- Vault view -->
 <div id="viewVault" class="rewards-view">
- <div class="section" style="margin-top:2px">Your points balances</div>
- <div id="vaultPrograms"></div>
- <div class="section">💡 Sweet spots</div>
- <div id="vaultSweetspots"></div>
- <div style="display:none"><div id="vaultTotal">$0</div></div>
+ <div id="v109-hub"></div>
 </div>
-
 </section>
 
 
@@ -8924,7 +8943,7 @@ function renderCards(){
 // ============================================================
 const OFFERS=[
 {n:'Amex Platinum',iss:'Amex',e:'\uD83D\uDCB3',pts:'170,000 MR pts',val:2550,fee:799,fyf:false,cat:'travel',color:'plat',expiry:'2026-07-28',why:'Best premium offer of 2026 + $200 travel + $200 dining credits. Ends July 28.',apply:'https://www.americanexpress.com/en-ca/charge-cards/the-platinum-card'},
-{n:'Amex Cobalt',iss:'Amex',e:'\uD83D\uDD35',pts:'15,000 MR pts',val:150,fee:191.88,fyf:false,cat:'travel',color:'cobalt',expiry:null,why:'1,250 MR/mo for each $750 spent = 15k MR (up to $300 travel value). Iconic 5x food card.',apply:'https://www.americanexpress.com/en-ca/credit-cards/cobalt-card/'},
+{n:'Amex Cobalt',iss:'Amex',e:'\uD83D\uDD35',pts:'15,000 MR pts',val:150,fee:191.88,fyf:false,cat:'travel',color:'cobalt',expiry:null,why:'1,250 MR/mo per $750 spent = 15k MR (up to $300 travel value). Iconic 5x food card.',apply:'https://www.americanexpress.com/en-ca/credit-cards/cobalt-card/'},
 {n:'Amex Gold Rewards',iss:'Amex',e:'\uD83D\uDC9B',pts:'60,000 MR pts',val:900,fee:250,fyf:false,cat:'travel',color:'plat',expiry:null,why:'Up to 60k MR + $100 travel credit. 2x dining/travel/gas/grocery.',apply:'https://www.americanexpress.com/en-ca/credit-cards/gold-rewards-card/'},
 {n:'Marriott Bonvoy Amex',iss:'Amex',e:'\uD83C\uDFE8',pts:'70,000 Bonvoy pts',val:700,fee:120,fyf:false,cat:'travel',color:'bonvoy',expiry:null,why:'70k Bonvoy = 2 free nights (up to $700 hotel value) + annual free night cert.',apply:'https://www.americanexpress.com/en-ca/credit-cards/marriott-bonvoy-card/'},
 {n:'TD Aeroplan VI Privilege',iss:'TD',e:'\u2708\uFE0F',pts:'85,000 Aeroplan pts',val:1700,fee:599,fyf:false,cat:'travel',color:'plat',expiry:null,why:'20k first purchase + 35k after $12k + 30k anniversary. Maple Leaf Lounge access.',apply:'https://www.td.com/ca/en/personal-banking/products/credit-cards/aeroplan/aeroplan-visa-infinite-privilege-card'},
@@ -18058,7 +18077,6 @@ setTimeout(stampV79,500);setTimeout(stampV79,1500);
 <script id="v94-homepage-stat">
 (function(){
   function updateStat(){
-    return; /* V104 */
     try{
       var el = document.getElementById('v89StatMerchants');
       if(!el) return;
@@ -18080,866 +18098,16 @@ setTimeout(stampV79,500);setTimeout(stampV79,1500);
   setTimeout(updateStat, 600);
   setTimeout(updateStat, 2000);
   setTimeout(updateStat, 5000);
-  setInterval(updateStat, 1500);
+  /* V119: setInterval removed — ALIASES is static after boot, no need to poll */
 })();
 </script>
 
 
-<script id="v96-rewards-studio">
-(function(){
-  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
-  function fmt(v){ if(!isFinite(v) || v == null) return '$0.00'; return '$' + (Math.round(v*100)/100).toFixed(2); }
-  function fmtInt(v){ return String(Math.round(v || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
-
-  var PROGRAMS = {
-    aeroplan: {
-      name: 'Aeroplan', icon: '\u2708\uFE0F', unit: 'pts',
-      redemptions: [
-        { label: '\u2708\uFE0F Flights (sweet-spot chart)', cpp: 0.021, best: true, tip: 'Best value: North America short-haul (~10k-25k pts) or business-class transfer partners (25-50k pts).' },
-        { label: '\uD83C\uDFE8 Hotels / vacations', cpp: 0.010 },
-        { label: '\uD83D\uDECD\uFE0F Merchandise', cpp: 0.010 },
-        { label: '\uD83D\uDCB5 Cash / statement credit', cpp: 0.010 }
-      ]
-    },
-    mr: {
-      name: 'Amex Membership Rewards', icon: '\uD83D\uDD35', unit: 'MR',
-      redemptions: [
-        { label: '\u2708\uFE0F Transfer to Aeroplan (1:1)', cpp: 0.015, best: true, tip: 'Transfer 1:1 to Aeroplan, then redeem on the sweet-spot flight chart. This is the single best use of MR in Canada.' },
-        { label: '\uD83C\uDFE8 Transfer to Marriott Bonvoy (5:6)', cpp: 0.010 },
-        { label: '\uD83D\uDCB5 Statement credit', cpp: 0.010 },
-        { label: '\uD83D\uDECD\uFE0F Amazon.ca / online', cpp: 0.007 }
-      ]
-    },
-    'scene+': {
-      name: 'Scene+', icon: '\uD83C\uDFAC', unit: 'pts',
-      redemptions: [
-        { label: '\uD83D\uDCB5 Statement credit (Scotia CC)', cpp: 0.010, best: true, tip: 'Open the Scene+ app, tap Redeem, then Statement Credit. Scene+ points cash out 1:1 against your Scotia credit card statement - no travel booking, no minimums.' },
-        { label: '\uD83C\uDFAC Cineplex tickets', cpp: 0.010 },
-        { label: '\uD83D\uDED2 Sobeys / Empire grocery', cpp: 0.010 },
-        { label: '\u2708\uFE0F Scene+ Travel', cpp: 0.010 }
-      ]
-    },
-    pcoptimum: {
-      name: 'PC Optimum', icon: '\uD83D\uDED2', unit: 'pts',
-      redemptions: [
-        { label: '\uD83D\uDED2 Loblaws / Superstore / No Frills', cpp: 0.001, best: true, tip: 'Wait for a 20x on everything or Spend Your Points day to nearly double effective value. Check the PC Optimum app every week.' },
-        { label: '\uD83D\uDC8A Shoppers Drug Mart', cpp: 0.001 }
-      ]
-    },
-    rogers: {
-      name: 'Rogers Cash', icon: '\uD83D\uDCF1', unit: '$', cashLike: true,
-      redemptions: [
-        { label: '\uD83D\uDCF1 Rogers / Fido bill (1.5x boost)', cpp: 0.015, best: true, tip: 'Redeem Rogers Cash against a Rogers, Fido, or chatr bill for a full 50% boost. $100 Rogers Cash = $150 off your bill.' },
-        { label: '\uD83D\uDCB5 Statement credit (any purchase)', cpp: 0.010 }
-      ]
-    },
-    bonvoy: {
-      name: 'Marriott Bonvoy', icon: '\uD83C\uDFE8', unit: 'pts',
-      redemptions: [
-        { label: '\uD83C\uDFE8 Peak-night hotels + 5th night free', cpp: 0.011, best: true, tip: 'On 5+ night stays, Bonvoy waives the cheapest night. Peak-night category 4-6 hotels punch above weight.' },
-        { label: '\uD83C\uDFE8 Standard hotel nights', cpp: 0.008 },
-        { label: '\u2708\uFE0F Airline transfer (3:1)', cpp: 0.006 }
-      ]
-    },
-    bluerewards: {
-      name: 'BMO Blue Rewards', icon: '\uD83D\uDD35', unit: 'pts',
-      redemptions: [
-        { label: '\uD83D\uDECD\uFE0F Merchandise / travel via BMO', cpp: 0.0067, best: true },
-        { label: '\uD83D\uDCB5 Cash / statement credit', cpp: 0.0067 }
-      ]
-    },
-    avion: {
-      name: 'RBC Avion', icon: '\u2708\uFE0F', unit: 'pts',
-      redemptions: [
-        { label: '\u2708\uFE0F Air Travel Redemption chart', cpp: 0.020, best: true, tip: 'The fixed short-haul chart (~15,000 pts for a $350 flight) beats the 1 pt = 1 cent travel calculator every time.' },
-        { label: '\u2708\uFE0F Transfer to British Airways Avios', cpp: 0.015 },
-        { label: '\uD83D\uDCB5 Cash / statement credit', cpp: 0.010 }
-      ]
-    },
-    airmiles: {
-      name: 'AIR MILES', icon: '\uD83C\uDF0D', unit: 'miles',
-      redemptions: [
-        { label: '\u2708\uFE0F Flights (Dream)', cpp: 0.105, best: true },
-        { label: '\uD83D\uDECD\uFE0F Merchandise / Cash', cpp: 0.105 }
-      ]
-    },
-    hsbc: {
-      name: 'HSBC Rewards', icon: '\uD83C\uDF39', unit: 'pts',
-      redemptions: [
-        { label: '\u2708\uFE0F Travel', cpp: 0.005, best: true },
-        { label: '\uD83D\uDCB5 Cash', cpp: 0.005 }
-      ]
-    },
-    td: {
-      name: 'TD Rewards', icon: '\uD83D\uDFE2', unit: 'pts',
-      redemptions: [
-        { label: '\u2708\uFE0F Expedia for TD (best)', cpp: 0.005, best: true },
-        { label: '\uD83D\uDCB5 Cash', cpp: 0.0025 }
-      ]
-    },
-    aventura: {
-      name: 'CIBC Aventura', icon: '\u2708\uFE0F', unit: 'pts',
-      redemptions: [
-        { label: '\u2708\uFE0F Fixed flight chart (best)', cpp: 0.020, best: true, tip: 'Aventura Flight Rewards Chart gives 2cpp on short-haul flights. Beats travel dollars for anything under $700.' },
-        { label: '\uD83D\uDCB5 Travel dollars / cash', cpp: 0.010 }
-      ]
-    },
-    bmo: {
-      name: 'BMO Rewards', icon: '\uD83D\uDD35', unit: 'pts',
-      redemptions: [
-        { label: '\u2708\uFE0F Travel', cpp: 0.007, best: true },
-        { label: '\uD83D\uDECD\uFE0F Merchandise', cpp: 0.005 },
-        { label: '\uD83D\uDCB5 Cash', cpp: 0.005 }
-      ]
-    },
-    morerewards: {
-      name: 'More Rewards', icon: '\uD83D\uDED2', unit: 'pts',
-      redemptions: [
-        { label: '\uD83D\uDED2 Save-On-Foods (best)', cpp: 0.010, best: true },
-        { label: '\u2708\uFE0F Travel', cpp: 0.010 },
-        { label: '\uD83D\uDCB5 Cash', cpp: 0.010 }
-      ]
-    }
-  };
-
-  function programFor(m){
-    if(!m) return null;
-    var k = String(m.key || m.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-    var directMap = {
-      'aeroplan': 'aeroplan', 'aircanada': 'aeroplan',
-      'amexmr': 'mr', 'mr': 'mr', 'membershiprewards': 'mr', 'amexmembershiprewards': 'mr',
-      'sceneplus': 'scene+', 'scene': 'scene+',
-      'pcoptimum': 'pcoptimum', 'pcpoints': 'pcoptimum', 'pc': 'pcoptimum',
-      'rogers': 'rogers', 'rogerscash': 'rogers', 'rogersrewards': 'rogers',
-      'bonvoy': 'bonvoy', 'marriottbonvoy': 'bonvoy', 'marriott': 'bonvoy',
-      'bluerewards': 'bluerewards', 'bmoblue': 'bluerewards',
-      'avion': 'avion', 'rbcavion': 'avion', 'rbcrewards': 'avion',
-      'airmiles': 'airmiles',
-      'hsbc': 'hsbc', 'hsbcrewards': 'hsbc',
-      'td': 'td', 'tdrewards': 'td',
-      'aventura': 'aventura', 'cibcaventura': 'aventura', 'cibcrewards': 'aventura',
-      'bmo': 'bmo', 'bmorewards': 'bmo',
-      'morerewards': 'morerewards'
-    };
-    return PROGRAMS[directMap[k]] || null;
-  }
-
-  function synergiesFor(cards){
-    var cardStr = (cards || []).join(' ').toLowerCase();
-    var list = [
-      { icon: '\uD83D\uDCF1', title: 'Rogers Cash \u2192 1.5x bill boost', trigger: /rogers|fido/i, badge: '1.5\u00d7 REDEMPTION',
-        body: 'You own a <b>Rogers World Elite Mastercard</b>. Redeem your Rogers Cash directly against your Rogers, Fido, or chatr bill for a full <b>50% redemption boost</b> - $100 Rogers Cash = $150 off your bill. Never redeem as statement credit unless you have to.' },
-      { icon: '\u2708\uFE0F', title: 'Amex MR \u2192 Aeroplan transfer', trigger: /cobalt|amex|american express|mr\b|membership rewards|amex gold|amex platinum|business gold|business platinum/i, badge: 'BEST MR USE',
-        body: 'You have an <b>MR-earning Amex</b>. Transfer MR to Aeroplan 1:1, then book on the Aeroplan flight chart. Sweet spots: <b>10-15k pts</b> for North American short-haul, <b>50-70k pts</b> for business-class transatlantic. Effectively <b>1.5\u00a2/pt+</b>.' },
-      { icon: '\uD83C\uDFAC', title: 'Scene+ statement credit hack', trigger: /scotia|scene|tangerine|momentum|passport|gold amex/i, badge: '1cpp CASH',
-        body: 'You own a <b>Scotia / Scene+</b> earning card. Open the Scene+ app, tap Redeem, then <b>Statement Credit</b>. Scene+ points cash out 1:1 against your Scotia credit card statement - no travel booking, no minimums. Underrated best use of Scene+.' },
-      { icon: '\uD83C\uDFE8', title: 'Bonvoy free-night certificate', trigger: /bonvoy|marriott/i, badge: 'ANNUAL PERK',
-        body: 'You own a <b>Marriott Bonvoy Amex</b>. The annual <b>35,000-pt free-night certificate</b> alone is often worth $200-400+ (peak category 4-5 hotels). Keep this card even in a keep-or-cancel year - the cert pays the $120 fee.' },
-      { icon: '\uD83D\uDED2', title: 'PC Optimum 20x days', trigger: /./i, badge: 'FREE STACK',
-        body: 'Everyone benefits: watch the PC Optimum app for <b>20x the points targeted offers</b> (usually on weekends). Stack it with the <b>PC Insiders World Elite MC</b> (45 pts/$) at Loblaws for effectively <b>6.5%+ back</b>. No annual fee for the base PC MC.' },
-      { icon: '\u26FD', title: 'RBC \u2192 Petro-Canada 3\u00a2/L link', trigger: /rbc|royal bank|avion|ion/i, badge: '3\u00a2/L SAVE',
-        body: 'You have an <b>RBC card</b>. Link it to your Petro-Points account for an instant <b>3\u00a2 off/L</b> at every Petro-Canada fillup. On top of the base rewards, this is an extra 2% back on fuel and takes 60 seconds to set up in the Petro-Canada app.' }
-    ];
-    return list.map(function(s){ s.unlocked = s.trigger.test(cardStr); return s; });
-  }
-
-  function mergeInsightsIntoTx(){
-    try{
-      var viewTx = document.getElementById('viewTx');
-      if(!viewTx) return;
-      if(viewTx.dataset.v96Insights === '1') return;
-      var strip = viewTx.querySelector('.v96-insights-strip');
-      if(!strip){
-        strip = document.createElement('div');
-        strip.className = 'v96-insights-strip';
-        viewTx.insertBefore(strip, viewTx.firstChild);
-      }
-      var overview = document.getElementById('viewOverview');
-      if(overview){
-        ['overviewMissed','overviewSubs','overviewTip'].forEach(function(id){
-          var n = document.getElementById(id);
-          if(n && n.parentNode !== strip){ strip.appendChild(n); }
-        });
-        var hiddenNote = overview.querySelector('.v86-hidden-note');
-        if(hiddenNote && hiddenNote.parentNode !== strip){ strip.appendChild(hiddenNote); }
-      }
-      viewTx.dataset.v96Insights = '1';
-    }catch(e){}
-  }
-
-  function modifyTabs(){
-    try{
-      var subtabs = document.getElementById('rewardsSubtabs');
-      if(!subtabs) return;
-      if(subtabs.dataset.v96Tabs === '1') return;
-      subtabs.style.gridTemplateColumns = 'repeat(5,1fr)';
-      if(!subtabs.querySelector('button[data-view="optimize"]')){
-        var vaultBtn = subtabs.querySelector('button[data-view="vault"]');
-        var optBtn = document.createElement('button');
-        optBtn.setAttribute('data-view','optimize');
-        optBtn.setAttribute('title','Optimize your points');
-        optBtn.setAttribute('onclick',"switchRewardsView('optimize')");
-        optBtn.textContent = '\uD83D\uDC8E';
-        if(vaultBtn){ subtabs.insertBefore(optBtn, vaultBtn); } else { subtabs.appendChild(optBtn); }
-      }
-      subtabs.dataset.v96Tabs = '1';
-    }catch(e){}
-  }
-
-  function injectOptimizeView(){
-    try{
-      if(document.getElementById('viewOptimize')) return;
-      var rewards = document.getElementById('rewards');
-      if(!rewards) return;
-      var vault = document.getElementById('viewVault');
-      var opt = document.createElement('div');
-      opt.id = 'viewOptimize';
-      opt.className = 'rewards-view';
-      opt.innerHTML = '<div class="v96-opt-hero"><div class="v96-oh-label">\uD83D\uDC8E Redemption Optimizer</div><div class="v96-oh-value" id="v96OptTotal">$0.00</div><div class="v96-oh-sub">Cash-equivalent value of your points, optimized for the best redemption per program</div><div class="v96-oh-mini"><div class="m"><div class="l">Programs</div><div class="v" id="v96OptPrograms">0</div></div><div class="m"><div class="l">Best CPP</div><div class="v" id="v96OptBestCPP">\u2014</div></div><div class="m"><div class="l">Synergies</div><div class="v" id="v96OptSyn">0</div></div></div></div><div id="v96OptBody"></div>';
-      if(vault && vault.parentNode){ vault.parentNode.insertBefore(opt, vault); } else { rewards.appendChild(opt); }
-    }catch(e){}
-  }
-
-  function readMemberships(){
-    try{
-      var raw = localStorage.getItem('walletiq_memberships');
-      var arr = raw ? JSON.parse(raw) : [];
-      if(!Array.isArray(arr)) arr = [];
-      return arr;
-    }catch(e){ return []; }
-  }
-
-  function readWalletCardNames(){
-    try{
-      if(typeof userWallet !== 'undefined' && userWallet && typeof userWallet.forEach === 'function' && typeof CARDS_DB !== 'undefined'){
-        var out = [];
-        userWallet.forEach(function(key){
-          var c = CARDS_DB && CARDS_DB[key];
-          if(c && c.n) out.push(c.n);
-          else if(typeof key === 'string') out.push(key);
-        });
-        if(out.length > 0) return out;
-      }
-    }catch(e){}
-    try{
-      var raw = localStorage.getItem('walletiq_wallet');
-      if(raw){ var p = JSON.parse(raw); if(Array.isArray(p)) return p; }
-    }catch(e){}
-    return [];
-  }
-
-  function renderOptimizer(){
-    return; /* V104 */
-    try{
-      var body = document.getElementById('v96OptBody');
-      if(!body) return;
-      var mems = readMemberships();
-      var cards = readWalletCardNames();
-      var syns = synergiesFor(cards);
-
-      var totalDollars = 0, programCount = 0, bestCPP = 0;
-
-      if(mems.length === 0){
-        body.innerHTML = '<div class="v96-opt-empty"><div class="big">\uD83D\uDCB0</div><h4>No memberships yet</h4><p>Add your loyalty programs (Aeroplan, PC Optimum, Scene+, Bonvoy, Rogers Cash, etc.) in the Points Vault. We\u2019ll show you the exact best way to burn each one.</p><button type="button" onclick="switchRewardsView(\'vault\')">Open Points Vault \u2192</button></div>';
-      } else {
-        var out = '';
-        out += '<div class="v96-opt-section-title"><span>Your programs \u2014 best redemptions</span></div>';
-        mems.forEach(function(m){
-          if(!m) return;
-          var prog = programFor(m);
-          var balance = parseFloat(m.balance) || 0;
-          var name = esc(m.name || (prog ? prog.name : 'Points'));
-          var icon = m.emoji || (prog ? prog.icon : '\uD83D\uDCB3');
-          var unit = m.unit || (prog ? prog.unit : 'pts');
-          var redemptions = prog ? prog.redemptions : [{ label: '\uD83D\uDCB5 Cash equivalent', cpp: parseFloat(m.cpp) || 0.005, best: true, tip: '' }];
-          var best = redemptions.find(function(r){ return r.best; }) || redemptions[0];
-          totalDollars += balance * (best.cpp || 0);
-          programCount++;
-          if(best.cpp > bestCPP) bestCPP = best.cpp;
-
-          var balDisplay = unit === '$' ? fmt(balance) : fmtInt(balance) + ' ' + esc(unit);
-
-          out += '<div class="v96-opt-card">';
-          out += '<div class="v96-opt-card-head">';
-          out += '<div class="v96-opt-card-icon">' + icon + '</div>';
-          out += '<div class="v96-opt-card-mid"><div class="v96-opt-card-title">' + name + '</div><div class="v96-opt-card-sub">Balance</div></div>';
-          out += '<div class="v96-opt-card-bal"><div class="b">' + balDisplay + '</div><div class="bl">Best = ' + fmt(balance * (best.cpp || 0)) + '</div></div>';
-          out += '</div>';
-
-          redemptions.forEach(function(r){
-            var v = balance * (r.cpp || 0);
-            var cls = r.best ? 'rv best' : (v <= 0 ? 'rv dim' : 'rv');
-            var cppStr = r.cpp ? (r.cpp >= 0.01 ? (Math.round(r.cpp * 100) / 100).toFixed(2) : (Math.round(r.cpp * 1000) / 1000).toFixed(3)) : '\u2014';
-            var cppLabel = ' <span class="v96-cpp">' + cppStr + '\u00a2/pt</span>';
-            out += '<div class="v96-redemption"><span class="rl">' + r.label + '</span><span class="' + cls + '">' + fmt(v) + '</span><span>' + (r.best ? '<span class="v96-best-tag">BEST</span>' : cppLabel) + '</span></div>';
-          });
-
-          if(best.tip){
-            out += '<div class="v96-opt-tip"><strong>\uD83D\uDCA1 Tip:</strong> ' + best.tip + '</div>';
-          }
-          out += '</div>';
-        });
-
-        var unlockedCount = syns.filter(function(s){return s.unlocked;}).length;
-        out += '<div class="v96-opt-section-title" style="margin-top:20px;"><span>Sweet-spot synergies (' + unlockedCount + ' unlocked)</span></div>';
-        syns.forEach(function(s){
-          var lockedCls = s.unlocked ? '' : ' locked';
-          out += '<div class="v96-synergy-card' + lockedCls + '">';
-          out += '<div class="v96-syn-head"><div class="v96-syn-icon">' + s.icon + '</div><div class="v96-syn-title-wrap"><div class="v96-syn-title">' + s.title + (s.unlocked ? ' <span class="v96-syn-badge">' + s.badge + '</span>' : '') + '</div><div class="v96-syn-locked-lbl">Add a qualifying card to unlock</div></div></div>';
-          out += '<div class="v96-syn-body">' + s.body + '</div>';
-          out += '</div>';
-        });
-
-        body.innerHTML = out;
-
-        var totalEl = document.getElementById('v96OptTotal');
-        if(totalEl) totalEl.textContent = fmt(totalDollars);
-        var progEl = document.getElementById('v96OptPrograms');
-        if(progEl) progEl.textContent = programCount;
-        var bestEl = document.getElementById('v96OptBestCPP');
-        if(bestEl) bestEl.textContent = bestCPP ? (bestCPP * 100).toFixed(2) + '\u00a2' : '\u2014';
-        var synEl = document.getElementById('v96OptSyn');
-        if(synEl) synEl.textContent = unlockedCount;
-      }
-    }catch(e){ try{ console.warn('[V96] renderOptimizer error:', e); }catch(e2){} }
-  }
-
-  function wrapSwitch(){
-    try{
-      if(window.__v96SwitchWrapped) return;
-      if(typeof window.switchRewardsView !== 'function') return;
-      var orig = window.switchRewardsView;
-      window.switchRewardsView = function(view){
-        if(view === 'overview') view = 'tx';
-        if(view === 'optimize'){
-          try{
-            var views = document.querySelectorAll('#rewards .rewards-view');
-            views.forEach(function(v){ v.classList.remove('active'); });
-            var opt = document.getElementById('viewOptimize');
-            if(opt) opt.classList.add('active');
-            var subtabs = document.getElementById('rewardsSubtabs');
-            if(subtabs){
-              subtabs.querySelectorAll('button').forEach(function(b){ b.classList.remove('on'); });
-              var target = subtabs.querySelector('button[data-view="optimize"]');
-              if(target) target.classList.add('on');
-            }
-            renderOptimizer();
-          }catch(e){}
-          return;
-        }
-        return orig.apply(this, arguments);
-      };
-      window.__v96SwitchWrapped = true;
-    }catch(e){}
-  }
-
-  function tick(){
-    try{ modifyTabs(); }catch(e){}
-    try{ injectOptimizeView(); }catch(e){}
-    try{ mergeInsightsIntoTx(); }catch(e){}
-    try{ wrapSwitch(); }catch(e){}
-    try{
-      var opt = document.getElementById('viewOptimize');
-      if(opt && opt.classList.contains('active')) renderOptimizer();
-    }catch(e){}
-  }
-
-  function init(){
-    tick();
-    setTimeout(tick, 300);
-    setTimeout(tick, 1000);
-    setTimeout(tick, 3000);
-    setInterval(tick, 4000);
-    try{
-      var overview = document.getElementById('viewOverview');
-      var tx = document.getElementById('viewTx');
-      if(overview && overview.classList.contains('active') && tx){
-        overview.classList.remove('active');
-        tx.classList.add('active');
-      }
-    }catch(e){}
-  }
-
-  if(document.readyState === 'loading'){ document.addEventListener('DOMContentLoaded', init); } else { init(); }
-})();
-</script>
+<script><!-- V116: stripped legacy script containing function injectOptimizeView --></script>
 
 
-<script id="v98-optimizer-fix">
-(function(){
-  // V98: Full 24-program catalog matching vault. cpp values are in CENTS per point.
-  // dollars = balance * cpp / 100
-  var PROGRAMS = {
-    aeroplan: { name:'Aeroplan', icon:'\u2708\uFE0F', unit:'pts',
-      redemptions: [
-        { label:'\u2708\uFE0F Sweet-spot flight chart', cpp:2.1, best:true, tip:'The Aeroplan chart lets you book 10-15k pts for short-haul flights or 50-70k for business-class transatlantic. Best-case ~2.1cpp.' },
-        { label:'\u2708\uFE0F Any Aeroplan flight', cpp:1.5 },
-        { label:'\uD83C\uDFE8 Hotels / vacations', cpp:1.0 },
-        { label:'\uD83D\uDCB5 Cash / statement credit', cpp:1.0 }
-      ]
-    },
-    mr: { name:'Amex Membership Rewards', icon:'\uD83D\uDD35', unit:'MR',
-      redemptions: [
-        { label:'\u2708\uFE0F Transfer to Aeroplan (1:1)', cpp:1.5, best:true, tip:'The single best MR use in Canada. Transfer 1:1 to Aeroplan then redeem on the sweet-spot chart.' },
-        { label:'\uD83C\uDFE8 Transfer to Marriott Bonvoy (5:6)', cpp:1.0 },
-        { label:'\uD83D\uDCB5 Statement credit', cpp:1.0 },
-        { label:'\uD83D\uDECD\uFE0F Amazon.ca / online', cpp:0.7 }
-      ]
-    },
-    scene: { name:'Scene+', icon:'\uD83C\uDFAC', unit:'pts',
-      redemptions: [
-        { label:'\uD83D\uDCB5 Statement credit (Scotia CC)', cpp:1.0, best:true, tip:'Open the Scene+ app, tap Redeem then Statement Credit. Scene+ points cash out 1:1 against your Scotia CC statement.' },
-        { label:'\uD83C\uDFAC Cineplex tickets', cpp:1.0 },
-        { label:'\uD83D\uDED2 Sobeys / Empire grocery', cpp:1.0 },
-        { label:'\u2708\uFE0F Scene+ Travel', cpp:1.0 }
-      ]
-    },
-    airmiles: { name:'AIR MILES (Cash)', icon:'\uD83C\uDF0D', unit:'miles',
-      redemptions: [
-        { label:'\uD83D\uDCB5 Cash Miles at checkout', cpp:10.5, best:true, tip:'Cash Miles redeem at 95 miles = $10 (10.5c/mile). Straight cash at partner stores.' }
-      ]
-    },
-    airmilesdream: { name:'AIR MILES (Dream)', icon:'\uD83C\uDF0D', unit:'miles',
-      redemptions: [
-        { label:'\u2708\uFE0F Flights (Dream)', cpp:12.5, best:true, tip:'Dream Miles are 15-30% better than Cash Miles when used on flights.' },
-        { label:'\uD83D\uDECD\uFE0F Merchandise', cpp:10.5 }
-      ]
-    },
-    pcoptimum: { name:'PC Optimum', icon:'\uD83D\uDED2', unit:'pts',
-      redemptions: [
-        { label:'\uD83D\uDED2 Loblaws / Superstore / No Frills', cpp:0.1, best:true, tip:'Wait for a 20x-the-points weekend or Spend Your Points day to nearly double effective value. Check the PC Optimum app every week.' },
-        { label:'\uD83D\uDC8A Shoppers Drug Mart', cpp:0.1 }
-      ]
-    },
-    bonvoy: { name:'Marriott Bonvoy', icon:'\uD83C\uDFE8', unit:'pts',
-      redemptions: [
-        { label:'\uD83C\uDFE8 Peak nights + 5th night free', cpp:1.1, best:true, tip:'On 5+ night stays, Bonvoy waives the cheapest night. Peak category 4-6 hotels punch above weight.' },
-        { label:'\uD83C\uDFE8 Standard hotel nights', cpp:0.8 },
-        { label:'\u2708\uFE0F Airline transfer (3:1)', cpp:0.6 }
-      ]
-    },
-    hilton: { name:'Hilton Honors', icon:'\uD83C\uDFE8', unit:'pts',
-      redemptions: [
-        { label:'\uD83C\uDFE8 Aspire annual free-night cert', cpp:0.7, best:true, tip:'The Aspire free-night cert applied at peak Cat 6-8 hotels can hit 0.7-1.0c/pt. Regular redemptions are ~0.5c.' },
-        { label:'\uD83C\uDFE8 Standard hotel nights', cpp:0.5 },
-        { label:'\u2708\uFE0F Airline transfer (10:1)', cpp:0.2 }
-      ]
-    },
-    ihg: { name:'IHG One Rewards', icon:'\uD83C\uDFE8', unit:'pts',
-      redemptions: [
-        { label:'\uD83C\uDFE8 4th Night Free (Premier CC)', cpp:0.6, best:true, tip:'The Premier CC 4th-night-free perk on 4+ night stays pushes IHG value from 0.5c to ~0.6c/pt.' },
-        { label:'\uD83C\uDFE8 Standard hotel nights', cpp:0.5 }
-      ]
-    },
-    hyatt: { name:'World of Hyatt', icon:'\uD83C\uDFE8', unit:'pts',
-      redemptions: [
-        { label:'\uD83C\uDFE8 Cat 1-4 hotels + FNC', cpp:2.0, best:true, tip:'Hyatt is the best hotel currency in Canada. Cat 1-4 properties frequently return 2c+/pt on peak nights.' },
-        { label:'\uD83C\uDFE8 Standard hotel nights', cpp:1.7 }
-      ]
-    },
-    westjet: { name:'WestJet Rewards', icon:'\u2708\uFE0F', unit:'WJ$',
-      redemptions: [
-        { label:'\u2708\uFE0F Flights (WJ$ = $1 CAD)', cpp:100, best:true, tip:'WestJet dollars are literal 1:1 cash toward flights. Every WJ$1 = $1 off any WestJet flight.' }
-      ]
-    },
-    baavios: { name:'BA Avios', icon:'\u2708\uFE0F', unit:'avios',
-      redemptions: [
-        { label:'\u2708\uFE0F Short-haul partner flights', cpp:1.6, best:true, tip:'BA short-haul distance-based chart is 3-4k Avios for many partner (Alaska/AA) flights under 650mi.' },
-        { label:'\u2708\uFE0F Long-haul flights', cpp:1.2 }
-      ]
-    },
-    petropoints: { name:'Petro-Points', icon:'\u26FD', unit:'pts',
-      redemptions: [
-        { label:'\u26FD Fuel / snacks at Petro-Canada', cpp:0.1, best:true, tip:'Petro-Points are 0.1c each. 1,000 pts = $1 off fuel. Link your RBC card for an extra 3c/L discount on top.' }
-      ]
-    },
-    starbucks: { name:'Starbucks Stars', icon:'\u2615', unit:'stars',
-      redemptions: [
-        { label:'\u2615 Handcrafted drink (200 stars)', cpp:3.5, best:true, tip:'The 200-star free-drink tier is the best value. Grande espresso drinks push 3.5c/star.' },
-        { label:'\u2615 Bakery item (100 stars)', cpp:2.5 }
-      ]
-    },
-    timrewards: { name:'Tim Hortons Rewards', icon:'\u2615', unit:'pts',
-      redemptions: [
-        { label:'\u2615 Free coffee/food item', cpp:0.1, best:true, tip:'Tims points are ~0.1c/pt. Redeem when you have 800+ for the best item on the reward menu.' }
-      ]
-    },
-    shoppers: { name:'Shoppers Optimum', icon:'\uD83D\uDC8A', unit:'pts',
-      redemptions: [
-        { label:'\uD83D\uDC8A Shoppers Drug Mart', cpp:0.1, best:true, tip:'Same rate as PC Optimum. Watch for 50x-the-points weekends to boost effective earn on cosmetics.' }
-      ]
-    },
-    ctmoney: { name:'Canadian Tire Money', icon:'\uD83D\uDD34', unit:'CT$',
-      redemptions: [
-        { label:'\uD83D\uDD34 Any Canadian Tire purchase', cpp:100, best:true, tip:'CT Money is literal 1:1 cash at Canadian Tire. 100 CT$ = $100 off.' }
-      ]
-    },
-    rogers: { name:'Rogers Cash', icon:'\uD83D\uDCF1', unit:'$', cashLike:true,
-      redemptions: [
-        { label:'\uD83D\uDCF1 Rogers / Fido bill (1.5x boost)', cpp:1.5, best:true, tip:'Redeem Rogers Cash directly against a Rogers/Fido/chatr bill for a 50% boost. $100 Rogers Cash = $150 off your bill.' },
-        { label:'\uD83D\uDCB5 Statement credit (any purchase)', cpp:1.0 }
-      ]
-    },
-    avion: { name:'RBC Avion', icon:'\u2708\uFE0F', unit:'pts',
-      redemptions: [
-        { label:'\u2708\uFE0F Air Travel Redemption chart', cpp:2.0, best:true, tip:'Fixed short-haul chart (~15,000 pts for a $350 flight) beats the 1pt=1c travel calculator every time.' },
-        { label:'\u2708\uFE0F British Airways Avios (1:1)', cpp:1.5 },
-        { label:'\uD83D\uDCB5 Cash / statement credit', cpp:1.0 }
-      ]
-    },
-    aventura: { name:'CIBC Aventura', icon:'\u2708\uFE0F', unit:'pts',
-      redemptions: [
-        { label:'\u2708\uFE0F Fixed flight chart', cpp:2.0, best:true, tip:'The Aventura chart gives 2c/pt on short-haul flights. Beats travel dollars for anything under $700.' },
-        { label:'\uD83D\uDCB5 Travel dollars / cash', cpp:1.0 }
-      ]
-    },
-    td: { name:'TD Rewards', icon:'\uD83D\uDFE2', unit:'pts',
-      redemptions: [
-        { label:'\u2708\uFE0F Expedia for TD (best)', cpp:0.5, best:true },
-        { label:'\uD83D\uDCB5 Cash', cpp:0.25 }
-      ]
-    },
-    bmo: { name:'BMO Rewards', icon:'\uD83D\uDD35', unit:'pts',
-      redemptions: [
-        { label:'\u2708\uFE0F Travel', cpp:0.7, best:true },
-        { label:'\uD83D\uDECD\uFE0F Merchandise', cpp:0.5 },
-        { label:'\uD83D\uDCB5 Cash', cpp:0.5 }
-      ]
-    },
-    hsbc: { name:'HSBC Rewards', icon:'\uD83C\uDF39', unit:'pts',
-      redemptions: [
-        { label:'\u2708\uFE0F Travel', cpp:0.5, best:true },
-        { label:'\uD83D\uDCB5 Cash', cpp:0.5 }
-      ]
-    },
-    bluerewards: { name:'BMO Blue Rewards', icon:'\uD83D\uDD35', unit:'pts',
-      redemptions: [
-        { label:'\uD83D\uDECD\uFE0F BMO merchandise / travel', cpp:0.67, best:true },
-        { label:'\uD83D\uDCB5 Cash / statement credit', cpp:0.67 }
-      ]
-    },
-    morerewards: { name:'More Rewards', icon:'\uD83D\uDED2', unit:'pts',
-      redemptions: [
-        { label:'\uD83D\uDED2 Save-On-Foods (best)', cpp:1.0, best:true },
-        { label:'\u2708\uFE0F Travel', cpp:1.0 }
-      ]
-    }
-  };
-
-  // Card name -> program key that card earns
-  var CARD_TO_PROGRAM = [
-    { rx:/cobalt|amex gold|amex platinum|business gold|business platinum|amex green|simplyC amex/i, prog:'mr' },
-    { rx:/aeroplan/i, prog:'aeroplan' },
-    { rx:/bonvoy|marriott/i, prog:'bonvoy' },
-    { rx:/hilton/i, prog:'hilton' },
-    { rx:/ihg/i, prog:'ihg' },
-    { rx:/hyatt/i, prog:'hyatt' },
-    { rx:/westjet/i, prog:'westjet' },
-    { rx:/avion|ion\+|ion plus|rbc rewards/i, prog:'avion' },
-    { rx:/aventura|cibc rewards/i, prog:'aventura' },
-    { rx:/scene\+|scotia scene|scotia amex|passport|momentum visa|scotia gold|tangerine/i, prog:'scene' },
-    { rx:/td rewards|td first class|td platinum travel|td aeroplan/i, prog:'td' },
-    { rx:/bmo eclipse|bmo world elite mc|bmo rewards|bmo cashback/i, prog:'bmo' },
-    { rx:/bmo air miles|amex air miles/i, prog:'airmilesdream' },
-    { rx:/pc mastercard|pc financial|pc insiders/i, prog:'pcoptimum' },
-    { rx:/shoppers optimum|pc optimum mc/i, prog:'shoppers' },
-    { rx:/rogers world elite|rogers red|rogers mc|rogers mastercard|fido mastercard/i, prog:'rogers' },
-    { rx:/petro|petro-canada/i, prog:'petropoints' },
-    { rx:/canadian tire|triangle/i, prog:'ctmoney' },
-    { rx:/hsbc/i, prog:'hsbc' }
-  ];
-
-  function normalizeKey(k){
-    return String(k || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-  }
-
-  function programFor(m){
-    if(!m) return null;
-    var k = normalizeKey(m.key || m.name || '');
-    // Aliases the vault uses
-    var alias = {
-      'aeroplan':'aeroplan', 'aircanada':'aeroplan',
-      'mr':'mr', 'amexmr':'mr', 'membershiprewards':'mr',
-      'scene':'scene', 'sceneplus':'scene',
-      'airmiles':'airmiles', 'airmilescash':'airmiles',
-      'airmilesdream':'airmilesdream',
-      'pcoptimum':'pcoptimum', 'pcpoints':'pcoptimum',
-      'bonvoy':'bonvoy', 'marriott':'bonvoy', 'marriottbonvoy':'bonvoy',
-      'hilton':'hilton', 'hiltonhonors':'hilton',
-      'ihg':'ihg', 'ihgonerewards':'ihg',
-      'hyatt':'hyatt', 'worldofhyatt':'hyatt',
-      'westjet':'westjet', 'westjetrewards':'westjet',
-      'baavios':'baavios', 'avios':'baavios',
-      'petropoints':'petropoints', 'petrocanada':'petropoints',
-      'starbucks':'starbucks', 'starbucksstars':'starbucks',
-      'timrewards':'timrewards', 'timhortons':'timrewards',
-      'shoppers':'shoppers', 'shoppersoptimum':'shoppers',
-      'ctmoney':'ctmoney', 'canadiantire':'ctmoney',
-      'rogers':'rogers', 'rogerscash':'rogers',
-      'avion':'avion', 'rbcavion':'avion', 'rbcrewards':'avion',
-      'aventura':'aventura', 'cibcaventura':'aventura',
-      'td':'td', 'tdrewards':'td',
-      'bmo':'bmo', 'bmorewards':'bmo',
-      'hsbc':'hsbc', 'hsbcrewards':'hsbc',
-      'bluerewards':'bluerewards', 'bmobluerewards':'bluerewards',
-      'morerewards':'morerewards'
-    };
-    return PROGRAMS[alias[k]] || null;
-  }
-
-  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
-  function fmtDollars(v){ if(!isFinite(v) || v == null) return '$0.00'; return '$' + (Math.round(v*100)/100).toFixed(2); }
-  function fmtInt(v){ return String(Math.round(v || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
-
-  function readMemberships(){
-    try{
-      var raw = localStorage.getItem('walletiq_memberships');
-      var arr = raw ? JSON.parse(raw) : [];
-      return Array.isArray(arr) ? arr : [];
-    }catch(e){ return []; }
-  }
-
-  function readCardNames(){
-    try{
-      if(typeof userWallet !== 'undefined' && userWallet && typeof userWallet.forEach === 'function' && typeof CARDS_DB !== 'undefined'){
-        var out = [];
-        userWallet.forEach(function(key){
-          var c = CARDS_DB && CARDS_DB[key];
-          if(c && c.n) out.push(c.n);
-        });
-        return out;
-      }
-    }catch(e){}
-    return [];
-  }
-
-  function programsEarnedByCards(cardNames){
-    var earned = {};
-    cardNames.forEach(function(cn){
-      CARD_TO_PROGRAM.forEach(function(m){
-        if(m.rx.test(cn)) earned[m.prog] = true;
-      });
-    });
-    return earned;
-  }
-
-  function synergiesFor(cardStr){
-    var list = [
-      { icon:'\uD83D\uDCF1', title:'Rogers Cash \u2192 1.5x bill boost', trigger:/rogers|fido/i, badge:'1.5x REDEMPTION',
-        body:'You own a <b>Rogers/Fido card</b>. Redeem your Rogers Cash directly against your Rogers, Fido, or chatr bill for a full <b>50% boost</b> - $100 Rogers Cash = $150 off your bill. Never redeem as statement credit unless you have to.' },
-      { icon:'\u2708\uFE0F', title:'Amex MR \u2192 Aeroplan transfer', trigger:/cobalt|amex|american express|mr\b|membership rewards|amex gold|amex platinum|business gold|business platinum/i, badge:'BEST MR USE',
-        body:'You have an <b>MR-earning Amex</b>. Transfer MR to Aeroplan 1:1, then book on the sweet-spot flight chart. 10-15k pts = short-haul flights; 50-70k pts = business-class transatlantic. Effectively <b>1.5c+/pt</b>.' },
-      { icon:'\uD83C\uDFAC', title:'Scene+ statement credit hack', trigger:/scotia|scene|tangerine|momentum|passport|gold amex/i, badge:'1cpp CASH',
-        body:'You own a <b>Scotia/Scene+ earning card</b>. Open the Scene+ app, tap Redeem, then <b>Statement Credit</b>. Scene+ points cash out 1:1 against your Scotia CC statement - no travel booking, no minimums.' },
-      { icon:'\uD83C\uDFE8', title:'Bonvoy free-night certificate', trigger:/bonvoy|marriott/i, badge:'ANNUAL PERK',
-        body:'You own a <b>Marriott Bonvoy Amex</b>. The annual <b>35,000-pt free-night certificate</b> alone is often worth $200-400+ (peak Cat 4-5 hotels). Keep this card even in a keep-or-cancel year - the cert pays the $120 fee.' },
-      { icon:'\uD83D\uDED2', title:'PC Optimum 20x days', trigger:/./i, badge:'FREE STACK',
-        body:'Everyone benefits: watch the PC Optimum app for <b>20x targeted offers</b> (usually on weekends). Stack it with the <b>PC Insiders World Elite MC</b> (45 pts/$) at Loblaws for effectively <b>6.5%+ back</b>.' },
-      { icon:'\u26FD', title:'RBC \u2192 Petro-Canada 3c/L link', trigger:/rbc|royal bank|avion|ion/i, badge:'3c/L SAVE',
-        body:'You have an <b>RBC card</b>. Link it to your Petro-Points account for an instant <b>3c off/L</b> at every Petro-Canada fillup. On top of base rewards, this is an extra 2% back on fuel.' }
-    ];
-    return list.map(function(s){ s.unlocked = s.trigger.test(cardStr); return s; });
-  }
-
-  function renderOptimizer(){
-    return; /* V104 */
-    try{
-      var body = document.getElementById('v96OptBody');
-      if(!body) return;
-      var mems = readMemberships();
-      var cards = readCardNames();
-      var cardStr = cards.join(' ').toLowerCase();
-      var syns = synergiesFor(cardStr);
-      var earnedProgs = programsEarnedByCards(cards);
-
-      var totalDollars = 0;
-      var programCount = 0;
-      var bestCPP = 0;
-      var trackedKeys = {};
-
-      if(mems.length === 0 && cards.length === 0){
-        body.innerHTML = '<div class="v96-opt-empty"><div class="big">\uD83D\uDCB0</div><h4>No memberships or cards yet</h4><p>Add cards to your wallet and loyalty programs (Aeroplan, PC Optimum, Scene+, Bonvoy, Rogers Cash, etc.) in the Points Vault. We\u2019ll show you the exact best way to burn each one.</p><button type="button" onclick="switchRewardsView(\'vault\')">Open Points Vault \u2192</button></div>';
-      } else {
-        var out = '';
-
-        if(mems.length > 0){
-          out += '<div class="v96-opt-section-title"><span>Your programs \u2014 best redemptions</span></div>';
-          mems.forEach(function(m){
-            if(!m) return;
-            var prog = programFor(m);
-            var balance = parseFloat(m.balance) || 0;
-            var name = esc(m.name || (prog ? prog.name : 'Points'));
-            var icon = m.emoji || (prog ? prog.icon : '\uD83D\uDCB3');
-            var unit = m.unit || (prog ? prog.unit : 'pts');
-
-            // Track which programs are covered
-            if(prog){
-              var progKey = Object.keys(PROGRAMS).find(function(k){ return PROGRAMS[k] === prog; });
-              if(progKey) trackedKeys[progKey] = true;
-            }
-
-            // Determine redemptions
-            var redemptions;
-            if(prog){
-              redemptions = prog.redemptions;
-            } else {
-              // Fallback uses cpp stored on membership (which is in CENTS from vault)
-              var fallbackCPP = parseFloat(m.cpp);
-              if(!isFinite(fallbackCPP) || fallbackCPP <= 0) fallbackCPP = 0.5;
-              redemptions = [{ label:'\uD83D\uDCB5 Cash equivalent', cpp: fallbackCPP, best:true, tip:'' }];
-            }
-            var best = redemptions.find(function(r){ return r.best; }) || redemptions[0];
-
-            // CORRECT MATH: dollars = balance * cpp / 100  (because cpp is in CENTS)
-            var bestDollars = (balance * (best.cpp || 0)) / 100;
-            totalDollars += bestDollars;
-            programCount++;
-            if(best.cpp > bestCPP) bestCPP = best.cpp;
-
-            var balDisplay = (unit === '$' || unit === 'WJ$' || unit === 'CT$') ? fmtDollars(balance) : fmtInt(balance) + ' ' + esc(unit);
-
-            out += '<div class="v96-opt-card">';
-            out += '<div class="v96-opt-card-head">';
-            out += '<div class="v96-opt-card-icon">' + icon + '</div>';
-            out += '<div class="v96-opt-card-mid"><div class="v96-opt-card-title">' + name + '</div><div class="v96-opt-card-sub">Balance</div></div>';
-            out += '<div class="v96-opt-card-bal"><div class="b">' + balDisplay + '</div><div class="bl">Best = ' + fmtDollars(bestDollars) + '</div></div>';
-            out += '</div>';
-
-            redemptions.forEach(function(r){
-              var v = (balance * (r.cpp || 0)) / 100;
-              var cls = r.best ? 'rv best' : (v <= 0 ? 'rv dim' : 'rv');
-              var cppStr = r.cpp ? (r.cpp >= 1 ? r.cpp.toFixed(1) : r.cpp.toFixed(2)) : '\u2014';
-              var cppLabel = ' <span class="v96-cpp">' + cppStr + 'c/pt</span>';
-              out += '<div class="v96-redemption"><span class="rl">' + r.label + '</span><span class="' + cls + '">' + fmtDollars(v) + '</span><span>' + (r.best ? '<span class="v96-best-tag">BEST</span>' : cppLabel) + '</span></div>';
-            });
-
-            if(best.tip){
-              out += '<div class="v96-opt-tip"><strong>\uD83D\uDCA1 Tip:</strong> ' + best.tip + '</div>';
-            }
-            out += '</div>';
-          });
-        }
-
-        // Programs earned but not tracked
-        var untracked = Object.keys(earnedProgs).filter(function(k){ return !trackedKeys[k] && PROGRAMS[k]; });
-        if(untracked.length > 0){
-          out += '<div class="v96-opt-section-title" style="margin-top:20px;"><span>Programs you earn (untracked) \u2014 add balances \u2192</span></div>';
-          untracked.forEach(function(k){
-            var prog = PROGRAMS[k];
-            out += '<div class="v96-opt-card" style="opacity:.72; border-style:dashed;">';
-            out += '<div class="v96-opt-card-head">';
-            out += '<div class="v96-opt-card-icon">' + prog.icon + '</div>';
-            out += '<div class="v96-opt-card-mid"><div class="v96-opt-card-title">' + prog.name + '</div><div class="v96-opt-card-sub">Not tracked</div></div>';
-            out += '<div class="v96-opt-card-bal"><button type="button" onclick="switchRewardsView(\'vault\')" style="background:var(--brand);color:#fff;border:none;padding:8px 14px;border-radius:99px;font-family:inherit;font-weight:900;font-size:11px;cursor:pointer;">Add \u2192</button></div>';
-            out += '</div>';
-            out += '<div style="font-size:12px; color:var(--muted); font-weight:700; padding-top:8px; border-top:1px dashed var(--border);">Your wallet earns ' + prog.name + '. Add your balance in the Points Vault to see the best redemption strategies for these points.</div>';
-            out += '</div>';
-          });
-        }
-
-        // Synergies
-        var unlockedCount = syns.filter(function(s){return s.unlocked;}).length;
-        out += '<div class="v96-opt-section-title" style="margin-top:20px;"><span>Sweet-spot synergies (' + unlockedCount + ' unlocked)</span></div>';
-        syns.forEach(function(s){
-          var lockedCls = s.unlocked ? '' : ' locked';
-          out += '<div class="v96-synergy-card' + lockedCls + '">';
-          out += '<div class="v96-syn-head"><div class="v96-syn-icon">' + s.icon + '</div><div class="v96-syn-title-wrap"><div class="v96-syn-title">' + s.title + (s.unlocked ? ' <span class="v96-syn-badge">' + s.badge + '</span>' : '') + '</div><div class="v96-syn-locked-lbl">Add a qualifying card to unlock</div></div></div>';
-          out += '<div class="v96-syn-body">' + s.body + '</div>';
-          out += '</div>';
-        });
-
-        body.innerHTML = out;
-
-        var totalEl = document.getElementById('v96OptTotal');
-        if(totalEl) totalEl.textContent = fmtDollars(totalDollars);
-        var progEl = document.getElementById('v96OptPrograms');
-        if(progEl) progEl.textContent = programCount;
-        var bestEl = document.getElementById('v96OptBestCPP');
-        if(bestEl) bestEl.textContent = bestCPP ? bestCPP.toFixed(2) + 'c' : '\u2014';
-        var synEl = document.getElementById('v96OptSyn');
-        if(synEl) synEl.textContent = unlockedCount;
-      }
-    }catch(e){ try{ console.warn('[V98] renderOptimizer error:', e); }catch(e2){} }
-  }
-
-  // Override V96 renderOptimizer: expose globally so v96-rewards-studio finds ours instead
-  window.__v98RenderOptimizer = renderOptimizer;
-
-  // Also intercept: if the optimize view becomes active, run our render
-  function tick(){
-    try{
-      var opt = document.getElementById('viewOptimize');
-      if(opt && opt.classList.contains('active')){
-        renderOptimizer();
-      }
-    }catch(e){}
-  }
-
-  // Wrap switchRewardsView to always run OUR render for optimize view
-  function wrap(){
-    if(window.__v98SwitchWrapped) return;
-    if(typeof window.switchRewardsView !== 'function') return;
-    var orig = window.switchRewardsView;
-    window.switchRewardsView = function(view){
-      var result = orig.apply(this, arguments);
-      if(view === 'optimize'){
-        setTimeout(renderOptimizer, 50);
-      }
-      return result;
-    };
-    window.__v98SwitchWrapped = true;
-    try{ console.log('[V98] switchRewardsView wrapped for optimizer fix'); }catch(e){}
-  }
-
-  function init(){
-    wrap();
-    tick();
-    setTimeout(function(){ wrap(); tick(); }, 500);
-    setTimeout(function(){ wrap(); tick(); }, 2000);
-    setInterval(tick, 2000);
-  }
-
-  if(document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
-  try{ console.log('[V98] optimizer-fix loaded'); }catch(e){}
-})();
-</script>
-<script id="v98-homepage-stat-fix">
-(function(){
-  var _lastLogged = 0;
-  function updateStat(){
-    return; /* V104 */
-    try{
-      var el = document.getElementById('v89StatMerchants');
-      if(!el) return;
-      if(typeof ALIASES !== 'object' || !ALIASES) return;
-      var total = Object.keys(ALIASES).length;
-      if(total <= 0) return;
-      if(_lastLogged !== total){
-        _lastLogged = total;
-        try{ console.log('[V98] ALIASES total =', total); }catch(e){}
-      }
-      var rounded = Math.floor(total / 50) * 50;
-      if(rounded < 3500) rounded = 3500;
-      if(rounded > 5000) rounded = 5000;
-      var target = rounded.toLocaleString('en-US') + '+';
-      if(el.textContent !== target) el.textContent = target;
-    }catch(e){}
-  }
-  if(document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', updateStat);
-  } else {
-    updateStat();
-  }
-  setTimeout(updateStat, 400);
-  setTimeout(updateStat, 1500);
-  setTimeout(updateStat, 4000);
-  setInterval(updateStat, 2000);
-})();
-</script>
+<script id="v116-stripped-v98-optimizer-fix"><!-- V116: original v98-optimizer-fix content removed --></script>
+<script id="v119-stripped-v98"><!-- V119: v98-homepage-stat-fix removed (was fighting V94 with 5000 cap) --></script>
 
 
 <script id="v100-dedupe-final">
@@ -19195,547 +18363,7 @@ body.dark .v103-prog-body { background: rgba(0,0,0,.15); }
 #viewVault > .section:not(.v103-visible) { display: none !important; }
 .v103-visible { display: block !important; }
 </style>
-<script id="v104-optimizer">
-(function(){
-  // V104: Points tab renderer with COMPACT untracked rows
-
-  var PROGRAMS = {
-    aeroplan: { name:'Aeroplan', icon:'\u2708\uFE0F', unit:'pts',
-      redemptions: [
-        { label:'\u2708\uFE0F Sweet-spot flight chart', cpp:2.1, best:true, tip:'Aeroplan chart: 10-15k pts = short-haul flights, 50-70k = business-class transatlantic. Best-case ~2.1c/pt.' },
-        { label:'\u2708\uFE0F Any Aeroplan flight', cpp:1.5 },
-        { label:'\uD83C\uDFE8 Hotels / vacations', cpp:1.0 },
-        { label:'\uD83D\uDCB5 Cash / statement credit', cpp:1.0 }
-      ]
-    },
-    mr: { name:'Amex Membership Rewards', icon:'\uD83D\uDD35', unit:'MR',
-      redemptions: [
-        { label:'\u2708\uFE0F Transfer to Aeroplan (1:1)', cpp:1.5, best:true, tip:'The single best MR use in Canada. Transfer 1:1 to Aeroplan then book on sweet-spot flight chart.' },
-        { label:'\uD83C\uDFE8 Transfer to Marriott Bonvoy (5:6)', cpp:1.0 },
-        { label:'\uD83D\uDCB5 Statement credit', cpp:1.0 },
-        { label:'\uD83D\uDECD\uFE0F Amazon.ca / online', cpp:0.7 }
-      ]
-    },
-    scene: { name:'Scene+', icon:'\uD83C\uDFAC', unit:'pts',
-      redemptions: [
-        { label:'\uD83D\uDCB5 Statement credit (Scotia CC)', cpp:1.0, best:true, tip:'Open Scene+ app, tap Redeem then Statement Credit. 1:1 cash against Scotia CC statement, no minimums.' },
-        { label:'\uD83C\uDFAC Cineplex tickets', cpp:1.0 },
-        { label:'\uD83D\uDED2 Sobeys / Empire grocery', cpp:1.0 },
-        { label:'\u2708\uFE0F Scene+ Travel', cpp:1.0 }
-      ]
-    },
-    airmiles: { name:'AIR MILES (Cash)', icon:'\uD83C\uDF0D', unit:'miles',
-      redemptions: [{ label:'\uD83D\uDCB5 Cash Miles at checkout', cpp:10.5, best:true }]
-    },
-    airmilesdream: { name:'AIR MILES (Dream)', icon:'\uD83C\uDF0D', unit:'miles',
-      redemptions: [
-        { label:'\u2708\uFE0F Flights (Dream)', cpp:12.5, best:true },
-        { label:'\uD83D\uDECD\uFE0F Merchandise', cpp:10.5 }
-      ]
-    },
-    pcoptimum: { name:'PC Optimum', icon:'\uD83D\uDED2', unit:'pts',
-      redemptions: [
-        { label:'\uD83D\uDED2 Loblaws / Superstore / No Frills', cpp:0.1, best:true, tip:'Wait for a 20x-the-points weekend or Spend Your Points day to double effective value.' },
-        { label:'\uD83D\uDC8A Shoppers Drug Mart', cpp:0.1 }
-      ]
-    },
-    bonvoy: { name:'Marriott Bonvoy', icon:'\uD83C\uDFE8', unit:'pts',
-      redemptions: [
-        { label:'\uD83C\uDFE8 Peak nights + 5th night free', cpp:1.1, best:true, tip:'On 5+ night stays, Bonvoy waives the cheapest night. Peak category 4-6 hotels punch above weight.' },
-        { label:'\uD83C\uDFE8 Standard hotel nights', cpp:0.8 },
-        { label:'\u2708\uFE0F Airline transfer (3:1)', cpp:0.6 }
-      ]
-    },
-    hilton: { name:'Hilton Honors', icon:'\uD83C\uDFE8', unit:'pts',
-      redemptions: [
-        { label:'\uD83C\uDFE8 Aspire annual free-night cert', cpp:0.7, best:true, tip:'Aspire free-night cert on peak Cat 6-8 hotels can hit 0.7-1.0c/pt.' },
-        { label:'\uD83C\uDFE8 Standard hotel nights', cpp:0.5 }
-      ]
-    },
-    ihg: { name:'IHG One Rewards', icon:'\uD83C\uDFE8', unit:'pts',
-      redemptions: [
-        { label:'\uD83C\uDFE8 4th Night Free (Premier CC)', cpp:0.6, best:true },
-        { label:'\uD83C\uDFE8 Standard hotel nights', cpp:0.5 }
-      ]
-    },
-    hyatt: { name:'World of Hyatt', icon:'\uD83C\uDFE8', unit:'pts',
-      redemptions: [
-        { label:'\uD83C\uDFE8 Cat 1-4 hotels + FNC', cpp:2.0, best:true, tip:'Best hotel currency in Canada. Cat 1-4 properties return 2c+/pt on peak nights.' },
-        { label:'\uD83C\uDFE8 Standard hotel nights', cpp:1.7 }
-      ]
-    },
-    westjet: { name:'WestJet Rewards', icon:'\u2708\uFE0F', unit:'WJ$',
-      redemptions: [{ label:'\u2708\uFE0F Flights (WJ$ = $1 CAD)', cpp:100, best:true }]
-    },
-    baavios: { name:'BA Avios', icon:'\u2708\uFE0F', unit:'avios',
-      redemptions: [
-        { label:'\u2708\uFE0F Short-haul partner flights', cpp:1.6, best:true },
-        { label:'\u2708\uFE0F Long-haul flights', cpp:1.2 }
-      ]
-    },
-    petropoints: { name:'Petro-Points', icon:'\u26FD', unit:'pts',
-      redemptions: [{ label:'\u26FD Fuel / snacks at Petro-Canada', cpp:0.1, best:true, tip:'1,000 pts = $1 off fuel. Link RBC card for extra 3c/L discount on top.' }]
-    },
-    starbucks: { name:'Starbucks Stars', icon:'\u2615', unit:'stars',
-      redemptions: [
-        { label:'\u2615 Handcrafted drink (200 stars)', cpp:3.5, best:true },
-        { label:'\u2615 Bakery item (100 stars)', cpp:2.5 }
-      ]
-    },
-    timrewards: { name:'Tim Hortons Rewards', icon:'\u2615', unit:'pts',
-      redemptions: [{ label:'\u2615 Free coffee/food item', cpp:0.1, best:true }]
-    },
-    shoppers: { name:'Shoppers Optimum', icon:'\uD83D\uDC8A', unit:'pts',
-      redemptions: [{ label:'\uD83D\uDC8A Shoppers Drug Mart', cpp:0.1, best:true }]
-    },
-    ctmoney: { name:'Canadian Tire Money', icon:'\uD83D\uDD34', unit:'CT$',
-      redemptions: [{ label:'\uD83D\uDD34 Any Canadian Tire purchase', cpp:100, best:true }]
-    },
-    rogers: { name:'Rogers Cash', icon:'\uD83D\uDCF1', unit:'$', cashLike:true,
-      redemptions: [
-        { label:'\uD83D\uDCF1 Rogers / Fido bill (1.5x boost)', cpp:1.5, best:true, tip:'Redeem against Rogers/Fido/chatr bill for 50% boost. $100 Rogers Cash = $150 off bill.' },
-        { label:'\uD83D\uDCB5 Statement credit', cpp:1.0 }
-      ]
-    },
-    avion: { name:'RBC Avion', icon:'\u2708\uFE0F', unit:'pts',
-      redemptions: [
-        { label:'\u2708\uFE0F Air Travel Redemption chart', cpp:2.0, best:true },
-        { label:'\u2708\uFE0F British Airways Avios (1:1)', cpp:1.5 },
-        { label:'\uD83D\uDCB5 Cash / statement credit', cpp:1.0 }
-      ]
-    },
-    aventura: { name:'CIBC Aventura', icon:'\u2708\uFE0F', unit:'pts',
-      redemptions: [
-        { label:'\u2708\uFE0F Fixed flight chart', cpp:2.0, best:true },
-        { label:'\uD83D\uDCB5 Travel dollars / cash', cpp:1.0 }
-      ]
-    },
-    td: { name:'TD Rewards', icon:'\uD83D\uDFE2', unit:'pts',
-      redemptions: [
-        { label:'\u2708\uFE0F Expedia for TD (best)', cpp:0.5, best:true },
-        { label:'\uD83D\uDCB5 Cash', cpp:0.25 }
-      ]
-    },
-    bmo: { name:'BMO Rewards', icon:'\uD83D\uDD35', unit:'pts',
-      redemptions: [
-        { label:'\u2708\uFE0F Travel', cpp:0.7, best:true },
-        { label:'\uD83D\uDECD\uFE0F Merchandise', cpp:0.5 }
-      ]
-    },
-    bluerewards: { name:'BMO Blue Rewards', icon:'\uD83D\uDD35', unit:'pts',
-      redemptions: [
-        { label:'\uD83D\uDECD\uFE0F BMO merchandise / travel', cpp:0.67, best:true },
-        { label:'\uD83D\uDCB5 Cash / statement credit', cpp:0.67 }
-      ]
-    },
-    hsbc: { name:'HSBC Rewards', icon:'\uD83C\uDF39', unit:'pts',
-      redemptions: [
-        { label:'\u2708\uFE0F Travel', cpp:0.5, best:true },
-        { label:'\uD83D\uDCB5 Cash', cpp:0.5 }
-      ]
-    },
-    morerewards: { name:'More Rewards', icon:'\uD83D\uDED2', unit:'pts',
-      redemptions: [
-        { label:'\uD83D\uDED2 Save-On-Foods (best)', cpp:1.0, best:true },
-        { label:'\u2708\uFE0F Travel', cpp:1.0 }
-      ]
-    }
-  };
-
-  var CARD_TO_PROGRAM = [
-    { rx:/cobalt|amex gold|amex platinum|business gold|business platinum|amex green|simplyc amex/i, prog:'mr' },
-    { rx:/aeroplan/i, prog:'aeroplan' },
-    { rx:/bonvoy|marriott/i, prog:'bonvoy' },
-    { rx:/hilton/i, prog:'hilton' },
-    { rx:/ihg/i, prog:'ihg' },
-    { rx:/hyatt/i, prog:'hyatt' },
-    { rx:/westjet/i, prog:'westjet' },
-    { rx:/avion|ion\+|ion plus|rbc rewards/i, prog:'avion' },
-    { rx:/aventura|cibc rewards/i, prog:'aventura' },
-    { rx:/scene\+|scotia scene|scotia amex|passport|momentum visa|scotia gold|tangerine/i, prog:'scene' },
-    { rx:/td rewards|td first class|td platinum travel|td aeroplan/i, prog:'td' },
-    { rx:/bmo eclipse|bmo world elite mc|bmo rewards|bmo cashback/i, prog:'bmo' },
-    { rx:/bmo air miles|amex air miles/i, prog:'airmilesdream' },
-    { rx:/pc mastercard|pc financial|pc insiders/i, prog:'pcoptimum' },
-    { rx:/shoppers optimum|pc optimum mc/i, prog:'shoppers' },
-    { rx:/rogers world elite|rogers red|rogers mc|rogers mastercard|fido mastercard/i, prog:'rogers' },
-    { rx:/petro|petro-canada/i, prog:'petropoints' },
-    { rx:/canadian tire|triangle/i, prog:'ctmoney' },
-    { rx:/hsbc/i, prog:'hsbc' }
-  ];
-
-  var SYNERGY_TIPS = {
-    rogers: { badge:'SYNERGY', body:'You have a <b>Rogers/Fido card</b>. Redeem Rogers Cash against your bill for the <b>1.5x boost</b> - $100 = $150 off. Never redeem as statement credit unless you must.' },
-    mr: { badge:'SYNERGY', body:'You have an <b>MR-earning Amex</b>. Transfer to Aeroplan 1:1 then book sweet-spot: <b>10-15k</b> = short-haul, <b>50-70k</b> = biz-class transatlantic. Effective <b>1.5c+/pt</b>.' },
-    scene: { badge:'SYNERGY', body:'You have a <b>Scotia/Scene+ card</b>. Redeem Scene+ points directly as <b>statement credit</b> against your Scotia CC - the underrated 1:1 cash hack, no travel booking required.' },
-    bonvoy: { badge:'SYNERGY', body:'You have a <b>Bonvoy Amex</b>. The annual <b>35,000-pt free-night cert</b> alone is worth $200-400+ on peak Cat 4-5 hotels. Keeps the $120 fee worth it every year.' },
-    petropoints: { badge:'SYNERGY', body:'Link your Petro-Points to any <b>RBC card</b> for an extra <b>3c off/L</b> at every Petro-Canada fillup. Stacks with the point earn - takes 60 seconds in the Petro-Canada app.' },
-    pcoptimum: { badge:'BOOST', body:'Watch the PC Optimum app for <b>20x targeted offers</b> (usually weekends). Stack with the <b>PC Insiders World Elite MC</b> (45 pts/$) at Loblaws for effectively <b>6.5%+ back</b>.' }
-  };
-
-  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
-  function fmtDollars(v){ if(!isFinite(v) || v == null) return '$0.00'; return '$' + (Math.round(v*100)/100).toFixed(2); }
-  function fmtInt(v){ return String(Math.round(v || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
-  function normalizeKey(k){ return String(k || '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
-
-  function programFor(m){
-    if(!m) return { key:null, prog:null };
-    var k = normalizeKey(m.key || m.name || '');
-    var alias = {
-      'aeroplan':'aeroplan','aircanada':'aeroplan',
-      'mr':'mr','amexmr':'mr','membershiprewards':'mr',
-      'scene':'scene','sceneplus':'scene',
-      'airmiles':'airmiles','airmilescash':'airmiles','airmilesdream':'airmilesdream',
-      'pcoptimum':'pcoptimum','pcpoints':'pcoptimum',
-      'bonvoy':'bonvoy','marriott':'bonvoy','marriottbonvoy':'bonvoy',
-      'hilton':'hilton','hiltonhonors':'hilton',
-      'ihg':'ihg','ihgonerewards':'ihg',
-      'hyatt':'hyatt','worldofhyatt':'hyatt',
-      'westjet':'westjet','westjetrewards':'westjet',
-      'baavios':'baavios','avios':'baavios',
-      'petropoints':'petropoints','petrocanada':'petropoints',
-      'starbucks':'starbucks','starbucksstars':'starbucks',
-      'timrewards':'timrewards','timhortons':'timrewards',
-      'shoppers':'shoppers','shoppersoptimum':'shoppers',
-      'ctmoney':'ctmoney','canadiantire':'ctmoney',
-      'rogers':'rogers','rogerscash':'rogers',
-      'avion':'avion','rbcavion':'avion','rbcrewards':'avion',
-      'aventura':'aventura','cibcaventura':'aventura',
-      'td':'td','tdrewards':'td',
-      'bmo':'bmo','bmorewards':'bmo',
-      'hsbc':'hsbc','hsbcrewards':'hsbc',
-      'bluerewards':'bluerewards','bmobluerewards':'bluerewards',
-      'morerewards':'morerewards'
-    };
-    return { key: alias[k] || null, prog: PROGRAMS[alias[k]] || null };
-  }
-
-  function readMemberships(){
-    try{
-      var raw = localStorage.getItem('walletiq_memberships');
-      var arr = raw ? JSON.parse(raw) : [];
-      return Array.isArray(arr) ? arr : [];
-    }catch(e){ return []; }
-  }
-
-  function readCardNames(){
-    try{
-      if(typeof userWallet !== 'undefined' && userWallet && typeof userWallet.forEach === 'function' && typeof CARDS_DB !== 'undefined'){
-        var out = [];
-        userWallet.forEach(function(key){
-          var c = CARDS_DB && CARDS_DB[key];
-          if(c && c.n) out.push(c.n);
-        });
-        return out;
-      }
-    }catch(e){}
-    return [];
-  }
-
-  function programsEarnedByCards(cardNames){
-    var earned = {};
-    cardNames.forEach(function(cn){
-      CARD_TO_PROGRAM.forEach(function(m){
-        if(m.rx.test(cn)) earned[m.prog] = true;
-      });
-    });
-    return earned;
-  }
-
-  function ensureHostStructure(){
-    var vault = document.getElementById('viewVault');
-    if(!vault) return null;
-    if(!document.getElementById('v103Container')){
-      var container = document.createElement('div');
-      container.id = 'v103Container';
-      vault.insertBefore(container, vault.firstChild);
-    }
-    return document.getElementById('v103Container');
-  }
-
-  function deleteMembership(name){
-    try{
-      var arr = readMemberships();
-      var filtered = arr.filter(function(m){ return (m.name || '') !== name; });
-      localStorage.setItem('walletiq_memberships', JSON.stringify(filtered));
-      renderPointsTab();
-      try{ document.dispatchEvent(new CustomEvent('v82:refresh')); }catch(e){}
-    }catch(e){}
-  }
-
-  function openAddMembership(){
-    try{
-      var overlay = document.getElementById('v81Modal');
-      if(overlay){ overlay.classList.add('show'); return; }
-    }catch(e){}
-    try{
-      if(typeof openV81Modal === 'function'){ openV81Modal(); return; }
-    }catch(e){}
-    try{
-      var btn = document.querySelector('.v81-add-btn');
-      if(btn) btn.click();
-    }catch(e){}
-  }
-
-  window.__v104DeleteMembership = deleteMembership;
-  window.__v104OpenAdd = openAddMembership;
-  window.__v104ToggleCard = function(key){
-    var card = document.querySelector('[data-v103-key="' + key + '"]');
-    if(card) card.classList.toggle('open');
-  };
-
-  function renderPointsTab(){
-    try{
-      var container = ensureHostStructure();
-      if(!container) return;
-
-      var mems = readMemberships();
-      var cards = readCardNames();
-      var earnedProgs = programsEarnedByCards(cards);
-
-      // Split memberships: earning-first, then rest (all in one list)
-      var trackedEntries = mems.map(function(m){
-        var info = programFor(m);
-        var isEarning = info.key && earnedProgs[info.key];
-        return { m: m, info: info, isEarning: isEarning };
-      });
-      trackedEntries.sort(function(a, b){
-        if(a.isEarning && !b.isEarning) return -1;
-        if(!a.isEarning && b.isEarning) return 1;
-        return 0;
-      });
-
-      // Programs earned by cards but NOT tracked as memberships
-      var trackedKeys = {};
-      trackedEntries.forEach(function(entry){
-        if(entry.info.key) trackedKeys[entry.info.key] = true;
-      });
-      var untrackedEarned = Object.keys(earnedProgs).filter(function(k){
-        return !trackedKeys[k] && PROGRAMS[k];
-      });
-
-      // Compute totals from tracked
-      var totalDollars = 0;
-      var programCount = trackedEntries.length;
-      var bestCPP = 0;
-      trackedEntries.forEach(function(entry){
-        var balance = parseFloat(entry.m.balance) || 0;
-        var best = null;
-        if(entry.info.prog){
-          best = entry.info.prog.redemptions.find(function(r){ return r.best; });
-        } else {
-          var cpp = parseFloat(entry.m.cpp);
-          if(!isFinite(cpp) || cpp <= 0) cpp = 0.5;
-          best = { cpp: cpp };
-        }
-        if(best){
-          totalDollars += (balance * best.cpp) / 100;
-          if(best.cpp > bestCPP) bestCPP = best.cpp;
-        }
-      });
-      var synergyCount = Object.keys(earnedProgs).filter(function(k){ return SYNERGY_TIPS[k]; }).length;
-
-      var html = '';
-
-      // Hero
-      html += '<div class="v103-hero">';
-      html += '<div class="v103-h-label">\uD83D\uDC8E Points Optimizer</div>';
-      html += '<div class="v103-h-value">' + fmtDollars(totalDollars) + '</div>';
-      html += '<div class="v103-h-sub">Total cash-equivalent value at each program\u2019s best redemption</div>';
-      html += '<div class="v103-h-mini">';
-      html += '<div class="m"><div class="l">Programs</div><div class="v">' + programCount + '</div></div>';
-      html += '<div class="m"><div class="l">Best CPP</div><div class="v">' + (bestCPP ? bestCPP.toFixed(2) + 'c' : '\u2014') + '</div></div>';
-      html += '<div class="m"><div class="l">Synergies</div><div class="v">' + synergyCount + '</div></div>';
-      html += '</div></div>';
-
-      // Empty state
-      if(trackedEntries.length === 0 && untrackedEarned.length === 0){
-        html += '<div class="v103-empty"><div class="big">\uD83D\uDCB0</div><h4>No memberships yet</h4><p>Add your loyalty programs (Aeroplan, PC Optimum, Scene+, Bonvoy, Rogers Cash, etc.) to see the best redemption strategies.</p><button type="button" onclick="window.__v104OpenAdd()">+ Add membership</button></div>';
-        container.innerHTML = html;
-        return;
-      }
-
-      // V105: Split tracked into wallet-earning vs extras, prioritize wallet-earning
-      var trackedWalletEarning = trackedEntries.filter(function(e){ return e.isEarning; });
-      var trackedExtras = trackedEntries.filter(function(e){ return !e.isEarning; });
-      var walletTotal = trackedWalletEarning.length + untrackedEarned.length;
-
-      // Section 1: Programs your cards earn (the core value prop)
-      if(walletTotal > 0){
-        html += '<div class="v103-section-title"><span>Programs your cards earn</span><span class="cnt">' + walletTotal + '</span></div>';
-        // Full collapsible cards for tracked wallet-earning programs (auto-accumulating balances)
-        trackedWalletEarning.forEach(function(entry){ html += renderCard(entry); });
-        // Compact rows for untracked programs your cards earn (add to start tracking)
-        if(untrackedEarned.length > 0){
-          html += '<div class="v104-untracked-list" style="margin-top:6px;">';
-          untrackedEarned.forEach(function(k){
-            var prog = PROGRAMS[k];
-            html += '<div class="v104-untracked-row">';
-            html += '<div class="u-icon">' + prog.icon + '</div>';
-            html += '<div><div class="u-name">' + prog.name + '</div><div class="u-sub">Add balance to track</div></div>';
-            html += '<button type="button" class="u-add" onclick="window.__v104OpenAdd()">Add \u2192</button>';
-            html += '</div>';
-          });
-          html += '</div>';
-        }
-      }
-
-      // Section 2: Extra tracked memberships (not earned by any wallet card - manual only)
-      if(trackedExtras.length > 0){
-        html += '<div class="v103-section-title"><span>Extra tracked memberships</span><span class="cnt">' + trackedExtras.length + '</span></div>';
-        trackedExtras.forEach(function(entry){ html += renderCard(entry); });
-      }
-
-      // Add button
-      html += '<button class="v103-add-btn" onclick="window.__v104OpenAdd()">+ Add another membership</button>';
-
-      container.innerHTML = html;
-    }catch(e){ try{ console.warn('[V104] render error:', e); }catch(e2){} }
-  }
-
-  function renderCard(entry){
-    var m = entry.m;
-    var info = entry.info;
-    var isEarning = entry.isEarning;
-    var balance = parseFloat(m.balance) || 0;
-    var name = esc(m.name || (info.prog ? info.prog.name : 'Points'));
-    var icon = m.emoji || (info.prog ? info.prog.icon : '\uD83D\uDCB3');
-    var unit = m.unit || (info.prog ? info.prog.unit : 'pts');
-    var redemptions = info.prog ? info.prog.redemptions : [
-      { label:'\uD83D\uDCB5 Cash equivalent', cpp: parseFloat(m.cpp) || 0.5, best:true }
-    ];
-    var best = redemptions.find(function(r){ return r.best; }) || redemptions[0];
-    var bestDollars = (balance * (best.cpp || 0)) / 100;
-    var balDisplay = (unit === '$' || unit === 'WJ$' || unit === 'CT$') ? fmtDollars(balance) : fmtInt(balance) + ' ' + esc(unit);
-    var synergy = info.key ? SYNERGY_TIPS[info.key] : null;
-    var showSynergy = isEarning && synergy;
-
-    var uniqueKey = normalizeKey((m.name || '') + '_' + (m.key || ''));
-
-    var h = '';
-    h += '<div class="v103-prog' + (isEarning ? ' earning' : '') + '" data-v103-key="' + uniqueKey + '">';
-    h += '<div class="v103-prog-head" onclick="window.__v104ToggleCard(\'' + uniqueKey + '\')">';
-    h += '<div class="v103-prog-icon">' + icon + '</div>';
-    h += '<div class="v103-prog-mid">';
-    h += '<div class="v103-prog-name">' + name + '</div>';
-    h += '<div class="v103-prog-sub">';
-    h += '<span class="v103-prog-sub-lbl">Balance</span>';
-    if(isEarning) h += '<span class="v103-earn-badge">EARNING</span>';
-    if(showSynergy) h += '<span class="v103-earn-badge" style="background:var(--brand);color:#fff;">' + synergy.badge + '</span>';
-    h += '</div>';
-    h += '</div>';
-    h += '<div class="v103-prog-bal-wrap">';
-    h += '<div class="v103-prog-bal">' + balDisplay + '</div>';
-    h += '<div class="v103-prog-eq">= ' + fmtDollars(bestDollars) + '</div>';
-    h += '</div>';
-    h += '<div class="v103-prog-chev">\u25B6</div>';
-    h += '<button type="button" class="v103-prog-del" onclick="event.stopPropagation(); if(confirm(\'Remove ' + esc(name).replace(/'/g, "\\'") + '?\')) window.__v104DeleteMembership(\'' + esc(name).replace(/'/g, "\\'") + '\')">\u00D7</button>';
-    h += '</div>';
-    // Body
-    h += '<div class="v103-prog-body">';
-    h += '<div class="v103-body-title"><span>Redemption values</span><span class="best-tag">BEST HIGHLIGHTED</span></div>';
-    redemptions.forEach(function(r){
-      var v = (balance * (r.cpp || 0)) / 100;
-      var cls = r.best ? 'rv best' : (v <= 0 ? 'rv dim' : 'rv');
-      var cppStr = r.cpp ? (r.cpp >= 1 ? r.cpp.toFixed(1) : r.cpp.toFixed(2)) : '\u2014';
-      h += '<div class="v103-redemp">';
-      h += '<span class="rl">' + r.label + '</span>';
-      h += '<span class="' + cls + '">' + fmtDollars(v) + '</span>';
-      h += '<span>' + (r.best ? '<span class="best-marker">BEST</span>' : '<span class="cpp">' + cppStr + 'c/pt</span>') + '</span>';
-      h += '</div>';
-    });
-    if(best.tip){
-      h += '<div class="v103-tip"><strong>\uD83D\uDCA1 Tip:</strong> ' + best.tip + '</div>';
-    }
-    if(showSynergy){
-      h += '<div class="v103-tip"><strong>\uD83D\uDD17 Card synergy:</strong> ' + synergy.body + '</div>';
-    }
-    h += '</div>';
-    h += '</div>';
-    return h;
-  }
-
-  function wrapSwitch(){
-    try{
-      if(window.__v104SwitchWrapped) return;
-      if(typeof window.switchRewardsView !== 'function') return;
-      var orig = window.switchRewardsView;
-      window.switchRewardsView = function(view){
-        if(view === 'optimize') view = 'vault';
-        var result = orig.apply(this, arguments);
-        if(view === 'vault'){
-          setTimeout(renderPointsTab, 50);
-        }
-        return result;
-      };
-      window.__v104SwitchWrapped = true;
-      try{ console.log('[V104] Points tab renderer ready'); }catch(e){}
-    }catch(e){}
-  }
-
-  function updateHomepageCounter(){
-    try{
-      var el = document.getElementById('v89StatMerchants');
-      if(!el) return;
-      if(typeof ALIASES !== 'object' || !ALIASES) return;
-      var total = Object.keys(ALIASES).length;
-      if(total <= 0) return;
-      var rounded = Math.floor(total / 50) * 50;
-      if(rounded < 3500) rounded = 3500;
-      var target = rounded.toLocaleString('en-US') + '+';
-      if(el.textContent !== target) el.textContent = target;
-    }catch(e){}
-  }
-
-  function updateFooterCopy(){
-    try{
-      var wanted = '\u00a9 2026 Wallet IQ \u00b7 Built by samirdhan';
-      document.querySelectorAll('.v73-footer-copy').forEach(function(el){
-        if(el && el.textContent !== wanted){
-          el.textContent = wanted;
-        }
-      });
-    }catch(e){}
-  }
-
-  function tick(){
-    wrapSwitch();
-    updateHomepageCounter();
-    updateFooterCopy();
-    try{
-      var vault = document.getElementById('viewVault');
-      if(vault && vault.classList.contains('active')){
-        renderPointsTab();
-      }
-    }catch(e){}
-  }
-
-  function init(){
-    tick();
-    setTimeout(tick, 300);
-    setTimeout(tick, 1000);
-    setTimeout(tick, 3000);
-    setInterval(tick, 2500);
-    try{
-      if(typeof ALIASES === 'object' && ALIASES){
-        console.log('[V104] Total ALIASES:', Object.keys(ALIASES).length);
-      }
-      var cards = readCardNames();
-      var mems = readMemberships();
-      var earnedProgs = programsEarnedByCards(cards);
-      console.log('[V104] wallet cards:', cards);
-      console.log('[V104] tracked memberships:', mems.map(function(m){ return m.name; }));
-      console.log('[V104] programs earned by cards:', Object.keys(earnedProgs));
-    }catch(e){}
-  }
-
-  if(document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
-})();
-</script>
+<script id="v116-stripped-v104-optimizer"><!-- V116: original v104-optimizer content removed --></script>
 
 
 <script id="v106-auto-accum">
@@ -20026,343 +18654,725 @@ body.dark .v103-prog-body { background: rgba(0,0,0,.15); }
 </script>
 
 
-<!-- =====================================================
-     Wallet IQ V108 - Points Hub Simplified (2026-07-09)
-     - Merges Rewards Studio Optimizer + Points into ONE unified Points Hub
-     - Adds live Recent Earnings feed
-     - Adds +points toast when a purchase is logged
-     - Rewards Studio Total Portfolio Value now matches Points Hub total (no double-count)
-     ===================================================== -->
+<style id="v109-styles">
+/* V109: Kill legacy Points UI */
+#viewVault .v107-hub-wrap,
+#viewVault .v96-optimizer,
+#viewVault #pointsOptimizerCard,
+#viewVault [data-v96-optimizer],
+#viewVault #vaultPrograms,
+#viewVault #vaultSweetspots,
+#viewVault #vaultTotal { display: none !important; }
+#viewVault > .section:not(#v109-hub *) { display: none !important; }
+#viewVault > .tip-card,
+#viewVault > .warn-box,
+#viewVault > .info-box,
+#viewVault > .v81-add-wrap,
+#viewVault > .v81-membership-list,
+#viewVault > .v87-hidden-note,
+#viewVault > .v81-form-hint { display: none !important; }
+body[data-rewards-view="vault"] .rewards-hero { display: none !important; }
 
-<style id="v107-styles">
-/* ===== V107 Points Hub Simplified ===== */
-#viewVault [data-v96-optimizer], #viewOverview [data-v96-optimizer]{display:none !important;}
-.v107-hub{padding:8px 4px 24px;}
-.v107-hero{
-  background:linear-gradient(135deg,#6d5ef7 0%,#8b6ff5 55%,#b28cf5 100%);
-  color:#fff; border-radius:22px; padding:20px 20px 22px;
-  box-shadow:0 12px 30px -12px rgba(109,94,247,.55);
-  margin-bottom:18px; position:relative; overflow:hidden;
+/* V109 clean hub */
+#v109-hub { padding: 4px 2px 60px; font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; }
+
+.v109-hero {
+  background: linear-gradient(135deg,#6d5ef7 0%,#8b6ff5 55%,#b28cf5 100%);
+  color: #fff; border-radius: 22px; padding: 18px 20px 20px;
+  box-shadow: 0 12px 30px -12px rgba(109,94,247,.55);
+  margin: 4px 0 16px; position: relative; overflow: hidden;
 }
-.v107-hero::after{content:"";position:absolute;inset:auto -40px -60px auto;width:180px;height:180px;background:radial-gradient(circle,rgba(255,255,255,.18),transparent 70%);pointer-events:none;}
-.v107-hero-label{font-size:11px;letter-spacing:1.2px;text-transform:uppercase;opacity:.85;font-weight:600;}
-.v107-hero-val{font-size:38px;font-weight:800;margin:6px 0 4px;letter-spacing:-.5px;}
-.v107-hero-sub{font-size:12.5px;opacity:.9;margin-bottom:14px;}
-.v107-hero-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px;}
-.v107-hero-stat{background:rgba(255,255,255,.15);border-radius:12px;padding:9px 6px;text-align:center;backdrop-filter:blur(4px);}
-.v107-hero-stat b{display:block;font-size:16px;font-weight:700;}
-.v107-hero-stat span{display:block;font-size:9.5px;letter-spacing:.6px;text-transform:uppercase;opacity:.85;margin-top:2px;}
-
-.v107-section-title{font-size:11px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:#6b5db8;margin:18px 4px 8px;display:flex;align-items:center;gap:6px;}
-.v107-section-title .cnt{margin-left:auto;color:#8b7fc4;font-size:11px;}
-
-.v107-feed{background:#fff;border-radius:16px;padding:6px 0;box-shadow:0 4px 14px -8px rgba(90,70,180,.25);}
-.v107-feed-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid #f2eefb;}
-.v107-feed-item:last-child{border-bottom:none;}
-.v107-feed-icon{width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,#e8ffe8,#c9f7d0);display:flex;align-items:center;justify-content:center;font-size:16px;}
-.v107-feed-body{flex:1;min-width:0;}
-.v107-feed-title{font-size:13px;font-weight:600;color:#2b2350;line-height:1.25;}
-.v107-feed-meta{font-size:11px;color:#8b7fa8;margin-top:2px;}
-.v107-feed-pts{font-size:13px;font-weight:700;color:#1ea54a;white-space:nowrap;}
-.v107-feed-empty{padding:22px 16px;text-align:center;color:#8b7fa8;font-size:13px;}
-.v107-feed-empty b{display:block;color:#6b5db8;margin-bottom:4px;font-size:14px;}
-
-.v107-prog{background:#fff;border-radius:16px;padding:12px 14px;margin-bottom:10px;box-shadow:0 4px 12px -8px rgba(90,70,180,.22);}
-.v107-prog-top{display:flex;align-items:center;gap:11px;}
-.v107-prog-ico{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#f0eaff,#e0d5ff);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
-.v107-prog-name{flex:1;min-width:0;}
-.v107-prog-name b{display:block;font-size:14.5px;font-weight:700;color:#2b2350;line-height:1.15;}
-.v107-prog-name span{display:block;font-size:11px;color:#8b7fa8;margin-top:2px;}
-.v107-prog-vals{text-align:right;flex-shrink:0;}
-.v107-prog-vals b{display:block;font-size:14.5px;font-weight:800;color:#3a2f7a;}
-.v107-prog-vals span{display:block;font-size:12px;color:#1ea54a;font-weight:600;margin-top:1px;}
-.v107-prog-cards{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px;}
-.v107-prog-pill{font-size:10.5px;background:#f4efff;color:#6b5db8;padding:3px 8px;border-radius:8px;font-weight:600;}
-.v107-prog-best{margin-top:9px;padding-top:9px;border-top:1px dashed #ece5fa;display:flex;justify-content:space-between;align-items:center;gap:8px;}
-.v107-prog-best-lbl{font-size:10.5px;color:#8b7fa8;letter-spacing:.4px;text-transform:uppercase;font-weight:600;}
-.v107-prog-best-val{font-size:12.5px;color:#1ea54a;font-weight:700;}
-.v107-prog-del{background:none;border:none;color:#b8a8d8;font-size:14px;padding:2px 6px;cursor:pointer;margin-left:4px;}
-
-.v107-earn-toast{
-  position:fixed;left:50%;transform:translateX(-50%) translateY(30px);
-  bottom:88px;background:linear-gradient(135deg,#1ea54a,#22c55e);color:#fff;
-  padding:12px 18px;border-radius:14px;font-size:14px;font-weight:600;
-  box-shadow:0 12px 30px -8px rgba(30,165,74,.55);z-index:99999;
-  opacity:0;transition:all .35s cubic-bezier(.2,.9,.3,1.2);
-  display:flex;align-items:center;gap:10px;max-width:88vw;
+.v109-hero::after {
+  content: ""; position: absolute; right: -40px; bottom: -60px;
+  width: 180px; height: 180px;
+  background: radial-gradient(circle,rgba(255,255,255,.18),transparent 70%);
+  pointer-events: none;
 }
-.v107-earn-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
-.v107-earn-toast .em{font-size:20px;}
-.v107-earn-toast small{display:block;font-size:10.5px;font-weight:500;opacity:.9;margin-top:1px;letter-spacing:.3px;}
+.v109-hero-label { font-size: 10.5px; letter-spacing: 1.4px; text-transform: uppercase; opacity: .85; font-weight: 700; }
+.v109-hero-val { font-size: 36px; font-weight: 800; margin: 4px 0 3px; letter-spacing: -.5px; line-height: 1.1; }
+.v109-hero-sub { font-size: 12px; opacity: .88; margin-bottom: 12px; }
+.v109-hero-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 6px; }
+.v109-hero-stat { background: rgba(255,255,255,.15); border-radius: 12px; padding: 8px 4px; text-align: center; backdrop-filter: blur(4px); }
+.v109-hero-stat b { display: block; font-size: 15px; font-weight: 700; }
+.v109-hero-stat span { display: block; font-size: 9px; letter-spacing: .5px; text-transform: uppercase; opacity: .85; margin-top: 2px; }
+
+.v109-section-title {
+  font-size: 11px; letter-spacing: 1.3px; text-transform: uppercase; font-weight: 700;
+  color: #6b5db8; margin: 16px 4px 8px; display: flex; align-items: center; gap: 6px;
+}
+.v109-section-title .em { font-size: 13px; }
+.v109-section-title .cnt {
+  margin-left: auto; color: #8b7fc4; font-size: 10.5px;
+  background: rgba(139,127,196,.12); padding: 2px 8px; border-radius: 99px; font-weight: 700;
+}
+
+.v109-card {
+  background: #fff; border-radius: 16px; padding: 12px 14px;
+  margin-bottom: 8px; box-shadow: 0 4px 12px -8px rgba(90,70,180,.22);
+  position: relative; transition: box-shadow .2s ease;
+  cursor: pointer;
+}
+.v109-card:hover { box-shadow: 0 6px 16px -8px rgba(90,70,180,.30); }
+.v109-card.no-balance { background: linear-gradient(135deg,#faf7ff,#f4efff); }
+.v109-card-head { display: grid; grid-template-columns: 40px 1fr auto 18px; gap: 12px; align-items: center; }
+.v109-card-ico {
+  width: 40px; height: 40px; border-radius: 12px;
+  background: linear-gradient(135deg,#f0eaff,#e0d5ff);
+  display: flex; align-items: center; justify-content: center; font-size: 20px;
+  flex-shrink: 0;
+}
+.v109-card-name { min-width: 0; }
+.v109-card-name b {
+  display: block; font-size: 14.5px; font-weight: 700; color: #2b2350; line-height: 1.15;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.v109-card-name .sub {
+  display: block; font-size: 10.5px; color: #8b7fa8; margin-top: 2px;
+  letter-spacing: .3px; text-transform: uppercase; font-weight: 600;
+}
+.v109-card-name .pills { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
+.v109-card-name .pill {
+  font-size: 10px; background: #f4efff; color: #6b5db8;
+  padding: 3px 7px; border-radius: 8px; font-weight: 600; white-space: nowrap;
+}
+.v109-card-vals { text-align: right; flex-shrink: 0; }
+.v109-card-vals b { display: block; font-size: 14px; font-weight: 800; color: #3a2f7a; letter-spacing: -.2px; }
+.v109-card-vals span { display: block; font-size: 11.5px; color: #1ea54a; font-weight: 700; margin-top: 1px; }
+.v109-mini-add {
+  background: linear-gradient(135deg,#6d5ef7,#8b6ff5); color: #fff; border: none;
+  padding: 7px 12px; border-radius: 999px; font-size: 11.5px; font-weight: 700;
+  cursor: pointer; box-shadow: 0 4px 10px -4px rgba(109,94,247,.5);
+  font-family: inherit; white-space: nowrap;
+}
+.v109-chev {
+  color: #b8a8d8; font-size: 12px; font-weight: 700; transition: transform .2s ease;
+  text-align: center; user-select: none;
+}
+.v109-card.expanded .v109-chev { transform: rotate(90deg); color: #6d5ef7; }
+
+.v109-card-expanded {
+  display: none; margin-top: 10px; padding-top: 10px;
+  border-top: 1px dashed #ece5fa;
+}
+.v109-card.expanded .v109-card-expanded { display: block; animation: v109FadeIn .18s ease; }
+@keyframes v109FadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+
+.v109-redeem-title {
+  font-size: 9.5px; letter-spacing: 1.2px; text-transform: uppercase;
+  color: #8b7fa8; font-weight: 700; margin-bottom: 6px;
+}
+.v109-redeem-row {
+  display: grid; grid-template-columns: 1fr auto auto; gap: 10px;
+  align-items: center; padding: 6px 0; font-size: 12px;
+  border-top: 1px solid #f5f0fa;
+}
+.v109-redeem-row:first-of-type { border-top: none; padding-top: 2px; }
+.v109-redeem-row .rl { color: #2b2350; font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.v109-redeem-row .rv { font-family: ui-monospace,monospace; font-weight: 800; color: #1ea54a; font-size: 12.5px; text-align: right; }
+.v109-redeem-row .rc { font-family: ui-monospace,monospace; font-size: 10.5px; color: #8b7fa8; font-weight: 600; text-align: right; min-width: 42px; }
+.v109-redeem-row.best .rl { color: #6d5ef7; }
+.v109-redeem-row.best .rv { color: #6d5ef7; }
+.v109-redeem-tag {
+  display: inline-block; font-size: 8.5px; font-weight: 800; background: #eae5ff; color: #6d5ef7;
+  padding: 2px 6px; border-radius: 99px; letter-spacing: .5px; margin-left: 4px; vertical-align: middle;
+}
+
+.v109-del-btn {
+  position: absolute; top: 8px; right: 8px;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: rgba(0,0,0,.05); color: #b0a8c4; border: none;
+  font-size: 14px; font-weight: 800; cursor: pointer; padding: 0; line-height: 1;
+  display: none; align-items: center; justify-content: center; z-index: 2;
+}
+.v109-card:hover .v109-del-btn { display: flex; }
+.v109-del-btn:hover { background: #fbdede; color: #c95050; }
+
+.v109-add-btn {
+  width: 100%; margin-top: 12px; padding: 14px;
+  background: transparent; border: 1.5px dashed #b8a8d8; color: #6d5ef7;
+  border-radius: 16px; font-family: inherit; font-size: 13.5px; font-weight: 700;
+  cursor: pointer; transition: all .18s ease;
+}
+.v109-add-btn:hover { background: #f4efff; border-color: #6d5ef7; }
+
+.v109-empty {
+  padding: 26px 16px; text-align: center; color: #8b7fa8;
+  background: #fff; border-radius: 16px; box-shadow: 0 4px 12px -8px rgba(90,70,180,.15);
+  font-size: 13px; margin-bottom: 8px;
+}
+.v109-empty b { display: block; color: #6b5db8; font-size: 14px; margin-bottom: 3px; }
+
+/* V109 earn toast */
+.v109-earn-toast {
+  position: fixed; left: 50%; transform: translateX(-50%) translateY(30px);
+  bottom: 88px; background: linear-gradient(135deg,#1ea54a,#22c55e); color: #fff;
+  padding: 12px 18px; border-radius: 14px; font-size: 13px; font-weight: 700;
+  box-shadow: 0 12px 30px -8px rgba(30,165,74,.55); z-index: 99999;
+  opacity: 0; transition: all .35s cubic-bezier(.2,.9,.3,1.2);
+  display: flex; align-items: center; gap: 10px; max-width: 88vw; font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+}
+.v109-earn-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.v109-earn-toast .em { font-size: 20px; }
+.v109-earn-toast small { display: block; font-size: 10.5px; font-weight: 500; opacity: .9; margin-top: 1px; }
+
+/* Dark mode */
+body.dark .v109-card { background: #22213a !important; }
+body.dark .v109-card.no-balance { background: linear-gradient(135deg,#24223d,#28254a) !important; }
+body.dark .v109-card-name b { color: #ede8ff; }
+body.dark .v109-card-name .sub { color: #8b7fa8; }
+body.dark .v109-card-name .pill { background: #2d1f47; color: #a5b3d8; }
+body.dark .v109-card-vals b { color: #ede8ff; }
+body.dark .v109-card-ico { background: linear-gradient(135deg,#2d1f47,#3a2860); }
+body.dark .v109-redeem-title { color: #a89bc2; }
+body.dark .v109-redeem-row { border-top-color: #2d2b3d; }
+body.dark .v109-redeem-row .rl { color: #ede8ff; }
+body.dark .v109-empty { background: #22213a; color: #a89bc2; }
+body.dark .v109-add-btn { color: #a5b3d8; border-color: #4a3f6c; }
+body.dark .v109-section-title { color: #a5b3d8; }
 </style>
 
-<script id="v107-script">
+<script id="v109-script">
 (function(){
   'use strict';
-  var LAST_HASH = null;
 
   var PROGRAM_META = {
-    'amex membership rewards':{emoji:'🔵',short:'MR',cpp:{flight:2.0,cash:1.0,merch:0.7},best:'flight',bestLabel:'Aeroplan flight transfers'},
-    'amex mr':{emoji:'🔵',short:'MR',cpp:{flight:2.0,cash:1.0,merch:0.7},best:'flight',bestLabel:'Aeroplan flight transfers'},
-    'marriott bonvoy':{emoji:'🏨',short:'Bonvoy',cpp:{hotel:0.8,cash:0.4,flight:0.7},best:'hotel',bestLabel:'Marriott hotel nights'},
-    'scene+':{emoji:'🎬',short:'Scene+',cpp:{cash:1.0,cineplex:1.0,sobeys:1.0},best:'cash',bestLabel:'Cash / Groceries'},
-    'rogers cash':{emoji:'🟠',short:'Rogers',cpp:{rogers:1.5,cash:1.0},best:'rogers',bestLabel:'Rogers bill boost'},
-    'aeroplan':{emoji:'✈️',short:'Aeroplan',cpp:{flight:2.1,cash:1.0,merch:0.7},best:'flight',bestLabel:'Star Alliance flights'},
-    'pc optimum':{emoji:'🛒',short:'PC',cpp:{grocery:0.1,cash:0.1},best:'grocery',bestLabel:'Loblaw groceries'},
-    'petro-points':{emoji:'⛽',short:'Petro',cpp:{fuel:0.1,cash:0.1},best:'fuel',bestLabel:'Petro-Canada fuel'},
-    'hilton honors':{emoji:'🏨',short:'Hilton',cpp:{hotel:0.5,cash:0.4},best:'hotel',bestLabel:'Hilton hotel nights'},
-    'blue rewards':{emoji:'🔵',short:'BMO',cpp:{cash:0.67},best:'cash',bestLabel:'Cash / BMO products'},
-    'westjet rewards':{emoji:'✈️',short:'WestJet',cpp:{flight:1.0,cash:1.0},best:'flight',bestLabel:'WestJet flights'},
-    'starbucks stars':{emoji:'☕',short:'Stars',cpp:{drink:2.5,cash:2.0},best:'drink',bestLabel:'Free drinks'},
-    'tim hortons rewards':{emoji:'🍩',short:'Tims',cpp:{coffee:1.0,cash:1.0},best:'coffee',bestLabel:'Free coffee / food'}
+    'amex membership rewards':{emoji:'\uD83D\uDD35',short:'MR',redemptions:[{lbl:'Aeroplan flight transfers',cpp:2.0,best:true},{lbl:'Statement credit',cpp:1.0},{lbl:'Amex Travel Online',cpp:1.0},{lbl:'Merch / gift cards',cpp:0.7}]},
+    'marriott bonvoy':{emoji:'\uD83C\uDFE8',short:'Bonvoy',redemptions:[{lbl:'Marriott hotel nights',cpp:0.8,best:true},{lbl:'Airline flight transfers',cpp:0.7},{lbl:'Cash / gift cards',cpp:0.4}]},
+    'scene+':{emoji:'\uD83C\uDFAC',short:'Scene+',redemptions:[{lbl:'Cash at Sobeys/IGA',cpp:1.0,best:true},{lbl:'Cineplex movies',cpp:1.0},{lbl:'Travel via Scene+',cpp:1.0},{lbl:'Amazon / merch',cpp:0.9}]},
+    'rogers cash':{emoji:'\uD83D\uDFE0',short:'Rogers',redemptions:[{lbl:'Rogers/Fido bill (boosted)',cpp:1.5,best:true},{lbl:'Statement credit',cpp:1.0}]},
+    'aeroplan':{emoji:'\u2708\uFE0F',short:'Aeroplan',redemptions:[{lbl:'Star Alliance sweet spots',cpp:2.1,best:true},{lbl:'Air Canada flights',cpp:1.5},{lbl:'Merchandise',cpp:0.7}]},
+    'pc optimum':{emoji:'\uD83D\uDED2',short:'PC',redemptions:[{lbl:'Loblaw groceries',cpp:0.1,best:true},{lbl:'Shoppers Drug Mart',cpp:0.1}]},
+    'petro-points':{emoji:'\u26FD',short:'Petro',redemptions:[{lbl:'Petro-Canada fuel',cpp:0.1,best:true},{lbl:'SuperWash car wash',cpp:0.1}]},
+    'hilton honors':{emoji:'\uD83C\uDFE8',short:'Hilton',redemptions:[{lbl:'Standard hotel nights',cpp:0.5,best:true},{lbl:'Points+cash rooms',cpp:0.4}]},
+    'blue rewards':{emoji:'\uD83D\uDD35',short:'BMO',redemptions:[{lbl:'Cash / BMO products',cpp:0.67,best:true}]},
+    'westjet rewards':{emoji:'\u2708\uFE0F',short:'WestJet',redemptions:[{lbl:'WestJet flights',cpp:1.0,best:true},{lbl:'Vacation packages',cpp:1.0}]},
+    'starbucks stars':{emoji:'\u2615',short:'Stars',redemptions:[{lbl:'Handcrafted drinks (100 stars)',cpp:2.5,best:true},{lbl:'Food items',cpp:2.0}]},
+    'tim hortons rewards':{emoji:'\uD83C\uDF69',short:'Tims',redemptions:[{lbl:'Free coffee / food',cpp:1.0,best:true}]},
+    'ihg one rewards':{emoji:'\uD83C\uDFE8',short:'IHG',redemptions:[{lbl:'PointBreaks hotels',cpp:0.6,best:true},{lbl:'Standard hotels',cpp:0.5}]},
+    'world of hyatt':{emoji:'\uD83C\uDFE8',short:'Hyatt',redemptions:[{lbl:'Standard hotel nights',cpp:1.7,best:true}]},
+    'cibc aventura':{emoji:'\u2708\uFE0F',short:'Aventura',redemptions:[{lbl:'Fixed points travel',cpp:1.5,best:true},{lbl:'Statement credit',cpp:1.0}]},
+    'td rewards':{emoji:'\u2708\uFE0F',short:'TDR',redemptions:[{lbl:'ExpediaForTD',cpp:0.5,best:true}]},
+    'air miles':{emoji:'\uD83C\uDF81',short:'AM',redemptions:[{lbl:'Flight rewards',cpp:0.3,best:true},{lbl:'Cash rewards',cpp:0.1}]},
+    'shoppers optimum':{emoji:'\uD83D\uDC8A',short:'Shoppers',redemptions:[{lbl:'Shoppers Drug Mart',cpp:0.1,best:true}]},
+    'ct money':{emoji:'\uD83D\uDD3A',short:'CT',redemptions:[{lbl:'Canadian Tire',cpp:1.0,best:true}]}
   };
 
-  function safeGet(k, def){
-    try{ var v = localStorage.getItem(k); return v ? JSON.parse(v) : def; }catch(e){ return def; }
-  }
-  function metaFor(name){
-    var key = (name||'').toLowerCase().trim();
-    if(PROGRAM_META[key]) return PROGRAM_META[key];
-    for(var k in PROGRAM_META){ if(key.indexOf(k)>=0 || k.indexOf(key)>=0) return PROGRAM_META[k]; }
-    return {emoji:'🎁',short:'',cpp:{cash:1.0},best:'cash',bestLabel:'Cash equivalent'};
-  }
-  function bestCpp(m){ return m.cpp[m.best] || 1.0; }
-  function cashValue(bal, m){ return (bal * bestCpp(m)) / 100; }
-  function fmt$(n){ return '$' + n.toFixed(2); }
-  function ago(ts){
-    var s = Math.max(1, Math.floor((Date.now()-ts)/1000));
-    if(s<60) return s+'s ago';
-    if(s<3600) return Math.floor(s/60)+'m ago';
-    if(s<86400) return Math.floor(s/3600)+'h ago';
-    return Math.floor(s/86400)+'d ago';
-  }
+  var CARD_TO_PROG = [
+    {keys:['cobalt'],prog:'amex membership rewards'},
+    {keys:['gold rewards'],prog:'amex membership rewards'},
+    {keys:['amex platinum','the platinum'],prog:'amex membership rewards'},
+    {keys:['business gold','business edge','business platinum'],prog:'amex membership rewards'},
+    {keys:['american express card','amex green'],prog:'amex membership rewards'},
+    {keys:['marriott','bonvoy'],prog:'marriott bonvoy'},
+    {keys:['aeroplan'],prog:'aeroplan'},
+    {keys:['rogers red','rogers world elite'],prog:'rogers cash'},
+    {keys:['westjet'],prog:'westjet rewards'},
+    {keys:['aventura'],prog:'cibc aventura'},
+    {keys:['first class travel','td rewards','platinum travel'],prog:'td rewards'},
+    {keys:['scotia passport','scotia gold amex','scotia scene','scotia american express','scotia platinum amex'],prog:'scene+'},
+    {keys:['hilton'],prog:'hilton honors'},
+    {keys:['british airways','ba visa'],prog:'aeroplan'}
+  ];
 
-  function getCardsForProgram(progName, wallet){
-    // map wallet cards to programs
-    var map = {
-      'amex membership rewards':['cobalt','gold','platinum','amex'],
-      'marriott bonvoy':['bonvoy','marriott'],
-      'scene+':['scotia','scene'],
-      'rogers cash':['rogers'],
-      'aeroplan':['aeroplan','td aeroplan','cibc aero'],
-      'westjet rewards':['westjet','rbc westjet']
-    };
-    var key = (progName||'').toLowerCase();
-    var kws = map[key] || [key.split(' ')[0]];
-    var out = [];
-    (wallet||[]).forEach(function(c){
-      var nm = ((c.name||c.card||c.title||'')+'').toLowerCase();
-      for(var i=0;i<kws.length;i++){ if(nm.indexOf(kws[i])>=0){ out.push(c.name||c.card||c.title||'Card'); return; } }
-    });
+  function detectProgramsForCard(cardName){
+    var out=[]; var n=(cardName||'').toLowerCase();
+    for(var i=0;i<CARD_TO_PROG.length;i++){
+      for(var j=0;j<CARD_TO_PROG[i].keys.length;j++){
+        if(n.indexOf(CARD_TO_PROG[i].keys[j])>=0){ out.push(CARD_TO_PROG[i].prog); break; }
+      }
+    }
     return out;
   }
+  function metaFor(name){
+    var key=(name||'').toLowerCase().trim();
+    if(PROGRAM_META[key]) return {key:key,meta:PROGRAM_META[key]};
+    for(var k in PROGRAM_META){ if(key.indexOf(k)>=0||k.indexOf(key)>=0) return {key:k,meta:PROGRAM_META[k]}; }
+    return {key:key,meta:{emoji:'\uD83C\uDF81',short:'',redemptions:[{lbl:'Cash equivalent',cpp:1.0,best:true}]}};
+  }
+  function bestCppOf(m){ var b=0; (m.redemptions||[]).forEach(function(r){ if(r.cpp>b) b=r.cpp; }); return b||1.0; }
+  function cashValue(bal, m){ return (bal*bestCppOf(m))/100; }
+  function fmt$(n){ return '$'+(n||0).toFixed(2); }
+  function fmtInt(n){ return (n||0).toLocaleString(); }
+  function safeGet(k,d){ try{ var v=localStorage.getItem(k); return v?JSON.parse(v):d; }catch(e){ return d; } }
+  function safeSet(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+  function esc(s){ return String(s||'').replace(/[&<>"']/g,function(m){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]; }); }
+  function properTitle(s){
+    var t=String(s||'').trim();
+    return t.split(' ').map(function(w){
+      if(/^(mr|bmo|ihg|td|cibc|rbc|pc|ct|am)$/i.test(w)) return w.toUpperCase();
+      if(/\+/.test(w)) return w;
+      return w.charAt(0).toUpperCase()+w.slice(1).toLowerCase();
+    }).join(' ');
+  }
 
-  function buildRecentFeed(){
-    var earn = safeGet('walletiq_auto_earnings', []);
-    var txs  = safeGet('walletiq_txs', []);
-    // Merge: use earnings if available, else derive from tx list
-    var items = [];
-    if(earn && earn.length){
-      items = earn.slice(-5).reverse().map(function(e){
-        return {
-          program: e.program || 'Rewards',
-          points:  e.points  || 0,
-          merchant:e.merchant|| 'Purchase',
-          card:    e.card    || '',
-          ts:      e.ts      || Date.now()
-        };
-      });
-    } else if(txs && txs.length){
-      items = txs.slice(-5).reverse().map(function(t){
-        return {
-          program: t.program || t.rewards || 'Rewards',
-          points:  t.points  || Math.round((t.amount||0)*1),
-          merchant:t.merchant|| t.name || 'Purchase',
-          card:    t.card    || '',
-          ts:      t.ts || t.date || Date.now()
-        };
-      });
+  var expandedKeys = new Set();
+  var LAST_HASH = null;
+
+  function killLegacy(){
+    var host=document.getElementById('viewVault'); if(!host) return;
+    var kills=host.querySelectorAll('.v107-hub-wrap,.v96-optimizer,#pointsOptimizerCard,[data-v96-optimizer],#vaultPrograms,#vaultSweetspots,#vaultTotal');
+    for(var i=0;i<kills.length;i++){ kills[i].style.display='none'; }
+  }
+  function setBodyRewardsView(){
+    var views=document.querySelectorAll('#rewards .rewards-view');
+    for(var i=0;i<views.length;i++){
+      if(views[i].classList.contains('active')){
+        var id=views[i].id||''; document.body.setAttribute('data-rewards-view',id.replace(/^view/,'').toLowerCase());
+        return;
+      }
     }
-    return items;
+    document.body.removeAttribute('data-rewards-view');
   }
 
-  function computeTotals(memberships){
-    var total = 0, bestCppSeen = 0, count = 0;
-    (memberships||[]).forEach(function(m){
-      var meta = metaFor(m.name || m.program);
-      var bal = parseFloat(m.balance||m.points||0)||0;
-      total += cashValue(bal, meta);
-      if(bestCpp(meta) > bestCppSeen) bestCppSeen = bestCpp(meta);
-      count++;
-    });
-    return {total:total, cpp:bestCppSeen, count:count};
-  }
+  function render(){
+    var host=document.getElementById('viewVault'); if(!host) return;
+    killLegacy();
 
-  function renderPointsHub(){
-    var host = document.getElementById('viewVault');
-    if(!host) return;
+    var wallet=safeGet('walletiq_wallet',[]);
+    var memberships=safeGet('walletiq_memberships',[]);
 
-    var memberships = safeGet('walletiq_memberships', []);
-    var wallet      = safeGet('walletiq_wallet', []);
-    var feed        = buildRecentFeed();
-    var totals      = computeTotals(memberships);
+    var walletCards=(wallet||[]).map(function(c){ return c.name||c.card||c.title||c.n||''; }).filter(Boolean);
 
-    // Hash to skip re-render
-    var hash = JSON.stringify({m:memberships,w:(wallet||[]).map(function(c){return c.name||c.card;}),f:feed.map(function(i){return i.ts+'-'+i.points;})});
-    if(hash === LAST_HASH && host.querySelector('.v107-hub')) return;
-    LAST_HASH = hash;
-
-    // Split programs into card-earned vs extra
-    var earned = [], extra = [];
-    (memberships||[]).forEach(function(m){
-      var cards = getCardsForProgram(m.name || m.program, wallet);
-      (cards.length ? earned : extra).push({m:m, cards:cards});
+    var progToCards={};
+    walletCards.forEach(function(cn){
+      detectProgramsForCard(cn).forEach(function(p){
+        if(!progToCards[p]) progToCards[p]=[];
+        if(progToCards[p].indexOf(cn)<0) progToCards[p].push(cn);
+      });
     });
 
-    var html = '<div class="v107-hub">';
+    var balMap={};
+    (memberships||[]).forEach(function(m){
+      var name=m.name||m.program||''; var mf=metaFor(name);
+      var bal=parseFloat(m.balance||m.points||0)||0;
+      balMap[mf.key]=(balMap[mf.key]||0)+bal;
+    });
 
-    // HERO
-    html += '<div class="v107-hero">';
-    html += '<div class="v107-hero-label">💎 Total Points Value</div>';
-    html += '<div class="v107-hero-val">'+fmt$(totals.total)+'</div>';
-    html += '<div class="v107-hero-sub">Cash-equivalent across all programs at best redemption</div>';
-    html += '<div class="v107-hero-stats">';
-    html += '<div class="v107-hero-stat"><b>'+totals.count+'</b><span>Programs</span></div>';
-    html += '<div class="v107-hero-stat"><b>'+totals.cpp.toFixed(2)+'¢</b><span>Best CPP</span></div>';
-    html += '<div class="v107-hero-stat"><b>'+feed.length+'</b><span>Recent earns</span></div>';
-    html += '</div></div>';
+    var walletList=[];
+    Object.keys(progToCards).forEach(function(prog){
+      var meta=PROGRAM_META[prog]||metaFor(prog).meta;
+      walletList.push({key:prog,name:prog,emoji:meta.emoji,redemptions:meta.redemptions,balance:balMap[prog]||0,cards:progToCards[prog],isWallet:true});
+    });
 
-    // RECENT FEED
-    html += '<div class="v107-section-title">⚡ Recent Earnings <span class="cnt">'+feed.length+'</span></div>';
-    html += '<div class="v107-feed">';
-    if(feed.length === 0){
-      html += '<div class="v107-feed-empty"><b>No earnings logged yet</b>Log a purchase to watch your points grow →</div>';
+    var extraList=[];
+    (memberships||[]).forEach(function(m){
+      var name=m.name||m.program||''; var mf=metaFor(name);
+      if(progToCards[mf.key]) return;
+      if(extraList.some(function(x){ return x.key===mf.key; })) return;
+      extraList.push({key:mf.key,name:name,emoji:mf.meta.emoji,redemptions:mf.meta.redemptions,balance:balMap[mf.key]||0,cards:[],isWallet:false});
+    });
+
+    var totalCash=0, bestCppSeen=0;
+    walletList.concat(extraList).forEach(function(row){
+      var m={redemptions:row.redemptions};
+      totalCash+=cashValue(row.balance,m);
+      var bc=bestCppOf(m); if(bc>bestCppSeen) bestCppSeen=bc;
+    });
+
+    var hash=JSON.stringify({
+      w:walletList.map(function(r){return [r.key,r.balance,r.cards.length];}),
+      x:extraList.map(function(r){return [r.key,r.balance];}),
+      e:Array.from(expandedKeys).sort()
+    });
+    if(hash===LAST_HASH && host.querySelector('#v109-hub')) return;
+    LAST_HASH=hash;
+
+    var hub=host.querySelector('#v109-hub');
+    if(!hub){ hub=document.createElement('div'); hub.id='v109-hub'; host.insertBefore(hub,host.firstChild); }
+
+    var s='';
+    s+='<div class="v109-hero">';
+    s+='<div class="v109-hero-label">\uD83D\uDC8E Total Points Value</div>';
+    s+='<div class="v109-hero-val">'+fmt$(totalCash)+'</div>';
+    s+='<div class="v109-hero-sub">Cash-equivalent across all programs at best redemption</div>';
+    s+='<div class="v109-hero-stats">';
+    s+='<div class="v109-hero-stat"><b>'+(walletList.length+extraList.length)+'</b><span>Programs</span></div>';
+    s+='<div class="v109-hero-stat"><b>'+bestCppSeen.toFixed(2)+'\u00A2</b><span>Best CPP</span></div>';
+    s+='<div class="v109-hero-stat"><b>'+walletCards.length+'</b><span>Wallet cards</span></div>';
+    s+='</div></div>';
+
+    s+='<div class="v109-section-title"><span class="em">\uD83D\uDCB3</span> Wallet Memberships <span class="cnt">'+walletList.length+'</span></div>';
+    if(walletList.length){
+      walletList.forEach(function(r){ s+=renderCard(r); });
     } else {
-      feed.forEach(function(f){
-        var meta = metaFor(f.program);
-        html += '<div class="v107-feed-item">';
-        html += '<div class="v107-feed-icon">'+meta.emoji+'</div>';
-        html += '<div class="v107-feed-body">';
-        html += '<div class="v107-feed-title">'+(f.merchant||'Purchase')+'</div>';
-        html += '<div class="v107-feed-meta">'+(f.card?f.card+' · ':'')+meta.short+' · '+ago(f.ts)+'</div>';
-        html += '</div>';
-        html += '<div class="v107-feed-pts">+'+Math.round(f.points)+' pts</div>';
-        html += '</div>';
-      });
-    }
-    html += '</div>';
-
-    // EARNED PROGRAMS
-    if(earned.length){
-      html += '<div class="v107-section-title">💳 Programs your cards earn <span class="cnt">'+earned.length+'</span></div>';
-      earned.forEach(function(row){
-        html += renderProgramCard(row.m, row.cards, false);
-      });
+      s+='<div class="v109-empty"><b>No wallet cards detected yet</b>Add credit cards in setup to auto-track their programs.</div>';
     }
 
-    // EXTRA
-    if(extra.length){
-      html += '<div class="v107-section-title">📌 Extra tracked memberships <span class="cnt">'+extra.length+'</span></div>';
-      extra.forEach(function(row){
-        html += renderProgramCard(row.m, [], true);
-      });
+    s+='<div class="v109-section-title"><span class="em">\uD83D\uDCCC</span> Extra Memberships <span class="cnt">'+extraList.length+'</span></div>';
+    if(extraList.length){
+      extraList.forEach(function(r){ s+=renderCard(r); });
+    } else {
+      s+='<div class="v109-empty"><b>No extra memberships</b>Track PC Optimum, Hilton, Petro-Points and more.</div>';
     }
 
-    if(!earned.length && !extra.length){
-      html += '<div class="v107-feed-empty" style="margin-top:14px;background:#fff;border-radius:16px;"><b>No programs tracked yet</b>Add a card or a membership to get started</div>';
-    }
+    s+='<button class="v109-add-btn" data-pv-add-new>+ Add another membership</button>';
 
-    html += '</div>';
+    hub.innerHTML=s;
 
-    // Only replace our container, not the whole viewVault (keep original controls if any)
-    var existing = host.querySelector('.v107-hub-wrap');
-    if(!existing){
-      existing = document.createElement('div');
-      existing.className = 'v107-hub-wrap';
-      host.insertBefore(existing, host.firstChild);
-    }
-    existing.innerHTML = html;
+    hub.querySelectorAll('.v109-card').forEach(function(c){
+      var k=c.getAttribute('data-key');
+      if(k && expandedKeys.has(k)) c.classList.add('expanded');
+    });
 
-    // Hide any legacy V96 optimizer block inside vault
-    host.querySelectorAll('[data-v96-optimizer], .v96-optimizer, #pointsOptimizerCard').forEach(function(n){ n.style.display='none'; });
-
-    // Sync Rewards Studio hero total to match Points Hub total (no double-count)
-    var rh = document.getElementById('rhTotal');
-    if(rh){ rh.textContent = fmt$(totals.total); }
-    var rhSub = document.getElementById('rhSub');
-    if(rhSub){ rhSub.textContent = 'Points + Vault (unified)'; }
+    var rh=document.getElementById('rhTotal'); if(rh) rh.textContent=fmt$(totalCash);
+    var rhV=document.getElementById('rhVault'); if(rhV) rhV.textContent=fmt$(totalCash);
+    var hvs=document.querySelector('#homeVaultSummary .vs-big'); if(hvs) hvs.textContent=fmt$(totalCash);
   }
 
-  function renderProgramCard(m, cards, isExtra){
-    var meta = metaFor(m.name || m.program);
-    var bal = parseFloat(m.balance||m.points||0)||0;
-    var cv = cashValue(bal, meta);
-    var s = '<div class="v107-prog">';
-    s += '<div class="v107-prog-top">';
-    s += '<div class="v107-prog-ico">'+meta.emoji+'</div>';
-    s += '<div class="v107-prog-name"><b>'+(m.name||m.program||'Program')+'</b><span>Balance</span></div>';
-    s += '<div class="v107-prog-vals"><b>'+bal.toLocaleString()+' pts</b><span>= '+fmt$(cv)+'</span></div>';
-    s += '</div>';
-    if(cards.length){
-      s += '<div class="v107-prog-cards">';
-      cards.forEach(function(c){ s += '<span class="v107-prog-pill">'+c+'</span>'; });
-      s += '</div>';
+  function renderCard(row){
+    var noBal=!row.balance || row.balance<=0;
+    var m={redemptions:row.redemptions};
+    var val=cashValue(row.balance,m);
+    var displayName=properTitle(row.name||row.key);
+
+    var s='<div class="v109-card '+(noBal?'no-balance':'has-balance')+'" data-key="'+esc(row.key)+'" data-pv-expand>';
+    if(!row.isWallet){
+      s+='<button class="v109-del-btn" data-pv-delete data-key="'+esc(row.key)+'" title="Remove">\u00D7</button>';
     }
-    s += '<div class="v107-prog-best">';
-    s += '<span class="v107-prog-best-lbl">Best redemption</span>';
-    s += '<span class="v107-prog-best-val">'+meta.bestLabel+' · '+bestCpp(meta).toFixed(2)+'¢/pt</span>';
-    s += '</div>';
-    s += '</div>';
+    s+='<div class="v109-card-head">';
+    s+='<div class="v109-card-ico">'+row.emoji+'</div>';
+    s+='<div class="v109-card-name">';
+    s+='<b>'+esc(displayName)+'</b>';
+    s+='<span class="sub">'+(noBal?'No balance yet':'Balance')+'</span>';
+    if(row.cards && row.cards.length){
+      s+='<div class="pills">';
+      row.cards.slice(0,3).forEach(function(c){ s+='<span class="pill">'+esc(c)+'</span>'; });
+      if(row.cards.length>3) s+='<span class="pill">+'+(row.cards.length-3)+'</span>';
+      s+='</div>';
+    }
+    s+='</div>';
+    if(noBal){
+      s+='<div class="v109-card-vals"><button class="v109-mini-add" data-pv-add data-key="'+esc(row.key)+'" data-name="'+esc(displayName)+'">+ Add balance</button></div>';
+    } else {
+      s+='<div class="v109-card-vals"><b>'+fmtInt(row.balance)+' pts</b><span>= '+fmt$(val)+'</span></div>';
+    }
+    s+='<div class="v109-chev">\u203A</div>';
+    s+='</div>';
+
+    s+='<div class="v109-card-expanded">';
+    s+='<div class="v109-redeem-title">Best redemption values</div>';
+    var reds=(row.redemptions||[]).slice().sort(function(a,b){ return b.cpp-a.cpp; });
+    reds.forEach(function(r,idx){
+      var isBest=idx===0||r.best;
+      s+='<div class="v109-redeem-row '+(isBest?'best':'')+'">';
+      s+='<span class="rl">'+esc(r.lbl)+(isBest?'<span class="v109-redeem-tag">BEST</span>':'')+'</span>';
+      if(row.balance>0){
+        var v=(row.balance*r.cpp)/100;
+        s+='<span class="rv">'+fmt$(v)+'</span>';
+      } else {
+        s+='<span class="rv" style="color:#b8a8d8">\u2014</span>';
+      }
+      s+='<span class="rc">'+r.cpp.toFixed(2)+'\u00A2/pt</span>';
+      s+='</div>';
+    });
+    s+='</div>';
+    s+='</div>';
     return s;
   }
 
-  // ---------- Toast on log ----------
-  function showEarnToast(points, program, merchant, card){
-    var el = document.createElement('div');
-    el.className = 'v107-earn-toast';
-    var meta = metaFor(program);
-    el.innerHTML = '<span class="em">'+meta.emoji+'</span><span>+'+Math.round(points)+' '+(meta.short||'pts')+' earned<small>'+(merchant||'Purchase')+(card?' · '+card:'')+'</small></span>';
+  document.addEventListener('click', function(e){
+    var host=document.getElementById('viewVault');
+    if(!host || !host.contains(e.target)) return;
+
+    var addNew=e.target.closest('[data-pv-add-new]');
+    if(addNew){
+      e.stopPropagation(); e.preventDefault();
+      var name=prompt('Program name (e.g. PC Optimum, Hilton Honors)');
+      if(!name) return;
+      var bal=prompt('Current balance in points?');
+      if(bal===null) return;
+      var b=parseFloat(String(bal).replace(/[,\s]/g,''));
+      if(isNaN(b)) b=0;
+      var mems=safeGet('walletiq_memberships',[]);
+      mems.push({name:name.trim(),balance:b,source:'manual',ts:Date.now()});
+      safeSet('walletiq_memberships',mems);
+      LAST_HASH=null; render(); return;
+    }
+    var addBal=e.target.closest('[data-pv-add]');
+    if(addBal){
+      e.stopPropagation(); e.preventDefault();
+      var key=addBal.getAttribute('data-key');
+      var nm=addBal.getAttribute('data-name')||key;
+      var bal2=prompt('Balance for '+nm+' in points?');
+      if(bal2===null) return;
+      var b2=parseFloat(String(bal2).replace(/[,\s]/g,''));
+      if(isNaN(b2)) return;
+      var mems2=safeGet('walletiq_memberships',[]);
+      var found=false;
+      for(var i=0;i<mems2.length;i++){
+        var mn=(mems2[i].name||mems2[i].program||'').toLowerCase();
+        if(metaFor(mn).key===key){ mems2[i].balance=b2; found=true; break; }
+      }
+      if(!found) mems2.push({name:nm,balance:b2,source:'manual',ts:Date.now()});
+      safeSet('walletiq_memberships',mems2);
+      LAST_HASH=null; render(); return;
+    }
+    var del=e.target.closest('[data-pv-delete]');
+    if(del){
+      e.stopPropagation(); e.preventDefault();
+      var dk=del.getAttribute('data-key');
+      if(!confirm('Remove this membership?')) return;
+      var mems3=safeGet('walletiq_memberships',[]);
+      mems3=mems3.filter(function(m){
+        var mn=(m.name||m.program||'').toLowerCase();
+        return metaFor(mn).key!==dk;
+      });
+      safeSet('walletiq_memberships',mems3);
+      LAST_HASH=null; render(); return;
+    }
+    var exp=e.target.closest('[data-pv-expand]');
+    if(exp){
+      e.stopPropagation();
+      var ek=exp.getAttribute('data-key'); if(!ek) return;
+      if(expandedKeys.has(ek)){ expandedKeys.delete(ek); exp.classList.remove('expanded'); }
+      else { expandedKeys.add(ek); exp.classList.add('expanded'); }
+      return;
+    }
+  }, true);
+
+  // Earn toast
+  function showEarnToast(pts, prog, merchant, card){
+    var el=document.createElement('div');
+    el.className='v109-earn-toast';
+    var meta=metaFor(prog).meta;
+    el.innerHTML='<span class="em">'+meta.emoji+'</span><span>+'+Math.round(pts)+' '+(meta.short||'pts')+' earned<small>'+esc(merchant||'Purchase')+(card?' · '+esc(card):'')+'</small></span>';
     document.body.appendChild(el);
     requestAnimationFrame(function(){ el.classList.add('show'); });
-    setTimeout(function(){
-      el.classList.remove('show');
-      setTimeout(function(){ el.remove(); }, 400);
-    }, 2500);
+    setTimeout(function(){ el.classList.remove('show'); setTimeout(function(){ el.remove(); },400); }, 2500);
   }
-
-  function watchForLogs(){
-    // MutationObserver watches for the V44 .log-flash element appearing OR new tx appended
-    var lastTxCount = safeGet('walletiq_txs', []).length;
-    var lastEarnCount = safeGet('walletiq_auto_earnings', []).length;
-    setInterval(function(){
-      var txs = safeGet('walletiq_txs', []);
-      var earns = safeGet('walletiq_auto_earnings', []);
-      if(earns.length > lastEarnCount){
-        var e = earns[earns.length-1];
+  var lastTxCount=safeGet('walletiq_txs',[]).length;
+  var lastEarnCount=safeGet('walletiq_auto_earnings',[]).length;
+  setInterval(function(){
+    try{
+      var txs=safeGet('walletiq_txs',[]); var earns=safeGet('walletiq_auto_earnings',[]);
+      if(earns.length>lastEarnCount){
+        var e=earns[earns.length-1];
         showEarnToast(e.points||0, e.program||'', e.merchant||'', e.card||'');
-        lastEarnCount = earns.length;
-        LAST_HASH = null; renderPointsHub();
-      } else if(txs.length > lastTxCount){
-        var t = txs[txs.length-1];
-        var pts = t.points || Math.round((t.amount||0));
-        if(pts > 0) showEarnToast(pts, t.program||t.rewards||'', t.merchant||t.name||'', t.card||'');
-        lastTxCount = txs.length;
-        LAST_HASH = null; renderPointsHub();
+        lastEarnCount=earns.length; LAST_HASH=null; render();
+      } else if(txs.length>lastTxCount){
+        var t=txs[txs.length-1];
+        var pts=t.points||Math.round((t.amount||0));
+        if(pts>0) showEarnToast(pts, t.program||t.rewards||'', t.merchant||t.name||'', t.card||'');
+        lastTxCount=txs.length; LAST_HASH=null; render();
       }
-    }, 900);
-  }
+    }catch(e){}
+  }, 900);
 
   function boot(){
-    try{ renderPointsHub(); }catch(e){ console.warn('[v107]',e); }
-    setInterval(function(){ try{ renderPointsHub(); }catch(e){} }, 800);
-    watchForLogs();
-    // Hide the standalone Optimizer subtab button if V96 added one
-    document.querySelectorAll('[data-view="optimizer"], [data-subtab="optimizer"]').forEach(function(b){ b.style.display='none'; });
+    try{ render(); }catch(e){ console.warn('[v109]',e); }
+    setInterval(function(){ try{ render(); killLegacy(); setBodyRewardsView(); }catch(e){} }, 3000); /* V118: 900→3000ms to reduce reflow */
+    setBodyRewardsView();
+  }
+  window.__v109Render=render; if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<style id="v116-theme">
+/* V116: Repaint V109 hero to match Rewards Studio pearl-lavender theme */
+#v109-hub .v109-hero {
+  background: linear-gradient(135deg, #ffffff 0%, #f5f2fa 55%, #f0eaf5 100%) !important;
+  color: var(--ink, #2b2350) !important;
+  border: 1px solid rgba(109, 94, 247, 0.14) !important;
+  box-shadow: 0 4px 18px -6px rgba(85, 75, 130, 0.10) !important;
+  position: relative;
+  overflow: hidden;
+}
+#v109-hub .v109-hero::after {
+  content: "";
+  position: absolute;
+  right: -40px;
+  bottom: -60px;
+  width: 180px;
+  height: 180px;
+  background: radial-gradient(circle, rgba(109, 94, 247, 0.10), transparent 70%);
+  pointer-events: none;
+}
+#v109-hub .v109-hero-label {
+  color: #6b5db8 !important;
+  opacity: 1 !important;
+  font-weight: 700 !important;
+  letter-spacing: 1.5px !important;
+}
+#v109-hub .v109-hero-val {
+  color: #1ea54a !important;
+  font-weight: 800 !important;
+}
+#v109-hub .v109-hero-sub {
+  color: #8b7fa8 !important;
+  opacity: 1 !important;
+  font-weight: 600 !important;
+}
+#v109-hub .v109-hero-stat {
+  background: rgba(255, 255, 255, 0.6) !important;
+  border: 1px solid rgba(109, 94, 247, 0.10) !important;
+  backdrop-filter: blur(4px);
+}
+#v109-hub .v109-hero-stat b {
+  color: #1ea54a !important;
+}
+#v109-hub .v109-hero-stat span {
+  color: #8b7fa8 !important;
+  opacity: 1 !important;
+}
+/* Dark mode support */
+body.dark #v109-hub .v109-hero {
+  background: linear-gradient(135deg, #22213a 0%, #1e1c34 55%, #181628 100%) !important;
+  border-color: rgba(165, 179, 216, 0.15) !important;
+  color: var(--ink, #ede8ff) !important;
+}
+body.dark #v109-hub .v109-hero-label { color: #a5b3d8 !important; }
+body.dark #v109-hub .v109-hero-val { color: #7ec894 !important; }
+body.dark #v109-hub .v109-hero-sub { color: #8b7fa8 !important; }
+body.dark #v109-hub .v109-hero-stat {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+body.dark #v109-hub .v109-hero-stat b { color: #ede8ff !important; }
+body.dark #v109-hub .v109-hero-stat span { color: #a89bc2 !important; }
+
+/* Remove any leftover 6th subtab button injected by V96 */
+#rewardsSubtabs button[data-view="optimize"] { display: none !important; }
+</style>
+
+<script id="v116-cleanup">
+(function(){
+  'use strict';
+  function cleanup(){
+    // Remove any lingering #viewOptimize sibling of #viewVault
+    var opt = document.getElementById('viewOptimize');
+    if (opt && opt.parentNode) opt.parentNode.removeChild(opt);
+    // Remove the 💎 optimize subtab button
+    var subtabs = document.getElementById('rewardsSubtabs');
+    if (subtabs){
+      var optBtn = subtabs.querySelector('button[data-view="optimize"]');
+      if (optBtn && optBtn.parentNode) optBtn.parentNode.removeChild(optBtn);
+      // Reset grid to 5 columns
+      subtabs.style.gridTemplateColumns = 'repeat(5, 1fr)';
+      // Remove the flag so no old code tries to re-add
+      delete subtabs.dataset.v96Tabs;
+    }
+    // Remove any leftover #v103Container (empty now, but be safe)
+    var v103 = document.getElementById('v103Container');
+    if (v103 && v103.parentNode) v103.parentNode.removeChild(v103);
+  }
+  cleanup();
+  document.addEventListener('DOMContentLoaded', cleanup);
+  setTimeout(cleanup, 100);
+  setTimeout(cleanup, 500);
+  setTimeout(cleanup, 2000);
+  setTimeout(cleanup, 5000); /* V118: was setInterval(1000) — caused 1Hz reflow flicker */
+})();
+</script>
+
+
+<style id="v117-polish">
+/* V117: Fix subtab bar to 4 columns (overview button is hidden) */
+#rewardsSubtabs {
+  grid-template-columns: repeat(4, 1fr) !important;
+}
+#rewardsSubtabs button {
+  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+/* Smooth subtab transitions */
+
+
+
+/* Ensure V109 hero has good spacing when displayed at top of viewVault */
+#viewVault #v109-hub { padding-top: 2px; }
+/* Hide overview button explicitly (V96 already did this but be explicit) */
+#rewardsSubtabs button[data-view="overview"] { display: none !important; }
+</style>
+
+
+<style id="v118-hero-green">
+/* V118: Enforce green on the Points hero to match "Total Portfolio Value" green on other tabs */
+#v109-hub .v109-hero-val,
+#viewVault #v109-hub .v109-hero-val {
+  color: #1ea54a !important;
+}
+#v109-hub .v109-hero-stat b,
+#viewVault #v109-hub .v109-hero-stat b {
+  color: #1ea54a !important;
+}
+body.dark #v109-hub .v109-hero-val,
+body.dark #viewVault #v109-hub .v109-hero-val,
+body.dark #v109-hub .v109-hero-stat b,
+body.dark #viewVault #v109-hub .v109-hero-stat b {
+  color: #7ec894 !important;
+}
+</style>
+
+
+<script id="v120-vault-instant-render">
+(function(){
+  'use strict';
+
+  function forceRender(){
+    if (typeof window.__v109Render === 'function'){
+      try { window.__v109Render(); } catch(e){}
+    }
   }
 
-  if(document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', boot);
-  } else { boot(); }
+  // Pre-render on DOM ready so the hub has content before first click
+  if (document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', forceRender);
+  } else {
+    forceRender();
+  }
+  setTimeout(forceRender, 200);
+  setTimeout(forceRender, 800);
+
+  // Wrap switchRewardsView so Vault clicks force an immediate render
+  function wrapSwitch(){
+    var orig = window.switchRewardsView;
+    if (typeof orig !== 'function') return;
+    if (orig.__v120Wrapped) return;
+    var wrapped = function(view){
+      var result = orig.apply(this, arguments);
+      if (view === 'vault') forceRender();
+      return result;
+    };
+    wrapped.__v120Wrapped = true;
+    window.switchRewardsView = wrapped;
+  }
+  wrapSwitch();
+  setTimeout(wrapSwitch, 500);
+  setTimeout(wrapSwitch, 2000);
+
+  // Capture-phase click on the Vault subtab. requestAnimationFrame ensures
+  // the render runs after the click handler but BEFORE the browser paints
+  // the newly-active panel, so the user never sees an empty hub.
+  document.addEventListener('click', function(e){
+    if (!e.target || !e.target.closest) return;
+    var btn = e.target.closest('#rewardsSubtabs button[data-view="vault"]');
+    if (btn) requestAnimationFrame(forceRender);
+  }, true);
 })();
 </script>
 
