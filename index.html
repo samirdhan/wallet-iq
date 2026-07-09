@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Wallet IQ V121</title>
+<title>Wallet IQ V122</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Wallet IQ">
@@ -1654,7 +1654,7 @@ body.dark .credits-empty{background:var(--surface)}
 .credit-flash .cf-emoji{font-size:20px}
 </style>
 <body>
-<!-- V121 (2026-07-09): Rewards Studio Points Vault rebuild. Stripped 12 layered patches (V96 optimizer, V98 CPP fix, V104 reinjection interval, V109 hub 3s interval, V110–V120 kill-switch/sync/cleanup intervals). One clean renderer with a single source of truth (computePortfolioTotal → balance × cpp ÷ 100), CARD_EARN-based Wallet vs Extra membership classification each render (no __v106Auto reliance), zero setInterval, synchronous switchRewardsView override, delegated click accordion for .v87-hidden-note. CARDS_DB (91 cards), ALIASES / MERCHANT_DIRECTORY (5,500+ merchants), V106 auto-accumulation math, all other tabs and modals untouched. -->
+<!-- V122 (2026-07-09): FULL Points Vault + Home summary rebuild from scratch (built directly on top of V120, skipping V121 which was too incremental). Also strips the same 3 legacy patches V121 stripped (v109-script/v116-cleanup/v120-vault-instant-render). Wallet-cards-first design — every card in your wallet has its earning program shown as a program card with (a) which of your cards earn on it, (b) live balance from V106 auto-accumulation, (c) this-month vs last-month earnings deltas derived from walletiq_transactions, (d) full redemption ladder with best rate highlighted, (e) inline Edit balance modal that properly resets V106's auto-earnings baseline. Extras deprioritized into a collapsed accordion at the bottom (they're the bonus, not the star). New home-tab #homeVaultSummary card shows total portfolio + top 3 fastest programs. All other Rewards Studio subtabs (Insights, Activity, Credit Rescue, Welcome Offers) untouched. -->
 <!-- V120 (2026-07-09): Fixed Vault click lag / pop-in flicker. Root cause: V109 hub rendered only on 3000ms interval, so clicking Vault showed empty panel until next tick fired. Fix: (1) pre-render on DOMContentLoaded, (2) wrap switchRewardsView to force render on Vault click, (3) capture-phase click listener with requestAnimationFrame so render happens before browser paints panel. Also removed conflicting v117 opacity transition — base fadeIn animation now runs alone. -->
 
 <!-- V119 (2026-07-09): Fixed merchant counter flicker (5,000+ ↔ 5,500+). Root cause: V94 wrote raw rounded value while V98 clamped at 5,000 max — both ran on setInterval, overwriting each other. Fix: stripped v98-homepage-stat-fix entirely. V94 is now sole updater and stops polling after boot (ALIASES doesn't change at runtime). -->
@@ -1928,7 +1928,7 @@ body.dark .credits-empty{background:var(--surface)}
 
 <!-- Vault view -->
 <div id="viewVault" class="rewards-view">
- <div id="v121-vault"></div>
+ <div id="v122-vault"></div>
 </div>
 </section>
 
@@ -18832,7 +18832,7 @@ body.dark .v109-add-btn { color: #a5b3d8; border-color: #4a3f6c; }
 body.dark .v109-section-title { color: #a5b3d8; }
 </style>
 
-<!-- V121: removed v109-script (V109 hub renderer, 3s render interval, kill-legacy loop) -->
+<!-- V122: removed v109-script (3s render interval fighting the vault) -->
 
 
 
@@ -18926,7 +18926,7 @@ body.dark #v109-hub .v109-hero-stat span { color: #a89bc2 !important; }
 #rewardsSubtabs button[data-view="optimize"] { display: none !important; }
 </style>
 
-<!-- V121: removed v116-cleanup (was setTimeout ladder recreating #viewOptimize check) -->
+<!-- V122: removed v116-cleanup (setTimeout ladder for #viewOptimize) -->
 
 
 <style id="v117-polish">
@@ -18967,447 +18967,563 @@ body.dark #viewVault #v109-hub .v109-hero-stat b {
 </style>
 
 
-<!-- V121: removed v120-vault-instant-render (wrapper + rAF capture click; superseded by clean V121 switchRewardsView override) -->
+<!-- V122: removed v120-vault-instant-render (superseded by clean V122 switchRewardsView override) -->
 
 
 
-<style id="v121-vault-styles">
-#v121-vault{display:flex;flex-direction:column;gap:14px}
-.v121-hero{background:linear-gradient(135deg,#ffffff 0%,#f5f0fa 55%,#efe4f2 100%);color:var(--ink);border:none;border-radius:22px;padding:22px 20px;box-shadow:0 4px 18px rgba(85,75,130,.10);position:relative;overflow:hidden;text-align:center}
-.v121-hero::before{content:"";position:absolute;top:-45px;right:-45px;width:180px;height:180px;background:radial-gradient(circle,rgba(99,102,241,.18),transparent 65%);pointer-events:none}
-.v121-hero-label{position:relative;z-index:1;font-size:10.5px;color:var(--muted);font-weight:900;letter-spacing:.14em;text-transform:uppercase}
-.v121-hero-total{position:relative;z-index:1;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:36px;font-weight:900;letter-spacing:-.03em;margin-top:6px;color:var(--green)}
-.v121-hero-sub{position:relative;z-index:1;font-size:12px;color:var(--muted);font-weight:800;margin-top:6px;display:flex;justify-content:center;gap:8px;align-items:center}
-.v121-hero-dot{opacity:.5}
-.v121-add-btn{width:100%;padding:13px 16px;border-radius:14px;border:1.5px dashed var(--brand);background:var(--accent-soft);color:var(--brand);font-family:inherit;font-weight:900;font-size:13.5px;letter-spacing:-.01em;cursor:pointer;transition:transform .1s ease;display:flex;align-items:center;justify-content:center;gap:6px}
-.v121-add-btn:active{transform:scale(.97)}
-.v121-section{display:flex;flex-direction:column;gap:8px}
-.v121-section-title{font-size:11px;color:var(--muted);font-weight:900;letter-spacing:.14em;text-transform:uppercase;display:flex;align-items:center;gap:8px}
-.v121-section-title .v121-count{background:var(--accent-soft);color:var(--brand);border-radius:99px;padding:2px 9px;font-size:10.5px;letter-spacing:.02em}
-.v121-section-sub{font-size:11.5px;color:var(--muted);font-weight:750;margin-top:-6px;margin-bottom:2px}
-.v121-list{display:flex;flex-direction:column;gap:8px}
-.v121-mem-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:14px 15px;box-shadow:0 1px 2px rgba(85,75,130,.04);display:flex;flex-direction:column;gap:10px}
-.v121-mem-head{display:grid;grid-template-columns:36px 1fr auto;gap:12px;align-items:center}
-.v121-mem-emo{font-size:24px;text-align:center;line-height:1}
-.v121-mem-mid{min-width:0}
-.v121-mem-name{font-size:13.5px;font-weight:900;color:var(--ink);letter-spacing:-.01em;line-height:1.2;display:flex;align-items:center;gap:6px}
-.v121-mem-unit{font-size:10.5px;color:var(--muted);font-weight:800;margin-top:2px;letter-spacing:.03em}
-.v121-mem-val{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:900;font-size:15px;color:var(--green);letter-spacing:-.01em;text-align:right;white-space:nowrap}
-.v121-badge{display:inline-block;font-size:8.5px;font-weight:900;padding:2px 6px;border-radius:99px;letter-spacing:.08em;text-transform:uppercase}
-.v121-badge-auto{background:var(--accent-soft);color:var(--brand)}
-.v121-mem-redeem{border-top:1px dashed var(--border);padding-top:8px;display:flex;flex-direction:column;gap:3px}
-.v121-redeem-row{display:flex;justify-content:space-between;align-items:center;font-size:11.5px;font-weight:800;gap:8px}
-.v121-redeem-row .v121-rl{color:var(--ink);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.v121-redeem-row .v121-rv{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:900;color:var(--muted);flex-shrink:0}
-.v121-redeem-row .v121-rv em{font-style:normal;opacity:.6;font-size:9.5px;margin-left:3px}
-.v121-redeem-row .v121-rv.best{color:var(--brand)}
-.v121-empty-mini{background:var(--surface);border:1px dashed var(--border);border-radius:14px;padding:16px 14px;text-align:center;color:var(--muted);font-size:12.5px;font-weight:800;line-height:1.45}
-body.dark .v121-hero{background:linear-gradient(135deg,#241d3a 0%,#1e1732 55%,#181228 100%)!important;color:var(--ink)!important;border:1px solid var(--border)!important}
-body.dark .v121-hero::before{background:radial-gradient(circle,rgba(168,155,194,.20),transparent 65%)!important}
-body.dark .v121-hero-total{color:var(--green)!important}
-body.dark .v121-hero-label,body.dark .v121-hero-sub{color:var(--muted)!important}
-body.dark .v121-mem-card{background:var(--surface)!important;border-color:var(--border)!important}
-body.dark .v121-mem-val{color:var(--green)!important}
-body.dark .v121-add-btn{background:var(--accent-soft);color:var(--brand);border-color:var(--brand)}
-body.dark .v121-empty-mini{background:var(--surface);border-color:var(--border);color:var(--muted)}
+<style id="v122-styles">
+#v122-vault{display:flex;flex-direction:column;gap:16px;padding-bottom:20px}
+.v122-hero{background:linear-gradient(135deg,#fff 0%,#f2ecf5 55%,#e9dff0 100%);border-radius:24px;padding:22px 20px;box-shadow:0 6px 20px rgba(85,75,130,.12);position:relative;overflow:hidden;text-align:center}
+.v122-hero::before{content:"";position:absolute;top:-50px;right:-40px;width:200px;height:200px;background:radial-gradient(circle,rgba(99,102,241,.22),transparent 65%);pointer-events:none}
+.v122-hero-label{position:relative;z-index:1;font-size:11px;color:var(--muted);font-weight:900;letter-spacing:.14em;text-transform:uppercase}
+.v122-hero-total{position:relative;z-index:1;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:42px;font-weight:900;letter-spacing:-.035em;margin-top:6px;color:var(--green);line-height:1.05}
+.v122-hero-sub{position:relative;z-index:1;font-size:12.5px;color:var(--muted);font-weight:800;margin-top:8px}
+.v122-hero-earned{color:var(--green);font-weight:900}
+.v122-hero-pill{position:relative;z-index:1;display:inline-flex;align-items:center;gap:6px;margin-top:12px;background:rgba(255,255,255,.75);border:1px solid rgba(85,75,130,.14);border-radius:99px;padding:7px 14px;font-size:11.5px;font-weight:800;color:var(--ink)}
+.v122-hero-pill b{color:var(--brand);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:900}
+.v122-section-head{display:flex;align-items:center;gap:10px;margin:6px 4px 2px}
+.v122-section-title{font-size:12px;font-weight:900;color:var(--ink);letter-spacing:.14em;text-transform:uppercase;flex:1}
+.v122-section-count{background:var(--accent-soft);color:var(--brand);border-radius:99px;padding:2px 10px;font-size:11px;font-weight:900;letter-spacing:.02em}
+.v122-progs{display:flex;flex-direction:column;gap:12px}
+.v122-prog-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:18px 18px 16px;box-shadow:0 3px 12px rgba(85,75,130,.06)}
+.v122-prog-card.empty{opacity:.90}
+.v122-prog-head{display:grid;grid-template-columns:44px 1fr;gap:12px;align-items:center;margin-bottom:12px}
+.v122-prog-emo{width:44px;height:44px;border-radius:14px;background:var(--accent-soft);display:grid;place-items:center;font-size:24px}
+.v122-prog-name{font-size:15.5px;font-weight:900;color:var(--ink);letter-spacing:-.02em;line-height:1.15;display:flex;align-items:center;gap:6px}
+.v122-trend{font-size:14px}
+.v122-prog-sub{font-size:10.5px;color:var(--muted);font-weight:800;letter-spacing:.06em;text-transform:uppercase;margin-top:3px}
+.v122-prog-bal{background:linear-gradient(135deg,rgba(99,102,241,.06),rgba(99,102,241,.02));border-radius:14px;padding:14px 16px;margin-bottom:12px}
+.v122-prog-bal-line{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.v122-prog-bal-num{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:900;font-size:28px;color:var(--ink);letter-spacing:-.03em;line-height:1}
+.v122-prog-bal-unit{font-size:12px;color:var(--muted);font-weight:800;letter-spacing:.05em;text-transform:uppercase}
+.v122-prog-bal-val{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:15px;font-weight:900;color:var(--green);margin-top:4px}
+.v122-prog-bal-val small{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:var(--muted);font-weight:750;font-size:10.5px;margin-left:4px}
+.v122-prog-cards{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px}
+.v122-card-pill{background:var(--surface-2);border:1px solid var(--border);border-radius:99px;padding:5px 11px;font-size:11.5px;font-weight:800;color:var(--ink);display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.v122-prog-month{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;padding-top:12px;border-top:1px dashed var(--border)}
+.v122-month-item .l{font-size:9.5px;color:var(--muted);font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+.v122-month-item .v{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:900;font-size:13.5px;margin-top:3px}
+.v122-delta-plus{color:var(--green)}
+.v122-delta-zero{color:var(--muted);opacity:.65}
+.v122-prog-redeem-title{font-size:9.5px;color:var(--muted);font-weight:900;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px}
+.v122-prog-redeem{display:flex;flex-direction:column;gap:2px;margin-bottom:14px}
+.v122-redeem-row{display:grid;grid-template-columns:18px 1fr auto auto;gap:8px;align-items:center;padding:6px 10px;border-radius:10px;font-size:12px;font-weight:800}
+.v122-redeem-row.best{background:var(--accent-soft)}
+.v122-redeem-star{color:var(--brand);font-size:11px;text-align:center;font-weight:900}
+.v122-redeem-star-empty{width:18px}
+.v122-redeem-lbl{color:var(--ink);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.v122-redeem-cpp{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--muted);font-size:11px;font-weight:800}
+.v122-redeem-v{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--green);font-weight:900;font-size:12.5px;text-align:right}
+.v122-redeem-row.best .v122-redeem-v{color:var(--brand)}
+.v122-prog-edit{width:100%;background:transparent;border:1.5px solid var(--border);color:var(--ink);border-radius:12px;padding:10px;font-family:inherit;font-weight:900;font-size:12.5px;cursor:pointer;transition:all .12s ease}
+.v122-prog-edit:hover{background:var(--accent-soft);border-color:var(--brand);color:var(--brand)}
+.v122-prog-card.empty .v122-prog-edit{background:var(--accent-soft);color:var(--brand);border-color:var(--brand);border-style:dashed}
+.v122-extras{background:var(--surface);border:1px solid var(--border);border-radius:18px;overflow:hidden;margin-top:6px}
+.v122-extras-toggle{width:100%;display:flex;align-items:center;gap:10px;padding:14px 16px;background:transparent;border:none;font-family:inherit;font-weight:900;font-size:13px;color:var(--ink);cursor:pointer;text-align:left}
+.v122-extras-chev{font-size:12px;color:var(--muted);transition:transform .18s ease;display:inline-block;width:12px;font-family:ui-monospace,monospace}
+.v122-extras-lbl{flex:1;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;font-size:11.5px}
+.v122-extras-count{background:var(--surface-2);color:var(--muted);border-radius:99px;padding:2px 10px;font-size:11px;font-weight:900}
+.v122-extras-body{display:none;padding:0 14px 14px;border-top:1px solid var(--border)}
+.v122-extras-body.show{display:block}
+.v122-extra-row{display:grid;grid-template-columns:24px 1fr auto auto 24px;gap:10px;align-items:center;padding:10px 4px;border-bottom:1px dashed var(--border);font-size:12.5px;font-weight:800}
+.v122-extra-row:last-of-type{border-bottom:none}
+.v122-extra-emo{font-size:16px;text-align:center}
+.v122-extra-name{color:var(--ink);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.v122-extra-bal{font-family:ui-monospace,monospace;font-size:11px;font-weight:800;color:var(--muted);white-space:nowrap}
+.v122-extra-val{font-family:ui-monospace,monospace;font-weight:900;color:var(--green);font-size:12.5px}
+.v122-extra-del{background:transparent;border:none;color:var(--muted);font-size:18px;font-weight:900;cursor:pointer;padding:0;line-height:1;border-radius:50%;width:24px;height:24px;display:grid;place-items:center}
+.v122-extra-del:hover{color:var(--coral);background:var(--coral-soft)}
+.v122-extras-empty{padding:14px 4px 6px;font-size:11.5px;color:var(--muted);font-weight:750;text-align:center;line-height:1.5}
+.v122-extras-add{margin-top:10px;width:100%;background:transparent;border:1.5px dashed var(--brand);color:var(--brand);border-radius:12px;padding:10px;font-family:inherit;font-weight:900;font-size:12px;cursor:pointer}
+.v122-extras-add:hover{background:var(--accent-soft)}
+.v122-home-card{background:linear-gradient(135deg,#fff 0%,#f2ecf5 55%,#e9dff0 100%);border-radius:22px;padding:18px 18px 16px;box-shadow:0 6px 20px rgba(85,75,130,.12);cursor:pointer;position:relative;overflow:hidden;transition:transform .12s ease}
+.v122-home-card::before{content:"";position:absolute;top:-40px;right:-40px;width:180px;height:180px;background:radial-gradient(circle,rgba(99,102,241,.22),transparent 65%);pointer-events:none}
+.v122-home-card:active{transform:scale(.98)}
+.v122-home-head{display:flex;justify-content:space-between;align-items:center;position:relative;z-index:1;margin-bottom:8px}
+.v122-home-label{font-size:11px;color:var(--muted);font-weight:900;letter-spacing:.14em;text-transform:uppercase}
+.v122-home-arrow{color:var(--brand);font-size:20px;font-weight:900;line-height:1}
+.v122-home-total{position:relative;z-index:1;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:30px;font-weight:900;letter-spacing:-.03em;color:var(--green);line-height:1}
+.v122-home-sub{position:relative;z-index:1;font-size:11.5px;color:var(--muted);font-weight:800;margin-top:4px}
+.v122-home-earned{color:var(--green);font-weight:900}
+.v122-home-progs{position:relative;z-index:1;display:flex;flex-direction:column;gap:7px;margin-top:12px;padding-top:12px;border-top:1px solid rgba(85,75,130,.14)}
+.v122-home-prog{display:grid;grid-template-columns:20px 1fr auto auto;gap:8px;align-items:center;font-size:12px;font-weight:800}
+.v122-home-prog-emo{font-size:14px;text-align:center}
+.v122-home-prog-name{color:var(--ink)}
+.v122-home-prog-bal{font-family:ui-monospace,monospace;font-size:11px;color:var(--muted);font-weight:800}
+.v122-home-prog-val{font-family:ui-monospace,monospace;font-weight:900;color:var(--green);font-size:12.5px}
+.v122-empty{text-align:center;padding:40px 20px;background:var(--surface);border:1px dashed var(--border);border-radius:20px}
+.v122-empty .big{font-size:52px;margin-bottom:12px}
+.v122-empty h3{font-size:17px;margin:0 0 8px;letter-spacing:-.02em;color:var(--ink)}
+.v122-empty p{font-size:13px;color:var(--muted);margin:0 0 16px;line-height:1.5;font-weight:750}
+.v122-empty button{background:var(--brand);color:#fff;border:none;padding:12px 22px;border-radius:99px;font-weight:900;font-size:13px;cursor:pointer;font-family:inherit;box-shadow:0 4px 14px rgba(37,99,235,.24)}
+.v122-edit-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:250;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;transition:opacity .18s ease}
+.v122-edit-overlay.show{opacity:1}
+.v122-edit{background:var(--surface);border-radius:22px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.3);transform:translateY(20px);transition:transform .22s cubic-bezier(.2,.9,.3,1.2)}
+.v122-edit-overlay.show .v122-edit{transform:translateY(0)}
+.v122-edit-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--border)}
+.v122-edit-title{font-size:16px;font-weight:900;letter-spacing:-.02em;color:var(--ink);display:flex;align-items:center;gap:8px}
+.v122-edit-close{background:transparent;border:none;font-size:24px;color:var(--muted);cursor:pointer;padding:0 6px;line-height:1;font-weight:900}
+.v122-edit-body{padding:18px}
+.v122-edit-lbl{display:block;font-size:11px;font-weight:900;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px}
+.v122-edit-input{width:100%;padding:14px 16px;border:1.5px solid var(--border);border-radius:14px;font-size:22px;font-weight:900;font-family:ui-monospace,monospace;background:var(--surface);color:var(--ink);outline:none;box-sizing:border-box}
+.v122-edit-input:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+.v122-edit-hint{margin-top:8px;font-size:13px;font-weight:900;color:var(--green);font-family:ui-monospace,monospace;min-height:16px}
+.v122-edit-note{margin-top:12px;padding:10px 12px;background:var(--accent-soft);border-radius:10px;font-size:11.5px;color:var(--ink);font-weight:750;line-height:1.45}
+.v122-edit-actions{display:flex;gap:8px;padding:14px 18px;border-top:1px solid var(--border)}
+.v122-edit-actions button{flex:1;padding:12px;border-radius:12px;font-family:inherit;font-weight:900;font-size:13px;cursor:pointer}
+.v122-edit-cancel{background:var(--surface);border:1.5px solid var(--border);color:var(--ink)}
+.v122-edit-save{background:var(--brand);border:none;color:#fff;box-shadow:0 4px 12px rgba(37,99,235,.22)}
+body.dark .v122-hero{background:linear-gradient(135deg,#241d3a 0%,#1e1732 55%,#181228 100%)!important}
+body.dark .v122-home-card{background:linear-gradient(135deg,#241d3a 0%,#1e1732 55%,#181228 100%)!important}
+body.dark .v122-prog-card{background:var(--surface);border-color:var(--border)}
+body.dark .v122-prog-bal{background:linear-gradient(135deg,rgba(142,163,216,.10),rgba(142,163,216,.04))}
+body.dark .v122-hero-pill{background:rgba(255,255,255,.05);border-color:var(--border)}
+body.dark .v122-card-pill{background:var(--surface-2);border-color:var(--border)}
+body.dark .v122-redeem-row.best{background:rgba(142,163,216,.14)}
+body.dark .v122-edit{background:var(--surface)}
+body.dark .v122-edit-input{background:var(--surface-2);color:var(--ink)}
+body.dark .v122-edit-save{background:var(--brand);color:#0f0d1a}
+body.dark .v122-extras{background:var(--surface)}
+body.dark .v122-extras-body{background:transparent}
 </style>
 
-<script id="v121-vault-renderer">
+<script id="v122-rewards-studio">
 (function(){
-  'use strict';
+'use strict';
 
-  // Card key -> program key (mirrors V106 CARD_EARN.prog for read-only classification).
-  var CARD_TO_PROG = {
-    cobalt:'mr', amexGold:'mr', amexPlatinum:'mr', amexBusinessPlat:'mr', mbnaRewards:'mr',
-    amexAeroplan:'aeroplan', amexAeroReserve:'aeroplan', tdAero:'aeroplan', cibcAeroplan:'aeroplan',
-    bonvoy:'bonvoy', amexBonvoyBiz:'bonvoy',
-    rogers:'rogers', scotiaCashbackVisa:'rogers', rbcCashback:'rogers',
-    cibcDividendVI:'rogers', tdCash:'rogers', bmoCashback:'rogers',
-    amexSimplyCash:'rogers', wsCashCard:'rogers', wsInfinite1:'rogers',
-    wsInfinitePlus:'rogers', wsInfinitePrivilege:'rogers',
-    scotiaPass:'scene', scotiaGold:'scene', scotiaPlat:'scene', sceneVI:'scene',
-    rbcAvion:'avion', rbcION:'avion', rbcBizAvion:'avion',
-    cibcAventura:'aventura',
-    bmoEclipse:'bmo',
-    pcMC:'pcoptimum', pcInsiders:'pcoptimum',
-    bmoAirMiles:'airmilesdream', bmoAirMilesMC:'airmilesdream'
-  };
+var CARD_PROG = {
+  cobalt:'mr', amexGold:'mr', amexPlatinum:'mr', amexBusinessPlat:'mr', mbnaRewards:'mr',
+  amexAeroplan:'aeroplan', amexAeroReserve:'aeroplan', tdAero:'aeroplan', cibcAeroplan:'aeroplan',
+  bonvoy:'bonvoy', amexBonvoyBiz:'bonvoy',
+  rogers:'rogers', scotiaCashbackVisa:'rogers', rbcCashback:'rogers',
+  cibcDividendVI:'rogers', tdCash:'rogers', bmoCashback:'rogers',
+  amexSimplyCash:'rogers', wsCashCard:'rogers', wsInfinite1:'rogers',
+  wsInfinitePlus:'rogers', wsInfinitePrivilege:'rogers',
+  scotiaPass:'scene', scotiaGold:'scene', scotiaPlat:'scene', sceneVI:'scene',
+  rbcAvion:'avion', rbcION:'avion', rbcBizAvion:'avion',
+  cibcAventura:'aventura',
+  bmoEclipse:'bmo',
+  pcMC:'pcoptimum', pcInsiders:'pcoptimum',
+  bmoAirMiles:'airmilesdream', bmoAirMilesMC:'airmilesdream'
+};
 
-  var PROGRAMS = {
-    mr:            { name:'Amex Membership Rewards', emoji:'\uD83D\uDD35', unit:'MR pts',   cpp:1.5 },
-    aeroplan:      { name:'Aeroplan',                emoji:'\u2708\uFE0F', unit:'pts',      cpp:1.5 },
-    avion:         { name:'RBC Avion',               emoji:'\u2708\uFE0F', unit:'pts',      cpp:1.5 },
-    aventura:      { name:'CIBC Aventura',           emoji:'\u2708\uFE0F', unit:'pts',      cpp:1.5 },
-    scene:         { name:'Scene+',                  emoji:'\uD83C\uDFAC', unit:'pts',      cpp:1.0 },
-    bonvoy:        { name:'Marriott Bonvoy',         emoji:'\uD83C\uDFE8', unit:'pts',      cpp:0.8 },
-    hilton:        { name:'Hilton Honors',           emoji:'\uD83C\uDFE8', unit:'pts',      cpp:0.5 },
-    ihg:           { name:'IHG One Rewards',         emoji:'\uD83C\uDFE8', unit:'pts',      cpp:0.5 },
-    hyatt:         { name:'World of Hyatt',          emoji:'\uD83C\uDFE8', unit:'pts',      cpp:1.7 },
-    westjet:       { name:'WestJet Rewards',         emoji:'\u2708\uFE0F', unit:'WJ$',      cpp:100 },
-    baavios:       { name:'BA Avios',                emoji:'\u2708\uFE0F', unit:'Avios',    cpp:1.6 },
-    airmiles:      { name:'AIR MILES Cash',          emoji:'\uD83C\uDF0D', unit:'miles',    cpp:10.5 },
-    airmilesdream: { name:'AIR MILES Dream',         emoji:'\uD83C\uDF0D', unit:'miles',    cpp:12.5 },
-    pcoptimum:     { name:'PC Optimum',              emoji:'\uD83D\uDED2', unit:'pts',      cpp:0.1 },
-    petropoints:   { name:'Petro-Points',            emoji:'\u26FD',       unit:'pts',      cpp:0.1 },
-    starbucks:     { name:'Starbucks Stars',         emoji:'\u2615',       unit:'stars',    cpp:3.5 },
-    timrewards:    { name:'Tim Hortons Rewards',     emoji:'\u2615',       unit:'pts',      cpp:0.1 },
-    shoppers:      { name:'Shoppers Optimum',        emoji:'\uD83D\uDC8A', unit:'pts',      cpp:0.1 },
-    ctmoney:       { name:'Canadian Tire Money',     emoji:'\uD83D\uDD34', unit:'CT$',      cpp:100 },
-    rogers:        { name:'Rogers Cash',             emoji:'\uD83D\uDCF1', unit:'$',        cpp:100 },
-    bmo:           { name:'BMO Rewards',             emoji:'\uD83D\uDD35', unit:'pts',      cpp:0.5 }
-  };
+var CARD_EARN = {
+  cobalt:{prog:'mr',rates:{dining:5,groceryAmex:5,streaming:3,transit:2,gas:2,base:1}},
+  amexGold:{prog:'mr',rates:{dining:2,groceryAmex:2,transit:2,gas:2,travel:2,base:1}},
+  amexPlatinum:{prog:'mr',rates:{travel:5,marriott:5,dining:2,base:1}},
+  amexBusinessPlat:{prog:'mr',rates:{travel:1.25,dining:1.25,base:1.25}},
+  amexAeroplan:{prog:'aeroplan',rates:{dining:2,gas:2,groceryAmex:1,base:1}},
+  amexAeroReserve:{prog:'aeroplan',rates:{travel:3,dining:2,gas:2,base:1.25}},
+  tdAero:{prog:'aeroplan',rates:{groceryAmex:2.25,gas:2.25,transit:2.25,dining:2.25,travel:3,base:1.5}},
+  cibcAeroplan:{prog:'aeroplan',rates:{dining:2,gas:2,groceryAmex:1,base:1}},
+  bonvoy:{prog:'bonvoy',rates:{marriott:5,dining:2,gas:2,base:2}},
+  rogers:{prog:'rogers',cashback:true,rates:{rogers:3,base:2}},
+  scotiaPass:{prog:'scene',rates:{groceryAmex:3,groceryNo:3,dining:3,transit:3,travel:2,base:1}},
+  scotiaGold:{prog:'scene',rates:{dining:6,groceryAmex:5,streaming:3,transit:3,gas:3,base:1}},
+  scotiaPlat:{prog:'scene',rates:{dining:2,groceryAmex:2,transit:2,gas:2,shopping:2,base:2}},
+  sceneVI:{prog:'scene',rates:{dining:2,groceryAmex:2,base:1}},
+  scotiaCashbackVisa:{prog:'rogers',cashback:true,rates:{groceryAmex:4,groceryNo:4,loblaws:4,streaming:4,transit:2,gas:2,base:1}},
+  rbcAvion:{prog:'avion',rates:{travel:2,dining:2,groceryAmex:1.25,base:1}},
+  rbcION:{prog:'avion',rates:{groceryAmex:3,streaming:3,gas:1.5,transit:1.5,base:1}},
+  rbcCashback:{prog:'rogers',cashback:true,rates:{groceryAmex:2,base:1}},
+  cibcAventura:{prog:'aventura',rates:{travel:2,dining:2,groceryAmex:2,base:1}},
+  cibcDividendVI:{prog:'rogers',cashback:true,rates:{groceryAmex:4,gas:4,transit:2,dining:2,base:1}},
+  tdCash:{prog:'rogers',cashback:true,rates:{groceryAmex:3,groceryNo:3,loblaws:3,gas:3,transit:3,streaming:3,base:1}},
+  bmoEclipse:{prog:'bmo',rates:{dining:5,groceryAmex:5,groceryNo:5,transit:5,base:1}},
+  bmoCashback:{prog:'rogers',cashback:true,rates:{groceryAmex:5,transit:4,gas:3,streaming:2,base:1}},
+  mbnaRewards:{prog:'mr',rates:{dining:5,groceryAmex:5,streaming:5,base:1}},
+  pcMC:{prog:'pcoptimum',rates:{loblaws:45,groceryNo:45,gas:30,transit:30,base:10}},
+  amexSimplyCash:{prog:'rogers',cashback:true,rates:{gas:4,groceryAmex:4,base:1.25}},
+  wsCashCard:{prog:'rogers',cashback:true,rates:{base:1}},
+  wsInfinite1:{prog:'rogers',cashback:true,rates:{base:1}},
+  wsInfinitePlus:{prog:'rogers',cashback:true,rates:{base:2}},
+  wsInfinitePrivilege:{prog:'rogers',cashback:true,rates:{base:2}}
+};
 
-  var NAME_TO_KEY = (function(){
-    var m = {};
-    Object.keys(PROGRAMS).forEach(function(k){ m[PROGRAMS[k].name.toLowerCase()] = k; });
-    m['amex mr'] = 'mr';
-    m['membership rewards'] = 'mr';
-    m['air miles cash'] = 'airmiles';
-    m['air miles dream'] = 'airmilesdream';
-    m['air miles (dream)'] = 'airmilesdream';
-    m['air miles (cash)'] = 'airmiles';
-    m['marriott'] = 'bonvoy';
-    m['petro points'] = 'petropoints';
-    m['petro-points'] = 'petropoints';
-    m['tim hortons'] = 'timrewards';
-    m['tims rewards'] = 'timrewards';
-    m['canadian tire'] = 'ctmoney';
-    m['ct money'] = 'ctmoney';
-    return m;
-  })();
+var PROGRAMS = {
+  mr:{name:'Amex Membership Rewards',short:'MR',emoji:'\uD83D\uDD35',unit:'pts',cpp:1.5,redemptions:[
+    {lbl:'Aeroplan flight transfer',cpp:2.0,best:true},
+    {lbl:'Amex Travel booking',cpp:1.0},
+    {lbl:'Statement credit',cpp:0.7}
+  ]},
+  aeroplan:{name:'Aeroplan',short:'Aeroplan',emoji:'\u2708\uFE0F',unit:'pts',cpp:1.5,redemptions:[
+    {lbl:'Sweet-spot flights',cpp:2.2,best:true},
+    {lbl:'Standard flights',cpp:1.5},
+    {lbl:'Merchandise',cpp:0.7}
+  ]},
+  avion:{name:'RBC Avion',short:'Avion',emoji:'\u2708\uFE0F',unit:'pts',cpp:1.5,redemptions:[
+    {lbl:'Air Travel Redemption',cpp:2.0,best:true},
+    {lbl:'Merchandise',cpp:0.83},
+    {lbl:'Cash / statement',cpp:0.5}
+  ]},
+  aventura:{name:'CIBC Aventura',short:'Aventura',emoji:'\u2708\uFE0F',unit:'pts',cpp:1.5,redemptions:[
+    {lbl:'Aventura Travel booking',cpp:1.5,best:true},
+    {lbl:'Merchandise',cpp:0.83},
+    {lbl:'Cash redemption',cpp:0.7}
+  ]},
+  scene:{name:'Scene+',short:'Scene+',emoji:'\uD83C\uDFAC',unit:'pts',cpp:1.0,redemptions:[
+    {lbl:'Cineplex tickets',cpp:1.25,best:true},
+    {lbl:'Groceries at Sobeys',cpp:1.0},
+    {lbl:'Cash / statement',cpp:1.0}
+  ]},
+  bonvoy:{name:'Marriott Bonvoy',short:'Bonvoy',emoji:'\uD83C\uDFE8',unit:'pts',cpp:0.8,redemptions:[
+    {lbl:'Cat 3 off-peak night',cpp:1.3,best:true},
+    {lbl:'Standard hotel night',cpp:0.8},
+    {lbl:'Cash / gift cards',cpp:0.4}
+  ]},
+  rogers:{name:'Rogers Cash',short:'Rogers',emoji:'\uD83D\uDCF1',unit:'$',cpp:100,redemptions:[
+    {lbl:'Rogers/Fido bill (1.5x)',cpp:150,best:true},
+    {lbl:'Any statement credit',cpp:100}
+  ]},
+  bmo:{name:'BMO Rewards',short:'BMO',emoji:'\uD83D\uDD35',unit:'pts',cpp:0.71,redemptions:[
+    {lbl:'Travel via BMO',cpp:0.71,best:true},
+    {lbl:'Merchandise',cpp:0.5}
+  ]},
+  pcoptimum:{name:'PC Optimum',short:'PC',emoji:'\uD83D\uDED2',unit:'pts',cpp:0.1,redemptions:[
+    {lbl:'Loblaw/Shoppers checkout',cpp:0.1,best:true}
+  ]},
+  airmilesdream:{name:'AIR MILES Dream',short:'AIR MILES',emoji:'\uD83C\uDF0D',unit:'miles',cpp:12.5,redemptions:[
+    {lbl:'Flights via Dream',cpp:12.5,best:true},
+    {lbl:'Merchandise',cpp:8.0}
+  ]},
+  petropoints:{name:'Petro-Points',short:'Petro',emoji:'\u26FD',unit:'pts',cpp:0.1,redemptions:[{lbl:'Fuel at Petro-Canada',cpp:0.1,best:true}]},
+  hilton:{name:'Hilton Honors',short:'Hilton',emoji:'\uD83C\uDFE8',unit:'pts',cpp:0.5,redemptions:[{lbl:'Points+Cash',cpp:0.6,best:true},{lbl:'Standard hotel',cpp:0.5}]},
+  ihg:{name:'IHG One Rewards',short:'IHG',emoji:'\uD83C\uDFE8',unit:'pts',cpp:0.5,redemptions:[{lbl:'PointBreaks',cpp:0.9,best:true},{lbl:'Standard night',cpp:0.5}]},
+  hyatt:{name:'World of Hyatt',short:'Hyatt',emoji:'\uD83C\uDFE8',unit:'pts',cpp:1.7,redemptions:[{lbl:'Cat 1-4 off-peak',cpp:2.4,best:true},{lbl:'Standard night',cpp:1.7}]},
+  westjet:{name:'WestJet Rewards',short:'WestJet',emoji:'\u2708\uFE0F',unit:'WJ$',cpp:100,redemptions:[{lbl:'WestJet flights',cpp:100,best:true}]},
+  baavios:{name:'BA Avios',short:'Avios',emoji:'\u2708\uFE0F',unit:'Avios',cpp:1.6,redemptions:[{lbl:'Short-haul redemptions',cpp:2.2,best:true},{lbl:'Long-haul economy',cpp:1.6}]},
+  airmiles:{name:'AIR MILES Cash',short:'AIR MILES',emoji:'\uD83C\uDF0D',unit:'miles',cpp:10.5,redemptions:[{lbl:'Cash at checkout',cpp:10.5,best:true}]},
+  starbucks:{name:'Starbucks Stars',short:'Starbucks',emoji:'\u2615',unit:'stars',cpp:3.5,redemptions:[{lbl:'Handcrafted drink',cpp:5.0,best:true},{lbl:'Brewed coffee',cpp:3.5}]},
+  timrewards:{name:'Tim Hortons Rewards',short:'Tims',emoji:'\u2615',unit:'pts',cpp:0.1,redemptions:[{lbl:'Free drink / bakery',cpp:0.1,best:true}]},
+  shoppers:{name:'Shoppers Optimum',short:'Shoppers',emoji:'\uD83D\uDC8A',unit:'pts',cpp:0.1,redemptions:[{lbl:'Redeem at checkout',cpp:0.1,best:true}]},
+  ctmoney:{name:'Canadian Tire Money',short:'CT Money',emoji:'\uD83D\uDD34',unit:'CT$',cpp:100,redemptions:[{lbl:'Any CT purchase',cpp:100,best:true}]}
+};
 
-  function canonKey(mem){
-    if(!mem) return null;
-    var k = (mem.key || '').toString().toLowerCase();
-    if(PROGRAMS[k]) return k;
-    var n = (mem.name || '').toString().toLowerCase().trim();
-    if(NAME_TO_KEY[n]) return NAME_TO_KEY[n];
-    return mem.key || null;
-  }
+var NAME_TO_KEY = {};
+Object.keys(PROGRAMS).forEach(function(k){NAME_TO_KEY[PROGRAMS[k].name.toLowerCase()]=k;});
+NAME_TO_KEY['amex mr']='mr';
+NAME_TO_KEY['membership rewards']='mr';
+NAME_TO_KEY['marriott']='bonvoy';
+NAME_TO_KEY['pc optimum']='pcoptimum';
+NAME_TO_KEY['air miles (dream)']='airmilesdream';
+NAME_TO_KEY['air miles dream']='airmilesdream';
+NAME_TO_KEY['air miles cash']='airmiles';
+NAME_TO_KEY['petro points']='petropoints';
+NAME_TO_KEY['petro-points']='petropoints';
 
-  function readJSON(key, fallback){
-    try{ var r = localStorage.getItem(key); if(!r) return fallback; var p = JSON.parse(r); return p==null?fallback:p; }
-    catch(e){ return fallback; }
-  }
+var TX_KEYS = ['walletiq_transactions','walletiq_v82_tx','walletiq_tx','transactions'];
 
-  function walletEarnedPrograms(){
-    var raw = readJSON('walletiq_wallet', []);
-    var cardKeys = [];
-    if(Array.isArray(raw)){
-      raw.forEach(function(item){
-        if(typeof item === 'string'){ cardKeys.push(item); return; }
-        if(item && typeof item === 'object'){
-          if(item.key) cardKeys.push(item.key);
-          else if(item.id) cardKeys.push(item.id);
-          else if(item.cardKey) cardKeys.push(item.cardKey);
-          else if(item.n && typeof CARDS_DB !== 'undefined'){
-            for(var k in CARDS_DB){ if(CARDS_DB[k] && CARDS_DB[k].n === item.n){ cardKeys.push(k); break; } }
-          }
-        }
-      });
-    } else if(raw && typeof raw === 'object'){
-      Object.keys(raw).forEach(function(k){ if(raw[k]) cardKeys.push(k); });
-    }
-    var progs = {};
-    cardKeys.forEach(function(ck){
-      var p = CARD_TO_PROG[ck];
-      if(p) progs[p] = true;
+function readJSON(k,fb){try{var r=localStorage.getItem(k);if(!r)return fb;var p=JSON.parse(r);return p==null?fb:p;}catch(e){return fb;}}
+function writeJSON(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+function readTx(){for(var i=0;i<TX_KEYS.length;i++){var a=readJSON(TX_KEYS[i],null);if(Array.isArray(a)&&a.length>0)return a;}return [];}
+function canonKey(mem){if(!mem)return null;var k=(mem.key||'').toString().toLowerCase();if(PROGRAMS[k])return k;var n=(mem.name||'').toString().toLowerCase().trim();if(NAME_TO_KEY[n])return NAME_TO_KEY[n];return mem.key||null;}
+
+function readWalletCards(){
+  var raw=readJSON('walletiq_wallet',[]);
+  var keys=[];
+  if(Array.isArray(raw)){
+    raw.forEach(function(item){
+      if(typeof item==='string'){keys.push(item);return;}
+      if(item&&typeof item==='object'){
+        if(item.key)keys.push(item.key);
+        else if(item.id)keys.push(item.id);
+        else if(item.cardKey)keys.push(item.cardKey);
+        else if(item.n&&typeof CARDS_DB!=='undefined'){for(var k in CARDS_DB){if(CARDS_DB[k]&&CARDS_DB[k].n===item.n){keys.push(k);break;}}}
+      }
     });
-    return progs;
+  }else if(raw&&typeof raw==='object'){
+    Object.keys(raw).forEach(function(k){if(raw[k])keys.push(k);});
   }
+  return keys;
+}
 
-  function memberValue(mem){
-    var canon = canonKey(mem);
-    var cpp = (mem && mem.cpp != null) ? Number(mem.cpp) : (PROGRAMS[canon] ? PROGRAMS[canon].cpp : 0);
-    var bal = Number(mem && mem.balance != null ? mem.balance : 0);
-    if(!(bal > 0) || !(cpp > 0)) return 0;
-    return (bal * cpp) / 100; // V98 correct math
-  }
+function computeMonthlyEarnings(monthOffset){
+  var now=new Date();
+  var target=new Date(now.getFullYear(),now.getMonth()+monthOffset,1);
+  var ty=target.getFullYear(),tm=target.getMonth();
+  var txs=readTx();var byProg={};
+  txs.forEach(function(tx){
+    if(!tx||tx.historical)return;
+    var d=tx.date||tx.d;if(!d)return;
+    var dt=new Date(d);if(isNaN(dt))return;
+    if(dt.getFullYear()!==ty||dt.getMonth()!==tm)return;
+    var ck=tx.card||tx.cardKey||tx.c;if(!ck)return;
+    var earn=CARD_EARN[ck];if(!earn)return;
+    var cat=tx.category||tx.cat||'base';
+    var amt=parseFloat(tx.amount||tx.amt)||0;if(amt<=0)return;
+    var rate=earn.rates[cat]!=null?earn.rates[cat]:(earn.rates.base||0);
+    if(rate<=0)return;
+    var pts=earn.cashback?(amt*rate)/100:amt*rate;
+    byProg[earn.prog]=(byProg[earn.prog]||0)+pts;
+  });
+  return byProg;
+}
 
-  window.computePortfolioTotal = function(){
-    var mems = readJSON('walletiq_memberships', []);
-    if(!Array.isArray(mems)) return 0;
-    var sum = 0;
-    for(var i=0;i<mems.length;i++){ sum += memberValue(mems[i]); }
-    return sum;
-  };
+function bestCpp(prog){
+  var meta=PROGRAMS[prog];if(!meta)return 0;
+  var b=meta.cpp||0;
+  if(meta.redemptions)meta.redemptions.forEach(function(r){if(r.best&&r.cpp>b)b=r.cpp;});
+  return b;
+}
 
-  function classify(){
-    var mems = readJSON('walletiq_memberships', []);
-    if(!Array.isArray(mems)) mems = [];
-    var earned = walletEarnedPrograms();
-    var wallet = [], extra = [];
-    mems.forEach(function(m){
-      var canon = canonKey(m);
-      if(canon && earned[canon]) wallet.push({ mem:m, canon:canon });
-      else extra.push({ mem:m, canon:canon });
-    });
-    var byVal = function(a,b){ return memberValue(b.mem) - memberValue(a.mem); };
-    wallet.sort(byVal); extra.sort(byVal);
-    return { wallet:wallet, extra:extra, total: wallet.length + extra.length };
-  }
+function memberValue(mem){
+  if(!mem)return 0;
+  var canon=canonKey(mem);
+  var cpp=(mem.cpp!=null)?Number(mem.cpp):(PROGRAMS[canon]?PROGRAMS[canon].cpp:0);
+  var bal=Number(mem.balance||0);
+  if(!(bal>0)||!(cpp>0))return 0;
+  var bc=bestCpp(canon)||cpp;
+  return (bal*bc)/100;
+}
+function memberValueAtCpp(bal,cpp){if(!(bal>0)||!(cpp>0))return 0;return (bal*cpp)/100;}
 
-  function fmtMoney(n){
-    if(!isFinite(n)) n = 0;
-    return '$' + n.toLocaleString('en-CA', { minimumFractionDigits:2, maximumFractionDigits:2 });
-  }
-  function fmtInt(n){
-    if(!isFinite(n)) n = 0;
-    return Math.round(n).toLocaleString('en-CA');
-  }
-  function esc(s){
-    return String(s==null?'':s).replace(/[&<>"']/g, function(c){
-      return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
-    });
-  }
+window.computePortfolioTotal=function(){var m=readJSON('walletiq_memberships',[]);if(!Array.isArray(m))return 0;var s=0;m.forEach(function(x){s+=memberValue(x);});return s;};
 
-  function writeTotalToAll(total){
-    var money = fmtMoney(total);
-    var rhTotal = document.getElementById('rhTotal');       if(rhTotal) rhTotal.textContent = money;
-    var rhVault = document.getElementById('rhVault');       if(rhVault) rhVault.textContent = money;
-    var homeVs = document.querySelector('#homeVaultSummary .vs-big');
-    if(homeVs) homeVs.textContent = money;
-    var v121Hero = document.getElementById('v121HeroTotal');
-    if(v121Hero) v121Hero.textContent = money;
-  }
+function buildModel(){
+  var wc=readWalletCards();
+  var wp={};
+  wc.forEach(function(ck){var p=CARD_PROG[ck];if(p){if(!wp[p])wp[p]={cards:[]};wp[p].cards.push(ck);}});
+  var mems=readJSON('walletiq_memberships',[]);if(!Array.isArray(mems))mems=[];
+  var memByProg={};
+  mems.forEach(function(m){var k=canonKey(m);if(k)memByProg[k]=m;});
+  var thisMonth=computeMonthlyEarnings(0);
+  var lastMonth=computeMonthlyEarnings(-1);
+  var walletList=[];
+  Object.keys(wp).forEach(function(prog){
+    walletList.push({prog:prog,cards:wp[prog].cards,mem:memByProg[prog]||null,thisMonth:thisMonth[prog]||0,lastMonth:lastMonth[prog]||0});
+  });
+  walletList.sort(function(a,b){var va=memberValue(a.mem),vb=memberValue(b.mem);if(vb!==va)return vb-va;return b.thisMonth-a.thisMonth;});
+  var extraList=[];
+  mems.forEach(function(m){var k=canonKey(m);if(k&&wp[k])return;extraList.push({prog:k,mem:m});});
+  extraList.sort(function(a,b){return memberValue(b.mem)-memberValue(a.mem);});
+  var thisMonthTotal=0,lastMonthTotal=0;
+  Object.keys(thisMonth).forEach(function(p){thisMonthTotal+=(thisMonth[p]*bestCpp(p))/100;});
+  Object.keys(lastMonth).forEach(function(p){lastMonthTotal+=(lastMonth[p]*bestCpp(p))/100;});
+  return {walletCards:wc,walletList:walletList,extraList:extraList,thisMonthTotal:thisMonthTotal,lastMonthTotal:lastMonthTotal};
+}
 
-  var REDEMPTIONS = {
-    mr: [
-      { lbl:'Aeroplan flight transfer', cpp:2.0 },
-      { lbl:'Statement credit',         cpp:0.7 },
-      { lbl:'Amex Travel',              cpp:1.0 }
-    ],
-    aeroplan: [
-      { lbl:'Sweet-spot flights', cpp:2.2 },
-      { lbl:'Standard flights',   cpp:1.5 },
-      { lbl:'Merchandise',        cpp:0.7 }
-    ],
-    avion: [
-      { lbl:'Air Travel Redemption', cpp:2.0 },
-      { lbl:'Cash / statement',      cpp:0.5 }
-    ],
-    aventura: [
-      { lbl:'Aventura Travel',   cpp:1.5 },
-      { lbl:'Cash redemption',   cpp:0.7 }
-    ],
-    scene: [
-      { lbl:'Cineplex tickets',    cpp:1.25 },
-      { lbl:'Cash / statement',    cpp:1.0 },
-      { lbl:'Groceries at Sobeys', cpp:1.0 }
-    ],
-    bonvoy: [
-      { lbl:'Cat 3 off-peak night',  cpp:1.3 },
-      { lbl:'Standard hotel night',  cpp:0.8 },
-      { lbl:'Cash / gift cards',     cpp:0.4 }
-    ],
-    hilton: [
-      { lbl:'Standard hotel night', cpp:0.5 },
-      { lbl:'Points+Cash',          cpp:0.6 }
-    ],
-    ihg: [
-      { lbl:'PointBreaks',    cpp:0.9 },
-      { lbl:'Standard night', cpp:0.5 }
-    ],
-    hyatt: [
-      { lbl:'Cat 1-4 off-peak', cpp:2.4 },
-      { lbl:'Standard night',   cpp:1.7 }
-    ],
-    westjet: [ { lbl:'WestJet flights', cpp:100 } ],
-    baavios: [
-      { lbl:'Short-haul redemptions', cpp:2.2 },
-      { lbl:'Long-haul economy',      cpp:1.6 }
-    ],
-    airmiles:      [ { lbl:'Cash at checkout',  cpp:10.5 } ],
-    airmilesdream: [ { lbl:'Flights via Dream', cpp:12.5 }, { lbl:'Merchandise', cpp:8.0 } ],
-    pcoptimum:     [ { lbl:'Loblaw/Shoppers checkout', cpp:0.1 } ],
-    petropoints:   [ { lbl:'Fuel at Petro-Canada',     cpp:0.1 } ],
-    starbucks:     [ { lbl:'Handcrafted drink (100\u2605)', cpp:5.0 }, { lbl:'Brewed coffee (50\u2605)', cpp:3.5 } ],
-    timrewards:    [ { lbl:'Free drink / bakery',  cpp:0.1 } ],
-    shoppers:      [ { lbl:'Redeem at checkout',   cpp:0.1 } ],
-    ctmoney:       [ { lbl:'Any CT purchase',      cpp:100 } ],
-    rogers:        [ { lbl:'Rogers/Fido bill (1.5x)', cpp:150 }, { lbl:'Any purchase (statement)', cpp:100 } ],
-    bmo:           [ { lbl:'Travel via BMO',       cpp:0.71 }, { lbl:'Merchandise', cpp:0.5 } ]
-  };
+function fmtMoney(n){if(!isFinite(n))n=0;return '$'+n.toLocaleString('en-CA',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function fmtInt(n){if(!isFinite(n))n=0;return Math.round(n).toLocaleString('en-CA');}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];});}
+function fmtDelta(n,unit){if(!(n>0))return '<span class="v122-delta-zero">\u2014</span>';return '<span class="v122-delta-plus">+'+fmtInt(n)+(unit?' '+esc(unit):'')+'</span>';}
 
-  function redemptionRows(canon, bal){
-    if(!(bal > 0)) return '';
-    var opts = REDEMPTIONS[canon];
-    if(!opts || !opts.length) return '';
-    var best = 0;
-    opts.forEach(function(o){ if(o.cpp > best) best = o.cpp; });
-    return opts.map(function(o){
-      var v = (bal * o.cpp) / 100;
-      var isBest = (o.cpp === best);
-      return '<div class="v121-redeem-row">'+
-        '<span class="v121-rl">'+esc(o.lbl)+'</span>'+
-        '<span class="v121-rv'+(isBest?' best':'')+'">'+fmtMoney(v)+
-          ' <em>'+o.cpp.toFixed(2)+'\u00A2</em></span>'+
-      '</div>';
-    }).join('');
-  }
+function cardPill(ck){
+  var card=(typeof CARDS_DB!=='undefined')?CARDS_DB[ck]:null;
+  if(!card)return '<span class="v122-card-pill">\uD83D\uDCB3 '+esc(ck)+'</span>';
+  var name=card.n||ck;
+  var s=name.replace(/^Amex /,'').replace(/^Scotia /,'').replace(/^RBC /,'').replace(/^BMO /,'').replace(/^TD /,'').replace(/^CIBC /,'').replace(/^MBNA /,'').replace(/ Visa Infinite$/,'').replace(/ Mastercard$/,'').replace(/ Amex$/,'');
+  if(s.length>18)s=s.substring(0,16)+'\u2026';
+  return '<span class="v122-card-pill">'+esc(card.e||'\uD83D\uDCB3')+' '+esc(s)+'</span>';
+}
 
-  function memberCardHTML(entry, idx){
-    var m = entry.mem, canon = entry.canon;
-    var meta = PROGRAMS[canon] || {};
-    var emoji = m.emoji || meta.emoji || '\u2B50';
-    var name  = m.name  || meta.name  || 'Membership';
-    var unit  = m.unit  || meta.unit  || 'pts';
-    var cpp   = (m.cpp != null) ? Number(m.cpp) : (meta.cpp || 0);
-    var bal   = Number(m.balance || 0);
-    var value = memberValue(m);
-    var isAuto = !!m.__v106Auto;
-    var badge = isAuto
-      ? '<span class="v121-badge v121-badge-auto" title="Auto-earned from wallet transactions">Auto</span>'
-      : '';
-    var redemptions = redemptionRows(canon, bal);
-    return ''+
-      '<div class="v121-mem-card" data-idx="'+idx+'">'+
-        '<div class="v121-mem-head">'+
-          '<div class="v121-mem-emo">'+esc(emoji)+'</div>'+
-          '<div class="v121-mem-mid">'+
-            '<div class="v121-mem-name">'+esc(name)+' '+badge+'</div>'+
-            '<div class="v121-mem-unit">'+fmtInt(bal)+' '+esc(unit)+' \u00B7 '+cpp.toFixed(2)+'\u00A2/unit</div>'+
-          '</div>'+
-          '<div class="v121-mem-val">'+fmtMoney(value)+'</div>'+
-        '</div>'+
-        (redemptions ? '<div class="v121-mem-redeem">'+redemptions+'</div>' : '')+
-      '</div>';
-  }
-
-  function renderPointsVaultV121(){
-    var host = document.getElementById('v121-vault');
-    if(!host) return;
-
-    var total = window.computePortfolioTotal();
-    var c = classify();
-
-    var totalBal = 0;
-    var mems = readJSON('walletiq_memberships', []);
-    if(Array.isArray(mems)) mems.forEach(function(m){ totalBal += Number(m.balance||0); });
-    var avgCpp = (totalBal > 0) ? (total * 100 / totalBal) : 0;
-
-    var walletHTML = c.wallet.length
-      ? c.wallet.map(function(e,i){ return memberCardHTML(e, i); }).join('')
-      : '<div class="v121-empty-mini">No memberships yet from your wallet cards. Log a transaction \u2014 points auto-accrue.</div>';
-
-    var extraHTML = c.extra.length
-      ? c.extra.map(function(e,i){ return memberCardHTML(e, 'x'+i); }).join('')
-      : '<div class="v121-empty-mini">No manually-tracked memberships. Tap \u201C+ Add membership\u201D above to log external loyalty programs.</div>';
-
-    host.innerHTML = ''+
-      '<div class="v121-hero">'+
-        '<div class="v121-hero-label">Total Portfolio Value</div>'+
-        '<div class="v121-hero-total" id="v121HeroTotal">'+fmtMoney(total)+'</div>'+
-        '<div class="v121-hero-sub">'+
-          '<span>'+c.total+' program'+(c.total===1?'':'s')+'</span>'+
-          '<span class="v121-hero-dot">\u00B7</span>'+
-          '<span>avg '+avgCpp.toFixed(2)+'\u00A2 / unit</span>'+
-        '</div>'+
+function programCardHTML(item){
+  var prog=item.prog;var meta=PROGRAMS[prog]||{name:prog,emoji:'\u2B50',unit:'pts',cpp:0,redemptions:[]};
+  var m=item.mem;var bal=m?Number(m.balance||0):0;var value=memberValue(m);
+  var best=null;(meta.redemptions||[]).forEach(function(r){if(r.best)best=r;});
+  var trend=(item.thisMonth>item.lastMonth&&item.lastMonth>0)?'\uD83D\uDCC8':((item.thisMonth<item.lastMonth&&item.lastMonth>0)?'\uD83D\uDCC9':'');
+  if(item.thisMonth>0&&item.lastMonth===0)trend='\u2728';
+  var cardsHTML=item.cards.map(cardPill).join('');
+  var redeemHTML=(meta.redemptions||[]).map(function(r){
+    var v=memberValueAtCpp(bal,r.cpp);
+    return '<div class="v122-redeem-row'+(r.best?' best':'')+'">'+
+      (r.best?'<span class="v122-redeem-star">\u2605</span>':'<span class="v122-redeem-star-empty"></span>')+
+      '<span class="v122-redeem-lbl">'+esc(r.lbl)+'</span>'+
+      '<span class="v122-redeem-cpp">'+r.cpp.toFixed(2)+'\u00A2</span>'+
+      '<span class="v122-redeem-v">'+fmtMoney(v)+'</span>'+
+    '</div>';
+  }).join('');
+  var isEmpty=!(bal>0);
+  return '<div class="v122-prog-card'+(isEmpty?' empty':'')+'" data-prog="'+esc(prog)+'">'+
+    '<div class="v122-prog-head">'+
+      '<div class="v122-prog-emo">'+esc(meta.emoji||'\u2B50')+'</div>'+
+      '<div class="v122-prog-title">'+
+        '<div class="v122-prog-name">'+esc(meta.name)+(trend?'<span class="v122-trend">'+trend+'</span>':'')+'</div>'+
+        '<div class="v122-prog-sub">Earned by '+item.cards.length+' card'+(item.cards.length===1?'':'s')+' in your wallet</div>'+
       '</div>'+
-      '<button type="button" class="v121-add-btn" id="v121AddBtn">'+
-        '\u2795 Add membership'+
-      '</button>'+
-      '<div class="v121-section">'+
-        '<div class="v121-section-title">Wallet Memberships <span class="v121-count">'+c.wallet.length+'</span></div>'+
-        '<div class="v121-section-sub">Programs your cards earn</div>'+
-        '<div class="v121-list">'+walletHTML+'</div>'+
+    '</div>'+
+    '<div class="v122-prog-bal">'+
+      '<div class="v122-prog-bal-line">'+
+        '<span class="v122-prog-bal-num">'+fmtInt(bal)+'</span>'+
+        '<span class="v122-prog-bal-unit">'+esc(meta.unit||'pts')+'</span>'+
       '</div>'+
-      '<div class="v121-section">'+
-        '<div class="v121-section-title">Extra Memberships <span class="v121-count">'+c.extra.length+'</span></div>'+
-        '<div class="v121-section-sub">Manually added \u2014 no wallet card earns these</div>'+
-        '<div class="v121-list">'+extraHTML+'</div>'+
-      '</div>';
+      (bal>0?'<div class="v122-prog-bal-val">\u2248 '+fmtMoney(value)+' <small>via '+esc((best&&best.lbl)||'best rate')+'</small></div>':'<div class="v122-prog-bal-val" style="color:var(--muted)">No balance yet <small>\u2014 log a transaction to auto-accrue</small></div>')+
+    '</div>'+
+    '<div class="v122-prog-cards">'+cardsHTML+'</div>'+
+    '<div class="v122-prog-month">'+
+      '<div class="v122-month-item"><div class="l">This month</div><div class="v">'+fmtDelta(item.thisMonth,meta.unit)+'</div></div>'+
+      '<div class="v122-month-item"><div class="l">Last month</div><div class="v">'+fmtDelta(item.lastMonth,meta.unit)+'</div></div>'+
+    '</div>'+
+    '<div class="v122-prog-redeem-title">Redemption ladder</div>'+
+    '<div class="v122-prog-redeem">'+redeemHTML+'</div>'+
+    '<button type="button" class="v122-prog-edit" data-prog="'+esc(prog)+'">'+
+      (isEmpty?'\u2795 Add starting balance':'Edit balance')+
+    '</button>'+
+  '</div>';
+}
 
-    var addBtn = document.getElementById('v121AddBtn');
-    if(addBtn && typeof window.__v81OpenAddMembership === 'function'){
-      addBtn.addEventListener('click', function(){ window.__v81OpenAddMembership(); });
+function renderHome(){
+  var host=document.getElementById('homeVaultSummary');if(!host)return;
+  var model=buildModel();
+  if(!model.walletCards.length){host.style.display='none';host.innerHTML='';return;}
+  host.style.display='block';
+  var total=window.computePortfolioTotal();
+  var top3=model.walletList.filter(function(x){return memberValue(x.mem)>0;}).slice(0,3);
+  var top3HTML=top3.map(function(x){
+    var meta=PROGRAMS[x.prog]||{};
+    return '<div class="v122-home-prog">'+
+      '<span class="v122-home-prog-emo">'+esc(meta.emoji||'\u2B50')+'</span>'+
+      '<span class="v122-home-prog-name">'+esc(meta.short||meta.name||x.prog)+'</span>'+
+      '<span class="v122-home-prog-bal">'+fmtInt(x.mem&&x.mem.balance||0)+' '+esc(meta.unit||'pts')+'</span>'+
+      '<span class="v122-home-prog-val">'+fmtMoney(memberValue(x.mem))+'</span>'+
+    '</div>';
+  }).join('');
+  host.innerHTML='<div class="v122-home-card" onclick="switchTab(\'rewards\');setTimeout(function(){if(typeof switchRewardsView===\'function\')switchRewardsView(\'vault\');},80);">'+
+    '<div class="v122-home-head">'+
+      '<div class="v122-home-label">\uD83C\uDFAF Rewards Portfolio</div>'+
+      '<div class="v122-home-arrow">\u203A</div>'+
+    '</div>'+
+    '<div class="v122-home-total">'+fmtMoney(total)+'</div>'+
+    '<div class="v122-home-sub">across '+model.walletList.length+' program'+(model.walletList.length===1?'':'s')+
+      (model.thisMonthTotal>0?' \u00B7 <span class="v122-home-earned">+'+fmtMoney(model.thisMonthTotal)+' this month</span>':'')+
+    '</div>'+
+    (top3.length?'<div class="v122-home-progs">'+top3HTML+'</div>':'')+
+  '</div>';
+}
+
+function renderVault(){
+  var host=document.getElementById('v122-vault');if(!host)return;
+  var model=buildModel();var total=window.computePortfolioTotal();
+  if(!model.walletCards.length){
+    host.innerHTML='<div class="v122-empty"><div class="big">\uD83D\uDCB3</div><h3>No cards in your wallet yet</h3><p>Add credit cards to your wallet to start tracking rewards. Each card\'s earning program will appear here with live balances.</p><button type="button" onclick="showOnboarding()">Set up wallet</button></div>';
+    updateHeroTiles(total);return;
+  }
+  var walletHTML=model.walletList.map(programCardHTML).join('');
+  var extrasCount=model.extraList.length;
+  var extrasHTML=model.extraList.map(function(x){
+    var meta=PROGRAMS[x.prog]||{};var m=x.mem;
+    var bal=Number(m&&m.balance||0);var val=memberValue(m);
+    return '<div class="v122-extra-row">'+
+      '<span class="v122-extra-emo">'+esc(meta.emoji||(m&&m.emoji)||'\u2B50')+'</span>'+
+      '<span class="v122-extra-name">'+esc(meta.name||(m&&m.name)||x.prog)+'</span>'+
+      '<span class="v122-extra-bal">'+fmtInt(bal)+' '+esc(meta.unit||(m&&m.unit)||'pts')+'</span>'+
+      '<span class="v122-extra-val">'+fmtMoney(val)+'</span>'+
+      '<button class="v122-extra-del" data-extra-key="'+esc((m&&m.key)||'')+'" data-extra-name="'+esc((m&&m.name)||'')+'" title="Remove">\u00D7</button>'+
+    '</div>';
+  }).join('');
+  var extrasSection='<div class="v122-extras">'+
+    '<button type="button" class="v122-extras-toggle" id="v122ExtrasToggle">'+
+      '<span class="v122-extras-chev">\u25B8</span>'+
+      '<span class="v122-extras-lbl">Extra memberships</span>'+
+      '<span class="v122-extras-count">'+extrasCount+'</span>'+
+    '</button>'+
+    '<div class="v122-extras-body" id="v122ExtrasBody">'+
+      (extrasCount>0?extrasHTML:'<div class="v122-extras-empty">No extras yet. Track any loyalty program your wallet cards don\'t earn on (e.g. PC Optimum, Hilton Honors, Petro-Points).</div>')+
+      '<button type="button" class="v122-extras-add" id="v122AddExtra">\u2795 Add extra membership</button>'+
+    '</div>'+
+  '</div>';
+  var fastest=model.walletList.slice().sort(function(a,b){return b.thisMonth-a.thisMonth;})[0];
+  var fastestHTML='';
+  if(fastest && fastest.thisMonth>0){
+    var fmeta=PROGRAMS[fastest.prog]||{};
+    fastestHTML='<div class="v122-hero-pill">\uD83D\uDE80 Fastest earner: '+esc(fmeta.short||fmeta.name)+' <b>+'+fmtInt(fastest.thisMonth)+'</b> '+esc(fmeta.unit||'pts')+'</div>';
+  }
+  host.innerHTML='<div class="v122-hero">'+
+    '<div class="v122-hero-label">\u2728 Wallet Rewards Portfolio</div>'+
+    '<div class="v122-hero-total" id="v122HeroTotal">'+fmtMoney(total)+'</div>'+
+    '<div class="v122-hero-sub">'+model.walletList.length+' active program'+(model.walletList.length===1?'':'s')+
+      (model.thisMonthTotal>0?' \u00B7 <span class="v122-hero-earned">+'+fmtMoney(model.thisMonthTotal)+' this month</span>':'')+
+    '</div>'+
+    fastestHTML+
+  '</div>'+
+  '<div class="v122-section-head">'+
+    '<div class="v122-section-title">Wallet Memberships</div>'+
+    '<div class="v122-section-count">'+model.walletList.length+'</div>'+
+  '</div>'+
+  '<div class="v122-progs">'+walletHTML+'</div>'+
+  extrasSection;
+  host.querySelectorAll('.v122-prog-edit').forEach(function(btn){btn.addEventListener('click',function(){openEditModal(btn.getAttribute('data-prog'));});});
+  var togEl=document.getElementById('v122ExtrasToggle');
+  if(togEl)togEl.addEventListener('click',function(){var body=document.getElementById('v122ExtrasBody');var chev=togEl.querySelector('.v122-extras-chev');var open=body.classList.toggle('show');if(chev)chev.textContent=open?'\u25BE':'\u25B8';});
+  var addBtn=document.getElementById('v122AddExtra');
+  if(addBtn)addBtn.addEventListener('click',function(){if(typeof window.__v81OpenAddMembership==='function'){window.__v81OpenAddMembership();}});
+  host.querySelectorAll('.v122-extra-del').forEach(function(btn){btn.addEventListener('click',function(){
+    var name=btn.getAttribute('data-extra-name');var key=btn.getAttribute('data-extra-key');
+    var mems=readJSON('walletiq_memberships',[]);if(!Array.isArray(mems))return;
+    var idx=-1;
+    for(var i=0;i<mems.length;i++){if((key&&mems[i].key===key)||(name&&mems[i].name===name)){idx=i;break;}}
+    if(idx>=0){mems.splice(idx,1);writeJSON('walletiq_memberships',mems);renderVault();renderHome();}
+  });});
+  updateHeroTiles(total);
+}
+
+function updateHeroTiles(total){
+  var money=fmtMoney(total);var el;
+  el=document.getElementById('rhTotal');if(el)el.textContent=money;
+  el=document.getElementById('rhVault');if(el)el.textContent=money;
+}
+
+function openEditModal(prog){
+  var meta=PROGRAMS[prog]||{name:prog,unit:'pts',cpp:0,emoji:'\u2B50'};
+  var mems=readJSON('walletiq_memberships',[]);if(!Array.isArray(mems))mems=[];
+  var existing=null,existingIdx=-1;
+  for(var i=0;i<mems.length;i++){if(canonKey(mems[i])===prog){existing=mems[i];existingIdx=i;break;}}
+  var currentBal=existing?Number(existing.balance||0):0;
+  var overlay=document.createElement('div');overlay.className='v122-edit-overlay';
+  overlay.innerHTML='<div class="v122-edit"><div class="v122-edit-head"><div class="v122-edit-title">'+esc(meta.emoji||'\u2B50')+' '+esc(meta.name)+'</div><button type="button" class="v122-edit-close">\u00D7</button></div><div class="v122-edit-body"><label class="v122-edit-lbl">Current balance ('+esc(meta.unit||'pts')+')</label><input type="number" class="v122-edit-input" id="v122EditInput" value="'+currentBal+'" min="0" step="1" inputmode="decimal"><div class="v122-edit-hint" id="v122EditHint"></div><div class="v122-edit-note">\uD83D\uDCA1 Enter your true current balance. Future auto-earned points from logged transactions will add on top of this.</div></div><div class="v122-edit-actions"><button type="button" class="v122-edit-cancel">Cancel</button><button type="button" class="v122-edit-save">Save balance</button></div></div>';
+  document.body.appendChild(overlay);
+  setTimeout(function(){overlay.classList.add('show');},10);
+  var input=overlay.querySelector('#v122EditInput');var hint=overlay.querySelector('#v122EditHint');
+  function upd(){var b=parseFloat(input.value)||0;var cpp=bestCpp(prog)||meta.cpp||0;var v=memberValueAtCpp(b,cpp);hint.textContent=b>0?'\u2248 '+fmtMoney(v)+' at best redemption':'';}
+  input.addEventListener('input',upd);upd();
+  function close(){overlay.classList.remove('show');setTimeout(function(){if(overlay.parentNode)overlay.parentNode.removeChild(overlay);},220);}
+  overlay.querySelector('.v122-edit-close').addEventListener('click',close);
+  overlay.querySelector('.v122-edit-cancel').addEventListener('click',close);
+  overlay.addEventListener('click',function(e){if(e.target===overlay)close();});
+  document.addEventListener('keydown',function h(e){if(e.key==='Escape'&&overlay.parentNode){close();document.removeEventListener('keydown',h);}});
+  overlay.querySelector('.v122-edit-save').addEventListener('click',function(){
+    var newBal=parseFloat(input.value);if(!isFinite(newBal)||newBal<0){input.focus();return;}
+    if(existing){
+      existing.balance=newBal;
+      delete existing.__v106Auto;
+      delete existing.__v106ManualBaseline;
+      delete existing.__v106AutoAdded;
+      delete existing.__v106Count;
+      mems[existingIdx]=existing;
+    }else{
+      mems.push({key:prog,name:meta.name,emoji:meta.emoji,unit:meta.unit,cpp:meta.cpp,balance:newBal});
     }
+    var earnings=readJSON('walletiq_auto_earnings',{});
+    if(earnings&&typeof earnings==='object'&&earnings[prog]){earnings[prog].balance=0;earnings[prog].txCount=0;writeJSON('walletiq_auto_earnings',earnings);}
+    writeJSON('walletiq_memberships',mems);
+    close();renderVault();renderHome();
+  });
+  setTimeout(function(){input.focus();input.select();},260);
+}
 
-    writeTotalToAll(total);
-  }
-  window.renderPointsVaultV121 = renderPointsVaultV121;
+function installSwitchWrap(){
+  if(typeof window.switchRewardsView!=='function')return false;
+  if(window.switchRewardsView.__v122Wrapped)return true;
+  var orig=window.switchRewardsView;
+  var wrapped=function(view){if(view==='vault'){try{renderVault();}catch(e){}}return orig.apply(this,arguments);};
+  wrapped.__v122Wrapped=true;window.switchRewardsView=wrapped;return true;
+}
 
-  function installSwitchWrap(){
-    if(typeof window.switchRewardsView !== 'function') return false;
-    if(window.switchRewardsView.__v121Wrapped) return true;
-    var orig = window.switchRewardsView;
-    var wrapped = function(view){
-      if(view === 'vault'){
-        try{ renderPointsVaultV121(); }catch(e){ try{console.warn('[V121]',e);}catch(_){ } }
-      }
-      var r = orig.apply(this, arguments);
-      return r;
-    };
-    wrapped.__v121Wrapped = true;
-    window.switchRewardsView = wrapped;
-    return true;
-  }
-
-  function installHiddenNoteAccordion(){
-    if(window.__v121HiddenNoteBound) return;
-    window.__v121HiddenNoteBound = true;
-    document.addEventListener('click', function(e){
-      var t = e.target;
-      if(!t || !t.closest) return;
-      if(t.closest('.v86-restore-btn') || t.closest('.v87-hi-restore')) return;
-      var header = t.closest('.v87-hidden-header');
-      var note = header ? header.closest('.v87-hidden-note') : null;
-      if(!note){
-        note = t.closest('.v87-hidden-note');
-        if(!note) return;
-        if(t.closest('.v87-hidden-body')) return;
-      }
-      note.classList.toggle('open');
-    });
-  }
-
-  function installEventHooks(){
-    document.addEventListener('click', function(e){
-      var t = e.target;
-      if(!t || !t.closest) return;
-      var btn = t.closest('#rewardsSubtabs button[data-view="vault"]');
-      if(btn) renderPointsVaultV121();
-    });
-    document.addEventListener('v82:refresh', function(){
-      var v = document.getElementById('viewVault');
-      if(v) renderPointsVaultV121();
-    });
-    window.addEventListener('storage', function(e){
-      if(e && (e.key === 'walletiq_memberships' || e.key === 'walletiq_wallet')){
-        renderPointsVaultV121();
-      }
-    });
-    try{
-      var origSet = localStorage.setItem.bind(localStorage);
-      localStorage.setItem = function(k, v){
-        var r = origSet(k, v);
-        if(k === 'walletiq_memberships' || k === 'walletiq_wallet' || k === 'walletiq_auto_earnings'){
-          try{ renderPointsVaultV121(); }catch(e){}
-        }
-        return r;
-      };
-    }catch(e){}
-  }
-
-  function boot(){
-    try{ renderPointsVaultV121(); }catch(e){}
-    if(!installSwitchWrap()){
-      var tries = 0;
-      var iv = setInterval(function(){
-        tries++;
-        if(installSwitchWrap() || tries > 20){ clearInterval(iv); }
-      }, 100);
-    }
-    installHiddenNoteAccordion();
-    installEventHooks();
-    try{ console.log('[V121] Points Vault clean renderer active. Total = ' + fmtMoney(window.computePortfolioTotal())); }catch(e){}
-  }
-
-  if(document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', boot);
-  } else {
-    boot();
-  }
+function boot(){
+  try{renderVault();}catch(e){try{console.warn('[V122]',e);}catch(_){ }}
+  try{renderHome();}catch(e){try{console.warn('[V122]',e);}catch(_){ }}
+  if(!installSwitchWrap()){var t=0,iv=setInterval(function(){t++;if(installSwitchWrap()||t>20)clearInterval(iv);},100);}
+  document.addEventListener('click',function(e){if(!e.target||!e.target.closest)return;if(e.target.closest('#rewardsSubtabs button[data-view="vault"]'))renderVault();});
+  document.addEventListener('v82:refresh',function(){renderVault();renderHome();});
+  try{
+    var origSet=localStorage.setItem.bind(localStorage);
+    localStorage.setItem=function(k,v){var r=origSet(k,v);if(k==='walletiq_memberships'||k==='walletiq_wallet'||k==='walletiq_auto_earnings'){try{renderVault();renderHome();}catch(e){}}return r;};
+  }catch(e){}
+  window.addEventListener('storage',function(e){if(e&&(e.key==='walletiq_memberships'||e.key==='walletiq_wallet')){renderVault();renderHome();}});
+  try{console.log('[V122] Rewards Studio rebuild active. Portfolio = '+fmtMoney(window.computePortfolioTotal()));}catch(e){}
+}
+window.renderVaultV122=function(){try{renderVault();renderHome();}catch(e){}};
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);
+else boot();
 })();
 </script>
 
