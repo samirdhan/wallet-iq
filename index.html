@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Wallet IQ V106</title>
+<title>Wallet IQ V108</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Wallet IQ">
@@ -1654,6 +1654,8 @@ body.dark .credits-empty{background:var(--surface)}
 .credit-flash .cf-emoji{font-size:20px}
 </style>
 <body>
+<!-- V108: Welcome offers audit (2026-07-09). Updated Scotia Passport expiry to Aug 3; added BMO eclipse Oct 31 expiry; fixed CIBC Dividend to $350; bumped TD First Class val to $1,300; ADDED Amex Cobalt / Amex Gold / Marriott Bonvoy Amex / TD Aeroplan Privilege / BMO eclipse VI Privilege offers per July 2026 market data (Milesopedia, Rewards Canada, Prince of Travel, Frugal Flyer). -->
+
 <!-- V66: Removed extra note under each card in My Wallet + hid Recent Activity from Home tab (still shown in Rewards Studio). -->
 <!-- V67: Restored 15 missing cards (76→91) + expanded aliases with Canada-wide merchant depth for deeper category coverage. -->
 <!-- V68: Synced ALIASES into MERCHANT_DIRECTORY so autocomplete dropdown surfaces every alias (fixed bug where new V67 merchants were categorizable but not searchable). -->
@@ -8922,19 +8924,24 @@ function renderCards(){
 // ============================================================
 const OFFERS=[
 {n:'Amex Platinum',iss:'Amex',e:'\uD83D\uDCB3',pts:'170,000 MR pts',val:2550,fee:799,fyf:false,cat:'travel',color:'plat',expiry:'2026-07-28',why:'Best premium offer of 2026 + $200 travel + $200 dining credits. Ends July 28.',apply:'https://www.americanexpress.com/en-ca/charge-cards/the-platinum-card'},
+{n:'Amex Cobalt',iss:'Amex',e:'\uD83D\uDD35',pts:'15,000 MR pts',val:150,fee:191.88,fyf:false,cat:'travel',color:'cobalt',expiry:null,why:'1,250 MR/mo for each $750 spent = 15k MR (up to $300 travel value). Iconic 5x food card.',apply:'https://www.americanexpress.com/en-ca/credit-cards/cobalt-card/'},
+{n:'Amex Gold Rewards',iss:'Amex',e:'\uD83D\uDC9B',pts:'60,000 MR pts',val:900,fee:250,fyf:false,cat:'travel',color:'plat',expiry:null,why:'Up to 60k MR + $100 travel credit. 2x dining/travel/gas/grocery.',apply:'https://www.americanexpress.com/en-ca/credit-cards/gold-rewards-card/'},
+{n:'Marriott Bonvoy Amex',iss:'Amex',e:'\uD83C\uDFE8',pts:'70,000 Bonvoy pts',val:700,fee:120,fyf:false,cat:'travel',color:'bonvoy',expiry:null,why:'70k Bonvoy = 2 free nights (up to $700 hotel value) + annual free night cert.',apply:'https://www.americanexpress.com/en-ca/credit-cards/marriott-bonvoy-card/'},
+{n:'TD Aeroplan VI Privilege',iss:'TD',e:'\u2708\uFE0F',pts:'85,000 Aeroplan pts',val:1700,fee:599,fyf:false,cat:'travel',color:'plat',expiry:null,why:'20k first purchase + 35k after $12k + 30k anniversary. Maple Leaf Lounge access.',apply:'https://www.td.com/ca/en/personal-banking/products/credit-cards/aeroplan/aeroplan-visa-infinite-privilege-card'},
+{n:'BMO eclipse VI Privilege',iss:'BMO',e:'\uD83C\uDF12',pts:'200,000 BMO pts',val:1334,fee:599,fyf:false,cat:'travel',color:'plat',expiry:'2026-10-31',why:'Up to 200k pts + $200 annual credit + 6 lounge passes + NEXUS. Ends Oct 31.',apply:'https://www.bmo.com/en-ca/main/personal/credit-cards/bmo-eclipse-visa-infinite-privilege-mastercard/'},
 {n:'Amex Aeroplan Reserve',iss:'Amex',e:'\u2708\uFE0F',pts:'150,000 Aeroplan pts',val:2250,fee:599,fyf:false,cat:'travel',color:'cobalt',expiry:'2026-07-28',why:'All-time high Aeroplan offer. Ends July 28.',apply:'https://www.americanexpress.com/en-ca/credit-cards/aeroplan-reserve'},
 {n:'RBC Avion VI Privilege',iss:'RBC',e:'\u2708\uFE0F',pts:'100,000 Avion pts',val:2000,fee:399,fyf:false,cat:'travel',color:'cobalt',expiry:'2026-07-15',why:'Record-high Avion bonus. 35k on approval + 45k anniversary. Ends July 15.',apply:'https://www.rbcroyalbank.com/credit-cards/travel/rbc-avion-visa-infinite-privilege.html'},
 {n:'RBC Avion Visa Infinite',iss:'RBC',e:'\u2708\uFE0F',pts:'70,000 Avion pts',val:1400,fee:120,fyf:false,cat:'travel',color:'cobalt',expiry:'2026-07-15',why:'Record-high Avion bonus. 35k on approval + 20k after $5k. Ends July 15.',apply:'https://www.rbcroyalbank.com/credit-cards/travel/rbc-visa-infinite-avion-content-api.html'},
 {n:'BMO VIPorter World Elite',iss:'BMO',e:'\uD83D\uDEEB',pts:'70,000 VIPorter pts + companion pass',val:2400,fee:199,fyf:true,cat:'travel',color:'plat',expiry:'2026-10-31',why:'Massive first-year value including round-trip companion pass. FYF.',apply:'https://www.bmo.com/en-ca/main/personal/credit-cards/bmo-viporter-world-elite-mastercard/'},
 {n:'BMO Ascend World Elite',iss:'BMO',e:'\uD83C\uDF0D',pts:'115,000 BMO pts',val:770,fee:150,fyf:true,cat:'travel',color:'plat',expiry:'2026-07-31',why:'5x travel + 3x dining + NEXUS + 4 lounge passes. FYF. Ends July 31.',apply:'https://www.bmo.com/en-ca/main/personal/credit-cards/bmo-ascend-world-elite-mastercard/'},
 {n:'BMO CashBack World Elite',iss:'BMO',e:'\uD83D\uDCB0',pts:'$650 cash back',val:650,fee:139,fyf:true,cat:'cash',color:'rogers',expiry:null,why:'Top CAD cashback offer. 5% grocery + 4% transit + 3% gas. FYF.',apply:'https://www.bmo.com/en-ca/main/personal/credit-cards/bmo-cashback-world-elite-mastercard/'},
-{n:'BMO eclipse Visa Infinite',iss:'BMO',e:'\uD83C\uDF12',pts:'70,000 BMO pts',val:700,fee:120,fyf:true,cat:'travel',color:'cobalt',expiry:null,why:'5x dining/grocery/transit/streaming. FYF.',apply:'https://www.bmo.com/en-ca/main/personal/credit-cards/bmo-eclipse-visa-infinite-card/'},
-{n:'TD First Class Travel VI',iss:'TD',e:'\u2708\uFE0F',pts:'146,000 TD Rewards',val:730,fee:139,fyf:true,cat:'travel',color:'plat',expiry:null,why:'8x at Expedia for TD + $100 travel credit. FYF.',apply:'https://www.td.com/ca/en/personal-banking/products/credit-cards/travel/first-class-travel-visa-infinite-card'},
+{n:'BMO eclipse Visa Infinite',iss:'BMO',e:'\uD83C\uDF12',pts:'70,000 BMO pts',val:700,fee:120,fyf:true,cat:'travel',color:'cobalt',expiry:'2026-10-31',why:'5x dining/grocery/transit/streaming + $50 anniversary credit + FYF. Ends Oct 31.',apply:'https://www.bmo.com/en-ca/main/personal/credit-cards/bmo-eclipse-visa-infinite-card/'},
+{n:'TD First Class Travel VI',iss:'TD',e:'\u2708\uFE0F',pts:'146,000 TD Rewards',val:1300,fee:139,fyf:true,cat:'travel',color:'plat',expiry:null,why:'146k TD Rewards worth up to $1,300 via ExpediaForTD. 8x travel + FYF.',apply:'https://www.td.com/ca/en/personal-banking/products/credit-cards/travel/first-class-travel-visa-infinite-card'},
 {n:'TD Aeroplan Visa Infinite',iss:'TD',e:'\u2708\uFE0F',pts:'40,000 Aeroplan pts',val:600,fee:139,fyf:true,cat:'travel',color:'cobalt',expiry:null,why:'10k on first purchase + 15k after $3k + 15k anniversary. FYF.',apply:'https://www.td.com/ca/en/personal-banking/products/credit-cards/aeroplan/aeroplan-visa-infinite-card'},
 {n:'CIBC Aventura Visa Infinite',iss:'CIBC',e:'\u2708\uFE0F',pts:'45,000 Aventura pts',val:540,fee:139,fyf:true,cat:'travel',color:'cobalt',expiry:null,why:'15k on first purchase + 30k after $3k. NEXUS credit + 4 lounge passes. FYF.',apply:'https://www.cibc.com/en/personal-banking/credit-cards/all-credit-cards/aventura-visa-infinite-card.html'},
-{n:'CIBC Dividend Visa Infinite',iss:'CIBC',e:'\uD83D\uDCB0',pts:'$400 cash back',val:400,fee:120,fyf:true,cat:'cash',color:'rogers',expiry:null,why:'4% groceries + 4% gas. FYF.',apply:'https://www.cibc.com/en/personal-banking/credit-cards/all-credit-cards/dividend-visa-infinite.html'},
+{n:'CIBC Dividend Visa Infinite',iss:'CIBC',e:'\uD83D\uDCB0',pts:'$350 cash back',val:350,fee:120,fyf:true,cat:'cash',color:'rogers',expiry:null,why:'Up to $350 cash back. 4% groceries + 4% gas. FYF.',apply:'https://www.cibc.com/en/personal-banking/credit-cards/all-credit-cards/dividend-visa-infinite.html'},
 {n:'Scotia Gold Amex',iss:'Scotia',e:'\uD83D\uDC9B',pts:'50,000 Scene+ pts',val:500,fee:120,fyf:false,cat:'travel',color:'plat',expiry:'2026-11-01',scotiaEmployee:true,why:'30k after $2k in 3mo + 20k after $7.5k in 12mo. Up to 6x Scene+ groceries. Emp fee ~$60.',apply:'https://www.scotiabank.com/ca/en/personal/credit-cards/american-express/gold-card.html'},
-{n:'Scotia Passport VI+',iss:'Scotia',e:'\uD83D\uDEC2',pts:'60,000 Scene+ pts',val:600,fee:150,fyf:false,cat:'travel',color:'pass',expiry:'2026-11-01',scotiaEmployee:true,why:'40k after $2k + 10k after $10k + 10k after $40k. No FX. Emp fee ~$75.',apply:'https://www.scotiabank.com/ca/en/personal/credit-cards/visa/passport-infinite-card.html'},
+{n:'Scotia Passport VI+',iss:'Scotia',e:'\uD83D\uDEC2',pts:'60,000 Scene+ pts',val:600,fee:150,fyf:false,cat:'travel',color:'pass',expiry:'2026-08-03',scotiaEmployee:true,why:'40k after $2k + 10k after $10k + 10k after $40k. No FX. Ends Aug 3. Emp fee ~$75.',apply:'https://www.scotiabank.com/ca/en/personal/credit-cards/visa/passport-infinite-card.html'},
 {n:'Scotia Passport VI Privilege',iss:'Scotia',e:'\uD83D\uDEC2',pts:'80,000 Scene+ pts',val:800,fee:599,fyf:false,cat:'travel',color:'pass',expiry:null,scotiaEmployee:true,why:'30k + 30k + 20k tiered. $250 travel credit + 10 lounge visits. Emp fee ~$300.',apply:'https://www.scotiabank.com/ca/en/personal/credit-cards/visa/passport-infinite-privilege-card.html'},
 {n:'Scotia Momentum VI+',iss:'Scotia',e:'\uD83D\uDCB0',pts:'$300 cash back',val:300,fee:120,fyf:true,cat:'cash',color:'rogers',expiry:'2026-11-01',scotiaEmployee:true,why:'15% cashback for 3mo up to $300. 4% grocery + recurring. FYF. Emp Yr2+ ~$60.',apply:'https://www.scotiabank.com/ca/en/personal/credit-cards/visa/momentum-infinite-card.html'},
 {n:'Scotia Platinum Amex',iss:'Scotia',e:'\uD83D\uDFE1',pts:'100,000 Scene+ pts',val:1000,fee:399,fyf:false,cat:'travel',color:'plat',expiry:null,scotiaEmployee:true,why:'60k + 20k + 20k tiered. 10 Priority Pass. No FX. Emp fee ~$200.',apply:'https://www.scotiabank.com/ca/en/personal/credit-cards/american-express/platinum-card.html'},
@@ -20015,6 +20022,347 @@ body.dark .v103-prog-body { background: rgba(0,0,0,.15); }
   } else {
     init();
   }
+})();
+</script>
+
+
+<!-- =====================================================
+     Wallet IQ V108 - Points Hub Simplified (2026-07-09)
+     - Merges Rewards Studio Optimizer + Points into ONE unified Points Hub
+     - Adds live Recent Earnings feed
+     - Adds +points toast when a purchase is logged
+     - Rewards Studio Total Portfolio Value now matches Points Hub total (no double-count)
+     ===================================================== -->
+
+<style id="v107-styles">
+/* ===== V107 Points Hub Simplified ===== */
+#viewVault [data-v96-optimizer], #viewOverview [data-v96-optimizer]{display:none !important;}
+.v107-hub{padding:8px 4px 24px;}
+.v107-hero{
+  background:linear-gradient(135deg,#6d5ef7 0%,#8b6ff5 55%,#b28cf5 100%);
+  color:#fff; border-radius:22px; padding:20px 20px 22px;
+  box-shadow:0 12px 30px -12px rgba(109,94,247,.55);
+  margin-bottom:18px; position:relative; overflow:hidden;
+}
+.v107-hero::after{content:"";position:absolute;inset:auto -40px -60px auto;width:180px;height:180px;background:radial-gradient(circle,rgba(255,255,255,.18),transparent 70%);pointer-events:none;}
+.v107-hero-label{font-size:11px;letter-spacing:1.2px;text-transform:uppercase;opacity:.85;font-weight:600;}
+.v107-hero-val{font-size:38px;font-weight:800;margin:6px 0 4px;letter-spacing:-.5px;}
+.v107-hero-sub{font-size:12.5px;opacity:.9;margin-bottom:14px;}
+.v107-hero-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px;}
+.v107-hero-stat{background:rgba(255,255,255,.15);border-radius:12px;padding:9px 6px;text-align:center;backdrop-filter:blur(4px);}
+.v107-hero-stat b{display:block;font-size:16px;font-weight:700;}
+.v107-hero-stat span{display:block;font-size:9.5px;letter-spacing:.6px;text-transform:uppercase;opacity:.85;margin-top:2px;}
+
+.v107-section-title{font-size:11px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:#6b5db8;margin:18px 4px 8px;display:flex;align-items:center;gap:6px;}
+.v107-section-title .cnt{margin-left:auto;color:#8b7fc4;font-size:11px;}
+
+.v107-feed{background:#fff;border-radius:16px;padding:6px 0;box-shadow:0 4px 14px -8px rgba(90,70,180,.25);}
+.v107-feed-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid #f2eefb;}
+.v107-feed-item:last-child{border-bottom:none;}
+.v107-feed-icon{width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,#e8ffe8,#c9f7d0);display:flex;align-items:center;justify-content:center;font-size:16px;}
+.v107-feed-body{flex:1;min-width:0;}
+.v107-feed-title{font-size:13px;font-weight:600;color:#2b2350;line-height:1.25;}
+.v107-feed-meta{font-size:11px;color:#8b7fa8;margin-top:2px;}
+.v107-feed-pts{font-size:13px;font-weight:700;color:#1ea54a;white-space:nowrap;}
+.v107-feed-empty{padding:22px 16px;text-align:center;color:#8b7fa8;font-size:13px;}
+.v107-feed-empty b{display:block;color:#6b5db8;margin-bottom:4px;font-size:14px;}
+
+.v107-prog{background:#fff;border-radius:16px;padding:12px 14px;margin-bottom:10px;box-shadow:0 4px 12px -8px rgba(90,70,180,.22);}
+.v107-prog-top{display:flex;align-items:center;gap:11px;}
+.v107-prog-ico{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#f0eaff,#e0d5ff);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.v107-prog-name{flex:1;min-width:0;}
+.v107-prog-name b{display:block;font-size:14.5px;font-weight:700;color:#2b2350;line-height:1.15;}
+.v107-prog-name span{display:block;font-size:11px;color:#8b7fa8;margin-top:2px;}
+.v107-prog-vals{text-align:right;flex-shrink:0;}
+.v107-prog-vals b{display:block;font-size:14.5px;font-weight:800;color:#3a2f7a;}
+.v107-prog-vals span{display:block;font-size:12px;color:#1ea54a;font-weight:600;margin-top:1px;}
+.v107-prog-cards{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px;}
+.v107-prog-pill{font-size:10.5px;background:#f4efff;color:#6b5db8;padding:3px 8px;border-radius:8px;font-weight:600;}
+.v107-prog-best{margin-top:9px;padding-top:9px;border-top:1px dashed #ece5fa;display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.v107-prog-best-lbl{font-size:10.5px;color:#8b7fa8;letter-spacing:.4px;text-transform:uppercase;font-weight:600;}
+.v107-prog-best-val{font-size:12.5px;color:#1ea54a;font-weight:700;}
+.v107-prog-del{background:none;border:none;color:#b8a8d8;font-size:14px;padding:2px 6px;cursor:pointer;margin-left:4px;}
+
+.v107-earn-toast{
+  position:fixed;left:50%;transform:translateX(-50%) translateY(30px);
+  bottom:88px;background:linear-gradient(135deg,#1ea54a,#22c55e);color:#fff;
+  padding:12px 18px;border-radius:14px;font-size:14px;font-weight:600;
+  box-shadow:0 12px 30px -8px rgba(30,165,74,.55);z-index:99999;
+  opacity:0;transition:all .35s cubic-bezier(.2,.9,.3,1.2);
+  display:flex;align-items:center;gap:10px;max-width:88vw;
+}
+.v107-earn-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.v107-earn-toast .em{font-size:20px;}
+.v107-earn-toast small{display:block;font-size:10.5px;font-weight:500;opacity:.9;margin-top:1px;letter-spacing:.3px;}
+</style>
+
+<script id="v107-script">
+(function(){
+  'use strict';
+  var LAST_HASH = null;
+
+  var PROGRAM_META = {
+    'amex membership rewards':{emoji:'🔵',short:'MR',cpp:{flight:2.0,cash:1.0,merch:0.7},best:'flight',bestLabel:'Aeroplan flight transfers'},
+    'amex mr':{emoji:'🔵',short:'MR',cpp:{flight:2.0,cash:1.0,merch:0.7},best:'flight',bestLabel:'Aeroplan flight transfers'},
+    'marriott bonvoy':{emoji:'🏨',short:'Bonvoy',cpp:{hotel:0.8,cash:0.4,flight:0.7},best:'hotel',bestLabel:'Marriott hotel nights'},
+    'scene+':{emoji:'🎬',short:'Scene+',cpp:{cash:1.0,cineplex:1.0,sobeys:1.0},best:'cash',bestLabel:'Cash / Groceries'},
+    'rogers cash':{emoji:'🟠',short:'Rogers',cpp:{rogers:1.5,cash:1.0},best:'rogers',bestLabel:'Rogers bill boost'},
+    'aeroplan':{emoji:'✈️',short:'Aeroplan',cpp:{flight:2.1,cash:1.0,merch:0.7},best:'flight',bestLabel:'Star Alliance flights'},
+    'pc optimum':{emoji:'🛒',short:'PC',cpp:{grocery:0.1,cash:0.1},best:'grocery',bestLabel:'Loblaw groceries'},
+    'petro-points':{emoji:'⛽',short:'Petro',cpp:{fuel:0.1,cash:0.1},best:'fuel',bestLabel:'Petro-Canada fuel'},
+    'hilton honors':{emoji:'🏨',short:'Hilton',cpp:{hotel:0.5,cash:0.4},best:'hotel',bestLabel:'Hilton hotel nights'},
+    'blue rewards':{emoji:'🔵',short:'BMO',cpp:{cash:0.67},best:'cash',bestLabel:'Cash / BMO products'},
+    'westjet rewards':{emoji:'✈️',short:'WestJet',cpp:{flight:1.0,cash:1.0},best:'flight',bestLabel:'WestJet flights'},
+    'starbucks stars':{emoji:'☕',short:'Stars',cpp:{drink:2.5,cash:2.0},best:'drink',bestLabel:'Free drinks'},
+    'tim hortons rewards':{emoji:'🍩',short:'Tims',cpp:{coffee:1.0,cash:1.0},best:'coffee',bestLabel:'Free coffee / food'}
+  };
+
+  function safeGet(k, def){
+    try{ var v = localStorage.getItem(k); return v ? JSON.parse(v) : def; }catch(e){ return def; }
+  }
+  function metaFor(name){
+    var key = (name||'').toLowerCase().trim();
+    if(PROGRAM_META[key]) return PROGRAM_META[key];
+    for(var k in PROGRAM_META){ if(key.indexOf(k)>=0 || k.indexOf(key)>=0) return PROGRAM_META[k]; }
+    return {emoji:'🎁',short:'',cpp:{cash:1.0},best:'cash',bestLabel:'Cash equivalent'};
+  }
+  function bestCpp(m){ return m.cpp[m.best] || 1.0; }
+  function cashValue(bal, m){ return (bal * bestCpp(m)) / 100; }
+  function fmt$(n){ return '$' + n.toFixed(2); }
+  function ago(ts){
+    var s = Math.max(1, Math.floor((Date.now()-ts)/1000));
+    if(s<60) return s+'s ago';
+    if(s<3600) return Math.floor(s/60)+'m ago';
+    if(s<86400) return Math.floor(s/3600)+'h ago';
+    return Math.floor(s/86400)+'d ago';
+  }
+
+  function getCardsForProgram(progName, wallet){
+    // map wallet cards to programs
+    var map = {
+      'amex membership rewards':['cobalt','gold','platinum','amex'],
+      'marriott bonvoy':['bonvoy','marriott'],
+      'scene+':['scotia','scene'],
+      'rogers cash':['rogers'],
+      'aeroplan':['aeroplan','td aeroplan','cibc aero'],
+      'westjet rewards':['westjet','rbc westjet']
+    };
+    var key = (progName||'').toLowerCase();
+    var kws = map[key] || [key.split(' ')[0]];
+    var out = [];
+    (wallet||[]).forEach(function(c){
+      var nm = ((c.name||c.card||c.title||'')+'').toLowerCase();
+      for(var i=0;i<kws.length;i++){ if(nm.indexOf(kws[i])>=0){ out.push(c.name||c.card||c.title||'Card'); return; } }
+    });
+    return out;
+  }
+
+  function buildRecentFeed(){
+    var earn = safeGet('walletiq_auto_earnings', []);
+    var txs  = safeGet('walletiq_txs', []);
+    // Merge: use earnings if available, else derive from tx list
+    var items = [];
+    if(earn && earn.length){
+      items = earn.slice(-5).reverse().map(function(e){
+        return {
+          program: e.program || 'Rewards',
+          points:  e.points  || 0,
+          merchant:e.merchant|| 'Purchase',
+          card:    e.card    || '',
+          ts:      e.ts      || Date.now()
+        };
+      });
+    } else if(txs && txs.length){
+      items = txs.slice(-5).reverse().map(function(t){
+        return {
+          program: t.program || t.rewards || 'Rewards',
+          points:  t.points  || Math.round((t.amount||0)*1),
+          merchant:t.merchant|| t.name || 'Purchase',
+          card:    t.card    || '',
+          ts:      t.ts || t.date || Date.now()
+        };
+      });
+    }
+    return items;
+  }
+
+  function computeTotals(memberships){
+    var total = 0, bestCppSeen = 0, count = 0;
+    (memberships||[]).forEach(function(m){
+      var meta = metaFor(m.name || m.program);
+      var bal = parseFloat(m.balance||m.points||0)||0;
+      total += cashValue(bal, meta);
+      if(bestCpp(meta) > bestCppSeen) bestCppSeen = bestCpp(meta);
+      count++;
+    });
+    return {total:total, cpp:bestCppSeen, count:count};
+  }
+
+  function renderPointsHub(){
+    var host = document.getElementById('viewVault');
+    if(!host) return;
+
+    var memberships = safeGet('walletiq_memberships', []);
+    var wallet      = safeGet('walletiq_wallet', []);
+    var feed        = buildRecentFeed();
+    var totals      = computeTotals(memberships);
+
+    // Hash to skip re-render
+    var hash = JSON.stringify({m:memberships,w:(wallet||[]).map(function(c){return c.name||c.card;}),f:feed.map(function(i){return i.ts+'-'+i.points;})});
+    if(hash === LAST_HASH && host.querySelector('.v107-hub')) return;
+    LAST_HASH = hash;
+
+    // Split programs into card-earned vs extra
+    var earned = [], extra = [];
+    (memberships||[]).forEach(function(m){
+      var cards = getCardsForProgram(m.name || m.program, wallet);
+      (cards.length ? earned : extra).push({m:m, cards:cards});
+    });
+
+    var html = '<div class="v107-hub">';
+
+    // HERO
+    html += '<div class="v107-hero">';
+    html += '<div class="v107-hero-label">💎 Total Points Value</div>';
+    html += '<div class="v107-hero-val">'+fmt$(totals.total)+'</div>';
+    html += '<div class="v107-hero-sub">Cash-equivalent across all programs at best redemption</div>';
+    html += '<div class="v107-hero-stats">';
+    html += '<div class="v107-hero-stat"><b>'+totals.count+'</b><span>Programs</span></div>';
+    html += '<div class="v107-hero-stat"><b>'+totals.cpp.toFixed(2)+'¢</b><span>Best CPP</span></div>';
+    html += '<div class="v107-hero-stat"><b>'+feed.length+'</b><span>Recent earns</span></div>';
+    html += '</div></div>';
+
+    // RECENT FEED
+    html += '<div class="v107-section-title">⚡ Recent Earnings <span class="cnt">'+feed.length+'</span></div>';
+    html += '<div class="v107-feed">';
+    if(feed.length === 0){
+      html += '<div class="v107-feed-empty"><b>No earnings logged yet</b>Log a purchase to watch your points grow →</div>';
+    } else {
+      feed.forEach(function(f){
+        var meta = metaFor(f.program);
+        html += '<div class="v107-feed-item">';
+        html += '<div class="v107-feed-icon">'+meta.emoji+'</div>';
+        html += '<div class="v107-feed-body">';
+        html += '<div class="v107-feed-title">'+(f.merchant||'Purchase')+'</div>';
+        html += '<div class="v107-feed-meta">'+(f.card?f.card+' · ':'')+meta.short+' · '+ago(f.ts)+'</div>';
+        html += '</div>';
+        html += '<div class="v107-feed-pts">+'+Math.round(f.points)+' pts</div>';
+        html += '</div>';
+      });
+    }
+    html += '</div>';
+
+    // EARNED PROGRAMS
+    if(earned.length){
+      html += '<div class="v107-section-title">💳 Programs your cards earn <span class="cnt">'+earned.length+'</span></div>';
+      earned.forEach(function(row){
+        html += renderProgramCard(row.m, row.cards, false);
+      });
+    }
+
+    // EXTRA
+    if(extra.length){
+      html += '<div class="v107-section-title">📌 Extra tracked memberships <span class="cnt">'+extra.length+'</span></div>';
+      extra.forEach(function(row){
+        html += renderProgramCard(row.m, [], true);
+      });
+    }
+
+    if(!earned.length && !extra.length){
+      html += '<div class="v107-feed-empty" style="margin-top:14px;background:#fff;border-radius:16px;"><b>No programs tracked yet</b>Add a card or a membership to get started</div>';
+    }
+
+    html += '</div>';
+
+    // Only replace our container, not the whole viewVault (keep original controls if any)
+    var existing = host.querySelector('.v107-hub-wrap');
+    if(!existing){
+      existing = document.createElement('div');
+      existing.className = 'v107-hub-wrap';
+      host.insertBefore(existing, host.firstChild);
+    }
+    existing.innerHTML = html;
+
+    // Hide any legacy V96 optimizer block inside vault
+    host.querySelectorAll('[data-v96-optimizer], .v96-optimizer, #pointsOptimizerCard').forEach(function(n){ n.style.display='none'; });
+
+    // Sync Rewards Studio hero total to match Points Hub total (no double-count)
+    var rh = document.getElementById('rhTotal');
+    if(rh){ rh.textContent = fmt$(totals.total); }
+    var rhSub = document.getElementById('rhSub');
+    if(rhSub){ rhSub.textContent = 'Points + Vault (unified)'; }
+  }
+
+  function renderProgramCard(m, cards, isExtra){
+    var meta = metaFor(m.name || m.program);
+    var bal = parseFloat(m.balance||m.points||0)||0;
+    var cv = cashValue(bal, meta);
+    var s = '<div class="v107-prog">';
+    s += '<div class="v107-prog-top">';
+    s += '<div class="v107-prog-ico">'+meta.emoji+'</div>';
+    s += '<div class="v107-prog-name"><b>'+(m.name||m.program||'Program')+'</b><span>Balance</span></div>';
+    s += '<div class="v107-prog-vals"><b>'+bal.toLocaleString()+' pts</b><span>= '+fmt$(cv)+'</span></div>';
+    s += '</div>';
+    if(cards.length){
+      s += '<div class="v107-prog-cards">';
+      cards.forEach(function(c){ s += '<span class="v107-prog-pill">'+c+'</span>'; });
+      s += '</div>';
+    }
+    s += '<div class="v107-prog-best">';
+    s += '<span class="v107-prog-best-lbl">Best redemption</span>';
+    s += '<span class="v107-prog-best-val">'+meta.bestLabel+' · '+bestCpp(meta).toFixed(2)+'¢/pt</span>';
+    s += '</div>';
+    s += '</div>';
+    return s;
+  }
+
+  // ---------- Toast on log ----------
+  function showEarnToast(points, program, merchant, card){
+    var el = document.createElement('div');
+    el.className = 'v107-earn-toast';
+    var meta = metaFor(program);
+    el.innerHTML = '<span class="em">'+meta.emoji+'</span><span>+'+Math.round(points)+' '+(meta.short||'pts')+' earned<small>'+(merchant||'Purchase')+(card?' · '+card:'')+'</small></span>';
+    document.body.appendChild(el);
+    requestAnimationFrame(function(){ el.classList.add('show'); });
+    setTimeout(function(){
+      el.classList.remove('show');
+      setTimeout(function(){ el.remove(); }, 400);
+    }, 2500);
+  }
+
+  function watchForLogs(){
+    // MutationObserver watches for the V44 .log-flash element appearing OR new tx appended
+    var lastTxCount = safeGet('walletiq_txs', []).length;
+    var lastEarnCount = safeGet('walletiq_auto_earnings', []).length;
+    setInterval(function(){
+      var txs = safeGet('walletiq_txs', []);
+      var earns = safeGet('walletiq_auto_earnings', []);
+      if(earns.length > lastEarnCount){
+        var e = earns[earns.length-1];
+        showEarnToast(e.points||0, e.program||'', e.merchant||'', e.card||'');
+        lastEarnCount = earns.length;
+        LAST_HASH = null; renderPointsHub();
+      } else if(txs.length > lastTxCount){
+        var t = txs[txs.length-1];
+        var pts = t.points || Math.round((t.amount||0));
+        if(pts > 0) showEarnToast(pts, t.program||t.rewards||'', t.merchant||t.name||'', t.card||'');
+        lastTxCount = txs.length;
+        LAST_HASH = null; renderPointsHub();
+      }
+    }, 900);
+  }
+
+  function boot(){
+    try{ renderPointsHub(); }catch(e){ console.warn('[v107]',e); }
+    setInterval(function(){ try{ renderPointsHub(); }catch(e){} }, 800);
+    watchForLogs();
+    // Hide the standalone Optimizer subtab button if V96 added one
+    document.querySelectorAll('[data-view="optimizer"], [data-subtab="optimizer"]').forEach(function(b){ b.style.display='none'; });
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', boot);
+  } else { boot(); }
 })();
 </script>
 
