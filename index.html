@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Wallet IQ V123</title>
+<title>Wallet IQ V124</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Wallet IQ">
@@ -1654,6 +1654,7 @@ body.dark .credits-empty{background:var(--surface)}
 .credit-flash .cf-emoji{font-size:20px}
 </style>
 <body>
+<!-- V124 (2026-07-10): Three critical bug fixes on top of V123. (1) HOMEPAGE POINTS VAULT TILE — the legacy renderHomeVaultSummary was reading from the empty V48-era vault (loadVault/POINT_PROGRAMS) and painting $0 into #homeVaultSummary AFTER V122 wrote the real number, causing the "flash to zeros" on every refresh. Neutered the legacy renderer to delegate to V122's renderHome() so the home tile now matches Rewards Studio exactly. (2) LOG PURCHASE HONORS ALT-CARD SELECTION — tapping an alt-item now syncs the hidden #heroLogCard input AND saveHeroLogPurchase reads window.__v70.chosenCardKey first, so clicking a different card actually logs with that card. (3) VAULT UPDATES IMMEDIATELY AFTER A LOG — V122 setItem intercept + storage listener now also watch walletiq_transactions/v82_tx/tx/transactions keys, and saveHeroLogPurchase directly kicks window.__v106Tick() + renderVaultV122() right after writing. No more waiting for the 3-second poll. -->
 <!-- V123 (2026-07-10): FOUR fixes on top of V122. (1) Points Vault readWalletCards() now reads walletIQ_v40_wallet (the actual WALLET_KEY the app writes) with fallbacks to 7 legacy keys — Amex MR from Cobalt, Scene+ from Scotia, etc. auto-populate program cards with live balances the moment the tab opens. V122 had the wrong key and always showed the empty state. (2) localStorage.setItem intercept + storage listener extended to walletIQ_v40_wallet so add/remove card re-renders Vault instantly. (3) Help & Guides modal rewritten for the current app: 4-subtab Rewards Studio (Activity, Statement Credits, Welcome Offers, Points Vault), 5,500+ merchants, tap-to-override alternates, auto-accumulation of points from logged transactions. (4) V## version stamp fully removed from the homepage footer — every stamper (V74→V80 + V86 patch) neutered and the default template ends at "Built by samirdhan". -->
 <!-- V122 (2026-07-09): FULL Points Vault + Home summary rebuild from scratch (built directly on top of V120, skipping V121 which was too incremental). Also strips the same 3 legacy patches V121 stripped (v109-script/v116-cleanup/v120-vault-instant-render). Wallet-cards-first design — every card in your wallet has its earning program shown as a program card with (a) which of your cards earn on it, (b) live balance from V106 auto-accumulation, (c) this-month vs last-month earnings deltas derived from walletiq_transactions, (d) full redemption ladder with best rate highlighted, (e) inline Edit balance modal that properly resets V106's auto-earnings baseline. Extras deprioritized into a collapsed accordion at the bottom (they're the bonus, not the star). New home-tab #homeVaultSummary card shows total portfolio + top 3 fastest programs. All other Rewards Studio subtabs (Insights, Activity, Credit Rescue, Welcome Offers) untouched. -->
 <!-- V120 (2026-07-09): Fixed Vault click lag / pop-in flicker. Root cause: V109 hub rendered only on 3000ms interval, so clicking Vault showed empty panel until next tick fired. Fix: (1) pre-render on DOMContentLoaded, (2) wrap switchRewardsView to force render on Vault click, (3) capture-phase click listener with requestAnimationFrame so render happens before browser paints panel. Also removed conflicting v117 opacity transition — base fadeIn animation now runs alone. -->
@@ -10616,49 +10617,17 @@ function showFlash(msg){
 }
 
 function renderHomeVaultSummary(){
+  // V124: Delegate to V122's renderHome() (via window.renderVaultV122) which uses
+  // the correct data source — walletiq_memberships + V106 auto-accrued balances.
+  // The V50-era code below read the empty legacy vault (loadVault/POINT_PROGRAMS)
+  // and always painted $0, then overwrote V122's real number on every re-render,
+  // causing the homepage to "flash to zeros" on refresh. We keep the empty-wallet
+  // hide-behavior but let V122 own the paint.
+  try{ if(typeof window.renderVaultV122==='function'){ window.renderVaultV122(); return; } }catch(e){}
   const el=document.getElementById('homeVaultSummary');
   if(!el)return;
   if(typeof userWallet==='undefined'||!userWallet||userWallet.size===0){el.style.display='none';return;}
-  const walletSize=userWallet.size;
-  let totalRewards=0,thisMonthRewards=0;
-  const now=new Date();
-  const currentMonth=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
-  let txs=[];
-  try{if(typeof loadTx==='function')txs=loadTx();}catch(e){}
-  if(txs.length){
-    txs.forEach(function(t){
-      if(!t.card||!t.amount)return;
-      const card=CARDS_DB[t.card]||(typeof customCards!=='undefined'&&customCards[t.card]);
-      if(!card||!card.realRates)return;
-      const cat=(typeof resolveCategory==='function')?resolveCategory(t.merchant||''):'base';
-      const rate=card.realRates[cat]||card.realRates.base||1;
-      const earned=t.amount*rate/100;
-      totalRewards+=earned;
-      if((t.date||'').startsWith(currentMonth))thisMonthRewards+=earned;
-    });
-  }
-  let vaultDollars=0;
-  try{
-    if(typeof loadVault==='function'&&typeof POINT_PROGRAMS!=='undefined'){
-      const v=loadVault();
-      Object.entries(POINT_PROGRAMS).forEach(function(entry){
-        const key=entry[0],p=entry[1];const bal=v[key]||0;const cpp=p.redemptions[0].cpp;
-        vaultDollars+=key==='rogersCash'?bal:(bal*cpp/100);
-      });
-    }
-  }catch(e){}
-  const grandTotal=totalRewards+vaultDollars;
-  el.style.display='block';
-  el.innerHTML='<div class="vault-summary-card" onclick="switchTab(\'rewards\')">'+
-    '<div class="vs-label">\uD83C\uDFE6 Points Vault</div>'+
-    '<div class="vs-big">$'+Math.round(grandTotal).toLocaleString()+'</div>'+
-    '<div class="vs-sub">Earnings + points value \u00B7 tap to open</div>'+
-    '<div class="vs-mini">'+
-      '<div class="vm"><div class="l">This mo</div><div class="v">$'+thisMonthRewards.toFixed(0)+'</div></div>'+
-      '<div class="vm"><div class="l">Vault</div><div class="v">$'+Math.round(vaultDollars).toLocaleString()+'</div></div>'+
-      '<div class="vm"><div class="l">Cards</div><div class="v">'+walletSize+'</div></div>'+
-    '</div>'+
-  '</div>';
+  el.style.display='none';
 }
 
 function renderHomeRecentActivity(){
@@ -13258,6 +13227,12 @@ try {
     var amt = parseFloat(amtEl.value);
     var merchant = merchantEl.value;
     var cardKey = cardKeyEl.value;
+    // V124: If user tapped an alternate card, that overrides the hidden-input default
+    try{
+      if(window.__v70 && window.__v70.chosenCardKey && window.__v70.chosenCardKey !== window.__v70.recommendedCardKey){
+        cardKey = window.__v70.chosenCardKey;
+      }
+    }catch(e){}
     if(!amt || amt<=0){ alert('Enter a valid amount'); return; }
     if(!merchant){ alert('No merchant specified'); return; }
     if(!cardKey){ alert('No card selected'); return; }
@@ -13286,9 +13261,12 @@ try {
     try{ if(typeof renderTxList==='function') renderTxList(); }catch(e){}
     try{ if(typeof renderRewardsHero==='function') renderRewardsHero(); }catch(e){}
     try{ if(typeof renderVault==='function') renderVault(); }catch(e){}
+    // V124: Kick V106 auto-accumulation and V122 vault + home right after a hero log
+    try{ if(typeof window.__v106Tick==='function') window.__v106Tick(); }catch(e){}
+    try{ if(typeof window.renderVaultV122==='function') window.renderVaultV122(); }catch(e){}
     try{ if(typeof renderHomeVaultSummary==='function') renderHomeVaultSummary(); }catch(e){}
     try{ if(typeof renderHomeRecentActivity==='function') renderHomeRecentActivity(); }catch(e){}
-    console.log('V58 purchase logged:', tx);
+    console.log('V124 purchase logged:', tx);
   };
   window.updateHeroLogPreview = function(){
     var amtEl = document.getElementById('heroLogAmount');
@@ -13952,6 +13930,12 @@ try {
     } else {
       V70.chosenCardKey = key;
     }
+    // V124: Sync the hidden #heroLogCard input so saveHeroLogPurchase reads the
+    // user's chosen card, not the original recommendation.
+    try{
+      var hc=document.getElementById('heroLogCard');
+      if(hc){ hc.value = V70.chosenCardKey || V70.recommendedCardKey || hc.value; }
+    }catch(e){}
     refreshAltItemStyles();
     updateLogButtonLabel();
     updateOverrideNote();
@@ -18611,6 +18595,9 @@ body.dark .v103-prog-body { background: rgba(0,0,0,.15); }
       try{ console.warn('[V106] tick error:', e); }catch(e2){}
     }
   }
+  // V124: expose tick so external code (V122 hooks, saveHeroLogPurchase) can trigger
+  // auto-accumulation on-demand instead of waiting for the 3-second interval.
+  try{ window.__v106Tick = tick; }catch(e){}
 
   // Reset helper (exposed for debugging)
   window.__v106Reset = function(){
@@ -19529,9 +19516,9 @@ function boot(){
   document.addEventListener('v82:refresh',function(){renderVault();renderHome();});
   try{
     var origSet=localStorage.setItem.bind(localStorage);
-    localStorage.setItem=function(k,v){var r=origSet(k,v);if(k==='walletiq_memberships'||k==='walletiq_wallet'||k==='walletIQ_v40_wallet'||k==='walletiq_auto_earnings'){try{renderVault();renderHome();}catch(e){}}return r;};
+    localStorage.setItem=function(k,v){var r=origSet(k,v);if(k==='walletiq_memberships'||k==='walletiq_wallet'||k==='walletIQ_v40_wallet'||k==='walletiq_auto_earnings'||k==='walletiq_transactions'||k==='walletiq_v82_tx'||k==='walletiq_tx'||k==='transactions'){try{renderVault();renderHome();}catch(e){}try{if(typeof window.__v106Tick==='function')window.__v106Tick();}catch(e){}}return r;};
   }catch(e){}
-  window.addEventListener('storage',function(e){if(e&&(e.key==='walletiq_memberships'||e.key==='walletiq_wallet'||e.key==='walletIQ_v40_wallet')){renderVault();renderHome();}});
+  window.addEventListener('storage',function(e){if(e&&(e.key==='walletiq_memberships'||e.key==='walletiq_wallet'||e.key==='walletIQ_v40_wallet'||e.key==='walletiq_transactions'||e.key==='walletiq_v82_tx'||e.key==='walletiq_tx'||e.key==='transactions')){renderVault();renderHome();try{if(typeof window.__v106Tick==='function')window.__v106Tick();}catch(err){}}});
   try{console.log('[V122] Rewards Studio rebuild active. Portfolio = '+fmtMoney(window.computePortfolioTotal()));}catch(e){}
 }
 window.renderVaultV122=function(){try{renderVault();renderHome();}catch(e){}};
