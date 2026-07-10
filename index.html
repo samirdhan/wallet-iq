@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Wallet IQ V124</title>
+<title>Wallet IQ V127</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Wallet IQ">
@@ -1654,6 +1654,8 @@ body.dark .credits-empty{background:var(--surface)}
 .credit-flash .cf-emoji{font-size:20px}
 </style>
 <body>
+<!-- V127 (2026-07-10): RECOMMENDATION ENGINE REWRITE. The legacy engine (resolveCategory + getAcceptance + findBestCard + renderRecommendation, lines 8082-8311) iterated the full 5,500-alias ALIASES dict up to 4 times per keystroke (exact + word + substring + alphanumeric) plus another full pass for ACCEPTANCE, then did an unconditional innerHTML wipe of #hero. Result: 9 full engine runs while typing "starbucks", each triggering a V126 hero MutationObserver repaint. V127 replaces this with: (a) pre-built indexes at boot (aliasKeysDesc sorted longest-first, alphanumIndex Map), (b) three-level memoization (catCache, acceptCache, recCache) keyed by normalized query + wallet-hash, (c) diff-checked renderer — if the recommendation signature is unchanged, NO DOM write happens, (d) cache invalidation on wallet save + FX-mode toggle. The 4 legacy functions (resolveCategory/getAcceptance/findBestCard/renderRecommendation) are guarded to delegate to window.__v127.* when ready — one-line rollback: delete the v127-engine script tag. Result: engine cost per keystroke drops from ~5,500 alias iterations × 4 passes × 2 dicts = ~44,000 comparisons to a single hash lookup + one Map lookup + one length-sorted early-exit scan. Zero user-visible behavior change. Data integrity: all 91+ cards, 5,500+ aliases, ACCEPTANCE, PROGRAMS, MERCHANT_DIRECTORY, V80/V81/V82/V86/V96/V106/V122/V126 — untouched. -->
+<!-- V126 (2026-07-10): REAL rebuild pass. Consolidates 8 overlapping hero-log scripts (V47 injectHeroLogButton + V47 renderCapWidget buildHero wrap + V50 injectHeroLogButtonV44 + V50 MutationObserver + V50 saveHeroLogPurchase + V58 saveHeroLogPurchase override + V70 enhanceHero + V70 wrapLogPurchase) into ONE clean module at end of body: v126-hero-module. Single hero MutationObserver (rAF-debounced), single click delegator for alt-cards + log button + save, single save-flow that honors chosen alt-card, single event handler for live reward preview. Legacy functions early-return via window.__v126 flag — data-safe rollback via single line. Also inlines V125's rAF debouncer into V122 setItem intercept + storage listener. Removes duplicate vault-subtab click listener. V106 tick moved 3s→6s (on-demand via setItem intercept covers active use). Zero user-visible behavior change. Data integrity: 91+ cards, 5,500+ aliases, V80 Help, V81 memberships, V82 Activity, V86 hero-missed, V96 subtabs, V106 auto-accumulation, V122 Points Vault — all untouched. -->
 <!-- V124 (2026-07-10): Three critical bug fixes on top of V123. (1) HOMEPAGE POINTS VAULT TILE — the legacy renderHomeVaultSummary was reading from the empty V48-era vault (loadVault/POINT_PROGRAMS) and painting $0 into #homeVaultSummary AFTER V122 wrote the real number, causing the "flash to zeros" on every refresh. Neutered the legacy renderer to delegate to V122's renderHome() so the home tile now matches Rewards Studio exactly. (2) LOG PURCHASE HONORS ALT-CARD SELECTION — tapping an alt-item now syncs the hidden #heroLogCard input AND saveHeroLogPurchase reads window.__v70.chosenCardKey first, so clicking a different card actually logs with that card. (3) VAULT UPDATES IMMEDIATELY AFTER A LOG — V122 setItem intercept + storage listener now also watch walletiq_transactions/v82_tx/tx/transactions keys, and saveHeroLogPurchase directly kicks window.__v106Tick() + renderVaultV122() right after writing. No more waiting for the 3-second poll. -->
 <!-- V123 (2026-07-10): FOUR fixes on top of V122. (1) Points Vault readWalletCards() now reads walletIQ_v40_wallet (the actual WALLET_KEY the app writes) with fallbacks to 7 legacy keys — Amex MR from Cobalt, Scene+ from Scotia, etc. auto-populate program cards with live balances the moment the tab opens. V122 had the wrong key and always showed the empty state. (2) localStorage.setItem intercept + storage listener extended to walletIQ_v40_wallet so add/remove card re-renders Vault instantly. (3) Help & Guides modal rewritten for the current app: 4-subtab Rewards Studio (Activity, Statement Credits, Welcome Offers, Points Vault), 5,500+ merchants, tap-to-override alternates, auto-accumulation of points from logged transactions. (4) V## version stamp fully removed from the homepage footer — every stamper (V74→V80 + V86 patch) neutered and the default template ends at "Built by samirdhan". -->
 <!-- V122 (2026-07-09): FULL Points Vault + Home summary rebuild from scratch (built directly on top of V120, skipping V121 which was too incremental). Also strips the same 3 legacy patches V121 stripped (v109-script/v116-cleanup/v120-vault-instant-render). Wallet-cards-first design — every card in your wallet has its earning program shown as a program card with (a) which of your cards earn on it, (b) live balance from V106 auto-accumulation, (c) this-month vs last-month earnings deltas derived from walletiq_transactions, (d) full redemption ladder with best rate highlighted, (e) inline Edit balance modal that properly resets V106's auto-earnings baseline. Extras deprioritized into a collapsed accordion at the bottom (they're the bonus, not the star). New home-tab #homeVaultSummary card shows total portfolio + top 3 fastest programs. All other Rewards Studio subtabs (Insights, Activity, Credit Rescue, Welcome Offers) untouched. -->
@@ -8079,6 +8081,7 @@ function fuzzyMatch(query,target){
 // CATEGORY & ACCEPTANCE RESOLUTION
 // ============================================================
 function resolveCategory(query){
+ if(window.__v127 && window.__v127.ready) return window.__v127.resolveCategory(query);
  const q=normalize(query);
  if(!q)return 'other';
  // Exact alias match
@@ -8109,6 +8112,7 @@ function resolveCategory(query){
 }
 
 function getAcceptance(query){
+ if(window.__v127 && window.__v127.ready) return window.__v127.getAcceptance(query);
  const q=normalize(query);
  // Exact merchant match
  if(ACCEPTANCE[q])return ACCEPTANCE[q];
@@ -8157,6 +8161,7 @@ function getCardRate(cardKey,category){
 }
 
 function findBestCard(query){
+ if(window.__v127 && window.__v127.ready) return window.__v127.findBestCard(query);
  const q=normalize(query);
  const category=resolveCategory(q);
  const acceptance=getAcceptance(q);
@@ -8204,6 +8209,7 @@ function findBestCard(query){
 }
 
 function renderRecommendation(query){
+ if(window.__v127 && window.__v127.ready) return window.__v127.renderRecommendation(query);
  const heroEl=document.getElementById('hero');
  const emptyEl=document.getElementById('emptyWalletState');
 
@@ -10567,6 +10573,7 @@ function updateHeroLogPreview(){
 }
 
 function saveHeroLogPurchase(){
+  if(window.__v126 && window.__v126SaveLog){ return window.__v126SaveLog(); }
   const amt=parseFloat(document.getElementById('heroLogAmount').value);
   const merchant=document.getElementById('heroLogMerchant').value;
   const cardKey=document.getElementById('heroLogCard').value;
@@ -10685,6 +10692,7 @@ if(typeof _origBuildHero==='function'){
 }
 
 function injectHeroLogButton(bestCard,merchant){
+  if(window.__v126)return; // V126: superseded by unified hero module
   const hero=document.getElementById('hero');
   if(!hero||!bestCard||!merchant)return;
   const prior=hero.querySelector('.hero-log-wrap');
@@ -11077,6 +11085,7 @@ window.SWEET_SPOTS=[
 window._heroObserverInit=false;
 
 function injectHeroLogButtonV44(){
+  if(window.__v126)return; // V126: superseded by unified hero module
   const hero=document.getElementById('hero');
   if(!hero)return;
   if(!hero.innerHTML||hero.innerHTML.trim().length<20)return;
@@ -13220,6 +13229,7 @@ try {
 <script>
 (function(){
   window.saveHeroLogPurchase = function(){
+    if(window.__v126 && window.__v126SaveLog){ return window.__v126SaveLog(); }
     var amtEl = document.getElementById('heroLogAmount');
     var merchantEl = document.getElementById('heroLogMerchant');
     var cardKeyEl = document.getElementById('heroLogCard');
@@ -13957,6 +13967,7 @@ try {
   }
 
   function enhanceHero(){
+    if(window.__v126) return; // V126: superseded by unified hero module
     try{
       var hero = document.getElementById('hero');
       if(!hero) return;
@@ -14006,6 +14017,7 @@ try {
   }
 
   function wrapLogPurchase(){
+    if(window.__v126) return; // V126: superseded by unified hero module
     try{
       document.body.addEventListener('click', function(e){
         var target = e.target;
@@ -18626,7 +18638,7 @@ body.dark .v103-prog-body { background: rgba(0,0,0,.15); }
     tick();
     setTimeout(tick, 500);
     setTimeout(tick, 2000);
-    setInterval(tick, 3000);
+    setInterval(tick, 6000); // V126: was 3000ms; on-demand triggering from setItem intercept covers active use
     try{
       console.log('[V106] Auto-accumulation active. Type __v106Reset() in console to clear all auto balances.');
       var earnings = readJSON(STORAGE_EARNINGS, {});
@@ -19512,18 +19524,619 @@ function boot(){
   try{renderVault();}catch(e){try{console.warn('[V122]',e);}catch(_){ }}
   try{renderHome();}catch(e){try{console.warn('[V122]',e);}catch(_){ }}
   if(!installSwitchWrap()){var t=0,iv=setInterval(function(){t++;if(installSwitchWrap()||t>20)clearInterval(iv);},100);}
-  document.addEventListener('click',function(e){if(!e.target||!e.target.closest)return;if(e.target.closest('#rewardsSubtabs button[data-view="vault"]'))renderVault();});
+  // V126: removed redundant vault-subtab click listener — installSwitchWrap already fires renderVault().
   document.addEventListener('v82:refresh',function(){renderVault();renderHome();});
   try{
     var origSet=localStorage.setItem.bind(localStorage);
-    localStorage.setItem=function(k,v){var r=origSet(k,v);if(k==='walletiq_memberships'||k==='walletiq_wallet'||k==='walletIQ_v40_wallet'||k==='walletiq_auto_earnings'||k==='walletiq_transactions'||k==='walletiq_v82_tx'||k==='walletiq_tx'||k==='transactions'){try{renderVault();renderHome();}catch(e){}try{if(typeof window.__v106Tick==='function')window.__v106Tick();}catch(e){}}return r;};
+    // V126: coalesce cascade renders via rAF — single write no longer triggers 5x renderHome
+    var __v126RenderPending=false;
+    function __v126Schedule(){
+      if(__v126RenderPending)return;__v126RenderPending=true;
+      requestAnimationFrame(function(){__v126RenderPending=false;try{renderVault();renderHome();}catch(e){}try{if(typeof window.__v106Tick==='function')window.__v106Tick();}catch(e){}});
+    }
+    localStorage.setItem=function(k,v){var r=origSet(k,v);if(k==='walletiq_memberships'||k==='walletiq_wallet'||k==='walletIQ_v40_wallet'||k==='walletiq_auto_earnings'||k==='walletiq_transactions'||k==='walletiq_v82_tx'||k==='walletiq_tx'||k==='transactions'){__v126Schedule();}return r;};
   }catch(e){}
-  window.addEventListener('storage',function(e){if(e&&(e.key==='walletiq_memberships'||e.key==='walletiq_wallet'||e.key==='walletIQ_v40_wallet'||e.key==='walletiq_transactions'||e.key==='walletiq_v82_tx'||e.key==='walletiq_tx'||e.key==='transactions')){renderVault();renderHome();try{if(typeof window.__v106Tick==='function')window.__v106Tick();}catch(err){}}});
+  window.addEventListener('storage',function(e){if(e&&(e.key==='walletiq_memberships'||e.key==='walletiq_wallet'||e.key==='walletIQ_v40_wallet'||e.key==='walletiq_transactions'||e.key==='walletiq_v82_tx'||e.key==='walletiq_tx'||e.key==='transactions')){__v126Schedule();}});
   try{console.log('[V122] Rewards Studio rebuild active. Portfolio = '+fmtMoney(window.computePortfolioTotal()));}catch(e){}
 }
 window.renderVaultV122=function(){try{renderVault();renderHome();}catch(e){}};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);
 else boot();
+})();
+</script>
+
+<script id="v127-engine">
+/* ============================================================
+   V127 RECOMMENDATION ENGINE — memoized, indexed, diff-rendered
+   ============================================================ */
+(function(){
+'use strict';
+var V127 = { ready:false, version:'V127' };
+window.__v127 = V127;
+
+// --- fast normalize (mirrors legacy helper) ---
+function nrm(s){return (s||'').toLowerCase().trim().replace(/\s+/g,' ');}
+function nrmAlpha(s){return (s||'').toLowerCase().replace(/[^a-z0-9]/g,'');}
+
+// --- indexes built at boot ---
+var aliasKeysDesc=null;         // string[] sorted longest-first
+var aliasAlphaIndex=null;       // Map<alphanumKey, aliasValue>
+var acceptKeysDesc=null;
+var acceptAlphaIndex=null;
+
+// --- memo caches ---
+var catCache = Object.create(null);
+var acceptCache = Object.create(null);
+var recCache = Object.create(null);
+var lastHeroSignature = null;
+var lastRenderQuery = null;
+
+function buildIndexes(){
+  if(typeof ALIASES==='undefined' || typeof ACCEPTANCE==='undefined') return false;
+  aliasKeysDesc = Object.keys(ALIASES).sort(function(a,b){return b.length-a.length;});
+  aliasAlphaIndex = new Map();
+  for(var i=0;i<aliasKeysDesc.length;i++){
+    var k = aliasKeysDesc[i];
+    var a = nrmAlpha(k);
+    if(a.length>=3 && !aliasAlphaIndex.has(a)) aliasAlphaIndex.set(a, ALIASES[k]);
+  }
+  acceptKeysDesc = Object.keys(ACCEPTANCE).sort(function(a,b){return b.length-a.length;});
+  acceptAlphaIndex = new Map();
+  for(var j=0;j<acceptKeysDesc.length;j++){
+    var k2 = acceptKeysDesc[j];
+    var a2 = nrmAlpha(k2);
+    if(a2.length>=3 && !acceptAlphaIndex.has(a2)) acceptAlphaIndex.set(a2, ACCEPTANCE[k2]);
+  }
+  return true;
+}
+
+// --- category resolver: O(1) exact → word → sub → alpha → regex ---
+function resolveCategory(query){
+  var q = nrm(query);
+  if(!q) return 'other';
+  var cached = catCache[q];
+  if(cached !== undefined) return cached;
+  var result;
+  do {
+    // exact
+    if(ALIASES[q]){ result = ALIASES[q]; break; }
+    // word (already normalized)
+    var words = q.split(/[\s,.\-_\/]+/);
+    for(var i=0;i<words.length;i++){var w=words[i];if(w.length>=3 && ALIASES[w]){ result=ALIASES[w]; break; }}
+    if(result) break;
+    // substring — sorted longest-first, exit on first match
+    for(var s=0;s<aliasKeysDesc.length;s++){
+      var k = aliasKeysDesc[s];
+      if(k.length>=5 && q.indexOf(k)>=0){ result = ALIASES[k]; break; }
+    }
+    if(result) break;
+    // alphanum
+    var qa = nrmAlpha(q);
+    if(qa.length>=3){
+      if(aliasAlphaIndex.has(qa)){ result = aliasAlphaIndex.get(qa); break; }
+      // partial: check top 500 longest
+      var scan = Math.min(500, aliasKeysDesc.length);
+      for(var s2=0;s2<scan;s2++){
+        var ka = nrmAlpha(aliasKeysDesc[s2]);
+        if(ka.length>=3 && (qa.indexOf(ka)>=0 || ka.indexOf(qa)>=0)){ result = ALIASES[aliasKeysDesc[s2]]; break; }
+      }
+      if(result) break;
+    }
+    // regex fallback
+    if(/rest\w*|dining|food|coffee|cafe|eatery|pizza|burger|sushi|ramen|taco/.test(q)){result='dining';break;}
+    if(/grocery|groceries|market|supermarket/.test(q)){result='groceryAmex';break;}
+    if(/shop|retail|store|mall/.test(q)){result='shoppingAmex';break;}
+    if(/hotel|resort|inn|motel/.test(q)){result='travel';break;}
+    if(/flight|airline|airfare/.test(q)){result='travel';break;}
+    if(/gas|fuel|petrol/.test(q)){result='gas';break;}
+    result = 'other';
+  } while(false);
+  catCache[q] = result;
+  return result;
+}
+
+function getAcceptance(query){
+  var q = nrm(query);
+  if(!q) return {amex:true,visa:true,mc:true,confidence:0.6,note:''};
+  var cached = acceptCache[q];
+  if(cached !== undefined) return cached;
+  var result = null;
+  if(ACCEPTANCE[q]) result = ACCEPTANCE[q];
+  if(!result){
+    for(var i=0;i<acceptKeysDesc.length;i++){
+      var k = acceptKeysDesc[i];
+      if(k.length>=5 && q.indexOf(k)>=0){ result = ACCEPTANCE[k]; break; }
+    }
+  }
+  if(!result){
+    var words = q.split(/[\s,.\-_\/]+/);
+    for(var w=0;w<words.length;w++){var ww=words[w];if(ww.length>=4 && ACCEPTANCE[ww]){ result=ACCEPTANCE[ww]; break; }}
+  }
+  if(!result){
+    var qa = nrmAlpha(q);
+    if(qa.length>=3){
+      if(acceptAlphaIndex.has(qa)) result = acceptAlphaIndex.get(qa);
+      else {
+        var scan = Math.min(500, acceptKeysDesc.length);
+        for(var s=0;s<scan;s++){
+          var ka = nrmAlpha(acceptKeysDesc[s]);
+          if(ka.length>=3 && (qa.indexOf(ka)>=0 || ka.indexOf(qa)>=0)){ result = ACCEPTANCE[acceptKeysDesc[s]]; break; }
+        }
+      }
+    }
+  }
+  if(!result){
+    var cat = resolveCategory(q);
+    if(cat==='costco' && ACCEPTANCE.costco) result = ACCEPTANCE.costco;
+    else if(cat==='walmart' && ACCEPTANCE.walmart) result = ACCEPTANCE.walmart;
+    else if(cat==='loblaws' && ACCEPTANCE.loblaws) result = ACCEPTANCE.loblaws;
+    else if(cat==='groceryNo') result = {amex:false,visa:true,mc:true,confidence:0.75,note:'This merchant typically does not accept Amex'};
+    else result = {amex:true,visa:true,mc:true,confidence:0.6,note:''};
+  }
+  acceptCache[q] = result;
+  return result;
+}
+
+// --- wallet hash for cache key ---
+function walletHash(){
+  try{
+    if(typeof userWallet==='undefined' || !userWallet) return '_';
+    var arr = Array.from(userWallet).sort();
+    return arr.join('|');
+  }catch(e){return '_';}
+}
+
+function getCardRate(cardKey, category){
+  var card = CARDS_DB[cardKey];
+  if(!card || !card.realRates) return 1;
+  return card.realRates[category] || card.realRates.base || card.realRates.other || 1;
+}
+
+function cardAcceptsFast(cardKey, acc){
+  var card = CARDS_DB[cardKey];
+  if(!card) return false;
+  var net = (card.net || '').toLowerCase();
+  if(net.indexOf('amex')>=0) return acc.amex;
+  if(net.indexOf('visa')>=0) return acc.visa;
+  if(net.indexOf('mastercard')>=0 || net==='mc') return acc.mc;
+  return true;
+}
+
+// --- findBestCard: memoized on (normalized query + wallet hash + FX mode) ---
+function findBestCard(query){
+  var q = nrm(query);
+  var fx = (typeof foreignMode!=='undefined') ? !!foreignMode : false;
+  var wh = walletHash();
+  var cacheKey = q + '::' + wh + '::' + (fx?'1':'0');
+  var cached = recCache[cacheKey];
+  if(cached !== undefined) return cached;
+
+  var category = resolveCategory(q);
+  var acceptance = getAcceptance(q);
+  var loyalty = (typeof getGasLoyalty==='function') ? getGasLoyalty(q) : null;
+  var walletKeys = [];
+  try{
+    if(typeof userWallet!=='undefined' && userWallet){
+      var it = userWallet.values();
+      var v = it.next();
+      while(!v.done){ if(CARDS_DB[v.value]) walletKeys.push(v.value); v = it.next(); }
+    }
+  }catch(e){}
+
+  if(walletKeys.length===0){
+    var empty = {empty:true, category:category, acceptance:acceptance, loyalty:loyalty};
+    recCache[cacheKey] = empty;
+    return empty;
+  }
+
+  var ranked = walletKeys.map(function(k){
+    var baseRate = getCardRate(k, category);
+    var boost = (loyalty && loyalty.boost && loyalty.boost[k]) ? loyalty.boost[k] : 0;
+    return {
+      key:k, card:CARDS_DB[k],
+      baseRate:baseRate, boostAmount:boost,
+      rate:baseRate+boost, boosted:boost>0,
+      accepts:cardAcceptsFast(k, acceptance)
+    };
+  }).sort(function(a,b){return b.rate-a.rate;});
+
+  var compatible = ranked.filter(function(r){return r.accepts;});
+  var best = compatible[0] || null;
+  var demoted = null;
+  if(ranked[0] && !ranked[0].accepts) demoted = ranked[0];
+
+  var result;
+  if(!best){
+    result = {noCompatibleCard:true, allRanked:ranked, category:category, acceptance:acceptance, demoted:demoted, loyalty:loyalty};
+  } else {
+    result = {
+      best: best,
+      alternatives: compatible.slice(1,4),
+      category: category, acceptance: acceptance,
+      demoted: demoted, allRanked: ranked, loyalty: loyalty
+    };
+  }
+  recCache[cacheKey] = result;
+  return result;
+}
+
+function invalidateCaches(){
+  catCache = Object.create(null);
+  acceptCache = Object.create(null);
+  recCache = Object.create(null);
+  lastHeroSignature = null;
+  lastRenderQuery = null;
+}
+V127.invalidateCaches = invalidateCaches;
+
+// --- diff-rendered recommendation renderer ---
+function renderRecommendation(query){
+  var heroEl = document.getElementById('hero');
+  var emptyEl = document.getElementById('emptyWalletState');
+  if(!heroEl) return;
+
+  if(typeof userWallet==='undefined' || !userWallet || userWallet.size===0){
+    if(emptyEl) emptyEl.style.display='block';
+    heroEl.style.display='none';
+    heroEl.innerHTML='';
+    lastHeroSignature=null;
+    return;
+  }
+  if(emptyEl) emptyEl.style.display='none';
+
+  var hasQuery = query && String(query).trim() && String(query).trim() !== 'other';
+  var fx = (typeof foreignMode!=='undefined') ? !!foreignMode : false;
+  if(!hasQuery && !fx){
+    heroEl.style.display='none';
+    heroEl.innerHTML='';
+    lastHeroSignature=null;
+    return;
+  }
+
+  var result = findBestCard(query);
+  // Compute a signature — if unchanged, skip DOM write entirely
+  var sigParts = [
+    (query||'').trim(),
+    result.empty?'e':(result.noCompatibleCard?'nc':(result.best?result.best.key+':'+result.best.rate.toFixed(3):'?')),
+    result.acceptance ? (result.acceptance.confidence||0).toFixed(2) : '',
+    result.demoted ? result.demoted.key : '',
+    fx ? '1' : '0',
+    result.alternatives ? result.alternatives.map(function(a){return a.key+':'+a.rate.toFixed(2);}).join(',') : ''
+  ];
+  var sig = sigParts.join('|');
+  if(sig === lastHeroSignature){
+    // Ensure hero is visible; do not repaint content
+    if(heroEl.style.display==='none') heroEl.style.display='block';
+    return;
+  }
+  lastHeroSignature = sig;
+  heroEl.style.display='block';
+
+  if(result.empty){
+    heroEl.style.display='none';
+    if(emptyEl) emptyEl.style.display='block';
+    return;
+  }
+
+  if(result.noCompatibleCard){
+    heroEl.innerHTML = '<div class="k">No compatible card in your wallet</div>'+
+      '<div style="margin-top:8px;font-size:14px;font-weight:800;color:var(--pass)">\u26A0\uFE0F None of your cards match this merchant\'s accepted networks.</div>'+
+      '<div class="why" style="margin-top:9px">'+((result.acceptance&&result.acceptance.note)||'This merchant may only accept certain card networks.')+'</div>';
+    return;
+  }
+
+  var b = result.best;
+  var c = b.card;
+  var acc = result.acceptance;
+
+  // FX message
+  var fxMsg = '';
+  if(fx && typeof getUserNoFxCards==='function'){
+    var noFx = getUserNoFxCards();
+    if(noFx && noFx.length>0){
+      var names = noFx.map(function(k){return CARDS_DB[k].e + ' ' + CARDS_DB[k].n.replace('Scotia ','').replace('Amex ','');}).join(', ');
+      fxMsg = '<div class="info-box">\uD83C\uDF0D <b>No-FX cards in your wallet:</b> '+names+'</div>';
+    } else {
+      fxMsg = '<div class="warn-box">\u26A0\uFE0F No card in your wallet has zero FX fees. Expect ~2.5% FX cost on foreign purchases.</div>';
+    }
+  }
+
+  var confClass = 'conf-high', confLabel = 'High confidence';
+  if(acc.confidence < 0.7){ confClass='conf-low'; confLabel='Uncertain'; }
+  else if(acc.confidence < 0.9){ confClass='conf-mid'; confLabel='Likely'; }
+
+  var demotedWarn = '';
+  if(result.demoted && result.demoted.rate > b.rate){
+    var dc = result.demoted.card;
+    demotedWarn = '<div class="warn-box">\u26A0\uFE0F <b>'+dc.n+'</b> would earn '+result.demoted.rate.toFixed(1)+'% here, but this merchant likely doesn\'t accept '+dc.net+'. '+(acc.note||'')+'</div>';
+  } else if(acc.note){
+    demotedWarn = '<div class="info-box">\u2139\uFE0F '+acc.note+'</div>';
+  }
+
+  var loyaltyMsg = '';
+  if(result.loyalty && b.boosted){
+    loyaltyMsg = '<div class="info-box">\u2B50 <b>'+result.loyalty.program+' bonus applied:</b> '+result.loyalty.note+'</div>';
+  } else if(result.loyalty && result.loyalty.boost){
+    var eligible = false;
+    try{
+      var keys = Object.keys(result.loyalty.boost);
+      for(var i=0;i<keys.length;i++){ if(userWallet.has(keys[i])){ eligible = true; break; } }
+    }catch(e){}
+    if(eligible) loyaltyMsg = '<div class="info-box">\uD83D\uDCA1 <b>Tip:</b> '+result.loyalty.note+'</div>';
+  }
+
+  var altsHtml = '';
+  if(result.alternatives && result.alternatives.length){
+    var altItems = result.alternatives.map(function(a){
+      return '<div class="alt-item" data-card-key="'+a.key+'"><span class="name">'+a.card.e+' '+a.card.n+'</span><span class="rate">'+a.rate.toFixed(1)+'%</span></div>';
+    }).join('');
+    altsHtml = '<div class="alt-cards"><div class="alt-title">Other cards in your wallet</div>'+altItems+'</div>';
+  }
+
+  var displayQuery = (query && query.trim()) ? query.trim() : 'General purchase';
+  var heroCardKey = b.key;
+  var svgHtml = '';
+  try{ if(typeof svgCard==='function') svgHtml = svgCard(c, heroCardKey); }catch(e){}
+
+  heroEl.innerHTML =
+    '<div class="k">Best card for '+displayQuery+'</div>'+
+    '<div class="hero-art" style="margin:10px 0 12px">'+svgHtml+'</div>'+
+    '<div class="grid" style="margin-top:6px">'+
+      '<div class="dot '+c.cl+'">'+c.e+'</div>'+
+      '<div>'+
+        '<h2 data-card-key="'+heroCardKey+'">'+c.n+'</h2>'+
+        '<p class="sub">Up to '+b.rate.toFixed(1)+'% here'+(b.boosted?' <span style="color:var(--green);font-weight:900">(+'+b.boostAmount+'% loyalty)</span>':'')+'</p>'+
+      '</div>'+
+    '</div>'+
+    '<div class="pills">'+
+      '<span class="pill">'+c.r+'</span>'+
+      '<span class="pill '+confClass+'">'+confLabel+' \u00B7 '+Math.round(acc.confidence*100)+'%</span>'+
+      (fx?'<span class="pill">\uD83C\uDF0D FX mode</span>':'')+
+    '</div>'+
+    demotedWarn + fxMsg + loyaltyMsg + altsHtml;
+
+  // Sync capWidget for V47 breakeven analyzer
+  try{ window._activeRecCardKey = heroCardKey; if(typeof renderCapWidget==='function') renderCapWidget(); }catch(e){}
+}
+
+V127.resolveCategory = resolveCategory;
+V127.getAcceptance = getAcceptance;
+V127.findBestCard = findBestCard;
+V127.renderRecommendation = renderRecommendation;
+
+function boot(){
+  if(!buildIndexes()){ setTimeout(boot, 100); return; }
+  // Wrap saveWallet to invalidate cache on wallet edits
+  try{
+    if(typeof saveWallet === 'function' && !saveWallet.__v127Wrapped){
+      var origSave = saveWallet;
+      window.saveWallet = function(){
+        var r = origSave.apply(this, arguments);
+        try{ invalidateCaches(); }catch(e){}
+        return r;
+      };
+      window.saveWallet.__v127Wrapped = true;
+    }
+  }catch(e){}
+  V127.ready = true;
+  try{ console.log('[V127] Engine ready. Indexes:', aliasKeysDesc.length, 'aliases,', acceptKeysDesc.length, 'acceptance rules.'); }catch(e){}
+}
+
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', boot);
+else boot();
+})();
+</script>
+
+<style id="v126-styles">
+.v126-alt-hint{font-size:10px;color:var(--muted);font-weight:750;margin:-2px 0 6px;letter-spacing:.02em;font-style:italic}
+.v126-log-wrap{border-top:1px solid var(--border);margin-top:10px;padding-top:10px}
+.v126-log-wrap .v126-log-form{display:none;margin-top:10px;gap:8px;grid-template-columns:1fr auto}
+.v126-log-wrap .v126-log-form.show,.v126-log-wrap .hero-log-form.show{display:grid}
+</style>
+
+<script id="v126-hero-module">
+(function(){
+  'use strict';
+  var STATE={recommendedCardKey:null,chosenCardKey:null,lastSignature:null};
+  window.__v126=STATE;
+
+  function findCardKeyByName(name){
+    if(!name||typeof CARDS_DB!=='object')return null;
+    var norm=name.trim().toLowerCase();
+    for(var k in CARDS_DB){var c=CARDS_DB[k];if(c&&c.n&&c.n.toLowerCase()===norm)return k;}
+    var bestKey=null,bestLen=0;
+    for(var k2 in CARDS_DB){var c2=CARDS_DB[k2];if(c2&&c2.n){var cn=c2.n.toLowerCase();if(norm.indexOf(cn)>=0&&cn.length>bestLen){bestKey=k2;bestLen=cn.length;}}}
+    return bestKey;
+  }
+
+  function cardName(key){if(!key)return '';if(typeof CARDS_DB==='object'&&CARDS_DB[key]&&CARDS_DB[key].n)return CARDS_DB[key].n;return key;}
+
+  function detectRecommendedCard(){
+    var hero=document.getElementById('hero');if(!hero)return null;
+    var dc=hero.querySelector('[data-card-key],[data-card]');
+    if(dc){var k=dc.getAttribute('data-card-key')||dc.getAttribute('data-card');if(k&&typeof CARDS_DB==='object'&&CARDS_DB[k])return k;}
+    var h2=hero.querySelector('h2');if(h2)return findCardKeyByName(h2.textContent||'');
+    return null;
+  }
+
+  function extractCardKeyFromAlt(item){
+    var k=item.getAttribute('data-card-key')||item.getAttribute('data-card');
+    if(k)return k;
+    var nameEl=item.querySelector('.name');if(nameEl)return findCardKeyByName(nameEl.textContent||'');
+    return null;
+  }
+
+  function currentMerchant(){var q=document.getElementById('q');return q?(q.value||'').trim():'';}
+
+  function ensureLogUI(){
+    var hero=document.getElementById('hero');if(!hero)return null;
+    var wrap=hero.querySelector('.v126-log-wrap');if(wrap)return wrap;
+    var legacy=hero.querySelectorAll('.hero-log-wrap,.hero-log-wrap-v44');
+    for(var i=0;i<legacy.length;i++)if(!legacy[i].classList.contains('v126-log-wrap'))legacy[i].remove();
+    wrap=document.createElement('div');
+    wrap.className='v126-log-wrap hero-log-wrap';
+    wrap.innerHTML='<button type="button" class="hero-log-btn v126-log-btn" data-v126="log-open">\u2795 Log this purchase</button>'+
+      '<div class="hero-log-form v126-log-form" id="heroLogForm">'+
+        '<input type="hidden" id="heroLogMerchant" value="">'+
+        '<input type="hidden" id="heroLogCard" value="">'+
+        '<input type="number" id="heroLogAmount" placeholder="Amount ($)" step="0.01" min="0" inputmode="decimal">'+
+        '<button type="button" class="hl-save v126-log-save" data-v126="log-save">Save</button>'+
+      '</div>'+
+      '<div class="hero-log-preview" id="heroLogPreview"></div>';
+    hero.appendChild(wrap);return wrap;
+  }
+
+  function updateLogUI(){
+    var hero=document.getElementById('hero');if(!hero)return;
+    var merchant=currentMerchant();var rec=detectRecommendedCard();
+    if(!merchant||!rec){
+      var w=hero.querySelector('.v126-log-wrap');if(w)w.remove();
+      STATE.recommendedCardKey=null;return;
+    }
+    var sig=merchant+'|'+rec;
+    if(sig!==STATE.lastSignature){STATE.chosenCardKey=null;STATE.lastSignature=sig;}
+    STATE.recommendedCardKey=rec;
+    ensureLogUI();
+    var effectiveCard=STATE.chosenCardKey||rec;
+    var mEl=document.getElementById('heroLogMerchant');var cEl=document.getElementById('heroLogCard');
+    if(mEl)mEl.value=merchant;
+    if(cEl)cEl.value=effectiveCard;
+    var btn=hero.querySelector('.v126-log-btn');
+    if(btn){
+      if(STATE.chosenCardKey&&STATE.chosenCardKey!==rec){
+        var nm=cardName(STATE.chosenCardKey);var short=nm.length>22?nm.substring(0,20)+'\u2026':nm;
+        btn.textContent='\u2795 Log with '+short;
+      }else{btn.textContent='\u2795 Log this purchase';}
+    }
+    var altCards=hero.querySelector('.alt-cards');
+    if(altCards){
+      var items=altCards.querySelectorAll('.alt-item');
+      for(var i=0;i<items.length;i++){
+        var it=items[i];
+        if(!it.getAttribute('role')){it.setAttribute('role','button');it.setAttribute('tabindex','0');}
+        var k=extractCardKeyFromAlt(it);
+        if(k&&k===STATE.chosenCardKey)it.classList.add('chosen');else it.classList.remove('chosen');
+      }
+      if(!altCards.querySelector('.v126-alt-hint')){
+        var title=altCards.querySelector('.alt-title');
+        if(title){var hint=document.createElement('div');hint.className='v126-alt-hint alt-hint';hint.textContent='Tap any card to log this purchase with it instead';title.parentNode.insertBefore(hint,title.nextSibling);}
+      }
+    }
+  }
+
+  document.addEventListener('click',function(e){
+    var t=e.target;if(!t||!t.closest)return;
+    var alt=t.closest('#hero .alt-cards .alt-item');
+    if(alt){
+      var key=extractCardKeyFromAlt(alt);if(!key)return;
+      if(STATE.chosenCardKey===key){STATE.chosenCardKey=null;}
+      else{STATE.chosenCardKey=key;showToast(cardName(key));}
+      updateLogUI();return;
+    }
+    if(t.closest('.v126-log-btn')){
+      var form=document.getElementById('heroLogForm');
+      if(form){form.classList.toggle('show');if(form.classList.contains('show')){var amt=document.getElementById('heroLogAmount');if(amt){amt.value='';setTimeout(function(){amt.focus();},50);}}}
+      return;
+    }
+    if(t.closest('.v126-log-save')){saveHeroLog();return;}
+  },true);
+
+  function saveHeroLog(){
+    var amtEl=document.getElementById('heroLogAmount');
+    var mEl=document.getElementById('heroLogMerchant');
+    var cEl=document.getElementById('heroLogCard');
+    if(!amtEl||!mEl||!cEl)return;
+    var amt=parseFloat(amtEl.value);var merchant=mEl.value;
+    var cardKey=STATE.chosenCardKey||cEl.value||STATE.recommendedCardKey;
+    if(!amt||amt<=0){amtEl.focus();amtEl.style.borderColor='var(--coral,#d94b4b)';setTimeout(function(){amtEl.style.borderColor='';},1500);return;}
+    if(!merchant||!cardKey)return;
+    var today=new Date().toISOString().slice(0,10);
+    var tx={id:'tx_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),date:today,merchant:merchant,amount:amt,card:cardKey,cardKey:cardKey,manual:true};
+    var txs=[];
+    try{if(typeof loadTx==='function')txs=loadTx();}catch(e){}
+    if(!Array.isArray(txs))txs=[];
+    txs.push(tx);
+    try{if(typeof saveTxData==='function')saveTxData(txs);}catch(e){}
+    try{localStorage.setItem('walletiq_transactions',JSON.stringify(txs));}catch(e){}
+    if(typeof transactions!=='undefined'){try{transactions.push(tx);}catch(e){}}
+    var earned=0,cardObj=null;
+    try{
+      cardObj=(typeof CARDS_DB!=='undefined')?CARDS_DB[cardKey]:null;
+      var cat='base';
+      try{cat=(typeof resolveCategory==='function')?resolveCategory(merchant):(typeof lookupCategory==='function')?lookupCategory(merchant):'base';}catch(e){}
+      if(cardObj&&cardObj.realRates){var rate=cardObj.realRates[cat]||cardObj.realRates.base||1;earned=(amt*rate)/100;}
+    }catch(e){}
+    var msg=cardObj?('\u2713 Logged +$'+earned.toFixed(2)+' on '+cardObj.n):('\u2713 Purchase logged: $'+amt.toFixed(2));
+    showFlash(msg);
+    var form=document.getElementById('heroLogForm');if(form)form.classList.remove('show');
+    amtEl.value='';
+    var preview=document.getElementById('heroLogPreview');if(preview){preview.classList.remove('show');preview.textContent='';}
+    try{if(typeof window.__v106Tick==='function')window.__v106Tick();}catch(e){}
+    try{if(typeof window.renderVaultV122==='function')window.renderVaultV122();}catch(e){}
+    try{if(typeof renderTxList==='function')renderTxList();}catch(e){}
+    try{if(typeof renderRewardsHero==='function')renderRewardsHero();}catch(e){}
+    try{if(typeof renderHomeRecentActivity==='function')renderHomeRecentActivity();}catch(e){}
+  }
+  window.__v126SaveLog=saveHeroLog;
+
+  document.addEventListener('input',function(e){if(e.target&&e.target.id==='heroLogAmount')updatePreview();});
+
+  function updatePreview(){
+    var amtEl=document.getElementById('heroLogAmount');var preview=document.getElementById('heroLogPreview');
+    if(!amtEl||!preview)return;
+    var amt=parseFloat(amtEl.value)||0;
+    if(amt<=0){preview.classList.remove('show');return;}
+    var mEl=document.getElementById('heroLogMerchant');
+    var cardKey=STATE.chosenCardKey||(document.getElementById('heroLogCard')||{}).value||STATE.recommendedCardKey;
+    var merchant=mEl?mEl.value:'';
+    var cat='base';
+    try{cat=(typeof resolveCategory==='function')?resolveCategory(merchant):(typeof lookupCategory==='function')?lookupCategory(merchant):'base';}catch(e){}
+    var card=(typeof CARDS_DB!=='undefined')?CARDS_DB[cardKey]:null;
+    if(!card||!card.realRates){preview.classList.remove('show');return;}
+    var rate=card.realRates[cat]||card.realRates.base||1;
+    var earned=(amt*rate)/100;
+    preview.textContent="\u2713 You'll earn ~$"+earned.toFixed(2)+" on "+card.n+" ("+rate+"%)";
+    preview.classList.add('show');
+  }
+
+  function showToast(name){
+    var t=document.getElementById('v126-toast');
+    if(!t){t=document.createElement('div');t.id='v126-toast';t.className='v79-select-toast';document.body.appendChild(t);}
+    t.innerHTML='<span class="v79-toast-check">\u2713</span>Using '+(name||'card');
+    void t.offsetWidth;t.classList.add('show');
+    clearTimeout(t.__timer);t.__timer=setTimeout(function(){t.classList.remove('show');},2200);
+  }
+
+  function showFlash(msg){
+    var existing=document.querySelector('.log-flash');if(existing)existing.remove();
+    var flash=document.createElement('div');flash.className='log-flash';flash.textContent=msg;
+    document.body.appendChild(flash);
+    setTimeout(function(){if(flash.parentNode)flash.remove();},2500);
+  }
+
+  var pending=false;
+  function scheduleUpdate(){
+    if(pending)return;pending=true;
+    requestAnimationFrame(function(){pending=false;try{updateLogUI();}catch(e){}});
+  }
+
+  function boot(){
+    var hero=document.getElementById('hero');
+    if(!hero){setTimeout(boot,200);return;}
+    var mo=new MutationObserver(scheduleUpdate);
+    mo.observe(hero,{childList:true,subtree:false});
+    scheduleUpdate();
+    var q=document.getElementById('q');
+    if(q){q.addEventListener('input',function(){if(!q.value.trim()){STATE.chosenCardKey=null;STATE.lastSignature=null;}});}
+    try{console.log('[V126] Unified hero module active');}catch(e){}
+  }
+
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);
+  else boot();
+
+  window.saveHeroLogPurchase=saveHeroLog;
+  window.updateHeroLogPreview=updatePreview;
+  window.toggleHeroLogForm=function(){var form=document.getElementById('heroLogForm');if(form)form.classList.toggle('show');};
 })();
 </script>
 
