@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Wallet IQ V127</title>
+<title>Wallet IQ V128</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Wallet IQ">
@@ -1654,6 +1654,7 @@ body.dark .credits-empty{background:var(--surface)}
 .credit-flash .cf-emoji{font-size:20px}
 </style>
 <body>
+<!-- V128 (2026-07-10): AUTO-ACCUMULATION LEDGER REWRITE (ground-up rebuild). The legacy V106 engine used an INCREMENTAL model — added earnings per new transaction, marked the tx-fingerprint as "applied" in walletiq_applied_txs, and NEVER subtracted when a transaction was deleted. Result: deleting a $10 Starbucks tx removed the row from Activity but the +$0.75 in Amex MR (and the "$0.75 this month" home tile) stayed forever. V128 replaces this with a RECONCILE model: every tick wipes walletiq_auto_earnings and rebuilds it from scratch by summing ALL current transactions. Delete a tx → its contribution vanishes on the next tick. No stale applied-tx state. Reconciler also honors t.historical flag (marked-historical items excluded). V106 tick()/processTransactions()/syncEarningsToMemberships() all guarded to no-op when window.__v128.ready — one-line rollback by deleting the v128-ledger script tag. Migrates any pre-existing __v106Auto memberships to __v128Auto seamlessly. Manual balances preserved via __v128ManualBaseline (renamed from __v106ManualBaseline). clearAllTx + deleteTx wrapped to force immediate reconcile → home tile updates within one animation frame. Zero user-visible behavior change on the ADD side. Data integrity: all 91+ cards, 5,500+ aliases, ACCEPTANCE, PROGRAMS, MERCHANT_DIRECTORY, V80/V81/V82/V86/V96/V122/V126/V127 — untouched. -->
 <!-- V127 (2026-07-10): RECOMMENDATION ENGINE REWRITE. The legacy engine (resolveCategory + getAcceptance + findBestCard + renderRecommendation, lines 8082-8311) iterated the full 5,500-alias ALIASES dict up to 4 times per keystroke (exact + word + substring + alphanumeric) plus another full pass for ACCEPTANCE, then did an unconditional innerHTML wipe of #hero. Result: 9 full engine runs while typing "starbucks", each triggering a V126 hero MutationObserver repaint. V127 replaces this with: (a) pre-built indexes at boot (aliasKeysDesc sorted longest-first, alphanumIndex Map), (b) three-level memoization (catCache, acceptCache, recCache) keyed by normalized query + wallet-hash, (c) diff-checked renderer — if the recommendation signature is unchanged, NO DOM write happens, (d) cache invalidation on wallet save + FX-mode toggle. The 4 legacy functions (resolveCategory/getAcceptance/findBestCard/renderRecommendation) are guarded to delegate to window.__v127.* when ready — one-line rollback: delete the v127-engine script tag. Result: engine cost per keystroke drops from ~5,500 alias iterations × 4 passes × 2 dicts = ~44,000 comparisons to a single hash lookup + one Map lookup + one length-sorted early-exit scan. Zero user-visible behavior change. Data integrity: all 91+ cards, 5,500+ aliases, ACCEPTANCE, PROGRAMS, MERCHANT_DIRECTORY, V80/V81/V82/V86/V96/V106/V122/V126 — untouched. -->
 <!-- V126 (2026-07-10): REAL rebuild pass. Consolidates 8 overlapping hero-log scripts (V47 injectHeroLogButton + V47 renderCapWidget buildHero wrap + V50 injectHeroLogButtonV44 + V50 MutationObserver + V50 saveHeroLogPurchase + V58 saveHeroLogPurchase override + V70 enhanceHero + V70 wrapLogPurchase) into ONE clean module at end of body: v126-hero-module. Single hero MutationObserver (rAF-debounced), single click delegator for alt-cards + log button + save, single save-flow that honors chosen alt-card, single event handler for live reward preview. Legacy functions early-return via window.__v126 flag — data-safe rollback via single line. Also inlines V125's rAF debouncer into V122 setItem intercept + storage listener. Removes duplicate vault-subtab click listener. V106 tick moved 3s→6s (on-demand via setItem intercept covers active use). Zero user-visible behavior change. Data integrity: 91+ cards, 5,500+ aliases, V80 Help, V81 memberships, V82 Activity, V86 hero-missed, V96 subtabs, V106 auto-accumulation, V122 Points Vault — all untouched. -->
 <!-- V124 (2026-07-10): Three critical bug fixes on top of V123. (1) HOMEPAGE POINTS VAULT TILE — the legacy renderHomeVaultSummary was reading from the empty V48-era vault (loadVault/POINT_PROGRAMS) and painting $0 into #homeVaultSummary AFTER V122 wrote the real number, causing the "flash to zeros" on every refresh. Neutered the legacy renderer to delegate to V122's renderHome() so the home tile now matches Rewards Studio exactly. (2) LOG PURCHASE HONORS ALT-CARD SELECTION — tapping an alt-item now syncs the hidden #heroLogCard input AND saveHeroLogPurchase reads window.__v70.chosenCardKey first, so clicking a different card actually logs with that card. (3) VAULT UPDATES IMMEDIATELY AFTER A LOG — V122 setItem intercept + storage listener now also watch walletiq_transactions/v82_tx/tx/transactions keys, and saveHeroLogPurchase directly kicks window.__v106Tick() + renderVaultV122() right after writing. No more waiting for the 3-second poll. -->
@@ -18497,6 +18498,7 @@ body.dark .v103-prog-body { background: rgba(0,0,0,.15); }
   }
 
   function processTransactions(){
+    if(window.__v128 && window.__v128.ready) return { added: 0, totalEarnings: {} }; // V128: superseded
     var txData = readTransactions();
     var txs = txData.txs;
     if(txs.length === 0) return { added: 0, totalEarnings: {} };
@@ -18533,6 +18535,7 @@ body.dark .v103-prog-body { background: rgba(0,0,0,.15); }
 
   // Sync auto-earnings into walletiq_memberships so V104 renderer picks them up
   function syncEarningsToMemberships(earnings){
+    if(window.__v128 && window.__v128.ready) return false; // V128: superseded
     var mems = readJSON(STORAGE_MEMBERSHIPS, []);
     if(!Array.isArray(mems)) mems = [];
 
@@ -18600,6 +18603,7 @@ body.dark .v103-prog-body { background: rgba(0,0,0,.15); }
   }
 
   function tick(){
+    if(window.__v128 && window.__v128.ready) return; // V128: superseded by ledger reconciler
     try{
       var result = processTransactions();
       syncEarningsToMemberships(result.totalEarnings || readJSON(STORAGE_EARNINGS, {}));
@@ -20137,6 +20141,335 @@ else boot();
   window.saveHeroLogPurchase=saveHeroLog;
   window.updateHeroLogPreview=updatePreview;
   window.toggleHeroLogForm=function(){var form=document.getElementById('heroLogForm');if(form)form.classList.toggle('show');};
+})();
+</script>
+
+<script id="v128-ledger">
+/* ============================================================
+   V128 AUTO-ACCUMULATION LEDGER — reconcile-from-scratch model
+   Replaces V106's incremental adder. Every tick wipes and rebuilds
+   walletiq_auto_earnings from the CURRENT transactions list, so
+   deleting a transaction properly rewinds its point contribution.
+   ============================================================ */
+(function(){
+'use strict';
+
+// ---- Card → Program earn table (identical rates to V106) ----
+var CARD_EARN = {
+  cobalt:            {prog:'mr',            rates:{dining:5,groceryAmex:5,streaming:3,transit:2,gas:2,base:1}},
+  amexGold:          {prog:'mr',            rates:{dining:2,groceryAmex:2,transit:2,gas:2,travel:2,base:1}},
+  amexPlatinum:      {prog:'mr',            rates:{travel:5,marriott:5,dining:2,base:1}},
+  amexBusinessPlat:  {prog:'mr',            rates:{travel:1.25,dining:1.25,base:1.25}},
+  amexAeroplan:      {prog:'aeroplan',      rates:{dining:2,gas:2,groceryAmex:1,base:1}},
+  amexAeroReserve:   {prog:'aeroplan',      rates:{travel:3,dining:2,gas:2,base:1.25}},
+  tdAero:            {prog:'aeroplan',      rates:{groceryAmex:2.25,gas:2.25,transit:2.25,dining:2.25,travel:3,base:1.5}},
+  cibcAeroplan:      {prog:'aeroplan',      rates:{dining:2,gas:2,groceryAmex:1,base:1}},
+  bonvoy:            {prog:'bonvoy',        rates:{marriott:5,dining:2,gas:2,base:2}},
+  amexBonvoyBiz:     {prog:'bonvoy',        rates:{marriott:5,dining:2,gas:2,base:2}},
+  rogers:            {prog:'rogers',cashback:true,rates:{rogers:3,base:2}},
+  scotiaPass:        {prog:'scene',         rates:{groceryAmex:3,groceryNo:3,dining:3,transit:3,travel:2,base:1}},
+  scotiaGold:        {prog:'scene',         rates:{dining:6,groceryAmex:5,streaming:3,transit:3,gas:3,base:1}},
+  scotiaPlat:        {prog:'scene',         rates:{dining:2,groceryAmex:2,transit:2,gas:2,shopping:2,base:2}},
+  sceneVI:           {prog:'scene',         rates:{dining:2,groceryAmex:2,base:1}},
+  scotiaCashbackVisa:{prog:'rogers',cashback:true,rates:{groceryAmex:4,groceryNo:4,loblaws:4,streaming:4,transit:2,gas:2,base:1}},
+  rbcAvion:          {prog:'avion',         rates:{travel:2,dining:2,groceryAmex:1.25,base:1}},
+  rbcION:            {prog:'avion',         rates:{groceryAmex:3,streaming:3,gas:1.5,transit:1.5,base:1}},
+  rbcCashback:       {prog:'rogers',cashback:true,rates:{groceryAmex:2,base:1}},
+  cibcAventura:      {prog:'aventura',      rates:{travel:2,dining:2,groceryAmex:2,base:1}},
+  cibcDividendVI:    {prog:'rogers',cashback:true,rates:{groceryAmex:4,gas:4,transit:2,dining:2,base:1}},
+  tdCash:            {prog:'rogers',cashback:true,rates:{groceryAmex:3,groceryNo:3,loblaws:3,gas:3,transit:3,streaming:3,base:1}},
+  bmoEclipse:        {prog:'bmo',           rates:{dining:5,groceryAmex:5,groceryNo:5,transit:5,base:1}},
+  bmoCashback:       {prog:'rogers',cashback:true,rates:{groceryAmex:5,transit:4,gas:3,streaming:2,base:1}},
+  mbnaRewards:       {prog:'mr',            rates:{dining:5,groceryAmex:5,streaming:5,base:1}},
+  pcMC:              {prog:'pcoptimum',     rates:{loblaws:45,groceryNo:45,gas:30,transit:30,base:10}},
+  pcInsiders:        {prog:'pcoptimum',     rates:{loblaws:45,groceryNo:45,gas:30,transit:30,base:10}},
+  amexSimplyCash:    {prog:'rogers',cashback:true,rates:{gas:4,groceryAmex:4,base:1.25}},
+  wsCashCard:        {prog:'rogers',cashback:true,rates:{base:1}},
+  wsInfinite1:       {prog:'rogers',cashback:true,rates:{base:1}},
+  wsInfinitePlus:    {prog:'rogers',cashback:true,rates:{base:2}},
+  wsInfinitePrivilege:{prog:'rogers',cashback:true,rates:{base:2}},
+  bmoAirMiles:       {prog:'airmilesdream', rates:{groceryAmex:0.14,gas:0.14,dining:0.14,base:0.07}},
+  bmoAirMilesMC:     {prog:'airmilesdream', rates:{groceryAmex:0.07,base:0.05}}
+};
+
+var PROG_META = {
+  mr:            {name:'Amex Membership Rewards', icon:'\uD83D\uDD35', unit:'MR'},
+  aeroplan:      {name:'Aeroplan',                icon:'\u2708\uFE0F', unit:'pts'},
+  bonvoy:        {name:'Marriott Bonvoy',         icon:'\uD83C\uDFE8', unit:'pts'},
+  rogers:        {name:'Rogers Cash',             icon:'\uD83D\uDCF1', unit:'$'},
+  scene:         {name:'Scene+',                  icon:'\uD83C\uDFAC', unit:'pts'},
+  avion:         {name:'RBC Avion',               icon:'\u2708\uFE0F', unit:'pts'},
+  aventura:      {name:'CIBC Aventura',           icon:'\u2708\uFE0F', unit:'pts'},
+  bmo:           {name:'BMO Rewards',             icon:'\uD83D\uDD35', unit:'pts'},
+  pcoptimum:     {name:'PC Optimum',              icon:'\uD83D\uDED2', unit:'pts'},
+  airmilesdream: {name:'AIR MILES (Dream)',       icon:'\uD83C\uDF0D', unit:'miles'}
+};
+
+var K_EARNINGS    = 'walletiq_auto_earnings';
+var K_MEMBERSHIPS = 'walletiq_memberships';
+var TX_KEYS       = ['walletiq_transactions','walletiq_v82_tx','walletiq_tx','transactions'];
+
+var V128 = {ready:false, version:'V128'};
+window.__v128 = V128;
+
+function readJSON(key, fb){
+  try{var r = localStorage.getItem(key); if(!r) return fb; var p = JSON.parse(r); return p == null ? fb : p;}
+  catch(e){return fb;}
+}
+function writeJSON(key, val){
+  try{localStorage.setItem(key, JSON.stringify(val));}catch(e){}
+}
+function readAllTx(){
+  var out = [];
+  for(var i = 0; i < TX_KEYS.length; i++){
+    var a = readJSON(TX_KEYS[i], null);
+    if(Array.isArray(a) && a.length > 0){out = a; break;}
+  }
+  return out;
+}
+
+function computeEarn(tx){
+  if(!tx || tx.historical || tx.__historical) return null;
+  var cardKey = tx.card || tx.cardKey || tx.c;
+  if(!cardKey) return null;
+  var entry = CARD_EARN[cardKey];
+  if(!entry) return null;
+  var amount = parseFloat(tx.amount || tx.amt) || 0;
+  if(amount <= 0) return null;
+  var category = tx.category || tx.cat || 'base';
+  var rate = entry.rates[category];
+  if(rate == null) rate = entry.rates.base || 0;
+  if(rate <= 0) return null;
+  var earned = entry.cashback ? (amount * rate) / 100 : amount * rate;
+  return {prog: entry.prog, earned: earned, cashback: !!entry.cashback};
+}
+
+// ---- Migrate any legacy V106 flags to V128 flags (one-time, idempotent) ----
+function migrateLegacy(){
+  var mems = readJSON(K_MEMBERSHIPS, []);
+  if(!Array.isArray(mems)) return;
+  var touched = false;
+  mems.forEach(function(m){
+    if(m.__v106Auto && !m.__v128Auto){m.__v128Auto = true; delete m.__v106Auto; touched = true;}
+    if(m.__v106ManualBaseline != null && m.__v128ManualBaseline == null){
+      m.__v128ManualBaseline = m.__v106ManualBaseline;
+      delete m.__v106ManualBaseline;
+      touched = true;
+    }
+    if(m.__v106AutoAdded != null){delete m.__v106AutoAdded; touched = true;}
+    if(m.__v106Count != null){m.__v128Count = m.__v106Count; delete m.__v106Count; touched = true;}
+  });
+  if(touched) writeJSON(K_MEMBERSHIPS, mems);
+}
+
+// ---- THE RECONCILER: rebuild earnings from scratch every call ----
+function reconcile(){
+  var txs = readAllTx();
+  var earnings = {};   // {prog: {balance, txCount, cashback}}
+
+  txs.forEach(function(tx){
+    var e = computeEarn(tx);
+    if(!e) return;
+    if(!earnings[e.prog]) earnings[e.prog] = {balance:0, txCount:0, cashback:e.cashback};
+    earnings[e.prog].balance += e.earned;
+    earnings[e.prog].txCount += 1;
+    earnings[e.prog].lastUpdated = Date.now();
+    earnings[e.prog].cashback = e.cashback;
+  });
+  writeJSON(K_EARNINGS, earnings);
+
+  // Sync into walletiq_memberships (preserving manual entries)
+  var mems = readJSON(K_MEMBERSHIPS, []);
+  if(!Array.isArray(mems)) mems = [];
+  var changed = false;
+
+  // 1) Update / remove auto-managed entries to match `earnings` map exactly
+  for(var i = mems.length - 1; i >= 0; i--){
+    var m = mems[i];
+    var isAuto = !!m.__v128Auto;
+    var mKey = String(m.key || '').toLowerCase();
+    var earn = earnings[mKey];
+
+    if(isAuto){
+      if(!earn || !(earn.balance > 0)){
+        // No matching auto earnings anymore — remove the auto entry
+        mems.splice(i, 1);
+        changed = true;
+      } else if(Math.abs((m.balance || 0) - earn.balance) > 0.001){
+        m.balance = earn.balance;
+        m.__v128Count = earn.txCount;
+        changed = true;
+      }
+    } else if(earn && earn.balance > 0){
+      // Manual entry that also earns via wallet cards → track baseline + auto delta
+      if(m.__v128ManualBaseline == null){
+        m.__v128ManualBaseline = m.balance || 0;
+      }
+      var expected = (m.__v128ManualBaseline || 0) + earn.balance;
+      if(Math.abs((m.balance || 0) - expected) > 0.001){
+        m.balance = expected;
+        m.__v128AutoAdded = earn.balance;
+        m.__v128Count = earn.txCount;
+        changed = true;
+      }
+    } else if(m.__v128ManualBaseline != null && !earn){
+      // Manual entry: revert to baseline if all auto earnings are gone
+      if(Math.abs((m.balance || 0) - m.__v128ManualBaseline) > 0.001){
+        m.balance = m.__v128ManualBaseline;
+        delete m.__v128AutoAdded;
+        delete m.__v128Count;
+        changed = true;
+      }
+    }
+  }
+
+  // 2) Add any new auto entries for programs earning that have no membership row yet
+  Object.keys(earnings).forEach(function(progKey){
+    var meta = PROG_META[progKey];
+    if(!meta) return;
+    var found = false;
+    for(var i = 0; i < mems.length; i++){
+      if(String(mems[i].key || '').toLowerCase() === progKey){found = true; break;}
+    }
+    if(!found && earnings[progKey].balance > 0){
+      mems.push({
+        key: progKey, name: meta.name, emoji: meta.icon, unit: meta.unit,
+        balance: earnings[progKey].balance,
+        __v128Auto: true,
+        __v128Count: earnings[progKey].txCount
+      });
+      changed = true;
+    }
+  });
+
+  if(changed){
+    writeJSON(K_MEMBERSHIPS, mems);
+    try{document.dispatchEvent(new CustomEvent('v82:refresh'));}catch(e){}
+    try{if(typeof window.renderVaultV122 === 'function') window.renderVaultV122();}catch(e){}
+    try{if(typeof renderRewardsHero === 'function') renderRewardsHero();}catch(e){}
+  }
+  return {earnings: earnings, changed: changed};
+}
+
+V128.reconcile = reconcile;
+V128.migrateLegacy = migrateLegacy;
+
+// Expose the tick under both names for backward-compat with V124-era hooks
+window.__v106Tick = reconcile;
+window.__v128Tick = reconcile;
+
+// ---- Full nuke helper (dev debug + Reset button paths) ----
+V128.resetAll = function(){
+  try{
+    localStorage.removeItem(K_EARNINGS);
+    try{localStorage.removeItem('walletiq_applied_txs');}catch(e){}
+    var mems = readJSON(K_MEMBERSHIPS, []);
+    if(Array.isArray(mems)){
+      // Drop V128 auto entries
+      mems = mems.filter(function(m){return !m.__v128Auto;});
+      // Revert manual entries with baselines
+      mems.forEach(function(m){
+        if(m.__v128ManualBaseline != null){
+          m.balance = m.__v128ManualBaseline;
+          delete m.__v128ManualBaseline;
+          delete m.__v128AutoAdded;
+          delete m.__v128Count;
+        }
+      });
+      writeJSON(K_MEMBERSHIPS, mems);
+    }
+    try{if(typeof window.renderVaultV122 === 'function') window.renderVaultV122();}catch(e){}
+    try{console.log('[V128] Full reset complete.');}catch(e){}
+  }catch(e){try{console.warn('[V128] reset error:', e);}catch(e2){}}
+};
+
+// ---- Wrap tx-mutating storage writes to force reconcile on same frame ----
+function scheduleReconcile(){
+  if(scheduleReconcile.pending) return;
+  scheduleReconcile.pending = true;
+  requestAnimationFrame(function(){
+    scheduleReconcile.pending = false;
+    try{reconcile();}catch(e){}
+  });
+}
+
+// ---- Wrap clearAllTx + deleteTx so they force reconcile after the write ----
+function wrapTxMutators(){
+  try{
+    if(typeof window.clearAllTx === 'function' && !window.clearAllTx.__v128Wrapped){
+      var origClear = window.clearAllTx;
+      window.clearAllTx = function(){
+        var r = origClear.apply(this, arguments);
+        scheduleReconcile();
+        return r;
+      };
+      window.clearAllTx.__v128Wrapped = true;
+    }
+    if(typeof window.deleteTx === 'function' && !window.deleteTx.__v128Wrapped){
+      var origDel = window.deleteTx;
+      window.deleteTx = function(id){
+        var r = origDel.apply(this, arguments);
+        scheduleReconcile();
+        return r;
+      };
+      window.deleteTx = window.deleteTx; // keep reference
+      window.deleteTx.__v128Wrapped = true;
+    }
+    if(typeof window.saveTxData === 'function' && !window.saveTxData.__v128Wrapped){
+      var origSave = window.saveTxData;
+      window.saveTxData = function(){
+        var r = origSave.apply(this, arguments);
+        scheduleReconcile();
+        return r;
+      };
+      window.saveTxData.__v128Wrapped = true;
+    }
+  }catch(e){}
+}
+
+// ---- localStorage intercept: any tx write triggers reconcile ----
+function installStorageIntercept(){
+  try{
+    if(localStorage.setItem.__v128Intercepted) return;
+    var origSet = localStorage.setItem.bind(localStorage);
+    localStorage.setItem = function(k, v){
+      var r = origSet(k, v);
+      if(k === 'walletiq_transactions' || k === 'walletiq_v82_tx' || k === 'walletiq_tx' || k === 'transactions'){
+        scheduleReconcile();
+      }
+      return r;
+    };
+    localStorage.setItem.__v128Intercepted = true;
+  }catch(e){}
+}
+
+function boot(){
+  try{migrateLegacy();}catch(e){}
+  try{reconcile();}catch(e){}
+  V128.ready = true;
+  wrapTxMutators();
+  installStorageIntercept();
+
+  // Cross-tab sync
+  window.addEventListener('storage', function(e){
+    if(!e || !e.key) return;
+    if(e.key === 'walletiq_transactions' || e.key === 'walletiq_v82_tx' || e.key === 'walletiq_tx' || e.key === 'transactions'){
+      scheduleReconcile();
+    }
+  });
+
+  // Late-bind wrap if tx mutators registered after boot
+  setTimeout(wrapTxMutators, 500);
+  setTimeout(wrapTxMutators, 1500);
+
+  // Safety net polling (in case something writes tx list without going through our intercepts)
+  setInterval(function(){try{reconcile();}catch(e){}}, 10000);
+
+  try{console.log('[V128] Ledger reconciler active (V106 disabled).');}catch(e){}
+}
+
+if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+else boot();
 })();
 </script>
 
