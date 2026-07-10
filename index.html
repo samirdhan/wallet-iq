@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Wallet IQ V122</title>
+<title>Wallet IQ V123</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Wallet IQ">
@@ -1654,6 +1654,7 @@ body.dark .credits-empty{background:var(--surface)}
 .credit-flash .cf-emoji{font-size:20px}
 </style>
 <body>
+<!-- V123 (2026-07-10): FOUR fixes on top of V122. (1) Points Vault readWalletCards() now reads walletIQ_v40_wallet (the actual WALLET_KEY the app writes) with fallbacks to 7 legacy keys — Amex MR from Cobalt, Scene+ from Scotia, etc. auto-populate program cards with live balances the moment the tab opens. V122 had the wrong key and always showed the empty state. (2) localStorage.setItem intercept + storage listener extended to walletIQ_v40_wallet so add/remove card re-renders Vault instantly. (3) Help & Guides modal rewritten for the current app: 4-subtab Rewards Studio (Activity, Statement Credits, Welcome Offers, Points Vault), 5,500+ merchants, tap-to-override alternates, auto-accumulation of points from logged transactions. (4) V## version stamp fully removed from the homepage footer — every stamper (V74→V80 + V86 patch) neutered and the default template ends at "Built by samirdhan". -->
 <!-- V122 (2026-07-09): FULL Points Vault + Home summary rebuild from scratch (built directly on top of V120, skipping V121 which was too incremental). Also strips the same 3 legacy patches V121 stripped (v109-script/v116-cleanup/v120-vault-instant-render). Wallet-cards-first design — every card in your wallet has its earning program shown as a program card with (a) which of your cards earn on it, (b) live balance from V106 auto-accumulation, (c) this-month vs last-month earnings deltas derived from walletiq_transactions, (d) full redemption ladder with best rate highlighted, (e) inline Edit balance modal that properly resets V106's auto-earnings baseline. Extras deprioritized into a collapsed accordion at the bottom (they're the bonus, not the star). New home-tab #homeVaultSummary card shows total portfolio + top 3 fastest programs. All other Rewards Studio subtabs (Insights, Activity, Credit Rescue, Welcome Offers) untouched. -->
 <!-- V120 (2026-07-09): Fixed Vault click lag / pop-in flicker. Root cause: V109 hub rendered only on 3000ms interval, so clicking Vault showed empty panel until next tick fired. Fix: (1) pre-render on DOMContentLoaded, (2) wrap switchRewardsView to force render on Vault click, (3) capture-phase click listener with requestAnimationFrame so render happens before browser paints panel. Also removed conflicting v117 opacity transition — base fadeIn animation now runs alone. -->
 
@@ -14418,7 +14419,7 @@ function hasExistingWallet(){try{var keys=['walletiq_wallet','wallet','selectedC
 var __v73SkipWrapped=false;
 function wrapSkip(){if(__v73SkipWrapped)return;try{if(typeof window.skipOnboarding==='function'){var original=window.skipOnboarding;window.skipOnboarding=function(){if(hasExistingWallet()){var m=document.getElementById('onboardModal');if(m)m.classList.remove('show');return;}return original.apply(this,arguments);};__v73SkipWrapped=true;}}catch(e){}}
 var __v73FooterInjected=false;
-function injectHomeFooter(){if(__v73FooterInjected)return;try{var home=document.getElementById('home');if(!home)return;if(home.querySelector('.v73-home-extra')){__v73FooterInjected=true;return;}var wrap=document.createElement('div');wrap.className='v73-home-extra';wrap.innerHTML='<div class="v73-section-title">How it works</div><div class="v73-how"><h3>Get the best card, every time</h3><div class="v73-steps"><div class="v73-step"><div class="v73-step-num">1</div><div class="v73-step-body"><div class="v73-step-title">Set up your wallet</div><div class="v73-step-desc">Add cards you own from supported Canadian cards.</div></div></div><div class="v73-step"><div class="v73-step-num">2</div><div class="v73-step-body"><div class="v73-step-title">Search or log a merchant</div><div class="v73-step-desc">Type a store name and Wallet IQ picks the best card.</div></div></div><div class="v73-step"><div class="v73-step-num">3</div><div class="v73-step-body"><div class="v73-step-title">Use the best card</div><div class="v73-step-desc">Get cents-accurate reward math instantly.</div></div></div></div></div><div class="v73-section-title">Wallet IQ by the numbers</div><div class="v73-stats"><div class="v73-stat"><div class="v73-stat-value">100</div><div class="v73-stat-label">Canadian cards</div></div><div class="v73-stat"><div class="v73-stat-value" id="v89StatMerchants">4,800+</div><div class="v73-stat-label">Merchants</div></div><div class="v73-stat"><div class="v73-stat-value">100%</div><div class="v73-stat-label">On-device</div></div></div><footer class="v73-footer"><div class="v73-footer-brand"><svg class="v73-footer-logo" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><rect x="10" y="7" width="17" height="4" rx="1.2" fill="#c9d3e8" opacity="0.85"/><rect x="8" y="10" width="20" height="5" rx="1.5" fill="#e0e7f2"/><rect x="5" y="14" width="30" height="20" rx="4.5" fill="#5f74b8"/><rect x="26" y="22" width="6" height="4.5" rx="1.2" fill="#4c609e"/><circle cx="29" cy="24.25" r="1" fill="#faf7f2"/><path d="M32 3.5 L33 6 L35.5 7 L33 8 L32 10.5 L31 8 L28.5 7 L31 6 Z" fill="#c9a35a"/></svg><span class="v73-footer-name">Wallet <span class="v73-brand-iq">IQ</span></span></div><div class="v73-footer-tagline">Smarter credit card decisions for Canadians.<br>Free. Private. Built by an independent.</div><div class="v73-footer-social"><a class="v73-social-link" onclick="return false" href="#"><span class="v73-social-ico">\uD83D\uDCF7</span>Instagram</a><a class="v73-social-link" onclick="return false" href="#"><span class="v73-social-ico">\uD83D\uDCBC</span>LinkedIn</a><a class="v73-social-link" onclick="return false" href="#"><span class="v73-social-ico">\uD83D\uDC26</span>X / Twitter</a></div><div class="v73-footer-links"><a onclick="return false" href="#">About</a><a onclick="return false" href="#">Privacy</a><a onclick="return false" href="#">Terms</a><a onclick="return false" href="#">Contact</a></div><div class="v73-footer-copy">\u00A9 2026 Wallet IQ \u00B7 Built by Samir Dhanani \u00B7 V73</div><div class="v73-footer-disclaimer">Wallet IQ is an independent tool and is not affiliated with any Canadian bank or credit card issuer. All data is stored locally on your device. Rates and offers change frequently \u2014 verify with the issuer before applying.</div></footer>';home.appendChild(wrap);__v73FooterInjected=true;}catch(e){}}
+function injectHomeFooter(){if(__v73FooterInjected)return;try{var home=document.getElementById('home');if(!home)return;if(home.querySelector('.v73-home-extra')){__v73FooterInjected=true;return;}var wrap=document.createElement('div');wrap.className='v73-home-extra';wrap.innerHTML='<div class="v73-section-title">How it works</div><div class="v73-how"><h3>Get the best card, every time</h3><div class="v73-steps"><div class="v73-step"><div class="v73-step-num">1</div><div class="v73-step-body"><div class="v73-step-title">Set up your wallet</div><div class="v73-step-desc">Add cards you own from supported Canadian cards.</div></div></div><div class="v73-step"><div class="v73-step-num">2</div><div class="v73-step-body"><div class="v73-step-title">Search or log a merchant</div><div class="v73-step-desc">Type a store name and Wallet IQ picks the best card.</div></div></div><div class="v73-step"><div class="v73-step-num">3</div><div class="v73-step-body"><div class="v73-step-title">Use the best card</div><div class="v73-step-desc">Get cents-accurate reward math instantly.</div></div></div></div></div><div class="v73-section-title">Wallet IQ by the numbers</div><div class="v73-stats"><div class="v73-stat"><div class="v73-stat-value">100</div><div class="v73-stat-label">Canadian cards</div></div><div class="v73-stat"><div class="v73-stat-value" id="v89StatMerchants">4,800+</div><div class="v73-stat-label">Merchants</div></div><div class="v73-stat"><div class="v73-stat-value">100%</div><div class="v73-stat-label">On-device</div></div></div><footer class="v73-footer"><div class="v73-footer-brand"><svg class="v73-footer-logo" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><rect x="10" y="7" width="17" height="4" rx="1.2" fill="#c9d3e8" opacity="0.85"/><rect x="8" y="10" width="20" height="5" rx="1.5" fill="#e0e7f2"/><rect x="5" y="14" width="30" height="20" rx="4.5" fill="#5f74b8"/><rect x="26" y="22" width="6" height="4.5" rx="1.2" fill="#4c609e"/><circle cx="29" cy="24.25" r="1" fill="#faf7f2"/><path d="M32 3.5 L33 6 L35.5 7 L33 8 L32 10.5 L31 8 L28.5 7 L31 6 Z" fill="#c9a35a"/></svg><span class="v73-footer-name">Wallet <span class="v73-brand-iq">IQ</span></span></div><div class="v73-footer-tagline">Smarter credit card decisions for Canadians.<br>Free. Private. Built by an independent.</div><div class="v73-footer-social"><a class="v73-social-link" onclick="return false" href="#"><span class="v73-social-ico">\uD83D\uDCF7</span>Instagram</a><a class="v73-social-link" onclick="return false" href="#"><span class="v73-social-ico">\uD83D\uDCBC</span>LinkedIn</a><a class="v73-social-link" onclick="return false" href="#"><span class="v73-social-ico">\uD83D\uDC26</span>X / Twitter</a></div><div class="v73-footer-links"><a onclick="return false" href="#">About</a><a onclick="return false" href="#">Privacy</a><a onclick="return false" href="#">Terms</a><a onclick="return false" href="#">Contact</a></div><div class="v73-footer-copy">\u00A9 2026 Wallet IQ \u00B7 Built by samirdhan</div><div class="v73-footer-disclaimer">Wallet IQ is an independent tool and is not affiliated with any Canadian bank or credit card issuer. All data is stored locally on your device. Rates and offers change frequently \u2014 verify with the issuer before applying.</div></footer>';home.appendChild(wrap);__v73FooterInjected=true;}catch(e){}}
 function init(){patchCardsDb();wrapSkip();injectHomeFooter();}
 if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',init);}else{init();}
 setTimeout(init,300);setTimeout(init,1000);setTimeout(init,2500);setTimeout(init,5000);
@@ -14429,7 +14430,7 @@ setTimeout(init,300);setTimeout(init,1000);setTimeout(init,2500);setTimeout(init
 <script id="v74-script">
 (function(){
 var __v74Patched=false;
-function patchFooter(){if(__v74Patched)return;try{var s=document.querySelector('.v73-footer-social');if(!s)return;var links=s.querySelectorAll('.v73-social-link');var swapped=false;for(var i=0;i<links.length;i++){var l=links[i];var t=(l.textContent||'').toLowerCase();if(t.indexOf('twitter')>=0||t.indexOf('x /')>=0||t.indexOf('/twitter')>=0||t.trim()==='x'){l.innerHTML='<span class="v73-social-ico">\uD83D\uDCD8</span>Facebook';swapped=true;}}var c=document.querySelector('.v73-footer-copy');var copyOk=false;if(c&&c.textContent.indexOf('V73')>=0){c.textContent=c.textContent.replace(/V73/g,'V74');copyOk=true;}if(swapped&&copyOk)__v74Patched=true;}catch(e){}}
+function patchFooter(){if(__v74Patched)return;try{var s=document.querySelector('.v73-footer-social');if(!s)return;var links=s.querySelectorAll('.v73-social-link');var swapped=false;for(var i=0;i<links.length;i++){var l=links[i];var t=(l.textContent||'').toLowerCase();if(t.indexOf('twitter')>=0||t.indexOf('x /')>=0||t.indexOf('/twitter')>=0||t.trim()==='x'){l.innerHTML='<span class="v73-social-ico">\uD83D\uDCD8</span>Facebook';swapped=true;}}var c=document.querySelector('.v73-footer-copy');var copyOk=false;copyOk=true;/* V123: version stamp disabled */if(swapped&&copyOk)__v74Patched=true;}catch(e){}}
 function init(){patchFooter();try{var h=document.getElementById('home');if(h){new MutationObserver(function(){if(!__v74Patched)patchFooter();}).observe(h,{childList:true,subtree:true});}}catch(e){}}
 if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',init);}else{init();}
 setTimeout(init,500);setTimeout(init,1500);setTimeout(init,3500);setTimeout(init,6000);
@@ -14443,7 +14444,7 @@ var __v75Injected=false;var __v75Stamped=false;
 function submitEmail(){try{var w=document.querySelector('.v75-email-signup');if(!w)return;var inp=w.querySelector('.v75-email-input');var val=(inp&&inp.value||'').trim();if(!val||val.indexOf('@')<0){if(inp){inp.focus();inp.style.borderColor='var(--coral)';setTimeout(function(){inp.style.borderColor='';},1500);}return;}try{localStorage.setItem('v75-email-signed',val);}catch(e){}w.classList.add('thanks');var t=w.querySelector('.v75-email-title');var s=w.querySelector('.v75-email-sub');if(t)t.textContent="\u2713 You're subscribed!";if(s)s.textContent="Thanks \u2014 we'll only send monthly card highlights.";var f=w.querySelector('.v75-email-form');if(f)f.style.display='none';}catch(e){}}
 window.__v75SubmitEmail=submitEmail;
 function injectEmailSignup(){if(__v75Injected)return;try{var f=document.querySelector('.v73-footer');if(!f)return;if(f.querySelector('.v75-email-signup')){__v75Injected=true;return;}var social=f.querySelector('.v73-footer-social');if(!social)return;var s=document.createElement('div');s.className='v75-email-signup';var signed=false;try{signed=!!localStorage.getItem('v75-email-signed');}catch(e){}if(signed){s.innerHTML='<div class="v75-email-title">\u2713 You\'re subscribed!</div><div class="v75-email-sub">Thanks \u2014 we\'ll only send monthly card highlights.</div>';}else{s.innerHTML='<div class="v75-email-title">Get monthly Canadian card tips</div><div class="v75-email-sub">One email a month. No spam. Unsubscribe anytime.</div><div class="v75-email-form"><input type="email" class="v75-email-input" placeholder="you@example.com" autocomplete="email"><button type="button" class="v75-email-btn" onclick="window.__v75SubmitEmail()">Subscribe</button></div>';}social.parentNode.insertBefore(s,social);__v75Injected=true;}catch(e){}}
-function stampV75(){if(__v75Stamped)return;try{var c=document.querySelector('.v73-footer-copy');if(c&&c.textContent.indexOf('V74')>=0){c.textContent=c.textContent.replace(/V74/g,'V75');__v75Stamped=true;}else if(c&&c.textContent.indexOf('V75')>=0){__v75Stamped=true;}}catch(e){}}
+function stampV75(){__v75Stamped=true;/* V123: version stamp disabled */}
 function init(){injectEmailSignup();stampV75();try{var h=document.getElementById('home');if(h){new MutationObserver(function(){if(!__v75Injected)injectEmailSignup();if(!__v75Stamped)stampV75();}).observe(h,{childList:true,subtree:true});}}catch(e){}}
 if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',init);}else{init();}
 setTimeout(init,500);setTimeout(init,1500);setTimeout(init,3500);setTimeout(init,6000);
@@ -14454,7 +14455,7 @@ setTimeout(init,500);setTimeout(init,1500);setTimeout(init,3500);setTimeout(init
 <script id="v76-script">
 (function(){
 var __v76Patched=false;
-function patchV76(){if(__v76Patched)return;try{var extra=document.querySelector('.v73-home-extra');if(!extra)return;var titles=extra.querySelectorAll(':scope > .v73-section-title');for(var i=0;i<titles.length;i++){var t=titles[i];if((t.textContent||'').toLowerCase().indexOf('how')>=0){t.remove();break;}}var how=extra.querySelector(':scope > .v73-how');if(how)how.remove();var tag=document.querySelector('.v73-footer-tagline');if(tag){tag.textContent='Cards. Rewards. Optimized.';}var c=document.querySelector('.v73-footer-copy');if(c&&c.textContent.indexOf('V75')>=0){c.textContent=c.textContent.replace(/V75/g,'V76');}if(tag)__v76Patched=true;}catch(e){}}
+function patchV76(){if(__v76Patched)return;try{var extra=document.querySelector('.v73-home-extra');if(!extra)return;var titles=extra.querySelectorAll(':scope > .v73-section-title');for(var i=0;i<titles.length;i++){var t=titles[i];if((t.textContent||'').toLowerCase().indexOf('how')>=0){t.remove();break;}}var how=extra.querySelector(':scope > .v73-how');if(how)how.remove();var tag=document.querySelector('.v73-footer-tagline');if(tag){tag.textContent='Cards. Rewards. Optimized.';}/* V123: version stamp disabled */if(tag)__v76Patched=true;}catch(e){}}
 function init(){patchV76();try{var h=document.getElementById('home');if(h){new MutationObserver(function(){if(!__v76Patched)patchV76();}).observe(h,{childList:true,subtree:true});}}catch(e){}}
 if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',init);}else{init();}
 setTimeout(init,500);setTimeout(init,1500);setTimeout(init,3500);setTimeout(init,6000);
@@ -14473,7 +14474,7 @@ function v77SubmitEmail(){try{var w=document.querySelector('.v75-email-signup');
 window.__v75SubmitEmail=v77SubmitEmail;
 setTimeout(function(){window.__v75SubmitEmail=v77SubmitEmail;},500);
 setTimeout(function(){window.__v75SubmitEmail=v77SubmitEmail;},1500);
-function stampV77(){try{var c=document.querySelector('.v73-footer-copy');if(c&&c.textContent.indexOf('V76')>=0){c.textContent=c.textContent.replace(/V76/g,'V77');}}catch(e){}}
+function stampV77(){/* V123: version stamp disabled */}
 if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',stampV77);}else{stampV77();}
 setTimeout(stampV77,500);setTimeout(stampV77,1500);
 })();
@@ -14483,7 +14484,7 @@ setTimeout(stampV77,500);setTimeout(stampV77,1500);
 <script id="v78-script">
 (function(){
 var __v78Patched=false;
-function patchV78(){if(__v78Patched)return;try{var s=document.querySelector('.v75-email-signup');if(s)s.remove();var l=document.querySelector('.v73-footer-links');if(l)l.remove();var c=document.querySelector('.v73-footer-copy');if(c){var t=c.textContent||'';if(t.indexOf('Samir Dhanani')>=0){t=t.replace(/Samir Dhanani/g,'samirdhan');}if(t.indexOf('V77')>=0){t=t.replace(/V77/g,'V78');}c.textContent=t;}if(c)__v78Patched=true;}catch(e){}}
+function patchV78(){if(__v78Patched)return;try{var s=document.querySelector('.v75-email-signup');if(s)s.remove();var l=document.querySelector('.v73-footer-links');if(l)l.remove();var c=document.querySelector('.v73-footer-copy');if(c){var t=c.textContent||'';if(t.indexOf('Samir Dhanani')>=0){t=t.replace(/Samir Dhanani/g,'samirdhan');}/* V123: version stamp disabled */c.textContent=t;}if(c)__v78Patched=true;}catch(e){}}
 function init(){patchV78();try{var h=document.getElementById('home');if(h){new MutationObserver(function(){if(!__v78Patched)patchV78();}).observe(h,{childList:true,subtree:true});}}catch(e){}}
 if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',init);}else{init();}
 setTimeout(init,500);setTimeout(init,1500);setTimeout(init,3500);setTimeout(init,6000);
@@ -14497,7 +14498,7 @@ var toastTimer=null;
 function ensureToast(){var t=document.getElementById('v79-select-toast');if(!t){t=document.createElement('div');t.id='v79-select-toast';t.className='v79-select-toast';document.body.appendChild(t);}return t;}
 function showToast(name){var t=ensureToast();t.innerHTML='<span class="v79-toast-check">\u2713</span>Using '+name;void t.offsetWidth;t.classList.add('show');if(toastTimer)clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('show');},2500);}
 document.addEventListener('click',function(e){var item=e.target&&e.target.closest?e.target.closest('.alt-cards .alt-item'):null;if(!item)return;setTimeout(function(){if(item.classList.contains('chosen')){var nEl=item.querySelector('.name');var n=nEl?(nEl.textContent||'card'):'card';if(n.length>32)n=n.substring(0,30)+'\u2026';showToast(n);}},60);},true);
-function stampV79(){try{var c=document.querySelector('.v73-footer-copy');if(c&&c.textContent.indexOf('V78')>=0){c.textContent=c.textContent.replace(/V78/g,'V79');}}catch(e){}}
+function stampV79(){/* V123: version stamp disabled */}
 if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',stampV79);}else{stampV79();}
 setTimeout(stampV79,500);setTimeout(stampV79,1500);
 })();
@@ -14603,22 +14604,22 @@ setTimeout(stampV79,500);setTimeout(stampV79,1500);
           '<div class="v80-help-body">' +
             '<div class="v80-help-view active" data-view="howto">' +
               '<h3>How Wallet IQ works</h3>' +
-              '<p>Wallet IQ tells you which of your Canadian credit cards will earn the most rewards for any purchase. Here\'s how to use it:</p>' +
-              '<div class="v80-step"><div class="v80-step-num">1</div><div><div class="v80-step-title">Set up your wallet</div><div class="v80-step-desc">Tap the hamburger menu, then <b>Edit my wallet</b>. Select every credit card you actually own. We support 100 Canadian cards.</div></div></div>' +
-              '<div class="v80-step"><div class="v80-step-num">2</div><div><div class="v80-step-title">Search a merchant</div><div class="v80-step-desc">On the Home tab, type any Canadian store or brand (like "Starbucks" or "Costco"). Wallet IQ knows what category it fits.</div></div></div>' +
-              '<div class="v80-step"><div class="v80-step-num">3</div><div><div class="v80-step-title">See the best card</div><div class="v80-step-desc">The top card recommendation appears instantly with the exact reward rate. Tap any alternate card below if you want to use that one instead \u2014 the button label updates to match.</div></div></div>' +
-              '<div class="v80-step"><div class="v80-step-num">4</div><div><div class="v80-step-title">Log purchases (optional)</div><div class="v80-step-desc">Tap <b>Log purchase</b> and enter the amount. Wallet IQ records it in Rewards Studio so you can track your points and cashback over time.</div></div></div>' +
-              '<div class="v80-tip"><strong>Privacy tip:</strong> Wallet IQ runs 100% on your device. Nothing is uploaded anywhere. Your card list, transactions, and rewards stay with you.</div>' +
+              '<p>Wallet IQ picks the right Canadian credit card for every purchase \u2014 instantly, on-device, no login. Here\'s the full flow:</p>' +
+              '<div class="v80-step"><div class="v80-step-num">1</div><div><div class="v80-step-title">Set up your wallet</div><div class="v80-step-desc">Open the menu (\u2630) \u2192 <b>Edit my wallet</b> and select the cards you actually own. We cover 100+ Canadian cards across every major issuer. If you work at a Canadian bank, pick your employer for the 50%-off annual-fee estimate.</div></div></div>' +
+              '<div class="v80-step"><div class="v80-step-num">2</div><div><div class="v80-step-title">Search any merchant</div><div class="v80-step-desc">Type a store name on Home \u2014 5,500+ Canadian, US and online merchants recognized (Costco, Save-On-Foods, Boston Pizza, Nike, Netflix, and thousands more).</div></div></div>' +
+              '<div class="v80-step"><div class="v80-step-num">3</div><div><div class="v80-step-title">See the best card</div><div class="v80-step-desc">The top recommendation appears with the exact reward rate. Prefer a different card? <b>Tap any alternate</b> below the hero and the whole card (including the Log purchase button) swaps to that one.</div></div></div>' +
+              '<div class="v80-step"><div class="v80-step-num">4</div><div><div class="v80-step-title">Log a purchase \u2192 points auto-accrue</div><div class="v80-step-desc">Tap <b>Log purchase</b> and enter the amount. Points earned flow straight into your <b>Points Vault</b> under the right program (MR, Aeroplan, Scene+, Avion, Rogers Cash, and more) \u2014 no manual entry ever again.</div></div></div>' +
+              '<div class="v80-step"><div class="v80-step-num">5</div><div><div class="v80-step-title">Never miss a statement credit</div><div class="v80-step-desc">The Statement Credits tab (Rewards Studio \u2192 \uD83D\uDCB3) tracks every credit your cards give you and flags anything expiring soon so you don\'t leave money on the table.</div></div></div>' +
+              '<div class="v80-tip"><strong>Privacy first:</strong> Wallet IQ runs 100% on your device. Nothing uploads anywhere \u2014 your card list, transactions, and rewards balances stay with you.</div>' +
             '</div>' +
             '<div class="v80-help-view" data-view="rewards">' +
               '<h3>Rewards Studio guide</h3>' +
-              '<p>Rewards Studio tracks everything you earn (or miss out on) across your wallet. Access it from the hamburger menu \u2192 <b>Rewards Studio</b>.</p>' +
-              '<div class="v80-step"><div class="v80-step-num">\uD83D\uDCA1</div><div><div class="v80-step-title">Overview</div><div class="v80-step-desc">Your dashboard \u2014 shows total portfolio value, this month\'s earnings, missed rewards, and recent activity at a glance.</div></div></div>' +
-              '<div class="v80-step"><div class="v80-step-num">\uD83D\uDCCA</div><div><div class="v80-step-title">Transactions</div><div class="v80-step-desc">Every purchase you\'ve logged. Filter by month, add new purchases with the <b>\u2795 Add</b> button, or upload a CSV export from your bank.</div></div></div>' +
-              '<div class="v80-step"><div class="v80-step-num">\uD83D\uDCB3</div><div><div class="v80-step-title">Statement Credits</div><div class="v80-step-desc">Track all the free credits your cards give you (Amex Cobalt streaming, Amex Platinum travel credit, etc.) so you never leave money on the table.</div></div></div>' +
-              '<div class="v80-step"><div class="v80-step-num">\uD83C\uDF81</div><div><div class="v80-step-title">Welcome Offers</div><div class="v80-step-desc">Track cards you\'ve applied for and monitor your minimum spend progress toward each welcome bonus.</div></div></div>' +
-              '<div class="v80-step"><div class="v80-step-num">\uD83C\uDFE6</div><div><div class="v80-step-title">Vault</div><div class="v80-step-desc">Your points & miles balances across programs (Aeroplan, Avion, MR, Scene+, AIR MILES, PC Optimum, etc.). Includes sweet spot redemption tips.</div></div></div>' +
-              '<div class="v80-tip"><strong>Pro tip:</strong> The more purchases you log, the more useful Rewards Studio becomes. Even logging just the biggest monthly ones (rent, groceries, gas) gives you a solid year-end reward total.</div>' +
+              '<p>Rewards Studio is your rewards command center. Open it from the menu \u2192 <b>Rewards Studio</b>. The dark hero at the top shows total portfolio value, this-month earnings, missed rewards, and vault value at a glance. Below the hero live 4 subtabs:</p>' +
+              '<div class="v80-step"><div class="v80-step-num">\uD83D\uDCCA</div><div><div class="v80-step-title">Activity</div><div class="v80-step-desc">Every purchase you\'ve logged, grouped by month. Add new transactions (\u2795), upload a CSV export from your bank, mark items as historical so they don\'t count as missed rewards, and see insights (leaks, subscriptions, missed cards) inline at the top.</div></div></div>' +
+              '<div class="v80-step"><div class="v80-step-num">\uD83D\uDCB3</div><div><div class="v80-step-title">Statement Credits</div><div class="v80-step-desc">All the free credits your cards give you \u2014 Amex Platinum $200 travel, Amex Cobalt monthly earn caps, Scotia Passport lounge visits, NEXUS credits, and more. Redeem-progress rings warn you when a credit is about to expire.</div></div></div>' +
+              '<div class="v80-step"><div class="v80-step-num">\uD83C\uDF81</div><div><div class="v80-step-title">Welcome Offers</div><div class="v80-step-desc">Track cards you\'ve applied for. Log the min-spend requirement and Wallet IQ tallies your progress toward the bonus with a live percentage bar. Never miss the deadline again.</div></div></div>' +
+              '<div class="v80-step"><div class="v80-step-num">\uD83C\uDFE6</div><div><div class="v80-step-title">Points Vault</div><div class="v80-step-desc">Wallet-first: every points program your cards actually earn on gets its own card at the top \u2014 which of your cards feed it, current balance (auto-accrued from logged transactions), this-month vs last-month delta, and the <b>full redemption ladder</b> with the best-rate row highlighted (e.g. Aeroplan sweet-spot 2.2\u00A2/pt vs standard 1.5\u00A2/pt). Manually-tracked extras (PC Optimum, Petro-Points, Hilton, etc.) live in a collapsed Extras drawer below.</div></div></div>' +
+              '<div class="v80-tip"><strong>Pro tip:</strong> Log even just your biggest monthly items (rent, groceries, gas) and the Vault will show your true year-end rewards balance without any manual data entry. Every logged transaction on a supported card auto-updates the right program balance in real time.</div>' +
             '</div>' +
           '</div>' +
         '</div>';
@@ -14696,7 +14697,7 @@ setTimeout(stampV79,500);setTimeout(stampV79,1500);
   }
 
   // Stamp version
-  function stampV80(){ try{ var c=document.querySelector('.v73-footer-copy'); if(c && c.textContent.indexOf('V79')>=0){ c.textContent = c.textContent.replace(/V79/g, 'V80'); } }catch(e){} }
+  function stampV80(){ /* V123: version stamp disabled */ }
 
   function init(){
     ensureClearButton();
@@ -15625,9 +15626,11 @@ setTimeout(stampV79,500);setTimeout(stampV79,1500);
     },true);
   }
   function updateFooterV86(){
+    // V123: strip any trailing version stamp like ' \u00B7 V##' from the footer copyright.
     document.querySelectorAll('.v73-footer-copy').forEach(function(el){
-      if(el&&el.textContent&&el.textContent.indexOf('V85')!==-1){
-        el.textContent=el.textContent.replace('V85','V86');
+      if(el&&el.textContent){
+        var next=el.textContent.replace(/\s*\u00B7\s*V\d+\s*$/,'');
+        if(next!==el.textContent)el.textContent=next;
       }
     });
   }
@@ -19219,7 +19222,17 @@ function readTx(){for(var i=0;i<TX_KEYS.length;i++){var a=readJSON(TX_KEYS[i],nu
 function canonKey(mem){if(!mem)return null;var k=(mem.key||'').toString().toLowerCase();if(PROGRAMS[k])return k;var n=(mem.name||'').toString().toLowerCase().trim();if(NAME_TO_KEY[n])return NAME_TO_KEY[n];return mem.key||null;}
 
 function readWalletCards(){
-  var raw=readJSON('walletiq_wallet',[]);
+  // V123: The main app writes wallet cards under WALLET_KEY = 'walletIQ_v40_wallet'.
+  // V122 only read 'walletiq_wallet' which the app never populates, so the Vault
+  // always showed the empty state. Now checks the primary key first with graceful
+  // fallbacks to 7 legacy variants.
+  var WALLET_KEYS=['walletIQ_v40_wallet','walletiq_wallet','wallet','selectedCards','wiq_wallet','walletiq.cards','walletiq_cards','myCards'];
+  var raw=null;
+  for(var wi=0;wi<WALLET_KEYS.length;wi++){
+    var cand=readJSON(WALLET_KEYS[wi],null);
+    if(cand&&((Array.isArray(cand)&&cand.length>0)||(typeof cand==='object'&&!Array.isArray(cand)&&Object.keys(cand).length>0))){raw=cand;break;}
+  }
+  if(!raw)raw=[];
   var keys=[];
   if(Array.isArray(raw)){
     raw.forEach(function(item){
@@ -19516,9 +19529,9 @@ function boot(){
   document.addEventListener('v82:refresh',function(){renderVault();renderHome();});
   try{
     var origSet=localStorage.setItem.bind(localStorage);
-    localStorage.setItem=function(k,v){var r=origSet(k,v);if(k==='walletiq_memberships'||k==='walletiq_wallet'||k==='walletiq_auto_earnings'){try{renderVault();renderHome();}catch(e){}}return r;};
+    localStorage.setItem=function(k,v){var r=origSet(k,v);if(k==='walletiq_memberships'||k==='walletiq_wallet'||k==='walletIQ_v40_wallet'||k==='walletiq_auto_earnings'){try{renderVault();renderHome();}catch(e){}}return r;};
   }catch(e){}
-  window.addEventListener('storage',function(e){if(e&&(e.key==='walletiq_memberships'||e.key==='walletiq_wallet')){renderVault();renderHome();}});
+  window.addEventListener('storage',function(e){if(e&&(e.key==='walletiq_memberships'||e.key==='walletiq_wallet'||e.key==='walletIQ_v40_wallet')){renderVault();renderHome();}});
   try{console.log('[V122] Rewards Studio rebuild active. Portfolio = '+fmtMoney(window.computePortfolioTotal()));}catch(e){}
 }
 window.renderVaultV122=function(){try{renderVault();renderHome();}catch(e){}};
