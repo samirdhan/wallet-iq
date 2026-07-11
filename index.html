@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>Wallet IQ V134</title>
+<title>Wallet IQ V136</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Wallet IQ">
@@ -1501,89 +1501,19 @@ body.dark .v96-synergy-card.locked { border-color: var(--border); }
 
 <style id="v130-patch">
 input,#q,#onboardSearch,.modal-search,input[type="text"],input[type="number"],input[type="email"],input[type="tel"],input[type="search"],input[type="date"],select,textarea{font-size:16px!important}
-.pill,.tag,.pill.conf-high,.pill.conf-mid,.pill.conf-low{display:flex!important;align-items:center!important;justify-content:center!important;text-align:center!important}
+.pill,.tag{display:flex!important;align-items:center!important;justify-content:center!important;text-align:center!important}
 .rewards-subtabs button{font-size:11px!important;padding:10px 3px!important}
 @media(max-width:375px){.rewards-subtabs button{font-size:10.5px!important;padding:9px 2px!important}}
 </style>
 <script id="v130-iife">(function(){
-  window.__v130 = window.__v130 || {};
-  // Track main card key from #hero
-  var hero = document.getElementById('hero');
-  if(hero){
-    var mo = new MutationObserver(function(){
-      var el = hero.querySelector('[data-card-key]');
-      if(el) hero.setAttribute('data-main-card-key', el.getAttribute('data-card-key')||'');
-    });
-    mo.observe(hero,{childList:true,subtree:true,attributes:true});
-  }
-  // Keyboard dismiss on Enter for search
-  document.addEventListener('keydown', function(e){
-    if(e.target && e.target.id==='q' && e.key==='Enter'){
-      e.preventDefault(); e.target.blur(); window.scrollTo(0,0);
-    }
-  });
-  // Alt-card revert on capture phase
-  document.addEventListener('click', function(e){
-    var alt = e.target.closest && e.target.closest('.alt-item.chosen');
-    if(alt){
-      e.stopPropagation(); e.stopImmediatePropagation();
-      document.querySelectorAll('.alt-item.chosen').forEach(function(x){x.classList.remove('chosen');});
-      var main = hero ? hero.getAttribute('data-main-card-key') : '';
-      var hidden = document.getElementById('heroLogCard');
-      if(hidden && main) hidden.value = main;
-      if(window.__v70) window.__v70.chosenCardKey = null;
-      var toast = document.createElement('div');
-      toast.className = 'v79-select-toast show';
-      toast.textContent = '↻ Back to recommended card';
-      document.body.appendChild(toast);
-      setTimeout(function(){toast.remove();},1600);
-      var q = document.getElementById('q');
-      if(q && typeof window.renderRecommendation === 'function'){
-        try { window.renderRecommendation(q.value||''); } catch(_){}
-      }
-    }
-  }, true);
-  // Tag onboarding cards with data-issuer
-  function tagIssuers(){
-    var items = document.querySelectorAll('#cardChoices .card-check');
-    items.forEach(function(el){
-      var key = el.getAttribute('data-card-key') || el.dataset.cardKey;
-      var iss = '';
-      try {
-        if(key && window.CARDS_DB && window.CARDS_DB[key]) iss = window.CARDS_DB[key].iss || '';
-      } catch(_){}
-      if(!iss){
-        var txt = (el.textContent||'').toLowerCase();
-        var list = ['Amex','Scotia','TD','RBC','BMO','CIBC','Rogers','MBNA','HSBC','Wealthsimple','Tangerine','PC Financial','Canadian Tire','Walmart','Neo','KOHO','EQ Bank','Brim','Home Trust','Meridian','Vancity','Coast Capital','Servus','Desjardins','National Bank','Laurentian','Capital One','Simplii'];
-        for(var i=0;i<list.length;i++){ if(txt.indexOf(list[i].toLowerCase())>=0){ iss=list[i]; break; } }
-      }
-      if(iss) el.setAttribute('data-issuer', iss);
-    });
-  }
-  tagIssuers();
-  var mo2 = new MutationObserver(function(){ tagIssuers(); });
-  var choices = document.getElementById('cardChoices');
-  if(choices) mo2.observe(choices,{childList:true,subtree:true});
-  window.__v130.tagIssuers = tagIssuers;
+var hero=document.getElementById('hero');
+if(hero){var mo=new MutationObserver(function(){var el=hero.querySelector('[data-card-key]');if(el)hero.setAttribute('data-main-card-key',el.getAttribute('data-card-key')||'');});mo.observe(hero,{childList:true,subtree:true,attributes:true});}
+document.addEventListener('keydown',function(e){if(e.target&&e.target.id==='q'&&e.key==='Enter'){e.preventDefault();e.target.blur();window.scrollTo(0,0);}});
+document.addEventListener('click',function(e){var alt=e.target.closest&&e.target.closest('.alt-item.chosen');if(alt){e.stopPropagation();e.stopImmediatePropagation();document.querySelectorAll('.alt-item.chosen').forEach(function(x){x.classList.remove('chosen');});var main=hero?hero.getAttribute('data-main-card-key'):'';var hidden=document.getElementById('heroLogCard');if(hidden&&main)hidden.value=main;if(window.__v70)window.__v70.chosenCardKey=null;var toast=document.createElement('div');toast.className='v79-select-toast show';toast.textContent='↻ Back to recommended card';document.body.appendChild(toast);setTimeout(function(){toast.remove();},1600);var q=document.getElementById('q');if(q&&typeof window.renderRecommendation==='function'){try{window.renderRecommendation(q.value||'');}catch(_){}}}},true);
 })();</script>
 <script id="v130-vault">(function(){
-  window.__v130 = window.__v130 || {};
-  window.__vaultBusy = false; window.__vaultQueued = false;
-  window.scheduleVaultRefresh = function(){
-    if(window.__vaultBusy || window.__vaultQueued) return;
-    window.__vaultQueued = true;
-    requestAnimationFrame(function(){
-      window.__vaultQueued = false;
-      window.__vaultBusy = true;
-      try {
-        if(window.__v128 && typeof window.__v128.tick === 'function') window.__v128.tick();
-        else if(window.__v106Tick) window.__v106Tick();
-        if(typeof window.renderVaultV122 === 'function') window.renderVaultV122();
-        else if(typeof window.renderVault === 'function') window.renderVault();
-        if(window.__v122 && typeof window.__v122.renderHome === 'function') window.__v122.renderHome();
-      } finally { window.__vaultBusy = false; }
-    });
-  };
+window.__vaultBusy=false;window.__vaultQueued=false;
+window.scheduleVaultRefresh=function(){if(window.__vaultBusy||window.__vaultQueued)return;window.__vaultQueued=true;requestAnimationFrame(function(){window.__vaultQueued=false;window.__vaultBusy=true;try{if(window.__v128&&typeof window.__v128.tick==='function')window.__v128.tick();else if(window.__v106Tick)window.__v106Tick();if(typeof window.renderVaultV122==='function')window.renderVaultV122();else if(typeof window.renderVault==='function')window.renderVault();if(window.__v122&&typeof window.__v122.renderHome==='function')window.__v122.renderHome();}finally{window.__vaultBusy=false;}});};
 })();</script>
 
 <style id="v131-onb-logos">
@@ -1708,798 +1638,131 @@ input,#q,#onboardSearch,.modal-search,input[type="text"],input[type="number"],in
 </style>
 
 <style id="v133-mobile">
-/* --- Global overflow & viewport fit --- */
-html, body { overflow-x: hidden !important; max-width: 100vw !important; }
-body { width: 100% !important; margin: 0 auto !important; }
-img, svg, video, iframe { max-width: 100% !important; height: auto !important; }
-
-/* --- Main container: use full width up to 560px, safe padding on small phones --- */
-main { padding: 10px 12px 90px !important; box-sizing: border-box !important; }
-@media (max-width: 430px) { main { padding: 8px 10px 90px !important; } }
-@media (max-width: 375px) { main { padding: 6px 8px 88px !important; } }
-@media (max-width: 340px) { main { padding: 6px 6px 88px !important; } }
-
-/* --- Header: brand name must not truncate weirdly, buttons stay tappable --- */
-.top { padding-left: 10px !important; padding-right: 10px !important; box-sizing: border-box !important; }
-.header-row { gap: 6px !important; }
-.brand-name { font-size: 17px !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; min-width: 0 !important; }
-@media (max-width: 375px) { .brand-name { font-size: 15px !important; } }
-.header-btn, .header-btn-sm { min-width: 36px !important; min-height: 36px !important; }
-
-/* --- Search bar: fills width, min tap target --- */
-.search-wrap { width: 100% !important; }
-input#q { width: 100% !important; box-sizing: border-box !important; min-height: 46px !important; }
-
-/* --- Hero card: SVG must never overflow, text wraps --- */
-.hero, .cardBig { max-width: 100% !important; box-sizing: border-box !important; overflow: hidden !important; }
-.hero-art { padding: 4px 0 !important; }
-.hero-art .cc-svg, #hero .cc-svg { max-width: min(260px, 72vw) !important; width: 100% !important; height: auto !important; }
-#hero h2, .hero h2 { font-size: clamp(17px, 4.6vw, 22px) !important; line-height: 1.15 !important; word-break: break-word !important; }
-#hero .grid, .hero .grid { grid-template-columns: 44px 1fr !important; }
-.hero .sub { word-break: break-word !important; }
-.pills { flex-wrap: wrap !important; }
-.alt-cards .alt-item .name { white-space: normal !important; word-break: break-word !important; min-width: 0 !important; }
-
-/* --- Rewards Studio subtabs: 5 buttons must fit any width --- */
-.rewards-subtabs { grid-template-columns: repeat(5, 1fr) !important; gap: 3px !important; padding: 3px !important; }
-.rewards-subtabs button { font-size: 11px !important; padding: 9px 2px !important; letter-spacing: -0.02em !important; min-width: 0 !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; }
-@media (max-width: 400px) { .rewards-subtabs button { font-size: 10px !important; padding: 9px 1px !important; } }
-@media (max-width: 340px) { .rewards-subtabs button { font-size: 9.5px !important; } }
-
-/* --- Rewards hero tiles: 4 tiles must fit --- */
-.rewards-hero { padding: 16px 14px !important; }
-.rewards-hero .rh-tiles { grid-template-columns: repeat(4, 1fr) !important; gap: 5px !important; }
-.rewards-hero .rh-tile { padding: 7px 3px !important; min-width: 0 !important; }
-.rewards-hero .rh-tile .l { font-size: 8px !important; letter-spacing: 0.04em !important; }
-.rewards-hero .rh-tile .v { font-size: 12px !important; }
-@media (max-width: 375px) {
-  .rewards-hero .rh-big { font-size: 26px !important; }
-  .rewards-hero .rh-tile .v { font-size: 11px !important; }
-}
-@media (max-width: 340px) {
-  .rewards-hero .rh-tile .l { font-size: 7.5px !important; }
-  .rewards-hero .rh-tile .v { font-size: 10.5px !important; }
-}
-
-/* --- Feature cards on home: don't overflow --- */
-.feature-card { grid-template-columns: 40px 1fr 20px !important; gap: 10px !important; padding: 12px 12px !important; }
-.feature-card .fc-mid { min-width: 0 !important; overflow: hidden !important; }
-.feature-card .fc-title { white-space: normal !important; word-break: break-word !important; font-size: 13.5px !important; line-height: 1.2 !important; }
-.feature-card .fc-sub { white-space: normal !important; word-break: break-word !important; font-size: 11px !important; line-height: 1.35 !important; }
-
-/* --- Vault summary card on home --- */
-.vault-summary-card { padding: 16px 14px !important; }
-.vault-summary-card .vs-mini { grid-template-columns: repeat(3, 1fr) !important; gap: 5px !important; }
-.vault-summary-card .vs-mini .vm .v { font-size: 12px !important; }
-.vault-summary-card .vs-big { font-size: clamp(22px, 6.2vw, 30px) !important; }
-
-/* --- Offers hero --- */
-#offersHero { padding: 16px 14px !important; }
-#offersHero .oh-title { font-size: clamp(17px, 4.8vw, 22px) !important; line-height: 1.15 !important; }
-#offersHero .oh-stats { grid-template-columns: repeat(3, 1fr) !important; gap: 5px !important; }
-#offersHero .oh-stat .v { font-size: 13px !important; }
-
-/* --- Credits hero --- */
-.credits-hero { padding: 16px 14px !important; }
-.credits-hero .ch-row { grid-template-columns: 1fr 60px !important; gap: 10px !important; }
-.credits-hero .ch-big { font-size: clamp(24px, 7vw, 34px) !important; }
-.credits-hero .ch-ring { width: 60px !important; height: 60px !important; }
-.credits-hero .ch-stats { grid-template-columns: repeat(3, 1fr) !important; gap: 5px !important; }
-.credits-hero .ch-stat .v { font-size: 12px !important; }
-
-/* --- Studio action buttons: 2-up on all mobile widths --- */
-.studio-actions { gap: 6px !important; flex-wrap: wrap !important; }
-.studio-actions .sa-btn { flex: 1 1 calc(50% - 3px) !important; min-width: calc(50% - 3px) !important; min-height: 42px !important; font-size: 12px !important; padding: 10px 6px !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; }
-@media (max-width: 340px) { .studio-actions .sa-btn { font-size: 11.5px !important; } }
-
-/* --- Month pills, credit filters: horizontal scroll works --- */
-.month-pills, .credit-filters, .qc-chips { -webkit-overflow-scrolling: touch !important; scrollbar-width: none !important; }
-.month-pill, .credit-filter { min-height: 34px !important; }
-
-/* --- Tiles grid on cards tab --- */
-.cardBig { padding: 0 !important; }
-.cc-wrapper { padding: 12px 12px 4px !important; }
-.cc-svg { max-width: min(340px, 90vw) !important; width: 100% !important; height: auto !important; }
-.fees { grid-template-columns: 1fr 1fr !important; }
-.fees > div { padding: 8px 10px !important; }
-.benefits { padding: 10px 12px !important; }
-.benefits .row { grid-template-columns: 22px 1fr auto !important; gap: 6px !important; font-size: 12px !important; }
-.benefits .row .v { font-size: 11px !important; white-space: nowrap !important; }
-
-/* --- Autocomplete dropdown: fits screen --- */
-.autocomplete { max-height: 60vh !important; max-height: 60dvh !important; }
-.ac-item { padding: 11px 12px !important; }
-.ac-item .ac-name { font-size: 13.5px !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; }
-.ac-item .ac-cat { font-size: 10px !important; }
-
-/* --- Modals: full-height sheets on mobile with proper safe areas --- */
-.modal-overlay { align-items: flex-end !important; }
-.modal { width: 100% !important; max-width: 560px !important; max-height: 92vh !important; max-height: 92dvh !important; border-radius: 22px 22px 0 0 !important; padding: 18px 16px calc(16px + env(safe-area-inset-bottom, 0px)) !important; box-sizing: border-box !important; }
-@media (max-width: 430px) { .modal { padding: 16px 14px calc(14px + env(safe-area-inset-bottom, 0px)) !important; max-height: 94dvh !important; } }
-@media (max-width: 340px) { .modal { padding: 14px 12px calc(12px + env(safe-area-inset-bottom, 0px)) !important; } }
-.modal-head h2 { font-size: clamp(18px, 5vw, 22px) !important; line-height: 1.15 !important; }
-.modal-head p { font-size: 12.5px !important; line-height: 1.4 !important; }
-.modal-actions { gap: 8px !important; padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px)) !important; }
-.modal-actions button { min-height: 46px !important; font-size: 14px !important; }
-
-/* --- Onboarding card checks: two-line labels ok, chip stays inline --- */
-.card-check { grid-template-columns: 46px 1fr 24px !important; gap: 11px !important; padding: 11px 12px !important; align-items: center !important; }
-.card-check .cc-emoji { flex-shrink: 0 !important; }
-.card-check .cc-info { min-width: 0 !important; }
-.card-check .cc-name { font-size: 13px !important; line-height: 1.2 !important; white-space: normal !important; word-break: break-word !important; }
-.card-check .cc-sub { font-size: 10.5px !important; line-height: 1.3 !important; }
-
-/* --- Form rows: bigger tap targets --- */
-.form-row input, .form-row select, .modal-search { min-height: 46px !important; padding: 12px 14px !important; }
-
-/* --- Drawer stays within viewport --- */
-.drawer { width: min(290px, 82vw) !important; }
-
-/* --- Log flash toast doesn't overflow --- */
-.log-flash, .v79-select-toast, .v82-toast, .credit-flash { max-width: calc(100vw - 24px) !important; box-sizing: border-box !important; font-size: 12.5px !important; }
-
-/* --- Transactions --- */
-.tx-item { grid-template-columns: 1fr auto !important; padding: 10px 11px !important; }
-.tx-item .txmerch { font-size: 12.5px !important; }
-.tx-item .txamt { font-size: 12.5px !important; }
-
-/* --- Credit card in Credit Rescue: header wraps well --- */
-.credit-card .cc-head { grid-template-columns: 40px 1fr auto !important; gap: 9px !important; }
-.credit-card .cc-title { font-size: 13.5px !important; line-height: 1.15 !important; word-break: break-word !important; }
-.credit-card .cc-amt { font-size: 15px !important; }
-.credit-card .cc-actions { grid-template-columns: 1fr auto !important; gap: 8px !important; }
-
-/* --- Footer: no horizontal overflow --- */
-.v73-footer { padding: 20px 16px 22px !important; margin-left: 0 !important; margin-right: 0 !important; }
-.v73-footer-tagline { padding: 0 4px !important; word-break: break-word !important; }
-
-/* --- Hide any accidental horizontal overflow from decorative elements --- */
-.rewards-hero, .vault-summary-card, #offersHero, .credits-hero, .location-hero { overflow: hidden !important; }
-
-/* --- Ensure tap targets across the board --- */
-button, .drawer-item, .settings-link, .qc-chip, .month-pill, .credit-filter { min-height: 40px !important; }
-
-/* --- Empty state on tiny phones --- */
-.empty-state { padding: 28px 18px !important; }
-.empty-state h3 { font-size: 16px !important; }
-.empty-state p { font-size: 12.5px !important; line-height: 1.5 !important; }
+html,body{overflow-x:hidden !important;max-width:100vw !important}
+body{width:100% !important;margin:0 auto !important}
+img,svg,video,iframe{max-width:100% !important;height:auto !important}
+main{padding:10px 12px 90px !important;box-sizing:border-box !important}
+@media(max-width:430px){main{padding:8px 10px 90px !important}}
+@media(max-width:375px){main{padding:6px 8px 88px !important}}
+.top{padding-left:10px !important;padding-right:10px !important;box-sizing:border-box !important}
+.brand-name{font-size:17px !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important;min-width:0 !important}
+@media(max-width:375px){.brand-name{font-size:15px !important}}
+input#q{width:100% !important;box-sizing:border-box !important;min-height:46px !important}
+.hero-art .cc-svg,#hero .cc-svg{max-width:min(260px,72vw) !important;width:100% !important;height:auto !important}
+#hero h2,.hero h2{font-size:clamp(17px,4.6vw,22px) !important;line-height:1.15 !important;word-break:break-word !important}
+.rewards-subtabs{grid-template-columns:repeat(5,1fr) !important;gap:3px !important;padding:3px !important}
+.rewards-subtabs button{font-size:11px !important;padding:9px 2px !important;min-width:0 !important;overflow:hidden !important;text-overflow:ellipsis !important;white-space:nowrap !important}
+.rewards-hero .rh-tiles{grid-template-columns:repeat(4,1fr) !important;gap:5px !important}
+.rewards-hero .rh-tile{padding:7px 3px !important;min-width:0 !important}
+.rewards-hero .rh-tile .l{font-size:8px !important}
+.rewards-hero .rh-tile .v{font-size:12px !important}
+.feature-card{grid-template-columns:40px 1fr 20px !important;gap:10px !important;padding:12px !important}
+.feature-card .fc-mid{min-width:0 !important;overflow:hidden !important}
+.vault-summary-card .vs-mini{grid-template-columns:repeat(3,1fr) !important;gap:5px !important}
+#offersHero .oh-stats{grid-template-columns:repeat(3,1fr) !important;gap:5px !important}
+.credits-hero .ch-stats{grid-template-columns:repeat(3,1fr) !important;gap:5px !important}
+.studio-actions{gap:6px !important;flex-wrap:wrap !important}
+.studio-actions .sa-btn{flex:1 1 calc(50% - 3px) !important;min-width:calc(50% - 3px) !important;min-height:42px !important;font-size:12px !important;padding:10px 6px !important}
+.modal{width:100% !important;max-width:560px !important;max-height:92dvh !important;border-radius:22px 22px 0 0 !important;padding:18px 16px calc(16px + env(safe-area-inset-bottom,0px)) !important;box-sizing:border-box !important}
+.card-check{grid-template-columns:46px 1fr 24px !important;gap:11px !important;padding:11px 12px !important;align-items:center !important}
+.card-check .cc-emoji{flex-shrink:0 !important}
+.card-check .cc-info{min-width:0 !important}
+.card-check .cc-name{font-size:13px !important;line-height:1.2 !important;white-space:normal !important;word-break:break-word !important}
 </style>
 
 <style id="v134-mobile-rebuild">
-/* ============================================================
-   V134 MOBILE-FIRST REBUILD — Final override stylesheet
-   Consolidates and supersedes V47-V133 responsive rules.
-   Preserves all data and JavaScript modules.
-   ============================================================ */
 
-/* A. CORE CONTAINER --------------------------------------- */
-html, body {
-  overflow-x: hidden !important;
-  width: 100% !important;
-  max-width: 100vw !important;
-  margin: 0 !important;
-  padding: 0 !important;
-}
-body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-  min-height: 100vh !important;
-  min-height: 100dvh !important;
-  color: var(--ink) !important;
-  -webkit-font-smoothing: antialiased !important;
-  -webkit-text-size-adjust: 100% !important;
-  text-rendering: optimizeLegibility !important;
-}
-main {
-  width: 100% !important;
-  max-width: 560px !important;
-  margin: 0 auto !important;
-  padding: 12px 14px calc(90px + env(safe-area-inset-bottom, 0px)) !important;
-  box-sizing: border-box !important;
-}
+html,body{overflow-x:hidden !important;width:100% !important;max-width:100vw !important;margin:0 !important;padding:0 !important}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif !important;min-height:100vh !important;min-height:100dvh !important;color:var(--ink) !important;-webkit-font-smoothing:antialiased !important;-webkit-text-size-adjust:100% !important}
+main{width:100% !important;max-width:560px !important;margin:0 auto !important;padding:12px 14px calc(90px + env(safe-area-inset-bottom,0px)) !important;box-sizing:border-box !important}
+h1{font-size:clamp(20px,5vw,24px) !important;line-height:1.15 !important;letter-spacing:-0.03em !important}
+h2{font-size:clamp(17px,4.5vw,22px) !important;line-height:1.15 !important;letter-spacing:-0.025em !important}
+h3{font-size:clamp(15px,4vw,18px) !important;line-height:1.2 !important}
+.top{position:sticky !important;top:0 !important;z-index:50 !important;width:100% !important;box-sizing:border-box !important;padding:calc(10px + env(safe-area-inset-top,0px)) 12px 10px !important;backdrop-filter:blur(16px) saturate(140%) !important;-webkit-backdrop-filter:blur(16px) saturate(140%) !important}
+.header-row{display:flex !important;align-items:center !important;gap:7px !important;min-height:44px !important}
+.brand-wrap{flex:1 1 auto !important;min-width:0 !important;display:flex !important;align-items:center !important;gap:8px !important}
+.brand-logo{width:30px !important;height:30px !important;flex-shrink:0 !important}
+.brand-name{font-size:clamp(15px,4.3vw,18px) !important;font-weight:900 !important;letter-spacing:-0.028em !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important;min-width:0 !important}
+.header-btn,.header-btn-sm{width:38px !important;height:38px !important;min-width:38px !important;flex-shrink:0 !important;display:grid !important;place-items:center !important;border-radius:50% !important;font-size:16px !important;cursor:pointer !important;-webkit-tap-highlight-color:transparent !important}
+.search-wrap{position:relative !important;width:100% !important;margin-top:4px !important}
+input#q{width:100% !important;min-height:48px !important;font-size:16px !important;padding:14px 46px 14px 46px !important;border-radius:24px !important;box-sizing:border-box !important;font-weight:700 !important;-webkit-appearance:none !important}
+.autocomplete{max-height:55dvh !important;overflow-y:auto !important;-webkit-overflow-scrolling:touch !important;border-radius:18px !important}
+.ac-item{min-height:52px !important;padding:11px 13px !important}
+.hero{width:100% !important;max-width:100% !important;box-sizing:border-box !important;overflow:hidden !important;border-radius:20px !important;padding:16px 14px !important}
+.hero-art{padding:4px 0 !important;display:flex !important;justify-content:center !important}
+.hero-art .cc-svg,#hero .cc-svg{max-width:min(240px,65vw) !important;width:100% !important;height:auto !important}
+.rewards-subtabs{display:grid !important;grid-template-columns:repeat(5,1fr) !important;gap:3px !important;padding:3px !important;border-radius:14px !important}
+.rewards-subtabs button{font-size:clamp(9.5px,2.8vw,12px) !important;padding:10px 2px !important;min-height:42px !important;letter-spacing:-0.02em !important;min-width:0 !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important;border-radius:10px !important}
+.rewards-hero{padding:16px 14px !important;border-radius:20px !important;overflow:hidden !important;max-width:100% !important;box-sizing:border-box !important}
+.rewards-hero .rh-tiles{display:grid !important;grid-template-columns:repeat(4,1fr) !important;gap:5px !important}
+.rewards-hero .rh-tile{padding:8px 4px !important;min-width:0 !important;overflow:hidden !important}
+.rewards-hero .rh-tile .l{font-size:clamp(7.5px,2.2vw,9px) !important;letter-spacing:0.04em !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important}
+.rewards-hero .rh-tile .v{font-size:clamp(11px,3vw,14px) !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important}
+.rewards-hero .rh-big{font-size:clamp(22px,6.5vw,30px) !important}
+#offersHero,.credits-hero,.location-hero,.vault-summary-card{padding:16px 14px !important;border-radius:20px !important;overflow:hidden !important;max-width:100% !important;box-sizing:border-box !important}
+#offersHero .oh-title{font-size:clamp(17px,4.7vw,22px) !important;line-height:1.15 !important;word-break:break-word !important}
+#offersHero .oh-stats{display:grid !important;grid-template-columns:repeat(3,1fr) !important;gap:5px !important}
+.credits-hero .ch-row{display:grid !important;grid-template-columns:1fr 60px !important;gap:10px !important;align-items:center !important}
+.credits-hero .ch-big{font-size:clamp(22px,6.5vw,32px) !important}
+.credits-hero .ch-ring{width:60px !important;height:60px !important}
+.vault-summary-card .vs-mini{display:grid !important;grid-template-columns:repeat(3,1fr) !important;gap:5px !important}
+.vault-summary-card .vs-big{font-size:clamp(22px,6.5vw,30px) !important}
+.studio-actions{display:flex !important;flex-wrap:wrap !important;gap:6px !important}
+.studio-actions .sa-btn{flex:1 1 calc(50% - 3px) !important;min-width:calc(50% - 3px) !important;min-height:44px !important;font-size:12px !important;padding:10px 8px !important;border-radius:12px !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important}
+.feature-card{display:grid !important;grid-template-columns:40px 1fr 20px !important;gap:10px !important;padding:12px !important;border-radius:16px !important;align-items:center !important;box-sizing:border-box !important;width:100% !important}
+.feature-card .fc-mid{min-width:0 !important;overflow:hidden !important}
+.feature-card .fc-title{white-space:normal !important;word-break:break-word !important;font-size:clamp(12.5px,3.4vw,14px) !important;line-height:1.2 !important;display:-webkit-box !important;-webkit-line-clamp:2 !important;-webkit-box-orient:vertical !important;overflow:hidden !important}
+.modal-overlay{align-items:flex-end !important;padding:0 !important}
+.modal{width:100% !important;max-width:560px !important;max-height:92dvh !important;border-radius:22px 22px 0 0 !important;padding:18px 16px calc(16px + env(safe-area-inset-bottom,0px)) !important;box-sizing:border-box !important;display:flex !important;flex-direction:column !important;overflow:hidden !important}
+.modal-head{flex-shrink:0 !important;margin-bottom:12px !important}
+.modal-head h2{font-size:clamp(18px,5vw,22px) !important;line-height:1.15 !important}
+.modal-actions{flex-shrink:0 !important;gap:8px !important;padding-top:12px !important;padding-bottom:calc(6px + env(safe-area-inset-bottom,0px)) !important;background:var(--surface) !important}
+.modal-actions button{min-height:46px !important;font-size:14px !important;border-radius:14px !important}
+.card-check{display:grid !important;grid-template-columns:46px 1fr 24px !important;gap:11px !important;padding:11px 12px !important;align-items:center !important;border-radius:13px !important;box-sizing:border-box !important;width:100% !important}
+.card-check .cc-emoji{flex-shrink:0 !important}
+.card-check .cc-info{min-width:0 !important;overflow:hidden !important}
+.card-check .cc-name{font-size:clamp(12.5px,3.6vw,14px) !important;line-height:1.2 !important;font-weight:900 !important;white-space:normal !important;word-break:break-word !important;display:-webkit-box !important;-webkit-line-clamp:2 !important;-webkit-box-orient:vertical !important;overflow:hidden !important}
+.card-check .cc-sub{font-size:10.5px !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important}
+.cardBig{width:100% !important;max-width:100% !important;box-sizing:border-box !important;overflow:hidden !important;border-radius:18px !important}
+.cc-svg{max-width:min(320px,88vw) !important;width:100% !important;height:auto !important}
+.tx-item{display:grid !important;grid-template-columns:1fr auto !important;gap:8px !important;padding:10px 11px !important;border-radius:12px !important;box-sizing:border-box !important;width:100% !important;align-items:center !important}
+.tx-item .txmain{min-width:0 !important;overflow:hidden !important}
+.tx-item .txmerch{font-size:12.5px !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important}
+.month-pills{-webkit-overflow-scrolling:touch !important;scrollbar-width:none !important;overflow-x:auto !important;padding:4px 0 8px !important}
+.month-pills::-webkit-scrollbar{display:none !important}
+.credit-card{padding:12px !important;border-radius:14px !important;box-sizing:border-box !important;width:100% !important}
+.credit-card .cc-head{display:grid !important;grid-template-columns:40px 1fr auto !important;gap:9px !important;align-items:center !important}
+.log-flash,.v79-select-toast,.v82-toast,.credit-flash{max-width:calc(100vw - 24px) !important;box-sizing:border-box !important;font-size:12.5px !important;top:calc(20px + env(safe-area-inset-top,0px)) !important;padding:12px 20px !important;border-radius:99px !important;text-align:center !important}
+.drawer{width:min(290px,82vw) !important;max-width:82vw !important}
+.drawer-body{padding:10px 12px calc(20px + env(safe-area-inset-bottom,0px)) !important;overflow-y:auto !important;-webkit-overflow-scrolling:touch !important}
+.drawer-item{min-height:44px !important}
+.v73-footer{padding:20px 16px 22px !important;border-radius:22px !important;overflow:hidden !important;width:100% !important;box-sizing:border-box !important}
+.form-row input,.form-row select,.form-row textarea,.modal-search,input[type="text"],input[type="number"],input[type="email"],input[type="tel"],input[type="search"],input[type="date"],select,textarea{font-size:16px !important;min-height:46px !important;padding:12px 14px !important;border-radius:12px !important;box-sizing:border-box !important;width:100% !important;-webkit-appearance:none !important;font-family:inherit !important}
+img,svg,video,iframe,canvas{max-width:100% !important;height:auto !important}
+.tx-item,.credit-card,.feature-card,.card-check,.sub-card,.v81-membership-card,.v96-opt-card,.v96-synergy-card,.item,.cardBig,.overview-card,.recent-card{width:100% !important;max-width:100% !important;box-sizing:border-box !important;min-width:0 !important;overflow-wrap:break-word !important}
+main > *{max-width:100% !important;box-sizing:border-box !important}
 
-/* B. FLUID TYPOGRAPHY ------------------------------------- */
-h1 { font-size: clamp(20px, 5vw, 24px) !important; line-height: 1.15 !important; letter-spacing: -0.03em !important; }
-h2 { font-size: clamp(17px, 4.5vw, 22px) !important; line-height: 1.15 !important; letter-spacing: -0.025em !important; }
-h3 { font-size: clamp(15px, 4vw, 18px) !important; line-height: 1.2 !important; }
-.section { font-size: 10.5px !important; letter-spacing: 0.12em !important; }
+/* Tap targets — exclude .header-btn/.header-btn-sm which have fixed 38x38 */
+button:not(.header-btn):not(.header-btn-sm),.drawer-item,.settings-link,.qc-chip,.month-pill,.credit-filter,.card-check,.feature-card,.tile{min-height:40px !important;-webkit-tap-highlight-color:transparent !important;-webkit-touch-callout:none !important}
 
-/* C. TOP BAR / HEADER ------------------------------------- */
-.top {
-  position: sticky !important;
-  top: 0 !important;
-  z-index: 50 !important;
-  width: 100% !important;
-  box-sizing: border-box !important;
-  padding: calc(10px + env(safe-area-inset-top, 0px)) 12px 10px !important;
-  backdrop-filter: blur(16px) saturate(140%) !important;
-  -webkit-backdrop-filter: blur(16px) saturate(140%) !important;
-}
-.header-row {
-  display: flex !important;
-  align-items: center !important;
-  gap: 7px !important;
-  min-height: 44px !important;
-}
-.brand-wrap {
-  flex: 1 1 auto !important;
-  min-width: 0 !important;
-  display: flex !important;
-  align-items: center !important;
-  gap: 8px !important;
-}
-.brand-logo {
-  width: 30px !important;
-  height: 30px !important;
-  flex-shrink: 0 !important;
-}
-.brand-name {
-  font-size: clamp(15px, 4.3vw, 18px) !important;
-  font-weight: 900 !important;
-  letter-spacing: -0.028em !important;
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  min-width: 0 !important;
-}
-.header-btn, .header-btn-sm {
-  width: 38px !important;
-  height: 38px !important;
-  min-width: 38px !important;
-  flex-shrink: 0 !important;
-  display: grid !important;
-  place-items: center !important;
-  border-radius: 50% !important;
-  font-size: 16px !important;
-  cursor: pointer !important;
-  -webkit-tap-highlight-color: transparent !important;
-}
+@media(max-width:430px){main{padding:10px 12px calc(88px + env(safe-area-inset-bottom,0px)) !important}.rewards-hero,#offersHero,.credits-hero,.location-hero,.vault-summary-card{padding:14px 12px !important}}
+@media(max-width:375px){main{padding:8px 10px calc(86px + env(safe-area-inset-bottom,0px)) !important}.brand-logo{width:28px !important;height:28px !important}.header-btn,.header-btn-sm{width:34px !important;height:34px !important;min-width:34px !important;font-size:15px !important}.hero{padding:14px 12px !important}.rewards-hero .rh-tile{padding:6px 3px !important}.rewards-subtabs button{padding:9px 1px !important}}
+@media(max-width:340px){main{padding:6px 8px calc(84px + env(safe-area-inset-bottom,0px)) !important}body{font-size:13px !important}.brand-name{font-size:14px !important}.rewards-hero .rh-tile .v{font-size:10.5px !important}.studio-actions .sa-btn{min-width:100% !important}}
+.empty-state{padding:28px 18px !important;border-radius:20px !important;width:100% !important;box-sizing:border-box !important}
+.v96-opt-hero{padding:16px 14px !important;border-radius:20px !important;overflow:hidden !important}
+.v96-opt-hero .v96-oh-value{font-size:clamp(22px,6.5vw,30px) !important}
+.v96-opt-hero .v96-oh-mini{grid-template-columns:repeat(3,1fr) !important;gap:6px !important}
+.greeting-name{font-size:clamp(19px,5.4vw,24px) !important;line-height:1.1 !important}
 
-/* D. SEARCH BAR -------------------------------------------- */
-.search-wrap {
-  position: relative !important;
-  width: 100% !important;
-  margin-top: 4px !important;
-}
-input#q {
-  width: 100% !important;
-  min-height: 48px !important;
-  font-size: 16px !important;
-  padding: 14px 46px 14px 46px !important;
-  border-radius: 24px !important;
-  box-sizing: border-box !important;
-  font-weight: 700 !important;
-  -webkit-appearance: none !important;
-}
-.autocomplete {
-  max-height: 55vh !important;
-  max-height: 55dvh !important;
-  overflow-y: auto !important;
-  -webkit-overflow-scrolling: touch !important;
-  border-radius: 18px !important;
-}
-.ac-item {
-  min-height: 52px !important;
-  padding: 11px 13px !important;
-  -webkit-tap-highlight-color: transparent !important;
-}
-.ac-item .ac-name {
-  font-size: 13.5px !important;
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-}
-.ac-item .ac-cat { font-size: 10px !important; }
-
-/* E. HERO CARD --------------------------------------------- */
-.hero {
-  width: 100% !important;
-  max-width: 100% !important;
-  box-sizing: border-box !important;
-  overflow: hidden !important;
-  border-radius: 20px !important;
-  padding: 16px 14px !important;
-}
-.hero-art {
-  padding: 4px 0 !important;
-  display: flex !important;
-  justify-content: center !important;
-}
-.hero-art .cc-svg, #hero .cc-svg {
-  max-width: min(240px, 65vw) !important;
-  width: 100% !important;
-  height: auto !important;
-}
-#hero h2, .hero h2 { word-break: break-word !important; }
-.hero .grid { grid-template-columns: 44px 1fr !important; gap: 10px !important; }
-.hero .sub { word-break: break-word !important; }
-.pills { display: flex !important; flex-wrap: wrap !important; gap: 5px !important; justify-content: center !important; }
-.alt-cards .alt-item {
-  min-height: 44px !important;
-  align-items: center !important;
-}
-.alt-cards .alt-item .name {
-  white-space: normal !important;
-  word-break: break-word !important;
-  min-width: 0 !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  display: -webkit-box !important;
-  -webkit-line-clamp: 2 !important;
-  -webkit-box-orient: vertical !important;
-}
-
-/* F. REWARDS SUBTABS (5 buttons) -------------------------- */
-.rewards-subtabs {
-  display: grid !important;
-  grid-template-columns: repeat(5, 1fr) !important;
-  gap: 3px !important;
-  padding: 3px !important;
-  border-radius: 14px !important;
-}
-.rewards-subtabs button {
-  font-size: clamp(9.5px, 2.8vw, 12px) !important;
-  padding: 10px 2px !important;
-  min-height: 42px !important;
-  letter-spacing: -0.02em !important;
-  min-width: 0 !important;
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  border-radius: 10px !important;
-  -webkit-tap-highlight-color: transparent !important;
-}
-
-/* G. HERO STAT TILES -------------------------------------- */
-.rewards-hero {
-  padding: 16px 14px !important;
-  border-radius: 20px !important;
-  overflow: hidden !important;
-  max-width: 100% !important;
-  box-sizing: border-box !important;
-}
-.rewards-hero .rh-tiles {
-  display: grid !important;
-  grid-template-columns: repeat(4, 1fr) !important;
-  gap: 5px !important;
-}
-.rewards-hero .rh-tile {
-  padding: 8px 4px !important;
-  min-width: 0 !important;
-  overflow: hidden !important;
-}
-.rewards-hero .rh-tile .l {
-  font-size: clamp(7.5px, 2.2vw, 9px) !important;
-  letter-spacing: 0.04em !important;
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-}
-.rewards-hero .rh-tile .v {
-  font-size: clamp(11px, 3vw, 14px) !important;
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-}
-.rewards-hero .rh-big { font-size: clamp(22px, 6.5vw, 30px) !important; }
-.rewards-hero .rh-sub { font-size: 10.5px !important; }
-.rewards-hero .rh-label { font-size: 10px !important; }
-
-/* H. OFFERS / CREDITS / LOCATION HEROES ------------------- */
-#offersHero, .credits-hero, .location-hero, .vault-summary-card {
-  padding: 16px 14px !important;
-  border-radius: 20px !important;
-  overflow: hidden !important;
-  max-width: 100% !important;
-  box-sizing: border-box !important;
-}
-#offersHero .oh-title { font-size: clamp(17px, 4.7vw, 22px) !important; line-height: 1.15 !important; word-break: break-word !important; }
-#offersHero .oh-stats { display: grid !important; grid-template-columns: repeat(3, 1fr) !important; gap: 5px !important; }
-#offersHero .oh-stat .v { font-size: clamp(12px, 3.2vw, 14px) !important; white-space: nowrap !important; }
-#offersHero .oh-stat .l { font-size: 9px !important; }
-
-.credits-hero .ch-row { display: grid !important; grid-template-columns: 1fr 60px !important; gap: 10px !important; align-items: center !important; }
-.credits-hero .ch-big { font-size: clamp(22px, 6.5vw, 32px) !important; }
-.credits-hero .ch-ring { width: 60px !important; height: 60px !important; }
-.credits-hero .ch-stats { display: grid !important; grid-template-columns: repeat(3, 1fr) !important; gap: 5px !important; }
-.credits-hero .ch-stat .v { font-size: clamp(11px, 3vw, 13px) !important; }
-
-.vault-summary-card .vs-mini { display: grid !important; grid-template-columns: repeat(3, 1fr) !important; gap: 5px !important; }
-.vault-summary-card .vs-mini .vm .v { font-size: clamp(11px, 3vw, 13px) !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; }
-.vault-summary-card .vs-big { font-size: clamp(22px, 6.5vw, 30px) !important; }
-
-/* I. STUDIO ACTION BUTTONS -------------------------------- */
-.studio-actions {
-  display: flex !important;
-  flex-wrap: wrap !important;
-  gap: 6px !important;
-}
-.studio-actions .sa-btn {
-  flex: 1 1 calc(50% - 3px) !important;
-  min-width: calc(50% - 3px) !important;
-  min-height: 44px !important;
-  font-size: 12px !important;
-  padding: 10px 8px !important;
-  border-radius: 12px !important;
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  -webkit-tap-highlight-color: transparent !important;
-}
-
-/* J. FEATURE CARDS ---------------------------------------- */
-.feature-card {
-  display: grid !important;
-  grid-template-columns: 40px 1fr 20px !important;
-  gap: 10px !important;
-  padding: 12px !important;
-  border-radius: 16px !important;
-  align-items: center !important;
-  box-sizing: border-box !important;
-  width: 100% !important;
-}
-.feature-card .fc-mid { min-width: 0 !important; overflow: hidden !important; }
-.feature-card .fc-title {
-  white-space: normal !important;
-  word-break: break-word !important;
-  font-size: clamp(12.5px, 3.4vw, 14px) !important;
-  line-height: 1.2 !important;
-  display: -webkit-box !important;
-  -webkit-line-clamp: 2 !important;
-  -webkit-box-orient: vertical !important;
-  overflow: hidden !important;
-}
-.feature-card .fc-sub {
-  white-space: normal !important;
-  word-break: break-word !important;
-  font-size: clamp(10.5px, 2.8vw, 11.5px) !important;
-  line-height: 1.35 !important;
-  display: -webkit-box !important;
-  -webkit-line-clamp: 2 !important;
-  -webkit-box-orient: vertical !important;
-  overflow: hidden !important;
-}
-
-/* K. MODALS ----------------------------------------------- */
-.modal-overlay {
-  align-items: flex-end !important;
-  padding: 0 !important;
-}
-.modal {
-  width: 100% !important;
-  max-width: 560px !important;
-  max-height: 92vh !important;
-  max-height: 92dvh !important;
-  border-radius: 22px 22px 0 0 !important;
-  padding: 18px 16px calc(16px + env(safe-area-inset-bottom, 0px)) !important;
-  box-sizing: border-box !important;
-  display: flex !important;
-  flex-direction: column !important;
-  overflow: hidden !important;
-}
-.modal-head { flex-shrink: 0 !important; margin-bottom: 12px !important; }
-.modal-head h2 { font-size: clamp(18px, 5vw, 22px) !important; line-height: 1.15 !important; }
-.modal-head p { font-size: 12.5px !important; line-height: 1.4 !important; }
-.modal-actions {
-  flex-shrink: 0 !important;
-  gap: 8px !important;
-  padding-top: 12px !important;
-  padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px)) !important;
-  background: var(--surface) !important;
-}
-.modal-actions button {
-  min-height: 46px !important;
-  font-size: 14px !important;
-  border-radius: 14px !important;
-  -webkit-tap-highlight-color: transparent !important;
-}
-
-/* L. ONBOARDING CARD CHECKS ------------------------------- */
-/* NOTE: does NOT override .cc-emoji sizing — V131/V132 issuer chip styles win */
-.card-check {
-  display: grid !important;
-  grid-template-columns: 46px 1fr 24px !important;
-  gap: 11px !important;
-  padding: 11px 12px !important;
-  align-items: center !important;
-  border-radius: 13px !important;
-  box-sizing: border-box !important;
-  width: 100% !important;
-  -webkit-tap-highlight-color: transparent !important;
-}
-.card-check .cc-emoji { flex-shrink: 0 !important; }
-.card-check .cc-info { min-width: 0 !important; overflow: hidden !important; }
-.card-check .cc-name {
-  font-size: clamp(12.5px, 3.6vw, 14px) !important;
-  line-height: 1.2 !important;
-  font-weight: 900 !important;
-  white-space: normal !important;
-  word-break: break-word !important;
-  display: -webkit-box !important;
-  -webkit-line-clamp: 2 !important;
-  -webkit-box-orient: vertical !important;
-  overflow: hidden !important;
-}
-.card-check .cc-sub {
-  font-size: 10.5px !important;
-  line-height: 1.3 !important;
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-}
-
-/* M. MY WALLET (card details) ----------------------------- */
-.cardBig {
-  width: 100% !important;
-  max-width: 100% !important;
-  box-sizing: border-box !important;
-  overflow: hidden !important;
-  border-radius: 18px !important;
-}
-.cc-wrapper { padding: 12px 12px 4px !important; }
-.cc-svg { max-width: min(320px, 88vw) !important; width: 100% !important; height: auto !important; }
-.fees { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 1px !important; }
-.fees > div { padding: 8px 10px !important; box-sizing: border-box !important; }
-.fees .val { font-size: 13px !important; }
-.fees .lbl { font-size: 9.5px !important; }
-.benefits { padding: 10px 12px !important; }
-.benefits .row {
-  display: grid !important;
-  grid-template-columns: 22px 1fr auto !important;
-  gap: 6px !important;
-  font-size: 12px !important;
-  padding: 5px 0 !important;
-  align-items: center !important;
-}
-.benefits .row .v { font-size: 11px !important; white-space: nowrap !important; }
-
-/* N. TRANSACTIONS ----------------------------------------- */
-.tx-item {
-  display: grid !important;
-  grid-template-columns: 1fr auto !important;
-  gap: 8px !important;
-  padding: 10px 11px !important;
-  border-radius: 12px !important;
-  box-sizing: border-box !important;
-  width: 100% !important;
-  align-items: center !important;
-}
-.tx-item .txmain { min-width: 0 !important; overflow: hidden !important; }
-.tx-item .txmerch {
-  font-size: 12.5px !important;
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-}
-.tx-item .txmeta { font-size: 10.5px !important; }
-.tx-item .txamt { font-size: 12.5px !important; }
-.tx-item .txrew, .tx-item .txmiss { font-size: 10.5px !important; }
-.month-pills {
-  -webkit-overflow-scrolling: touch !important;
-  scrollbar-width: none !important;
-  overflow-x: auto !important;
-  padding: 4px 0 8px !important;
-}
-.month-pills::-webkit-scrollbar { display: none !important; }
-.month-pill {
-  min-height: 36px !important;
-  font-size: 11.5px !important;
-  padding: 7px 12px !important;
-  white-space: nowrap !important;
-  flex-shrink: 0 !important;
-  -webkit-tap-highlight-color: transparent !important;
-}
-
-/* O. STATEMENT CREDITS ------------------------------------ */
-.credit-filters {
-  overflow-x: auto !important;
-  scrollbar-width: none !important;
-  -webkit-overflow-scrolling: touch !important;
-}
-.credit-filters::-webkit-scrollbar { display: none !important; }
-.credit-filter {
-  min-height: 36px !important;
-  padding: 7px 12px !important;
-  white-space: nowrap !important;
-  flex-shrink: 0 !important;
-  -webkit-tap-highlight-color: transparent !important;
-}
-.credit-card {
-  padding: 12px !important;
-  border-radius: 14px !important;
-  box-sizing: border-box !important;
-  width: 100% !important;
-}
-.credit-card .cc-head {
-  display: grid !important;
-  grid-template-columns: 40px 1fr auto !important;
-  gap: 9px !important;
-  align-items: center !important;
-}
-.credit-card .cc-title {
-  font-size: clamp(13px, 3.6vw, 14.5px) !important;
-  line-height: 1.15 !important;
-  word-break: break-word !important;
-  display: -webkit-box !important;
-  -webkit-line-clamp: 2 !important;
-  -webkit-box-orient: vertical !important;
-  overflow: hidden !important;
-}
-.credit-card .cc-amt { font-size: 15px !important; flex-shrink: 0 !important; }
-.credit-card .cc-actions {
-  display: grid !important;
-  grid-template-columns: 1fr auto !important;
-  gap: 8px !important;
-  align-items: center !important;
-  margin-top: 10px !important;
-}
-.credit-card .cc-btn {
-  min-height: 40px !important;
-  padding: 9px 14px !important;
-  -webkit-tap-highlight-color: transparent !important;
-}
-
-/* P. TOASTS ----------------------------------------------- */
-.log-flash, .v79-select-toast, .v82-toast, .credit-flash {
-  max-width: calc(100vw - 24px) !important;
-  box-sizing: border-box !important;
-  font-size: 12.5px !important;
-  top: calc(20px + env(safe-area-inset-top, 0px)) !important;
-  padding: 12px 20px !important;
-  border-radius: 99px !important;
-  text-align: center !important;
-}
-
-/* Q. DRAWER ----------------------------------------------- */
-.drawer {
-  width: min(290px, 82vw) !important;
-  max-width: 82vw !important;
-}
-.drawer-body {
-  padding: 10px 12px calc(20px + env(safe-area-inset-bottom, 0px)) !important;
-  overflow-y: auto !important;
-  -webkit-overflow-scrolling: touch !important;
-}
-.drawer-item {
-  min-height: 44px !important;
-  -webkit-tap-highlight-color: transparent !important;
-}
-
-/* R. FOOTER ----------------------------------------------- */
-.v73-footer {
-  padding: 20px 16px 22px !important;
-  margin-left: 0 !important;
-  margin-right: 0 !important;
-  border-radius: 22px !important;
-  overflow: hidden !important;
-  width: 100% !important;
-  box-sizing: border-box !important;
-}
-.v73-footer-tagline {
-  padding: 0 4px !important;
-  word-break: break-word !important;
-  font-size: clamp(12px, 3.2vw, 13.5px) !important;
-}
-.v73-footer-social { flex-wrap: wrap !important; gap: 8px !important; }
-.v73-social-link { min-height: 36px !important; -webkit-tap-highlight-color: transparent !important; }
-
-/* S. FORM ROWS -------------------------------------------- */
-.form-row input, .form-row select, .form-row textarea, .modal-search, input[type="text"], input[type="number"], input[type="email"], input[type="tel"], input[type="search"], input[type="date"], select, textarea {
-  font-size: 16px !important;
-  min-height: 46px !important;
-  padding: 12px 14px !important;
-  border-radius: 12px !important;
-  box-sizing: border-box !important;
-  width: 100% !important;
-  -webkit-appearance: none !important;
-  font-family: inherit !important;
-}
-.form-row label {
-  font-size: 11px !important;
-  letter-spacing: 0.08em !important;
-}
-
-/* T. TAP TARGETS ------------------------------------------ */
-button, .drawer-item, .settings-link, .qc-chip, .month-pill, .credit-filter, .card-check, .feature-card, .tile {
-  min-height: 40px !important;
-  -webkit-tap-highlight-color: transparent !important;
-  -webkit-touch-callout: none !important;
-}
-
-/* U. BREAKPOINT-SPECIFIC ---------------------------------- */
-@media (max-width: 430px) {
-  main { padding: 10px 12px calc(88px + env(safe-area-inset-bottom, 0px)) !important; }
-  .top { padding-left: 10px !important; padding-right: 10px !important; }
-  .rewards-hero, #offersHero, .credits-hero, .location-hero, .vault-summary-card { padding: 14px 12px !important; }
-}
-@media (max-width: 375px) {
-  main { padding: 8px 10px calc(86px + env(safe-area-inset-bottom, 0px)) !important; }
-  .brand-logo { width: 28px !important; height: 28px !important; }
-  .header-btn, .header-btn-sm { width: 34px !important; height: 34px !important; min-width: 34px !important; font-size: 15px !important; }
-  .hero { padding: 14px 12px !important; }
-  .rewards-hero .rh-tile { padding: 6px 3px !important; }
-  .rewards-subtabs button { padding: 9px 1px !important; }
-  .studio-actions .sa-btn { font-size: 11.5px !important; padding: 9px 6px !important; }
-}
-@media (max-width: 340px) {
-  main { padding: 6px 8px calc(84px + env(safe-area-inset-bottom, 0px)) !important; }
-  .top { padding-left: 8px !important; padding-right: 8px !important; }
-  body { font-size: 13px !important; }
-  .brand-name { font-size: 14px !important; }
-  .hero { padding: 12px 10px !important; }
-  .rewards-hero, #offersHero, .credits-hero { padding: 12px 10px !important; }
-  .rewards-hero .rh-tile .v { font-size: 10.5px !important; }
-  .studio-actions .sa-btn { min-width: 100% !important; }
-  .credit-card .cc-actions { grid-template-columns: 1fr !important; }
-}
-
-/* V. iOS SAFARI FIXES ------------------------------------- */
-input, textarea, select, button {
-  -webkit-appearance: none !important;
-  border-radius: inherit;
-}
-a, button, [role="button"] {
-  -webkit-tap-highlight-color: transparent !important;
-  touch-action: manipulation !important;
-}
-
-/* W. IMAGE / SVG SAFETY ----------------------------------- */
-img, svg, video, iframe, canvas {
-  max-width: 100% !important;
-  height: auto !important;
-}
-
-/* X. LIST ITEMS SAFETY ------------------------------------ */
-.tx-item, .credit-card, .feature-card, .card-check, .sub-card, .v81-membership-card, .v96-opt-card, .v96-synergy-card, .item, .cardBig, .overview-card, .recent-card {
-  width: 100% !important;
-  max-width: 100% !important;
-  box-sizing: border-box !important;
-  min-width: 0 !important;
-  overflow-wrap: break-word !important;
-  word-wrap: break-word !important;
-}
-
-/* Y. EMPTY STATES ----------------------------------------- */
-.empty-state {
-  padding: 28px 18px !important;
-  border-radius: 20px !important;
-  width: 100% !important;
-  box-sizing: border-box !important;
-}
-.empty-state h3 { font-size: clamp(15px, 4vw, 17px) !important; }
-.empty-state p { font-size: clamp(12px, 3.2vw, 13px) !important; line-height: 1.5 !important; }
-.empty-state button { min-height: 46px !important; padding: 12px 20px !important; }
-
-/* Z. V96 OPTIMIZER MOBILE FIXES --------------------------- */
-.v96-opt-hero { padding: 16px 14px !important; border-radius: 20px !important; overflow: hidden !important; }
-.v96-opt-hero .v96-oh-value { font-size: clamp(22px, 6.5vw, 30px) !important; }
-.v96-opt-hero .v96-oh-mini { grid-template-columns: repeat(3, 1fr) !important; gap: 6px !important; }
-.v96-opt-hero .v96-oh-mini .m .v { font-size: clamp(11px, 3vw, 14px) !important; white-space: nowrap !important; }
-.v96-opt-card, .v96-synergy-card { padding: 14px 12px !important; border-radius: 14px !important; }
-.v96-opt-card-head { grid-template-columns: 40px 1fr auto !important; gap: 10px !important; }
-.v96-opt-card-title { font-size: clamp(13px, 3.6vw, 14.5px) !important; word-break: break-word !important; }
-.v96-opt-card-bal .b { font-size: 14px !important; white-space: nowrap !important; }
-.v96-redemption { grid-template-columns: 1fr auto auto !important; gap: 6px !important; font-size: 12px !important; }
-.v96-redemption .rl { min-width: 0 !important; }
-
-/* AA. V81 MEMBERSHIPS ------------------------------------- */
-.v81-membership-card { grid-template-columns: 32px 1fr auto 26px !important; gap: 10px !important; padding: 12px !important; }
-.v81-membership-card .v81-name { font-size: 13px !important; }
-.v81-membership-card .v81-bal { font-size: 13px !important; }
-
-/* AB. V82 MONTH GROUPS ------------------------------------ */
-.v82-month-group { border-radius: 12px !important; }
-.v82-month-header { grid-template-columns: 20px 1fr auto auto !important; gap: 8px !important; padding: 12px !important; }
-.v82-month-label { font-size: 13px !important; }
-.v82-month-total { font-size: 13px !important; white-space: nowrap !important; }
-
-/* AC. GREETING BLOCK -------------------------------------- */
-.greeting { padding: 2px 0 8px !important; }
-.greeting-name { font-size: clamp(19px, 5.4vw, 24px) !important; line-height: 1.1 !important; }
-.greeting-time { font-size: 11px !important; }
-
-/* Final safety: no element pushes horizontal scroll */
-main > * { max-width: 100% !important; box-sizing: border-box !important; }
 </style>
+
+<style id="v135-fixes">
+.employer-select-wrap select{padding-right:42px !important;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'><path fill='%23a37a17' d='M5 8l5 5 5-5z'/></svg>") !important;background-repeat:no-repeat !important;background-position:right 12px center !important;background-size:16px 16px !important;text-overflow:ellipsis !important;overflow:hidden !important;white-space:nowrap !important;appearance:none !important;-webkit-appearance:none !important;-moz-appearance:none !important}
+body.dark .employer-select-wrap select{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'><path fill='%23fbf3da' d='M5 8l5 5 5-5z'/></svg>") !important}
+select{padding-right:42px !important;background-position:right 12px center !important;background-size:16px 16px !important;appearance:none !important;-webkit-appearance:none !important;-moz-appearance:none !important}
+</style>
+
+<!-- V136 (audit-hardened): __refreshing re-entry guard, .header-btn excluded from 40px rule, MutationObserver guard, safe iosBlur window -->
 </head>
 <style>
 /* V41 Home simplifications */
@@ -21477,778 +20740,170 @@ else boot();
 
 
 <script id="v132-issuer-tagger">(function(){
-  var ISSUERS = ['Amex','Scotia','TD','RBC','BMO','CIBC','Rogers','MBNA','HSBC','Wealthsimple','Tangerine','PC Financial','Canadian Tire','Walmart','Neo','KOHO','EQ Bank','Brim','Home Trust','Meridian','Vancity','Coast Capital','Servus','Desjardins','National Bank','Laurentian','Capital One','Simplii'];
-  // longest first so "National Bank" beats "TD"
-  var ISSUERS_SORTED = ISSUERS.slice().sort(function(a,b){return b.length-a.length;});
-  var ALIASES = {
-    'american express':'Amex','amex':'Amex',
-    'scotiabank':'Scotia','scotia':'Scotia',
-    'tangerine bank':'Tangerine','tangerine':'Tangerine',
-    'pc':'PC Financial','pc mc':'PC Financial','pc financial':'PC Financial','president\u2019s choice':'PC Financial','presidents choice':'PC Financial',
-    'coast':'Coast Capital','coast capital':'Coast Capital',
-    'eq':'EQ Bank','eq bank':'EQ Bank',
-    'nbc':'National Bank','national bank':'National Bank','national bank of canada':'National Bank',
-    'laurentian bank':'Laurentian','laurentian':'Laurentian',
-    'canadian tire':'Canadian Tire','triangle':'Canadian Tire',
-    'home trust':'Home Trust',
-    'capital one':'Capital One',
-    'wealthsimple':'Wealthsimple',
-    'td':'TD','td bank':'TD','td canada trust':'TD',
-    'rbc':'RBC','royal bank':'RBC','royal bank of canada':'RBC',
-    'bmo':'BMO','bank of montreal':'BMO',
-    'cibc':'CIBC',
-    'rogers':'Rogers','rogers bank':'Rogers',
-    'mbna':'MBNA',
-    'hsbc':'HSBC',
-    'neo':'Neo','neo financial':'Neo',
-    'koho':'KOHO',
-    'brim':'Brim','brim financial':'Brim',
-    'meridian':'Meridian',
-    'vancity':'Vancity',
-    'servus':'Servus',
-    'desjardins':'Desjardins',
-    'simplii':'Simplii','simplii financial':'Simplii',
-    'walmart':'Walmart'
-  };
-  function normalize(raw){
-    if(!raw) return '';
-    var t = String(raw).trim().toLowerCase();
-    if(ALIASES[t]) return ALIASES[t];
-    // try substring match in aliases
-    for(var k in ALIASES){ if(t.indexOf(k)>=0) return ALIASES[k]; }
-    // try canonical direct
-    for(var i=0;i<ISSUERS_SORTED.length;i++){
-      if(t.indexOf(ISSUERS_SORTED[i].toLowerCase())>=0) return ISSUERS_SORTED[i];
-    }
-    return '';
-  }
-  function issuerFromCard(el){
-    // 1. Parent .onb-group title
-    var group = el.closest && el.closest('.onb-group');
-    if(group){
-      var title = group.querySelector('.onb-group-title');
-      if(title){
-        var iss = normalize(title.textContent);
-        if(iss) return {iss:iss, group:group};
-      }
-    }
-    // 2. CARDS_DB lookup via data-card-key / data-key
-    var key = el.getAttribute('data-card-key') || el.getAttribute('data-key') || el.getAttribute('data-cardid');
-    if(!key){
-      // scan onclick for CARDS_DB['...']
-      var oc = el.getAttribute('onclick') || '';
-      var m = oc.match(/CARDS_DB\[['"]([^'"]+)['"]\]/);
-      if(m) key = m[1];
-    }
-    if(key && window.CARDS_DB && window.CARDS_DB[key] && window.CARDS_DB[key].iss){
-      return {iss: normalize(window.CARDS_DB[key].iss) || window.CARDS_DB[key].iss, group:group};
-    }
-    // 3. Scan card text
-    var txt = (el.textContent||'').toLowerCase();
-    for(var i=0;i<ISSUERS_SORTED.length;i++){
-      if(txt.indexOf(ISSUERS_SORTED[i].toLowerCase())>=0) return {iss:ISSUERS_SORTED[i], group:group};
-    }
-    return {iss:'', group:group};
-  }
-  var groupSeen = new WeakSet();
-  function tagAll(){
-    var host = document.getElementById('cardChoices');
-    if(!host) return 0;
-    var items = host.querySelectorAll('.card-check');
-    var tagged = 0;
-    items.forEach(function(el){
-      var res = issuerFromCard(el);
-      if(res.iss){
-        if(el.getAttribute('data-issuer') !== res.iss){
-          el.setAttribute('data-issuer', res.iss);
-          tagged++;
-        }
-        if(res.group && res.group.getAttribute('data-issuer') !== res.iss){
-          res.group.setAttribute('data-issuer', res.iss);
-        }
-      }
-    });
-    // Also tag groups directly
-    host.querySelectorAll('.onb-group').forEach(function(g){
-      var title = g.querySelector('.onb-group-title');
-      if(title){
-        var iss = normalize(title.textContent);
-        if(iss && g.getAttribute('data-issuer') !== iss){
-          g.setAttribute('data-issuer', iss);
-        }
-      }
-    });
-    return tagged;
-  }
-  // Run early + repeatedly
-  function boot(){
-    tagAll();
-    // MutationObserver on body — catches modal open/rerender
-    try {
-      var mo = new MutationObserver(function(){ tagAll(); });
-      mo.observe(document.body, {childList:true, subtree:true});
-    } catch(_){}
-    // Interval burst
-    var ticks = 0;
-    var iv = setInterval(function(){
-      tagAll();
-      if(++ticks > 50) clearInterval(iv); // 20s
-    }, 400);
-    // Click hooks — re-arm burst on every onboarding open
-    document.addEventListener('click', function(e){
-      var t = e.target;
-      if(!t) return;
-      var oc = (t.getAttribute && t.getAttribute('onclick')) || '';
-      var isOpen = /showOnboarding|editWallet/i.test(oc) || (t.id === 'titleHome') || (t.closest && t.closest('#titleHome'));
-      if(isOpen){
-        var ticks2 = 0;
-        var iv2 = setInterval(function(){
-          tagAll();
-          if(++ticks2 > 50) clearInterval(iv2);
-        }, 250);
-      }
-    }, true);
-  }
-  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
-  else boot();
-  window.__v132 = {tagAll: tagAll, normalize: normalize};
+var ISSUERS=['Amex','Scotia','TD','RBC','BMO','CIBC','Rogers','MBNA','HSBC','Wealthsimple','Tangerine','PC Financial','Canadian Tire','Walmart','Neo','KOHO','EQ Bank','Brim','Home Trust','Meridian','Vancity','Coast Capital','Servus','Desjardins','National Bank','Laurentian','Capital One','Simplii'];
+var IS=ISSUERS.slice().sort(function(a,b){return b.length-a.length;});
+var A={'american express':'Amex','amex':'Amex','scotiabank':'Scotia','scotia':'Scotia','tangerine bank':'Tangerine','tangerine':'Tangerine','pc':'PC Financial','pc mc':'PC Financial','pc financial':'PC Financial','coast':'Coast Capital','coast capital':'Coast Capital','eq':'EQ Bank','eq bank':'EQ Bank','nbc':'National Bank','national bank':'National Bank','laurentian bank':'Laurentian','laurentian':'Laurentian','canadian tire':'Canadian Tire','triangle':'Canadian Tire','home trust':'Home Trust','capital one':'Capital One','wealthsimple':'Wealthsimple','td':'TD','rbc':'RBC','bmo':'BMO','cibc':'CIBC','rogers':'Rogers','mbna':'MBNA','hsbc':'HSBC','neo':'Neo','koho':'KOHO','brim':'Brim','meridian':'Meridian','vancity':'Vancity','servus':'Servus','desjardins':'Desjardins','simplii':'Simplii','walmart':'Walmart'};
+function n(r){if(!r)return'';var t=String(r).trim().toLowerCase();if(A[t])return A[t];for(var k in A){if(t.indexOf(k)>=0)return A[k];}for(var i=0;i<IS.length;i++){if(t.indexOf(IS[i].toLowerCase())>=0)return IS[i];}return'';}
+function tag(){var h=document.getElementById('cardChoices');if(!h)return;h.querySelectorAll('.card-check').forEach(function(el){var g=el.closest('.onb-group');var iss='';if(g){var tt=g.querySelector('.onb-group-title');if(tt)iss=n(tt.textContent);}if(!iss){var k=el.getAttribute('data-card-key');if(k&&window.CARDS_DB&&window.CARDS_DB[k]&&window.CARDS_DB[k].iss)iss=n(window.CARDS_DB[k].iss)||window.CARDS_DB[k].iss;}if(!iss){for(var i=0;i<IS.length;i++){if((el.textContent||'').toLowerCase().indexOf(IS[i].toLowerCase())>=0){iss=IS[i];break;}}}if(iss){if(el.getAttribute('data-issuer')!==iss)el.setAttribute('data-issuer',iss);if(g&&g.getAttribute('data-issuer')!==iss)g.setAttribute('data-issuer',iss);}});h.querySelectorAll('.onb-group').forEach(function(g){var t=g.querySelector('.onb-group-title');if(t){var iss=n(t.textContent);if(iss&&g.getAttribute('data-issuer')!==iss)g.setAttribute('data-issuer',iss);}});}
+function boot(){tag();try{new MutationObserver(function(){tag();}).observe(document.body,{childList:true,subtree:true});}catch(_){}var i=0;var iv=setInterval(function(){tag();if(++i>50)clearInterval(iv);},400);document.addEventListener('click',function(e){var t=e.target;if(!t)return;var oc=(t.getAttribute&&t.getAttribute('onclick'))||'';if(/showOnboarding|editWallet/i.test(oc)||t.id==='titleHome'||(t.closest&&t.closest('#titleHome'))){var j=0;var iv2=setInterval(function(){tag();if(++j>50)clearInterval(iv2);},250);}},true);}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+window.__v132={tagAll:tag};
 })();</script>
 
-
 <style id="v134-mobile-rebuild-final">
-/* ============================================================
-   V134 MOBILE-FIRST REBUILD — Final override stylesheet
-   Consolidates and supersedes V47-V133 responsive rules.
-   Preserves all data and JavaScript modules.
-   ============================================================ */
 
-/* A. CORE CONTAINER --------------------------------------- */
-html, body {
-  overflow-x: hidden !important;
-  width: 100% !important;
-  max-width: 100vw !important;
-  margin: 0 !important;
-  padding: 0 !important;
-}
-body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-  min-height: 100vh !important;
-  min-height: 100dvh !important;
-  color: var(--ink) !important;
-  -webkit-font-smoothing: antialiased !important;
-  -webkit-text-size-adjust: 100% !important;
-  text-rendering: optimizeLegibility !important;
-}
-main {
-  width: 100% !important;
-  max-width: 560px !important;
-  margin: 0 auto !important;
-  padding: 12px 14px calc(90px + env(safe-area-inset-bottom, 0px)) !important;
-  box-sizing: border-box !important;
-}
+html,body{overflow-x:hidden !important;width:100% !important;max-width:100vw !important;margin:0 !important;padding:0 !important}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif !important;min-height:100vh !important;min-height:100dvh !important;color:var(--ink) !important;-webkit-font-smoothing:antialiased !important;-webkit-text-size-adjust:100% !important}
+main{width:100% !important;max-width:560px !important;margin:0 auto !important;padding:12px 14px calc(90px + env(safe-area-inset-bottom,0px)) !important;box-sizing:border-box !important}
+h1{font-size:clamp(20px,5vw,24px) !important;line-height:1.15 !important;letter-spacing:-0.03em !important}
+h2{font-size:clamp(17px,4.5vw,22px) !important;line-height:1.15 !important;letter-spacing:-0.025em !important}
+h3{font-size:clamp(15px,4vw,18px) !important;line-height:1.2 !important}
+.top{position:sticky !important;top:0 !important;z-index:50 !important;width:100% !important;box-sizing:border-box !important;padding:calc(10px + env(safe-area-inset-top,0px)) 12px 10px !important;backdrop-filter:blur(16px) saturate(140%) !important;-webkit-backdrop-filter:blur(16px) saturate(140%) !important}
+.header-row{display:flex !important;align-items:center !important;gap:7px !important;min-height:44px !important}
+.brand-wrap{flex:1 1 auto !important;min-width:0 !important;display:flex !important;align-items:center !important;gap:8px !important}
+.brand-logo{width:30px !important;height:30px !important;flex-shrink:0 !important}
+.brand-name{font-size:clamp(15px,4.3vw,18px) !important;font-weight:900 !important;letter-spacing:-0.028em !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important;min-width:0 !important}
+.header-btn,.header-btn-sm{width:38px !important;height:38px !important;min-width:38px !important;flex-shrink:0 !important;display:grid !important;place-items:center !important;border-radius:50% !important;font-size:16px !important;cursor:pointer !important;-webkit-tap-highlight-color:transparent !important}
+.search-wrap{position:relative !important;width:100% !important;margin-top:4px !important}
+input#q{width:100% !important;min-height:48px !important;font-size:16px !important;padding:14px 46px 14px 46px !important;border-radius:24px !important;box-sizing:border-box !important;font-weight:700 !important;-webkit-appearance:none !important}
+.autocomplete{max-height:55dvh !important;overflow-y:auto !important;-webkit-overflow-scrolling:touch !important;border-radius:18px !important}
+.ac-item{min-height:52px !important;padding:11px 13px !important}
+.hero{width:100% !important;max-width:100% !important;box-sizing:border-box !important;overflow:hidden !important;border-radius:20px !important;padding:16px 14px !important}
+.hero-art{padding:4px 0 !important;display:flex !important;justify-content:center !important}
+.hero-art .cc-svg,#hero .cc-svg{max-width:min(240px,65vw) !important;width:100% !important;height:auto !important}
+.rewards-subtabs{display:grid !important;grid-template-columns:repeat(5,1fr) !important;gap:3px !important;padding:3px !important;border-radius:14px !important}
+.rewards-subtabs button{font-size:clamp(9.5px,2.8vw,12px) !important;padding:10px 2px !important;min-height:42px !important;letter-spacing:-0.02em !important;min-width:0 !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important;border-radius:10px !important}
+.rewards-hero{padding:16px 14px !important;border-radius:20px !important;overflow:hidden !important;max-width:100% !important;box-sizing:border-box !important}
+.rewards-hero .rh-tiles{display:grid !important;grid-template-columns:repeat(4,1fr) !important;gap:5px !important}
+.rewards-hero .rh-tile{padding:8px 4px !important;min-width:0 !important;overflow:hidden !important}
+.rewards-hero .rh-tile .l{font-size:clamp(7.5px,2.2vw,9px) !important;letter-spacing:0.04em !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important}
+.rewards-hero .rh-tile .v{font-size:clamp(11px,3vw,14px) !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important}
+.rewards-hero .rh-big{font-size:clamp(22px,6.5vw,30px) !important}
+#offersHero,.credits-hero,.location-hero,.vault-summary-card{padding:16px 14px !important;border-radius:20px !important;overflow:hidden !important;max-width:100% !important;box-sizing:border-box !important}
+#offersHero .oh-title{font-size:clamp(17px,4.7vw,22px) !important;line-height:1.15 !important;word-break:break-word !important}
+#offersHero .oh-stats{display:grid !important;grid-template-columns:repeat(3,1fr) !important;gap:5px !important}
+.credits-hero .ch-row{display:grid !important;grid-template-columns:1fr 60px !important;gap:10px !important;align-items:center !important}
+.credits-hero .ch-big{font-size:clamp(22px,6.5vw,32px) !important}
+.credits-hero .ch-ring{width:60px !important;height:60px !important}
+.vault-summary-card .vs-mini{display:grid !important;grid-template-columns:repeat(3,1fr) !important;gap:5px !important}
+.vault-summary-card .vs-big{font-size:clamp(22px,6.5vw,30px) !important}
+.studio-actions{display:flex !important;flex-wrap:wrap !important;gap:6px !important}
+.studio-actions .sa-btn{flex:1 1 calc(50% - 3px) !important;min-width:calc(50% - 3px) !important;min-height:44px !important;font-size:12px !important;padding:10px 8px !important;border-radius:12px !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important}
+.feature-card{display:grid !important;grid-template-columns:40px 1fr 20px !important;gap:10px !important;padding:12px !important;border-radius:16px !important;align-items:center !important;box-sizing:border-box !important;width:100% !important}
+.feature-card .fc-mid{min-width:0 !important;overflow:hidden !important}
+.feature-card .fc-title{white-space:normal !important;word-break:break-word !important;font-size:clamp(12.5px,3.4vw,14px) !important;line-height:1.2 !important;display:-webkit-box !important;-webkit-line-clamp:2 !important;-webkit-box-orient:vertical !important;overflow:hidden !important}
+.modal-overlay{align-items:flex-end !important;padding:0 !important}
+.modal{width:100% !important;max-width:560px !important;max-height:92dvh !important;border-radius:22px 22px 0 0 !important;padding:18px 16px calc(16px + env(safe-area-inset-bottom,0px)) !important;box-sizing:border-box !important;display:flex !important;flex-direction:column !important;overflow:hidden !important}
+.modal-head{flex-shrink:0 !important;margin-bottom:12px !important}
+.modal-head h2{font-size:clamp(18px,5vw,22px) !important;line-height:1.15 !important}
+.modal-actions{flex-shrink:0 !important;gap:8px !important;padding-top:12px !important;padding-bottom:calc(6px + env(safe-area-inset-bottom,0px)) !important;background:var(--surface) !important}
+.modal-actions button{min-height:46px !important;font-size:14px !important;border-radius:14px !important}
+.card-check{display:grid !important;grid-template-columns:46px 1fr 24px !important;gap:11px !important;padding:11px 12px !important;align-items:center !important;border-radius:13px !important;box-sizing:border-box !important;width:100% !important}
+.card-check .cc-emoji{flex-shrink:0 !important}
+.card-check .cc-info{min-width:0 !important;overflow:hidden !important}
+.card-check .cc-name{font-size:clamp(12.5px,3.6vw,14px) !important;line-height:1.2 !important;font-weight:900 !important;white-space:normal !important;word-break:break-word !important;display:-webkit-box !important;-webkit-line-clamp:2 !important;-webkit-box-orient:vertical !important;overflow:hidden !important}
+.card-check .cc-sub{font-size:10.5px !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important}
+.cardBig{width:100% !important;max-width:100% !important;box-sizing:border-box !important;overflow:hidden !important;border-radius:18px !important}
+.cc-svg{max-width:min(320px,88vw) !important;width:100% !important;height:auto !important}
+.tx-item{display:grid !important;grid-template-columns:1fr auto !important;gap:8px !important;padding:10px 11px !important;border-radius:12px !important;box-sizing:border-box !important;width:100% !important;align-items:center !important}
+.tx-item .txmain{min-width:0 !important;overflow:hidden !important}
+.tx-item .txmerch{font-size:12.5px !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important}
+.month-pills{-webkit-overflow-scrolling:touch !important;scrollbar-width:none !important;overflow-x:auto !important;padding:4px 0 8px !important}
+.month-pills::-webkit-scrollbar{display:none !important}
+.credit-card{padding:12px !important;border-radius:14px !important;box-sizing:border-box !important;width:100% !important}
+.credit-card .cc-head{display:grid !important;grid-template-columns:40px 1fr auto !important;gap:9px !important;align-items:center !important}
+.log-flash,.v79-select-toast,.v82-toast,.credit-flash{max-width:calc(100vw - 24px) !important;box-sizing:border-box !important;font-size:12.5px !important;top:calc(20px + env(safe-area-inset-top,0px)) !important;padding:12px 20px !important;border-radius:99px !important;text-align:center !important}
+.drawer{width:min(290px,82vw) !important;max-width:82vw !important}
+.drawer-body{padding:10px 12px calc(20px + env(safe-area-inset-bottom,0px)) !important;overflow-y:auto !important;-webkit-overflow-scrolling:touch !important}
+.drawer-item{min-height:44px !important}
+.v73-footer{padding:20px 16px 22px !important;border-radius:22px !important;overflow:hidden !important;width:100% !important;box-sizing:border-box !important}
+.form-row input,.form-row select,.form-row textarea,.modal-search,input[type="text"],input[type="number"],input[type="email"],input[type="tel"],input[type="search"],input[type="date"],select,textarea{font-size:16px !important;min-height:46px !important;padding:12px 14px !important;border-radius:12px !important;box-sizing:border-box !important;width:100% !important;-webkit-appearance:none !important;font-family:inherit !important}
+img,svg,video,iframe,canvas{max-width:100% !important;height:auto !important}
+.tx-item,.credit-card,.feature-card,.card-check,.sub-card,.v81-membership-card,.v96-opt-card,.v96-synergy-card,.item,.cardBig,.overview-card,.recent-card{width:100% !important;max-width:100% !important;box-sizing:border-box !important;min-width:0 !important;overflow-wrap:break-word !important}
+main > *{max-width:100% !important;box-sizing:border-box !important}
 
-/* B. FLUID TYPOGRAPHY ------------------------------------- */
-h1 { font-size: clamp(20px, 5vw, 24px) !important; line-height: 1.15 !important; letter-spacing: -0.03em !important; }
-h2 { font-size: clamp(17px, 4.5vw, 22px) !important; line-height: 1.15 !important; letter-spacing: -0.025em !important; }
-h3 { font-size: clamp(15px, 4vw, 18px) !important; line-height: 1.2 !important; }
-.section { font-size: 10.5px !important; letter-spacing: 0.12em !important; }
+/* Tap targets — exclude .header-btn/.header-btn-sm which have fixed 38x38 */
+button:not(.header-btn):not(.header-btn-sm),.drawer-item,.settings-link,.qc-chip,.month-pill,.credit-filter,.card-check,.feature-card,.tile{min-height:40px !important;-webkit-tap-highlight-color:transparent !important;-webkit-touch-callout:none !important}
 
-/* C. TOP BAR / HEADER ------------------------------------- */
-.top {
-  position: sticky !important;
-  top: 0 !important;
-  z-index: 50 !important;
-  width: 100% !important;
-  box-sizing: border-box !important;
-  padding: calc(10px + env(safe-area-inset-top, 0px)) 12px 10px !important;
-  backdrop-filter: blur(16px) saturate(140%) !important;
-  -webkit-backdrop-filter: blur(16px) saturate(140%) !important;
-}
-.header-row {
-  display: flex !important;
-  align-items: center !important;
-  gap: 7px !important;
-  min-height: 44px !important;
-}
-.brand-wrap {
-  flex: 1 1 auto !important;
-  min-width: 0 !important;
-  display: flex !important;
-  align-items: center !important;
-  gap: 8px !important;
-}
-.brand-logo {
-  width: 30px !important;
-  height: 30px !important;
-  flex-shrink: 0 !important;
-}
-.brand-name {
-  font-size: clamp(15px, 4.3vw, 18px) !important;
-  font-weight: 900 !important;
-  letter-spacing: -0.028em !important;
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  min-width: 0 !important;
-}
-.header-btn, .header-btn-sm {
-  width: 38px !important;
-  height: 38px !important;
-  min-width: 38px !important;
-  flex-shrink: 0 !important;
-  display: grid !important;
-  place-items: center !important;
-  border-radius: 50% !important;
-  font-size: 16px !important;
-  cursor: pointer !important;
-  -webkit-tap-highlight-color: transparent !important;
-}
+@media(max-width:430px){main{padding:10px 12px calc(88px + env(safe-area-inset-bottom,0px)) !important}.rewards-hero,#offersHero,.credits-hero,.location-hero,.vault-summary-card{padding:14px 12px !important}}
+@media(max-width:375px){main{padding:8px 10px calc(86px + env(safe-area-inset-bottom,0px)) !important}.brand-logo{width:28px !important;height:28px !important}.header-btn,.header-btn-sm{width:34px !important;height:34px !important;min-width:34px !important;font-size:15px !important}.hero{padding:14px 12px !important}.rewards-hero .rh-tile{padding:6px 3px !important}.rewards-subtabs button{padding:9px 1px !important}}
+@media(max-width:340px){main{padding:6px 8px calc(84px + env(safe-area-inset-bottom,0px)) !important}body{font-size:13px !important}.brand-name{font-size:14px !important}.rewards-hero .rh-tile .v{font-size:10.5px !important}.studio-actions .sa-btn{min-width:100% !important}}
+.empty-state{padding:28px 18px !important;border-radius:20px !important;width:100% !important;box-sizing:border-box !important}
+.v96-opt-hero{padding:16px 14px !important;border-radius:20px !important;overflow:hidden !important}
+.v96-opt-hero .v96-oh-value{font-size:clamp(22px,6.5vw,30px) !important}
+.v96-opt-hero .v96-oh-mini{grid-template-columns:repeat(3,1fr) !important;gap:6px !important}
+.greeting-name{font-size:clamp(19px,5.4vw,24px) !important;line-height:1.1 !important}
 
-/* D. SEARCH BAR -------------------------------------------- */
-.search-wrap {
-  position: relative !important;
-  width: 100% !important;
-  margin-top: 4px !important;
-}
-input#q {
-  width: 100% !important;
-  min-height: 48px !important;
-  font-size: 16px !important;
-  padding: 14px 46px 14px 46px !important;
-  border-radius: 24px !important;
-  box-sizing: border-box !important;
-  font-weight: 700 !important;
-  -webkit-appearance: none !important;
-}
-.autocomplete {
-  max-height: 55vh !important;
-  max-height: 55dvh !important;
-  overflow-y: auto !important;
-  -webkit-overflow-scrolling: touch !important;
-  border-radius: 18px !important;
-}
-.ac-item {
-  min-height: 52px !important;
-  padding: 11px 13px !important;
-  -webkit-tap-highlight-color: transparent !important;
-}
-.ac-item .ac-name {
-  font-size: 13.5px !important;
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-}
-.ac-item .ac-cat { font-size: 10px !important; }
-
-/* E. HERO CARD --------------------------------------------- */
-.hero {
-  width: 100% !important;
-  max-width: 100% !important;
-  box-sizing: border-box !important;
-  overflow: hidden !important;
-  border-radius: 20px !important;
-  padding: 16px 14px !important;
-}
-.hero-art {
-  padding: 4px 0 !important;
-  display: flex !important;
-  justify-content: center !important;
-}
-.hero-art .cc-svg, #hero .cc-svg {
-  max-width: min(240px, 65vw) !important;
-  width: 100% !important;
-  height: auto !important;
-}
-#hero h2, .hero h2 { word-break: break-word !important; }
-.hero .grid { grid-template-columns: 44px 1fr !important; gap: 10px !important; }
-.hero .sub { word-break: break-word !important; }
-.pills { display: flex !important; flex-wrap: wrap !important; gap: 5px !important; justify-content: center !important; }
-.alt-cards .alt-item {
-  min-height: 44px !important;
-  align-items: center !important;
-}
-.alt-cards .alt-item .name {
-  white-space: normal !important;
-  word-break: break-word !important;
-  min-width: 0 !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  display: -webkit-box !important;
-  -webkit-line-clamp: 2 !important;
-  -webkit-box-orient: vertical !important;
-}
-
-/* F. REWARDS SUBTABS (5 buttons) -------------------------- */
-.rewards-subtabs {
-  display: grid !important;
-  grid-template-columns: repeat(5, 1fr) !important;
-  gap: 3px !important;
-  padding: 3px !important;
-  border-radius: 14px !important;
-}
-.rewards-subtabs button {
-  font-size: clamp(9.5px, 2.8vw, 12px) !important;
-  padding: 10px 2px !important;
-  min-height: 42px !important;
-  letter-spacing: -0.02em !important;
-  min-width: 0 !important;
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  border-radius: 10px !important;
-  -webkit-tap-highlight-color: transparent !important;
-}
-
-/* G. HERO STAT TILES -------------------------------------- */
-.rewards-hero {
-  padding: 16px 14px !important;
-  border-radius: 20px !important;
-  overflow: hidden !important;
-  max-width: 100% !important;
-  box-sizing: border-box !important;
-}
-.rewards-hero .rh-tiles {
-  display: grid !important;
-  grid-template-columns: repeat(4, 1fr) !important;
-  gap: 5px !important;
-}
-.rewards-hero .rh-tile {
-  padding: 8px 4px !important;
-  min-width: 0 !important;
-  overflow: hidden !important;
-}
-.rewards-hero .rh-tile .l {
-  font-size: clamp(7.5px, 2.2vw, 9px) !important;
-  letter-spacing: 0.04em !important;
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-}
-.rewards-hero .rh-tile .v {
-  font-size: clamp(11px, 3vw, 14px) !important;
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-}
-.rewards-hero .rh-big { font-size: clamp(22px, 6.5vw, 30px) !important; }
-.rewards-hero .rh-sub { font-size: 10.5px !important; }
-.rewards-hero .rh-label { font-size: 10px !important; }
-
-/* H. OFFERS / CREDITS / LOCATION HEROES ------------------- */
-#offersHero, .credits-hero, .location-hero, .vault-summary-card {
-  padding: 16px 14px !important;
-  border-radius: 20px !important;
-  overflow: hidden !important;
-  max-width: 100% !important;
-  box-sizing: border-box !important;
-}
-#offersHero .oh-title { font-size: clamp(17px, 4.7vw, 22px) !important; line-height: 1.15 !important; word-break: break-word !important; }
-#offersHero .oh-stats { display: grid !important; grid-template-columns: repeat(3, 1fr) !important; gap: 5px !important; }
-#offersHero .oh-stat .v { font-size: clamp(12px, 3.2vw, 14px) !important; white-space: nowrap !important; }
-#offersHero .oh-stat .l { font-size: 9px !important; }
-
-.credits-hero .ch-row { display: grid !important; grid-template-columns: 1fr 60px !important; gap: 10px !important; align-items: center !important; }
-.credits-hero .ch-big { font-size: clamp(22px, 6.5vw, 32px) !important; }
-.credits-hero .ch-ring { width: 60px !important; height: 60px !important; }
-.credits-hero .ch-stats { display: grid !important; grid-template-columns: repeat(3, 1fr) !important; gap: 5px !important; }
-.credits-hero .ch-stat .v { font-size: clamp(11px, 3vw, 13px) !important; }
-
-.vault-summary-card .vs-mini { display: grid !important; grid-template-columns: repeat(3, 1fr) !important; gap: 5px !important; }
-.vault-summary-card .vs-mini .vm .v { font-size: clamp(11px, 3vw, 13px) !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; }
-.vault-summary-card .vs-big { font-size: clamp(22px, 6.5vw, 30px) !important; }
-
-/* I. STUDIO ACTION BUTTONS -------------------------------- */
-.studio-actions {
-  display: flex !important;
-  flex-wrap: wrap !important;
-  gap: 6px !important;
-}
-.studio-actions .sa-btn {
-  flex: 1 1 calc(50% - 3px) !important;
-  min-width: calc(50% - 3px) !important;
-  min-height: 44px !important;
-  font-size: 12px !important;
-  padding: 10px 8px !important;
-  border-radius: 12px !important;
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  -webkit-tap-highlight-color: transparent !important;
-}
-
-/* J. FEATURE CARDS ---------------------------------------- */
-.feature-card {
-  display: grid !important;
-  grid-template-columns: 40px 1fr 20px !important;
-  gap: 10px !important;
-  padding: 12px !important;
-  border-radius: 16px !important;
-  align-items: center !important;
-  box-sizing: border-box !important;
-  width: 100% !important;
-}
-.feature-card .fc-mid { min-width: 0 !important; overflow: hidden !important; }
-.feature-card .fc-title {
-  white-space: normal !important;
-  word-break: break-word !important;
-  font-size: clamp(12.5px, 3.4vw, 14px) !important;
-  line-height: 1.2 !important;
-  display: -webkit-box !important;
-  -webkit-line-clamp: 2 !important;
-  -webkit-box-orient: vertical !important;
-  overflow: hidden !important;
-}
-.feature-card .fc-sub {
-  white-space: normal !important;
-  word-break: break-word !important;
-  font-size: clamp(10.5px, 2.8vw, 11.5px) !important;
-  line-height: 1.35 !important;
-  display: -webkit-box !important;
-  -webkit-line-clamp: 2 !important;
-  -webkit-box-orient: vertical !important;
-  overflow: hidden !important;
-}
-
-/* K. MODALS ----------------------------------------------- */
-.modal-overlay {
-  align-items: flex-end !important;
-  padding: 0 !important;
-}
-.modal {
-  width: 100% !important;
-  max-width: 560px !important;
-  max-height: 92vh !important;
-  max-height: 92dvh !important;
-  border-radius: 22px 22px 0 0 !important;
-  padding: 18px 16px calc(16px + env(safe-area-inset-bottom, 0px)) !important;
-  box-sizing: border-box !important;
-  display: flex !important;
-  flex-direction: column !important;
-  overflow: hidden !important;
-}
-.modal-head { flex-shrink: 0 !important; margin-bottom: 12px !important; }
-.modal-head h2 { font-size: clamp(18px, 5vw, 22px) !important; line-height: 1.15 !important; }
-.modal-head p { font-size: 12.5px !important; line-height: 1.4 !important; }
-.modal-actions {
-  flex-shrink: 0 !important;
-  gap: 8px !important;
-  padding-top: 12px !important;
-  padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px)) !important;
-  background: var(--surface) !important;
-}
-.modal-actions button {
-  min-height: 46px !important;
-  font-size: 14px !important;
-  border-radius: 14px !important;
-  -webkit-tap-highlight-color: transparent !important;
-}
-
-/* L. ONBOARDING CARD CHECKS ------------------------------- */
-/* NOTE: does NOT override .cc-emoji sizing — V131/V132 issuer chip styles win */
-.card-check {
-  display: grid !important;
-  grid-template-columns: 46px 1fr 24px !important;
-  gap: 11px !important;
-  padding: 11px 12px !important;
-  align-items: center !important;
-  border-radius: 13px !important;
-  box-sizing: border-box !important;
-  width: 100% !important;
-  -webkit-tap-highlight-color: transparent !important;
-}
-.card-check .cc-emoji { flex-shrink: 0 !important; }
-.card-check .cc-info { min-width: 0 !important; overflow: hidden !important; }
-.card-check .cc-name {
-  font-size: clamp(12.5px, 3.6vw, 14px) !important;
-  line-height: 1.2 !important;
-  font-weight: 900 !important;
-  white-space: normal !important;
-  word-break: break-word !important;
-  display: -webkit-box !important;
-  -webkit-line-clamp: 2 !important;
-  -webkit-box-orient: vertical !important;
-  overflow: hidden !important;
-}
-.card-check .cc-sub {
-  font-size: 10.5px !important;
-  line-height: 1.3 !important;
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-}
-
-/* M. MY WALLET (card details) ----------------------------- */
-.cardBig {
-  width: 100% !important;
-  max-width: 100% !important;
-  box-sizing: border-box !important;
-  overflow: hidden !important;
-  border-radius: 18px !important;
-}
-.cc-wrapper { padding: 12px 12px 4px !important; }
-.cc-svg { max-width: min(320px, 88vw) !important; width: 100% !important; height: auto !important; }
-.fees { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 1px !important; }
-.fees > div { padding: 8px 10px !important; box-sizing: border-box !important; }
-.fees .val { font-size: 13px !important; }
-.fees .lbl { font-size: 9.5px !important; }
-.benefits { padding: 10px 12px !important; }
-.benefits .row {
-  display: grid !important;
-  grid-template-columns: 22px 1fr auto !important;
-  gap: 6px !important;
-  font-size: 12px !important;
-  padding: 5px 0 !important;
-  align-items: center !important;
-}
-.benefits .row .v { font-size: 11px !important; white-space: nowrap !important; }
-
-/* N. TRANSACTIONS ----------------------------------------- */
-.tx-item {
-  display: grid !important;
-  grid-template-columns: 1fr auto !important;
-  gap: 8px !important;
-  padding: 10px 11px !important;
-  border-radius: 12px !important;
-  box-sizing: border-box !important;
-  width: 100% !important;
-  align-items: center !important;
-}
-.tx-item .txmain { min-width: 0 !important; overflow: hidden !important; }
-.tx-item .txmerch {
-  font-size: 12.5px !important;
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-}
-.tx-item .txmeta { font-size: 10.5px !important; }
-.tx-item .txamt { font-size: 12.5px !important; }
-.tx-item .txrew, .tx-item .txmiss { font-size: 10.5px !important; }
-.month-pills {
-  -webkit-overflow-scrolling: touch !important;
-  scrollbar-width: none !important;
-  overflow-x: auto !important;
-  padding: 4px 0 8px !important;
-}
-.month-pills::-webkit-scrollbar { display: none !important; }
-.month-pill {
-  min-height: 36px !important;
-  font-size: 11.5px !important;
-  padding: 7px 12px !important;
-  white-space: nowrap !important;
-  flex-shrink: 0 !important;
-  -webkit-tap-highlight-color: transparent !important;
-}
-
-/* O. STATEMENT CREDITS ------------------------------------ */
-.credit-filters {
-  overflow-x: auto !important;
-  scrollbar-width: none !important;
-  -webkit-overflow-scrolling: touch !important;
-}
-.credit-filters::-webkit-scrollbar { display: none !important; }
-.credit-filter {
-  min-height: 36px !important;
-  padding: 7px 12px !important;
-  white-space: nowrap !important;
-  flex-shrink: 0 !important;
-  -webkit-tap-highlight-color: transparent !important;
-}
-.credit-card {
-  padding: 12px !important;
-  border-radius: 14px !important;
-  box-sizing: border-box !important;
-  width: 100% !important;
-}
-.credit-card .cc-head {
-  display: grid !important;
-  grid-template-columns: 40px 1fr auto !important;
-  gap: 9px !important;
-  align-items: center !important;
-}
-.credit-card .cc-title {
-  font-size: clamp(13px, 3.6vw, 14.5px) !important;
-  line-height: 1.15 !important;
-  word-break: break-word !important;
-  display: -webkit-box !important;
-  -webkit-line-clamp: 2 !important;
-  -webkit-box-orient: vertical !important;
-  overflow: hidden !important;
-}
-.credit-card .cc-amt { font-size: 15px !important; flex-shrink: 0 !important; }
-.credit-card .cc-actions {
-  display: grid !important;
-  grid-template-columns: 1fr auto !important;
-  gap: 8px !important;
-  align-items: center !important;
-  margin-top: 10px !important;
-}
-.credit-card .cc-btn {
-  min-height: 40px !important;
-  padding: 9px 14px !important;
-  -webkit-tap-highlight-color: transparent !important;
-}
-
-/* P. TOASTS ----------------------------------------------- */
-.log-flash, .v79-select-toast, .v82-toast, .credit-flash {
-  max-width: calc(100vw - 24px) !important;
-  box-sizing: border-box !important;
-  font-size: 12.5px !important;
-  top: calc(20px + env(safe-area-inset-top, 0px)) !important;
-  padding: 12px 20px !important;
-  border-radius: 99px !important;
-  text-align: center !important;
-}
-
-/* Q. DRAWER ----------------------------------------------- */
-.drawer {
-  width: min(290px, 82vw) !important;
-  max-width: 82vw !important;
-}
-.drawer-body {
-  padding: 10px 12px calc(20px + env(safe-area-inset-bottom, 0px)) !important;
-  overflow-y: auto !important;
-  -webkit-overflow-scrolling: touch !important;
-}
-.drawer-item {
-  min-height: 44px !important;
-  -webkit-tap-highlight-color: transparent !important;
-}
-
-/* R. FOOTER ----------------------------------------------- */
-.v73-footer {
-  padding: 20px 16px 22px !important;
-  margin-left: 0 !important;
-  margin-right: 0 !important;
-  border-radius: 22px !important;
-  overflow: hidden !important;
-  width: 100% !important;
-  box-sizing: border-box !important;
-}
-.v73-footer-tagline {
-  padding: 0 4px !important;
-  word-break: break-word !important;
-  font-size: clamp(12px, 3.2vw, 13.5px) !important;
-}
-.v73-footer-social { flex-wrap: wrap !important; gap: 8px !important; }
-.v73-social-link { min-height: 36px !important; -webkit-tap-highlight-color: transparent !important; }
-
-/* S. FORM ROWS -------------------------------------------- */
-.form-row input, .form-row select, .form-row textarea, .modal-search, input[type="text"], input[type="number"], input[type="email"], input[type="tel"], input[type="search"], input[type="date"], select, textarea {
-  font-size: 16px !important;
-  min-height: 46px !important;
-  padding: 12px 14px !important;
-  border-radius: 12px !important;
-  box-sizing: border-box !important;
-  width: 100% !important;
-  -webkit-appearance: none !important;
-  font-family: inherit !important;
-}
-.form-row label {
-  font-size: 11px !important;
-  letter-spacing: 0.08em !important;
-}
-
-/* T. TAP TARGETS ------------------------------------------ */
-button, .drawer-item, .settings-link, .qc-chip, .month-pill, .credit-filter, .card-check, .feature-card, .tile {
-  min-height: 40px !important;
-  -webkit-tap-highlight-color: transparent !important;
-  -webkit-touch-callout: none !important;
-}
-
-/* U. BREAKPOINT-SPECIFIC ---------------------------------- */
-@media (max-width: 430px) {
-  main { padding: 10px 12px calc(88px + env(safe-area-inset-bottom, 0px)) !important; }
-  .top { padding-left: 10px !important; padding-right: 10px !important; }
-  .rewards-hero, #offersHero, .credits-hero, .location-hero, .vault-summary-card { padding: 14px 12px !important; }
-}
-@media (max-width: 375px) {
-  main { padding: 8px 10px calc(86px + env(safe-area-inset-bottom, 0px)) !important; }
-  .brand-logo { width: 28px !important; height: 28px !important; }
-  .header-btn, .header-btn-sm { width: 34px !important; height: 34px !important; min-width: 34px !important; font-size: 15px !important; }
-  .hero { padding: 14px 12px !important; }
-  .rewards-hero .rh-tile { padding: 6px 3px !important; }
-  .rewards-subtabs button { padding: 9px 1px !important; }
-  .studio-actions .sa-btn { font-size: 11.5px !important; padding: 9px 6px !important; }
-}
-@media (max-width: 340px) {
-  main { padding: 6px 8px calc(84px + env(safe-area-inset-bottom, 0px)) !important; }
-  .top { padding-left: 8px !important; padding-right: 8px !important; }
-  body { font-size: 13px !important; }
-  .brand-name { font-size: 14px !important; }
-  .hero { padding: 12px 10px !important; }
-  .rewards-hero, #offersHero, .credits-hero { padding: 12px 10px !important; }
-  .rewards-hero .rh-tile .v { font-size: 10.5px !important; }
-  .studio-actions .sa-btn { min-width: 100% !important; }
-  .credit-card .cc-actions { grid-template-columns: 1fr !important; }
-}
-
-/* V. iOS SAFARI FIXES ------------------------------------- */
-input, textarea, select, button {
-  -webkit-appearance: none !important;
-  border-radius: inherit;
-}
-a, button, [role="button"] {
-  -webkit-tap-highlight-color: transparent !important;
-  touch-action: manipulation !important;
-}
-
-/* W. IMAGE / SVG SAFETY ----------------------------------- */
-img, svg, video, iframe, canvas {
-  max-width: 100% !important;
-  height: auto !important;
-}
-
-/* X. LIST ITEMS SAFETY ------------------------------------ */
-.tx-item, .credit-card, .feature-card, .card-check, .sub-card, .v81-membership-card, .v96-opt-card, .v96-synergy-card, .item, .cardBig, .overview-card, .recent-card {
-  width: 100% !important;
-  max-width: 100% !important;
-  box-sizing: border-box !important;
-  min-width: 0 !important;
-  overflow-wrap: break-word !important;
-  word-wrap: break-word !important;
-}
-
-/* Y. EMPTY STATES ----------------------------------------- */
-.empty-state {
-  padding: 28px 18px !important;
-  border-radius: 20px !important;
-  width: 100% !important;
-  box-sizing: border-box !important;
-}
-.empty-state h3 { font-size: clamp(15px, 4vw, 17px) !important; }
-.empty-state p { font-size: clamp(12px, 3.2vw, 13px) !important; line-height: 1.5 !important; }
-.empty-state button { min-height: 46px !important; padding: 12px 20px !important; }
-
-/* Z. V96 OPTIMIZER MOBILE FIXES --------------------------- */
-.v96-opt-hero { padding: 16px 14px !important; border-radius: 20px !important; overflow: hidden !important; }
-.v96-opt-hero .v96-oh-value { font-size: clamp(22px, 6.5vw, 30px) !important; }
-.v96-opt-hero .v96-oh-mini { grid-template-columns: repeat(3, 1fr) !important; gap: 6px !important; }
-.v96-opt-hero .v96-oh-mini .m .v { font-size: clamp(11px, 3vw, 14px) !important; white-space: nowrap !important; }
-.v96-opt-card, .v96-synergy-card { padding: 14px 12px !important; border-radius: 14px !important; }
-.v96-opt-card-head { grid-template-columns: 40px 1fr auto !important; gap: 10px !important; }
-.v96-opt-card-title { font-size: clamp(13px, 3.6vw, 14.5px) !important; word-break: break-word !important; }
-.v96-opt-card-bal .b { font-size: 14px !important; white-space: nowrap !important; }
-.v96-redemption { grid-template-columns: 1fr auto auto !important; gap: 6px !important; font-size: 12px !important; }
-.v96-redemption .rl { min-width: 0 !important; }
-
-/* AA. V81 MEMBERSHIPS ------------------------------------- */
-.v81-membership-card { grid-template-columns: 32px 1fr auto 26px !important; gap: 10px !important; padding: 12px !important; }
-.v81-membership-card .v81-name { font-size: 13px !important; }
-.v81-membership-card .v81-bal { font-size: 13px !important; }
-
-/* AB. V82 MONTH GROUPS ------------------------------------ */
-.v82-month-group { border-radius: 12px !important; }
-.v82-month-header { grid-template-columns: 20px 1fr auto auto !important; gap: 8px !important; padding: 12px !important; }
-.v82-month-label { font-size: 13px !important; }
-.v82-month-total { font-size: 13px !important; white-space: nowrap !important; }
-
-/* AC. GREETING BLOCK -------------------------------------- */
-.greeting { padding: 2px 0 8px !important; }
-.greeting-name { font-size: clamp(19px, 5.4vw, 24px) !important; line-height: 1.1 !important; }
-.greeting-time { font-size: 11px !important; }
-
-/* Final safety: no element pushes horizontal scroll */
-main > * { max-width: 100% !important; box-sizing: border-box !important; }
 </style>
+
+<script id="v135-fixes-js">
+(function(){
+'use strict';
+function iosBlur(el){if(!el)return;try{el.setAttribute('readonly','readonly');el.blur();requestAnimationFrame(function(){el.removeAttribute('readonly');setTimeout(function(){try{el.blur();}catch(_){}if(document.activeElement===el){try{document.activeElement.blur();}catch(_){}}},50);});}catch(_){}}
+function installKeyboardDismiss(){var q=document.getElementById('q');if(!q||q.__v135Wired)return;q.__v135Wired=true;
+q.addEventListener('keydown',function(e){if(e.key==='Enter'||e.keyCode===13){e.preventDefault();e.stopPropagation();iosBlur(q);}});
+q.addEventListener('keypress',function(e){if(e.key==='Enter'||e.keyCode===13){e.preventDefault();e.stopPropagation();iosBlur(q);}});
+var ac=document.getElementById('autocomplete');if(ac){ac.addEventListener('click',function(){iosBlur(q);},true);ac.addEventListener('touchend',function(){iosBlur(q);},true);}
+document.addEventListener('touchstart',function(e){if(document.activeElement!==q)return;var t=e.target;if(t&&(t.closest('.search-wrap')||t.closest('.autocomplete')))return;iosBlur(q);},{passive:true,capture:true});
+document.addEventListener('mousedown',function(e){if(document.activeElement!==q)return;var t=e.target;if(t&&(t.closest('.search-wrap')||t.closest('.autocomplete')))return;iosBlur(q);},true);
+var lastY=0;window.addEventListener('scroll',function(){var y=window.scrollY||window.pageYOffset;if(document.activeElement===q&&Math.abs(y-lastY)>40&&y>60){iosBlur(q);}lastY=y;},{passive:true});
+}
+var __refreshing=false;
+window.__v135_forceRefreshAll=function(){
+if(__refreshing) return;
+__refreshing=true;
+try{
+try{if(window.__v128&&typeof window.__v128.tick==='function')window.__v128.tick();}catch(_){}
+try{if(typeof window.__v106Tick==='function')window.__v106Tick();}catch(_){}
+try{if(typeof window.reconcileAutoEarnings==='function')window.reconcileAutoEarnings();}catch(_){}
+['renderTxList','renderTransactions','renderTx','renderActivity'].forEach(function(fn){try{if(typeof window[fn]==='function')window[fn]();}catch(_){}});
+try{var ap=document.querySelector('.month-pill.on');if(ap)ap.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true}));}catch(_){}
+['renderRewardsHero','updateRewardsHero','renderStudioHero','renderInsights','renderOverview'].forEach(function(fn){try{if(typeof window[fn]==='function')window[fn]();}catch(_){}});
+['renderHome','renderHomeVaultSummary','renderVaultSummary','updateHomeStats'].forEach(function(fn){try{if(typeof window[fn]==='function')window[fn]();}catch(_){}});
+try{if(window.__v122&&typeof window.__v122.renderHome==='function')window.__v122.renderHome();}catch(_){}
+['renderVaultV122','renderVault','renderPointsTab','renderV122'].forEach(function(fn){try{if(typeof window[fn]==='function')window[fn]();}catch(_){}});
+try{if(typeof window.scheduleVaultRefresh==='function')window.scheduleVaultRefresh();}catch(_){}
+try{window.dispatchEvent(new StorageEvent('storage',{key:'walletiq_transactions',newValue:localStorage.getItem('walletiq_transactions')||'[]'}));}catch(_){try{window.dispatchEvent(new Event('storage'));}catch(__){}}
+try{var as=document.querySelector('.rewards-subtabs button.on');if(as&&typeof window.switchRewardsView==='function'){var v=as.getAttribute('data-view');if(v)window.switchRewardsView(v);}}catch(_){}
+} finally { setTimeout(function(){__refreshing=false;}, 100); }
+};
+var refreshTimer=null;
+function scheduleRefresh(delay){clearTimeout(refreshTimer);refreshTimer=setTimeout(function(){try{window.__v135_forceRefreshAll();}catch(_){}},delay||60);}
+var wrapAttempts=0,wrappedFns={};
+var TARGETS=['deleteTx','removeTx','removeTxById','deleteTransaction','removeTransaction','clearAllTx','clearTx','clearTransactions','clearAll','saveTx','saveTxFromModal','saveHeroLogPurchase','logPurchase'];
+function wrapFn(name){if(wrappedFns[name])return;if(typeof window[name]!=='function')return;var original=window[name];window[name]=function(){var r;try{r=original.apply(this,arguments);}catch(err){throw err;}scheduleRefresh(60);setTimeout(function(){try{window.__v135_forceRefreshAll();}catch(_){}},400);return r;};wrappedFns[name]=true;}
+function wrapAll(){TARGETS.forEach(wrapFn);}
+wrapAll();var wrapIv=setInterval(function(){wrapAll();if(++wrapAttempts>30)clearInterval(wrapIv);},300);
+var txListObserver=null;
+function watchTxList(){var txList=document.getElementById('txList');if(!txList||txList.__v135Watched)return;txList.__v135Watched=true;
+txListObserver=new MutationObserver(function(mutations){
+  if(__refreshing) return;
+  var removed=false;mutations.forEach(function(m){if(m.removedNodes&&m.removedNodes.length)removed=true;});
+  if(removed)scheduleRefresh(80);
+});
+txListObserver.observe(txList,{childList:true,subtree:true});
+}
+watchTxList();var watchIv=setInterval(watchTxList,500);setTimeout(function(){clearInterval(watchIv);},15000);
+document.addEventListener('click',function(e){
+  var t=e.target;if(!t)return;
+  var deleteBtn=t.closest&&t.closest('.txbtns button, .v82-dismiss-btn, .ccustom-del, .v81-del-btn');
+  var txContext=t.closest&&t.closest('.tx-item, .v82-month-body, #txList, .leak-item, .sub-card, .v81-membership-card');
+  var tc=(t.textContent||'').toLowerCase().trim();
+  var isDeleteText=tc==='\ud83d\uddd1'||tc==='delete'||tc==='\u00d7'||tc==='clear'||tc.indexOf('clear')===0;
+  if((deleteBtn&&txContext)||(txContext&&isDeleteText&&t.tagName==='BUTTON')){
+    scheduleRefresh(100);
+    setTimeout(function(){try{window.__v135_forceRefreshAll();}catch(_){}},400);
+    setTimeout(function(){try{window.__v135_forceRefreshAll();}catch(_){}},900);
+  }
+  if(t.matches&&t.matches('.sa-btn.danger, button.danger')){
+    scheduleRefresh(120);
+    setTimeout(function(){try{window.__v135_forceRefreshAll();}catch(_){}},500);
+  }
+},true);
+function boot(){installKeyboardDismiss();var kbIv=setInterval(installKeyboardDismiss,500);setTimeout(function(){clearInterval(kbIv);},10000);}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+window.__v135={forceRefreshAll:window.__v135_forceRefreshAll,scheduleRefresh:scheduleRefresh};
+})();
+</script>
 </body>
 </html>
