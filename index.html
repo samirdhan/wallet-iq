@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>Wallet IQ V136</title>
+<title>Wallet IQ V139</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Wallet IQ">
@@ -1503,23 +1503,21 @@ body.dark .v96-synergy-card.locked { border-color: var(--border); }
 input,#q,#onboardSearch,.modal-search,input[type="text"],input[type="number"],input[type="email"],input[type="tel"],input[type="search"],input[type="date"],select,textarea{font-size:16px!important}
 .pill,.tag{display:flex!important;align-items:center!important;justify-content:center!important;text-align:center!important}
 .rewards-subtabs button{font-size:11px!important;padding:10px 3px!important}
-@media(max-width:375px){.rewards-subtabs button{font-size:10.5px!important;padding:9px 2px!important}}
 </style>
 <script id="v130-iife">(function(){
 var hero=document.getElementById('hero');
 if(hero){var mo=new MutationObserver(function(){var el=hero.querySelector('[data-card-key]');if(el)hero.setAttribute('data-main-card-key',el.getAttribute('data-card-key')||'');});mo.observe(hero,{childList:true,subtree:true,attributes:true});}
 document.addEventListener('keydown',function(e){if(e.target&&e.target.id==='q'&&e.key==='Enter'){e.preventDefault();e.target.blur();window.scrollTo(0,0);}});
-document.addEventListener('click',function(e){var alt=e.target.closest&&e.target.closest('.alt-item.chosen');if(alt){e.stopPropagation();e.stopImmediatePropagation();document.querySelectorAll('.alt-item.chosen').forEach(function(x){x.classList.remove('chosen');});var main=hero?hero.getAttribute('data-main-card-key'):'';var hidden=document.getElementById('heroLogCard');if(hidden&&main)hidden.value=main;if(window.__v70)window.__v70.chosenCardKey=null;var toast=document.createElement('div');toast.className='v79-select-toast show';toast.textContent='↻ Back to recommended card';document.body.appendChild(toast);setTimeout(function(){toast.remove();},1600);var q=document.getElementById('q');if(q&&typeof window.renderRecommendation==='function'){try{window.renderRecommendation(q.value||'');}catch(_){}}}},true);
 })();</script>
 <script id="v130-vault">(function(){
 window.__vaultBusy=false;window.__vaultQueued=false;
-window.scheduleVaultRefresh=function(){if(window.__vaultBusy||window.__vaultQueued)return;window.__vaultQueued=true;requestAnimationFrame(function(){window.__vaultQueued=false;window.__vaultBusy=true;try{if(window.__v128&&typeof window.__v128.tick==='function')window.__v128.tick();else if(window.__v106Tick)window.__v106Tick();if(typeof window.renderVaultV122==='function')window.renderVaultV122();else if(typeof window.renderVault==='function')window.renderVault();if(window.__v122&&typeof window.__v122.renderHome==='function')window.__v122.renderHome();}finally{window.__vaultBusy=false;}});};
+window.scheduleVaultRefresh=function(){if(window.__vaultBusy||window.__vaultQueued)return;window.__vaultQueued=true;requestAnimationFrame(function(){window.__vaultQueued=false;window.__vaultBusy=true;try{if(window.__v128&&typeof window.__v128.tick==='function')window.__v128.tick();else if(window.__v106Tick)window.__v106Tick();if(typeof window.renderVaultV122==='function')window.renderVaultV122();else if(typeof window.renderVault==='function')window.renderVault();}finally{window.__vaultBusy=false;}});};
 })();</script>
 
 <style id="v131-onb-logos">
 .card-check .cc-emoji{width:46px !important;height:32px !important;border-radius:6px !important;position:relative !important;display:flex !important;align-items:center !important;justify-content:center !important;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif !important;font-size:0 !important;color:#fff !important;overflow:hidden !important;box-shadow:0 2px 6px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.25) !important;background:linear-gradient(135deg,#4a5680,#2d3450) !important;flex-shrink:0 !important;}
-.card-check .cc-emoji::before{content:'' !important;position:absolute !important;top:4px !important;left:5px !important;width:8px !important;height:6px !important;border-radius:1.5px !important;background:linear-gradient(135deg,#f0d68a,#c9a35a) !important;box-shadow:inset 0 -1px 0 rgba(0,0,0,.15) !important;z-index:1 !important;}
-.card-check .cc-emoji::after{content:'BANK' !important;position:absolute !important;inset:0 !important;display:flex !important;align-items:center !important;justify-content:center !important;font-size:9.5px !important;font-weight:900 !important;letter-spacing:.02em !important;color:#fff !important;text-shadow:0 1px 2px rgba(0,0,0,.35) !important;padding-left:8px !important;padding-top:6px !important;z-index:0 !important;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif !important;}
+.card-check .cc-emoji::before{content:'' !important;position:absolute !important;top:4px !important;left:5px !important;width:8px !important;height:6px !important;border-radius:1.5px !important;background:linear-gradient(135deg,#f0d68a,#c9a35a) !important;z-index:1 !important;}
+.card-check .cc-emoji::after{content:'BANK' !important;position:absolute !important;inset:0 !important;display:flex !important;align-items:center !important;justify-content:center !important;font-size:9.5px !important;font-weight:900 !important;color:#fff !important;text-shadow:0 1px 2px rgba(0,0,0,.35) !important;padding-left:8px !important;padding-top:6px !important;z-index:0 !important;}
 .card-check[data-issuer="Amex"] .cc-emoji{background:linear-gradient(135deg,#006fcf,#003d75) !important;}
 .card-check[data-issuer="Amex"] .cc-emoji::after{content:'AMEX' !important;font-size:9.5px !important;}
 .card-check[data-issuer="Scotia"] .cc-emoji{background:linear-gradient(135deg,#e01a2e,#a3061c) !important;}
@@ -1642,32 +1640,11 @@ html,body{overflow-x:hidden !important;max-width:100vw !important}
 body{width:100% !important;margin:0 auto !important}
 img,svg,video,iframe{max-width:100% !important;height:auto !important}
 main{padding:10px 12px 90px !important;box-sizing:border-box !important}
-@media(max-width:430px){main{padding:8px 10px 90px !important}}
-@media(max-width:375px){main{padding:6px 8px 88px !important}}
-.top{padding-left:10px !important;padding-right:10px !important;box-sizing:border-box !important}
-.brand-name{font-size:17px !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important;min-width:0 !important}
-@media(max-width:375px){.brand-name{font-size:15px !important}}
-input#q{width:100% !important;box-sizing:border-box !important;min-height:46px !important}
-.hero-art .cc-svg,#hero .cc-svg{max-width:min(260px,72vw) !important;width:100% !important;height:auto !important}
-#hero h2,.hero h2{font-size:clamp(17px,4.6vw,22px) !important;line-height:1.15 !important;word-break:break-word !important}
 .rewards-subtabs{grid-template-columns:repeat(5,1fr) !important;gap:3px !important;padding:3px !important}
 .rewards-subtabs button{font-size:11px !important;padding:9px 2px !important;min-width:0 !important;overflow:hidden !important;text-overflow:ellipsis !important;white-space:nowrap !important}
 .rewards-hero .rh-tiles{grid-template-columns:repeat(4,1fr) !important;gap:5px !important}
-.rewards-hero .rh-tile{padding:7px 3px !important;min-width:0 !important}
-.rewards-hero .rh-tile .l{font-size:8px !important}
-.rewards-hero .rh-tile .v{font-size:12px !important}
-.feature-card{grid-template-columns:40px 1fr 20px !important;gap:10px !important;padding:12px !important}
-.feature-card .fc-mid{min-width:0 !important;overflow:hidden !important}
-.vault-summary-card .vs-mini{grid-template-columns:repeat(3,1fr) !important;gap:5px !important}
-#offersHero .oh-stats{grid-template-columns:repeat(3,1fr) !important;gap:5px !important}
-.credits-hero .ch-stats{grid-template-columns:repeat(3,1fr) !important;gap:5px !important}
-.studio-actions{gap:6px !important;flex-wrap:wrap !important}
-.studio-actions .sa-btn{flex:1 1 calc(50% - 3px) !important;min-width:calc(50% - 3px) !important;min-height:42px !important;font-size:12px !important;padding:10px 6px !important}
-.modal{width:100% !important;max-width:560px !important;max-height:92dvh !important;border-radius:22px 22px 0 0 !important;padding:18px 16px calc(16px + env(safe-area-inset-bottom,0px)) !important;box-sizing:border-box !important}
 .card-check{grid-template-columns:46px 1fr 24px !important;gap:11px !important;padding:11px 12px !important;align-items:center !important}
 .card-check .cc-emoji{flex-shrink:0 !important}
-.card-check .cc-info{min-width:0 !important}
-.card-check .cc-name{font-size:13px !important;line-height:1.2 !important;white-space:normal !important;word-break:break-word !important}
 </style>
 
 <style id="v134-mobile-rebuild">
@@ -1675,38 +1652,25 @@ input#q{width:100% !important;box-sizing:border-box !important;min-height:46px !
 html,body{overflow-x:hidden !important;width:100% !important;max-width:100vw !important;margin:0 !important;padding:0 !important}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif !important;min-height:100vh !important;min-height:100dvh !important;color:var(--ink) !important;-webkit-font-smoothing:antialiased !important;-webkit-text-size-adjust:100% !important}
 main{width:100% !important;max-width:560px !important;margin:0 auto !important;padding:12px 14px calc(90px + env(safe-area-inset-bottom,0px)) !important;box-sizing:border-box !important}
-h1{font-size:clamp(20px,5vw,24px) !important;line-height:1.15 !important;letter-spacing:-0.03em !important}
-h2{font-size:clamp(17px,4.5vw,22px) !important;line-height:1.15 !important;letter-spacing:-0.025em !important}
+h1{font-size:clamp(20px,5vw,24px) !important;line-height:1.15 !important}
+h2{font-size:clamp(17px,4.5vw,22px) !important;line-height:1.15 !important}
 h3{font-size:clamp(15px,4vw,18px) !important;line-height:1.2 !important}
-.top{position:sticky !important;top:0 !important;z-index:50 !important;width:100% !important;box-sizing:border-box !important;padding:calc(10px + env(safe-area-inset-top,0px)) 12px 10px !important;backdrop-filter:blur(16px) saturate(140%) !important;-webkit-backdrop-filter:blur(16px) saturate(140%) !important}
+.top{position:sticky !important;top:0 !important;z-index:50 !important;width:100% !important;box-sizing:border-box !important;padding:calc(10px + env(safe-area-inset-top,0px)) 12px 10px !important}
 .header-row{display:flex !important;align-items:center !important;gap:7px !important;min-height:44px !important}
-.brand-wrap{flex:1 1 auto !important;min-width:0 !important;display:flex !important;align-items:center !important;gap:8px !important}
-.brand-logo{width:30px !important;height:30px !important;flex-shrink:0 !important}
-.brand-name{font-size:clamp(15px,4.3vw,18px) !important;font-weight:900 !important;letter-spacing:-0.028em !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important;min-width:0 !important}
-.header-btn,.header-btn-sm{width:38px !important;height:38px !important;min-width:38px !important;flex-shrink:0 !important;display:grid !important;place-items:center !important;border-radius:50% !important;font-size:16px !important;cursor:pointer !important;-webkit-tap-highlight-color:transparent !important}
-.search-wrap{position:relative !important;width:100% !important;margin-top:4px !important}
-input#q{width:100% !important;min-height:48px !important;font-size:16px !important;padding:14px 46px 14px 46px !important;border-radius:24px !important;box-sizing:border-box !important;font-weight:700 !important;-webkit-appearance:none !important}
-.autocomplete{max-height:55dvh !important;overflow-y:auto !important;-webkit-overflow-scrolling:touch !important;border-radius:18px !important}
-.ac-item{min-height:52px !important;padding:11px 13px !important}
+.brand-name{font-size:clamp(15px,4.3vw,18px) !important;font-weight:900 !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important;min-width:0 !important}
+.header-btn,.header-btn-sm{width:38px !important;height:38px !important;min-width:38px !important;flex-shrink:0 !important;display:grid !important;place-items:center !important;border-radius:50% !important;font-size:16px !important;-webkit-tap-highlight-color:transparent !important}
+input#q{width:100% !important;min-height:48px !important;font-size:16px !important;padding:14px 46px 14px 46px !important;border-radius:24px !important;box-sizing:border-box !important;-webkit-appearance:none !important}
 .hero{width:100% !important;max-width:100% !important;box-sizing:border-box !important;overflow:hidden !important;border-radius:20px !important;padding:16px 14px !important}
-.hero-art{padding:4px 0 !important;display:flex !important;justify-content:center !important}
 .hero-art .cc-svg,#hero .cc-svg{max-width:min(240px,65vw) !important;width:100% !important;height:auto !important}
 .rewards-subtabs{display:grid !important;grid-template-columns:repeat(5,1fr) !important;gap:3px !important;padding:3px !important;border-radius:14px !important}
-.rewards-subtabs button{font-size:clamp(9.5px,2.8vw,12px) !important;padding:10px 2px !important;min-height:42px !important;letter-spacing:-0.02em !important;min-width:0 !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important;border-radius:10px !important}
+.rewards-subtabs button{font-size:clamp(9.5px,2.8vw,12px) !important;padding:10px 2px !important;min-height:42px !important;min-width:0 !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important;border-radius:10px !important}
 .rewards-hero{padding:16px 14px !important;border-radius:20px !important;overflow:hidden !important;max-width:100% !important;box-sizing:border-box !important}
 .rewards-hero .rh-tiles{display:grid !important;grid-template-columns:repeat(4,1fr) !important;gap:5px !important}
 .rewards-hero .rh-tile{padding:8px 4px !important;min-width:0 !important;overflow:hidden !important}
-.rewards-hero .rh-tile .l{font-size:clamp(7.5px,2.2vw,9px) !important;letter-spacing:0.04em !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important}
+.rewards-hero .rh-tile .l{font-size:clamp(7.5px,2.2vw,9px) !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important}
 .rewards-hero .rh-tile .v{font-size:clamp(11px,3vw,14px) !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important}
 .rewards-hero .rh-big{font-size:clamp(22px,6.5vw,30px) !important}
 #offersHero,.credits-hero,.location-hero,.vault-summary-card{padding:16px 14px !important;border-radius:20px !important;overflow:hidden !important;max-width:100% !important;box-sizing:border-box !important}
-#offersHero .oh-title{font-size:clamp(17px,4.7vw,22px) !important;line-height:1.15 !important;word-break:break-word !important}
-#offersHero .oh-stats{display:grid !important;grid-template-columns:repeat(3,1fr) !important;gap:5px !important}
-.credits-hero .ch-row{display:grid !important;grid-template-columns:1fr 60px !important;gap:10px !important;align-items:center !important}
-.credits-hero .ch-big{font-size:clamp(22px,6.5vw,32px) !important}
-.credits-hero .ch-ring{width:60px !important;height:60px !important}
-.vault-summary-card .vs-mini{display:grid !important;grid-template-columns:repeat(3,1fr) !important;gap:5px !important}
-.vault-summary-card .vs-big{font-size:clamp(22px,6.5vw,30px) !important}
 .studio-actions{display:flex !important;flex-wrap:wrap !important;gap:6px !important}
 .studio-actions .sa-btn{flex:1 1 calc(50% - 3px) !important;min-width:calc(50% - 3px) !important;min-height:44px !important;font-size:12px !important;padding:10px 8px !important;border-radius:12px !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important}
 .feature-card{display:grid !important;grid-template-columns:40px 1fr 20px !important;gap:10px !important;padding:12px !important;border-radius:16px !important;align-items:center !important;box-sizing:border-box !important;width:100% !important}
@@ -1715,44 +1679,20 @@ input#q{width:100% !important;min-height:48px !important;font-size:16px !importa
 .modal-overlay{align-items:flex-end !important;padding:0 !important}
 .modal{width:100% !important;max-width:560px !important;max-height:92dvh !important;border-radius:22px 22px 0 0 !important;padding:18px 16px calc(16px + env(safe-area-inset-bottom,0px)) !important;box-sizing:border-box !important;display:flex !important;flex-direction:column !important;overflow:hidden !important}
 .modal-head{flex-shrink:0 !important;margin-bottom:12px !important}
-.modal-head h2{font-size:clamp(18px,5vw,22px) !important;line-height:1.15 !important}
 .modal-actions{flex-shrink:0 !important;gap:8px !important;padding-top:12px !important;padding-bottom:calc(6px + env(safe-area-inset-bottom,0px)) !important;background:var(--surface) !important}
 .modal-actions button{min-height:46px !important;font-size:14px !important;border-radius:14px !important}
 .card-check{display:grid !important;grid-template-columns:46px 1fr 24px !important;gap:11px !important;padding:11px 12px !important;align-items:center !important;border-radius:13px !important;box-sizing:border-box !important;width:100% !important}
 .card-check .cc-emoji{flex-shrink:0 !important}
 .card-check .cc-info{min-width:0 !important;overflow:hidden !important}
 .card-check .cc-name{font-size:clamp(12.5px,3.6vw,14px) !important;line-height:1.2 !important;font-weight:900 !important;white-space:normal !important;word-break:break-word !important;display:-webkit-box !important;-webkit-line-clamp:2 !important;-webkit-box-orient:vertical !important;overflow:hidden !important}
-.card-check .cc-sub{font-size:10.5px !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important}
-.cardBig{width:100% !important;max-width:100% !important;box-sizing:border-box !important;overflow:hidden !important;border-radius:18px !important}
-.cc-svg{max-width:min(320px,88vw) !important;width:100% !important;height:auto !important}
 .tx-item{display:grid !important;grid-template-columns:1fr auto !important;gap:8px !important;padding:10px 11px !important;border-radius:12px !important;box-sizing:border-box !important;width:100% !important;align-items:center !important}
 .tx-item .txmain{min-width:0 !important;overflow:hidden !important}
 .tx-item .txmerch{font-size:12.5px !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important}
-.month-pills{-webkit-overflow-scrolling:touch !important;scrollbar-width:none !important;overflow-x:auto !important;padding:4px 0 8px !important}
-.month-pills::-webkit-scrollbar{display:none !important}
-.credit-card{padding:12px !important;border-radius:14px !important;box-sizing:border-box !important;width:100% !important}
-.credit-card .cc-head{display:grid !important;grid-template-columns:40px 1fr auto !important;gap:9px !important;align-items:center !important}
-.log-flash,.v79-select-toast,.v82-toast,.credit-flash{max-width:calc(100vw - 24px) !important;box-sizing:border-box !important;font-size:12.5px !important;top:calc(20px + env(safe-area-inset-top,0px)) !important;padding:12px 20px !important;border-radius:99px !important;text-align:center !important}
-.drawer{width:min(290px,82vw) !important;max-width:82vw !important}
-.drawer-body{padding:10px 12px calc(20px + env(safe-area-inset-bottom,0px)) !important;overflow-y:auto !important;-webkit-overflow-scrolling:touch !important}
-.drawer-item{min-height:44px !important}
-.v73-footer{padding:20px 16px 22px !important;border-radius:22px !important;overflow:hidden !important;width:100% !important;box-sizing:border-box !important}
-.form-row input,.form-row select,.form-row textarea,.modal-search,input[type="text"],input[type="number"],input[type="email"],input[type="tel"],input[type="search"],input[type="date"],select,textarea{font-size:16px !important;min-height:46px !important;padding:12px 14px !important;border-radius:12px !important;box-sizing:border-box !important;width:100% !important;-webkit-appearance:none !important;font-family:inherit !important}
-img,svg,video,iframe,canvas{max-width:100% !important;height:auto !important}
-.tx-item,.credit-card,.feature-card,.card-check,.sub-card,.v81-membership-card,.v96-opt-card,.v96-synergy-card,.item,.cardBig,.overview-card,.recent-card{width:100% !important;max-width:100% !important;box-sizing:border-box !important;min-width:0 !important;overflow-wrap:break-word !important}
+.log-flash,.v79-select-toast,.v82-toast,.credit-flash{max-width:calc(100vw - 24px) !important;box-sizing:border-box !important;font-size:12.5px !important;top:calc(20px + env(safe-area-inset-top,0px)) !important;padding:12px 20px !important;border-radius:99px !important}
+.form-row input,.form-row select,.form-row textarea,.modal-search,input[type="text"],input[type="number"],input[type="email"],input[type="date"],select,textarea{font-size:16px !important;min-height:46px !important;padding:12px 14px !important;border-radius:12px !important;box-sizing:border-box !important;width:100% !important;-webkit-appearance:none !important;font-family:inherit !important}
+button:not(.header-btn):not(.header-btn-sm),.drawer-item,.settings-link,.qc-chip,.month-pill,.credit-filter,.card-check,.feature-card,.tile{min-height:40px !important;-webkit-tap-highlight-color:transparent !important}
+@media(max-width:375px){main{padding:8px 10px calc(86px + env(safe-area-inset-bottom,0px)) !important}.brand-logo{width:28px !important;height:28px !important}.header-btn,.header-btn-sm{width:34px !important;height:34px !important;min-width:34px !important;font-size:15px !important}}
 main > *{max-width:100% !important;box-sizing:border-box !important}
-
-/* Tap targets — exclude .header-btn/.header-btn-sm which have fixed 38x38 */
-button:not(.header-btn):not(.header-btn-sm),.drawer-item,.settings-link,.qc-chip,.month-pill,.credit-filter,.card-check,.feature-card,.tile{min-height:40px !important;-webkit-tap-highlight-color:transparent !important;-webkit-touch-callout:none !important}
-
-@media(max-width:430px){main{padding:10px 12px calc(88px + env(safe-area-inset-bottom,0px)) !important}.rewards-hero,#offersHero,.credits-hero,.location-hero,.vault-summary-card{padding:14px 12px !important}}
-@media(max-width:375px){main{padding:8px 10px calc(86px + env(safe-area-inset-bottom,0px)) !important}.brand-logo{width:28px !important;height:28px !important}.header-btn,.header-btn-sm{width:34px !important;height:34px !important;min-width:34px !important;font-size:15px !important}.hero{padding:14px 12px !important}.rewards-hero .rh-tile{padding:6px 3px !important}.rewards-subtabs button{padding:9px 1px !important}}
-@media(max-width:340px){main{padding:6px 8px calc(84px + env(safe-area-inset-bottom,0px)) !important}body{font-size:13px !important}.brand-name{font-size:14px !important}.rewards-hero .rh-tile .v{font-size:10.5px !important}.studio-actions .sa-btn{min-width:100% !important}}
-.empty-state{padding:28px 18px !important;border-radius:20px !important;width:100% !important;box-sizing:border-box !important}
-.v96-opt-hero{padding:16px 14px !important;border-radius:20px !important;overflow:hidden !important}
-.v96-opt-hero .v96-oh-value{font-size:clamp(22px,6.5vw,30px) !important}
-.v96-opt-hero .v96-oh-mini{grid-template-columns:repeat(3,1fr) !important;gap:6px !important}
-.greeting-name{font-size:clamp(19px,5.4vw,24px) !important;line-height:1.1 !important}
 
 </style>
 
@@ -1762,7 +1702,18 @@ body.dark .employer-select-wrap select{background-image:url("data:image/svg+xml;
 select{padding-right:42px !important;background-position:right 12px center !important;background-size:16px 16px !important;appearance:none !important;-webkit-appearance:none !important;-moz-appearance:none !important}
 </style>
 
-<!-- V136 (audit-hardened): __refreshing re-entry guard, .header-btn excluded from 40px rule, MutationObserver guard, safe iosBlur window -->
+<!-- V136 audit-hardened -->
+
+<style id="v138-revert-styles">
+.v138-revert-pill { display: none; margin: 0 0 8px 0; padding: 7px 14px; border-radius: 99px; background: linear-gradient(135deg, var(--brand, #2563eb), var(--brand-2, #1d4ed8)); color: #fff; font-size: 11.5px; font-weight: 900; border: none; cursor: pointer; letter-spacing: 0.01em; box-shadow: 0 3px 10px rgba(37,99,235,.25); -webkit-tap-highlight-color: transparent; align-self: flex-start; transition: transform .1s ease, opacity .15s ease; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+.v138-revert-pill:active { transform: scale(.96); }
+.v138-revert-pill.show { display: inline-flex; align-items: center; gap: 5px; }
+.v138-revert-pill .v138-icon { font-size: 13px; line-height: 1; display: inline-block; }
+body.dark .v138-revert-pill { background: linear-gradient(135deg, #a5b3d8, #8ea3d8); color: #0a0a12; }
+.v79-select-toast.v138-revert { background: linear-gradient(135deg, #1a7d3a, #5ea87a) !important; color: #fff !important; padding: 14px 24px !important; font-size: 14px !important; box-shadow: 0 8px 24px rgba(26,125,58,.35) !important; max-width: calc(100vw - 24px) !important; font-weight: 900 !important; }
+body.dark .v79-select-toast.v138-revert { background: linear-gradient(135deg, #5ea87a, #7ed892) !important; color: #0f1a0f !important; }
+.hero-log-btn { transition: background .15s ease; white-space: normal !important; word-break: break-word !important; line-height: 1.25 !important; }
+</style>
 </head>
 <style>
 /* V41 Home simplifications */
@@ -20742,12 +20693,11 @@ else boot();
 <script id="v132-issuer-tagger">(function(){
 var ISSUERS=['Amex','Scotia','TD','RBC','BMO','CIBC','Rogers','MBNA','HSBC','Wealthsimple','Tangerine','PC Financial','Canadian Tire','Walmart','Neo','KOHO','EQ Bank','Brim','Home Trust','Meridian','Vancity','Coast Capital','Servus','Desjardins','National Bank','Laurentian','Capital One','Simplii'];
 var IS=ISSUERS.slice().sort(function(a,b){return b.length-a.length;});
-var A={'american express':'Amex','amex':'Amex','scotiabank':'Scotia','scotia':'Scotia','tangerine bank':'Tangerine','tangerine':'Tangerine','pc':'PC Financial','pc mc':'PC Financial','pc financial':'PC Financial','coast':'Coast Capital','coast capital':'Coast Capital','eq':'EQ Bank','eq bank':'EQ Bank','nbc':'National Bank','national bank':'National Bank','laurentian bank':'Laurentian','laurentian':'Laurentian','canadian tire':'Canadian Tire','triangle':'Canadian Tire','home trust':'Home Trust','capital one':'Capital One','wealthsimple':'Wealthsimple','td':'TD','rbc':'RBC','bmo':'BMO','cibc':'CIBC','rogers':'Rogers','mbna':'MBNA','hsbc':'HSBC','neo':'Neo','koho':'KOHO','brim':'Brim','meridian':'Meridian','vancity':'Vancity','servus':'Servus','desjardins':'Desjardins','simplii':'Simplii','walmart':'Walmart'};
+var A={'american express':'Amex','amex':'Amex','scotiabank':'Scotia','scotia':'Scotia','tangerine':'Tangerine','pc':'PC Financial','pc financial':'PC Financial','coast capital':'Coast Capital','eq':'EQ Bank','eq bank':'EQ Bank','national bank':'National Bank','laurentian':'Laurentian','canadian tire':'Canadian Tire','home trust':'Home Trust','capital one':'Capital One','wealthsimple':'Wealthsimple','td':'TD','rbc':'RBC','bmo':'BMO','cibc':'CIBC','rogers':'Rogers','mbna':'MBNA','hsbc':'HSBC','neo':'Neo','koho':'KOHO','brim':'Brim','meridian':'Meridian','vancity':'Vancity','servus':'Servus','desjardins':'Desjardins','simplii':'Simplii','walmart':'Walmart'};
 function n(r){if(!r)return'';var t=String(r).trim().toLowerCase();if(A[t])return A[t];for(var k in A){if(t.indexOf(k)>=0)return A[k];}for(var i=0;i<IS.length;i++){if(t.indexOf(IS[i].toLowerCase())>=0)return IS[i];}return'';}
-function tag(){var h=document.getElementById('cardChoices');if(!h)return;h.querySelectorAll('.card-check').forEach(function(el){var g=el.closest('.onb-group');var iss='';if(g){var tt=g.querySelector('.onb-group-title');if(tt)iss=n(tt.textContent);}if(!iss){var k=el.getAttribute('data-card-key');if(k&&window.CARDS_DB&&window.CARDS_DB[k]&&window.CARDS_DB[k].iss)iss=n(window.CARDS_DB[k].iss)||window.CARDS_DB[k].iss;}if(!iss){for(var i=0;i<IS.length;i++){if((el.textContent||'').toLowerCase().indexOf(IS[i].toLowerCase())>=0){iss=IS[i];break;}}}if(iss){if(el.getAttribute('data-issuer')!==iss)el.setAttribute('data-issuer',iss);if(g&&g.getAttribute('data-issuer')!==iss)g.setAttribute('data-issuer',iss);}});h.querySelectorAll('.onb-group').forEach(function(g){var t=g.querySelector('.onb-group-title');if(t){var iss=n(t.textContent);if(iss&&g.getAttribute('data-issuer')!==iss)g.setAttribute('data-issuer',iss);}});}
-function boot(){tag();try{new MutationObserver(function(){tag();}).observe(document.body,{childList:true,subtree:true});}catch(_){}var i=0;var iv=setInterval(function(){tag();if(++i>50)clearInterval(iv);},400);document.addEventListener('click',function(e){var t=e.target;if(!t)return;var oc=(t.getAttribute&&t.getAttribute('onclick'))||'';if(/showOnboarding|editWallet/i.test(oc)||t.id==='titleHome'||(t.closest&&t.closest('#titleHome'))){var j=0;var iv2=setInterval(function(){tag();if(++j>50)clearInterval(iv2);},250);}},true);}
+function tag(){var h=document.getElementById('cardChoices');if(!h)return;h.querySelectorAll('.card-check').forEach(function(el){var g=el.closest('.onb-group');var iss='';if(g){var tt=g.querySelector('.onb-group-title');if(tt)iss=n(tt.textContent);}if(iss){if(el.getAttribute('data-issuer')!==iss)el.setAttribute('data-issuer',iss);if(g&&g.getAttribute('data-issuer')!==iss)g.setAttribute('data-issuer',iss);}});h.querySelectorAll('.onb-group').forEach(function(g){var t=g.querySelector('.onb-group-title');if(t){var iss=n(t.textContent);if(iss&&g.getAttribute('data-issuer')!==iss)g.setAttribute('data-issuer',iss);}});}
+function boot(){tag();try{new MutationObserver(function(){tag();}).observe(document.body,{childList:true,subtree:true});}catch(_){}var i=0;setInterval(function(){tag();if(++i>50)return;},400);}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
-window.__v132={tagAll:tag};
 })();</script>
 
 <style id="v134-mobile-rebuild-final">
@@ -20755,38 +20705,25 @@ window.__v132={tagAll:tag};
 html,body{overflow-x:hidden !important;width:100% !important;max-width:100vw !important;margin:0 !important;padding:0 !important}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif !important;min-height:100vh !important;min-height:100dvh !important;color:var(--ink) !important;-webkit-font-smoothing:antialiased !important;-webkit-text-size-adjust:100% !important}
 main{width:100% !important;max-width:560px !important;margin:0 auto !important;padding:12px 14px calc(90px + env(safe-area-inset-bottom,0px)) !important;box-sizing:border-box !important}
-h1{font-size:clamp(20px,5vw,24px) !important;line-height:1.15 !important;letter-spacing:-0.03em !important}
-h2{font-size:clamp(17px,4.5vw,22px) !important;line-height:1.15 !important;letter-spacing:-0.025em !important}
+h1{font-size:clamp(20px,5vw,24px) !important;line-height:1.15 !important}
+h2{font-size:clamp(17px,4.5vw,22px) !important;line-height:1.15 !important}
 h3{font-size:clamp(15px,4vw,18px) !important;line-height:1.2 !important}
-.top{position:sticky !important;top:0 !important;z-index:50 !important;width:100% !important;box-sizing:border-box !important;padding:calc(10px + env(safe-area-inset-top,0px)) 12px 10px !important;backdrop-filter:blur(16px) saturate(140%) !important;-webkit-backdrop-filter:blur(16px) saturate(140%) !important}
+.top{position:sticky !important;top:0 !important;z-index:50 !important;width:100% !important;box-sizing:border-box !important;padding:calc(10px + env(safe-area-inset-top,0px)) 12px 10px !important}
 .header-row{display:flex !important;align-items:center !important;gap:7px !important;min-height:44px !important}
-.brand-wrap{flex:1 1 auto !important;min-width:0 !important;display:flex !important;align-items:center !important;gap:8px !important}
-.brand-logo{width:30px !important;height:30px !important;flex-shrink:0 !important}
-.brand-name{font-size:clamp(15px,4.3vw,18px) !important;font-weight:900 !important;letter-spacing:-0.028em !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important;min-width:0 !important}
-.header-btn,.header-btn-sm{width:38px !important;height:38px !important;min-width:38px !important;flex-shrink:0 !important;display:grid !important;place-items:center !important;border-radius:50% !important;font-size:16px !important;cursor:pointer !important;-webkit-tap-highlight-color:transparent !important}
-.search-wrap{position:relative !important;width:100% !important;margin-top:4px !important}
-input#q{width:100% !important;min-height:48px !important;font-size:16px !important;padding:14px 46px 14px 46px !important;border-radius:24px !important;box-sizing:border-box !important;font-weight:700 !important;-webkit-appearance:none !important}
-.autocomplete{max-height:55dvh !important;overflow-y:auto !important;-webkit-overflow-scrolling:touch !important;border-radius:18px !important}
-.ac-item{min-height:52px !important;padding:11px 13px !important}
+.brand-name{font-size:clamp(15px,4.3vw,18px) !important;font-weight:900 !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important;min-width:0 !important}
+.header-btn,.header-btn-sm{width:38px !important;height:38px !important;min-width:38px !important;flex-shrink:0 !important;display:grid !important;place-items:center !important;border-radius:50% !important;font-size:16px !important;-webkit-tap-highlight-color:transparent !important}
+input#q{width:100% !important;min-height:48px !important;font-size:16px !important;padding:14px 46px 14px 46px !important;border-radius:24px !important;box-sizing:border-box !important;-webkit-appearance:none !important}
 .hero{width:100% !important;max-width:100% !important;box-sizing:border-box !important;overflow:hidden !important;border-radius:20px !important;padding:16px 14px !important}
-.hero-art{padding:4px 0 !important;display:flex !important;justify-content:center !important}
 .hero-art .cc-svg,#hero .cc-svg{max-width:min(240px,65vw) !important;width:100% !important;height:auto !important}
 .rewards-subtabs{display:grid !important;grid-template-columns:repeat(5,1fr) !important;gap:3px !important;padding:3px !important;border-radius:14px !important}
-.rewards-subtabs button{font-size:clamp(9.5px,2.8vw,12px) !important;padding:10px 2px !important;min-height:42px !important;letter-spacing:-0.02em !important;min-width:0 !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important;border-radius:10px !important}
+.rewards-subtabs button{font-size:clamp(9.5px,2.8vw,12px) !important;padding:10px 2px !important;min-height:42px !important;min-width:0 !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important;border-radius:10px !important}
 .rewards-hero{padding:16px 14px !important;border-radius:20px !important;overflow:hidden !important;max-width:100% !important;box-sizing:border-box !important}
 .rewards-hero .rh-tiles{display:grid !important;grid-template-columns:repeat(4,1fr) !important;gap:5px !important}
 .rewards-hero .rh-tile{padding:8px 4px !important;min-width:0 !important;overflow:hidden !important}
-.rewards-hero .rh-tile .l{font-size:clamp(7.5px,2.2vw,9px) !important;letter-spacing:0.04em !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important}
+.rewards-hero .rh-tile .l{font-size:clamp(7.5px,2.2vw,9px) !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important}
 .rewards-hero .rh-tile .v{font-size:clamp(11px,3vw,14px) !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important}
 .rewards-hero .rh-big{font-size:clamp(22px,6.5vw,30px) !important}
 #offersHero,.credits-hero,.location-hero,.vault-summary-card{padding:16px 14px !important;border-radius:20px !important;overflow:hidden !important;max-width:100% !important;box-sizing:border-box !important}
-#offersHero .oh-title{font-size:clamp(17px,4.7vw,22px) !important;line-height:1.15 !important;word-break:break-word !important}
-#offersHero .oh-stats{display:grid !important;grid-template-columns:repeat(3,1fr) !important;gap:5px !important}
-.credits-hero .ch-row{display:grid !important;grid-template-columns:1fr 60px !important;gap:10px !important;align-items:center !important}
-.credits-hero .ch-big{font-size:clamp(22px,6.5vw,32px) !important}
-.credits-hero .ch-ring{width:60px !important;height:60px !important}
-.vault-summary-card .vs-mini{display:grid !important;grid-template-columns:repeat(3,1fr) !important;gap:5px !important}
-.vault-summary-card .vs-big{font-size:clamp(22px,6.5vw,30px) !important}
 .studio-actions{display:flex !important;flex-wrap:wrap !important;gap:6px !important}
 .studio-actions .sa-btn{flex:1 1 calc(50% - 3px) !important;min-width:calc(50% - 3px) !important;min-height:44px !important;font-size:12px !important;padding:10px 8px !important;border-radius:12px !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important}
 .feature-card{display:grid !important;grid-template-columns:40px 1fr 20px !important;gap:10px !important;padding:12px !important;border-radius:16px !important;align-items:center !important;box-sizing:border-box !important;width:100% !important}
@@ -20795,44 +20732,20 @@ input#q{width:100% !important;min-height:48px !important;font-size:16px !importa
 .modal-overlay{align-items:flex-end !important;padding:0 !important}
 .modal{width:100% !important;max-width:560px !important;max-height:92dvh !important;border-radius:22px 22px 0 0 !important;padding:18px 16px calc(16px + env(safe-area-inset-bottom,0px)) !important;box-sizing:border-box !important;display:flex !important;flex-direction:column !important;overflow:hidden !important}
 .modal-head{flex-shrink:0 !important;margin-bottom:12px !important}
-.modal-head h2{font-size:clamp(18px,5vw,22px) !important;line-height:1.15 !important}
 .modal-actions{flex-shrink:0 !important;gap:8px !important;padding-top:12px !important;padding-bottom:calc(6px + env(safe-area-inset-bottom,0px)) !important;background:var(--surface) !important}
 .modal-actions button{min-height:46px !important;font-size:14px !important;border-radius:14px !important}
 .card-check{display:grid !important;grid-template-columns:46px 1fr 24px !important;gap:11px !important;padding:11px 12px !important;align-items:center !important;border-radius:13px !important;box-sizing:border-box !important;width:100% !important}
 .card-check .cc-emoji{flex-shrink:0 !important}
 .card-check .cc-info{min-width:0 !important;overflow:hidden !important}
 .card-check .cc-name{font-size:clamp(12.5px,3.6vw,14px) !important;line-height:1.2 !important;font-weight:900 !important;white-space:normal !important;word-break:break-word !important;display:-webkit-box !important;-webkit-line-clamp:2 !important;-webkit-box-orient:vertical !important;overflow:hidden !important}
-.card-check .cc-sub{font-size:10.5px !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important}
-.cardBig{width:100% !important;max-width:100% !important;box-sizing:border-box !important;overflow:hidden !important;border-radius:18px !important}
-.cc-svg{max-width:min(320px,88vw) !important;width:100% !important;height:auto !important}
 .tx-item{display:grid !important;grid-template-columns:1fr auto !important;gap:8px !important;padding:10px 11px !important;border-radius:12px !important;box-sizing:border-box !important;width:100% !important;align-items:center !important}
 .tx-item .txmain{min-width:0 !important;overflow:hidden !important}
 .tx-item .txmerch{font-size:12.5px !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important}
-.month-pills{-webkit-overflow-scrolling:touch !important;scrollbar-width:none !important;overflow-x:auto !important;padding:4px 0 8px !important}
-.month-pills::-webkit-scrollbar{display:none !important}
-.credit-card{padding:12px !important;border-radius:14px !important;box-sizing:border-box !important;width:100% !important}
-.credit-card .cc-head{display:grid !important;grid-template-columns:40px 1fr auto !important;gap:9px !important;align-items:center !important}
-.log-flash,.v79-select-toast,.v82-toast,.credit-flash{max-width:calc(100vw - 24px) !important;box-sizing:border-box !important;font-size:12.5px !important;top:calc(20px + env(safe-area-inset-top,0px)) !important;padding:12px 20px !important;border-radius:99px !important;text-align:center !important}
-.drawer{width:min(290px,82vw) !important;max-width:82vw !important}
-.drawer-body{padding:10px 12px calc(20px + env(safe-area-inset-bottom,0px)) !important;overflow-y:auto !important;-webkit-overflow-scrolling:touch !important}
-.drawer-item{min-height:44px !important}
-.v73-footer{padding:20px 16px 22px !important;border-radius:22px !important;overflow:hidden !important;width:100% !important;box-sizing:border-box !important}
-.form-row input,.form-row select,.form-row textarea,.modal-search,input[type="text"],input[type="number"],input[type="email"],input[type="tel"],input[type="search"],input[type="date"],select,textarea{font-size:16px !important;min-height:46px !important;padding:12px 14px !important;border-radius:12px !important;box-sizing:border-box !important;width:100% !important;-webkit-appearance:none !important;font-family:inherit !important}
-img,svg,video,iframe,canvas{max-width:100% !important;height:auto !important}
-.tx-item,.credit-card,.feature-card,.card-check,.sub-card,.v81-membership-card,.v96-opt-card,.v96-synergy-card,.item,.cardBig,.overview-card,.recent-card{width:100% !important;max-width:100% !important;box-sizing:border-box !important;min-width:0 !important;overflow-wrap:break-word !important}
+.log-flash,.v79-select-toast,.v82-toast,.credit-flash{max-width:calc(100vw - 24px) !important;box-sizing:border-box !important;font-size:12.5px !important;top:calc(20px + env(safe-area-inset-top,0px)) !important;padding:12px 20px !important;border-radius:99px !important}
+.form-row input,.form-row select,.form-row textarea,.modal-search,input[type="text"],input[type="number"],input[type="email"],input[type="date"],select,textarea{font-size:16px !important;min-height:46px !important;padding:12px 14px !important;border-radius:12px !important;box-sizing:border-box !important;width:100% !important;-webkit-appearance:none !important;font-family:inherit !important}
+button:not(.header-btn):not(.header-btn-sm),.drawer-item,.settings-link,.qc-chip,.month-pill,.credit-filter,.card-check,.feature-card,.tile{min-height:40px !important;-webkit-tap-highlight-color:transparent !important}
+@media(max-width:375px){main{padding:8px 10px calc(86px + env(safe-area-inset-bottom,0px)) !important}.brand-logo{width:28px !important;height:28px !important}.header-btn,.header-btn-sm{width:34px !important;height:34px !important;min-width:34px !important;font-size:15px !important}}
 main > *{max-width:100% !important;box-sizing:border-box !important}
-
-/* Tap targets — exclude .header-btn/.header-btn-sm which have fixed 38x38 */
-button:not(.header-btn):not(.header-btn-sm),.drawer-item,.settings-link,.qc-chip,.month-pill,.credit-filter,.card-check,.feature-card,.tile{min-height:40px !important;-webkit-tap-highlight-color:transparent !important;-webkit-touch-callout:none !important}
-
-@media(max-width:430px){main{padding:10px 12px calc(88px + env(safe-area-inset-bottom,0px)) !important}.rewards-hero,#offersHero,.credits-hero,.location-hero,.vault-summary-card{padding:14px 12px !important}}
-@media(max-width:375px){main{padding:8px 10px calc(86px + env(safe-area-inset-bottom,0px)) !important}.brand-logo{width:28px !important;height:28px !important}.header-btn,.header-btn-sm{width:34px !important;height:34px !important;min-width:34px !important;font-size:15px !important}.hero{padding:14px 12px !important}.rewards-hero .rh-tile{padding:6px 3px !important}.rewards-subtabs button{padding:9px 1px !important}}
-@media(max-width:340px){main{padding:6px 8px calc(84px + env(safe-area-inset-bottom,0px)) !important}body{font-size:13px !important}.brand-name{font-size:14px !important}.rewards-hero .rh-tile .v{font-size:10.5px !important}.studio-actions .sa-btn{min-width:100% !important}}
-.empty-state{padding:28px 18px !important;border-radius:20px !important;width:100% !important;box-sizing:border-box !important}
-.v96-opt-hero{padding:16px 14px !important;border-radius:20px !important;overflow:hidden !important}
-.v96-opt-hero .v96-oh-value{font-size:clamp(22px,6.5vw,30px) !important}
-.v96-opt-hero .v96-oh-mini{grid-template-columns:repeat(3,1fr) !important;gap:6px !important}
-.greeting-name{font-size:clamp(19px,5.4vw,24px) !important;line-height:1.1 !important}
 
 </style>
 
@@ -20846,63 +20759,334 @@ q.addEventListener('keypress',function(e){if(e.key==='Enter'||e.keyCode===13){e.
 var ac=document.getElementById('autocomplete');if(ac){ac.addEventListener('click',function(){iosBlur(q);},true);ac.addEventListener('touchend',function(){iosBlur(q);},true);}
 document.addEventListener('touchstart',function(e){if(document.activeElement!==q)return;var t=e.target;if(t&&(t.closest('.search-wrap')||t.closest('.autocomplete')))return;iosBlur(q);},{passive:true,capture:true});
 document.addEventListener('mousedown',function(e){if(document.activeElement!==q)return;var t=e.target;if(t&&(t.closest('.search-wrap')||t.closest('.autocomplete')))return;iosBlur(q);},true);
-var lastY=0;window.addEventListener('scroll',function(){var y=window.scrollY||window.pageYOffset;if(document.activeElement===q&&Math.abs(y-lastY)>40&&y>60){iosBlur(q);}lastY=y;},{passive:true});
 }
-var __refreshing=false;
-window.__v135_forceRefreshAll=function(){
-if(__refreshing) return;
-__refreshing=true;
-try{
-try{if(window.__v128&&typeof window.__v128.tick==='function')window.__v128.tick();}catch(_){}
-try{if(typeof window.__v106Tick==='function')window.__v106Tick();}catch(_){}
-try{if(typeof window.reconcileAutoEarnings==='function')window.reconcileAutoEarnings();}catch(_){}
-['renderTxList','renderTransactions','renderTx','renderActivity'].forEach(function(fn){try{if(typeof window[fn]==='function')window[fn]();}catch(_){}});
-try{var ap=document.querySelector('.month-pill.on');if(ap)ap.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true}));}catch(_){}
-['renderRewardsHero','updateRewardsHero','renderStudioHero','renderInsights','renderOverview'].forEach(function(fn){try{if(typeof window[fn]==='function')window[fn]();}catch(_){}});
-['renderHome','renderHomeVaultSummary','renderVaultSummary','updateHomeStats'].forEach(function(fn){try{if(typeof window[fn]==='function')window[fn]();}catch(_){}});
-try{if(window.__v122&&typeof window.__v122.renderHome==='function')window.__v122.renderHome();}catch(_){}
-['renderVaultV122','renderVault','renderPointsTab','renderV122'].forEach(function(fn){try{if(typeof window[fn]==='function')window[fn]();}catch(_){}});
-try{if(typeof window.scheduleVaultRefresh==='function')window.scheduleVaultRefresh();}catch(_){}
-try{window.dispatchEvent(new StorageEvent('storage',{key:'walletiq_transactions',newValue:localStorage.getItem('walletiq_transactions')||'[]'}));}catch(_){try{window.dispatchEvent(new Event('storage'));}catch(__){}}
-try{var as=document.querySelector('.rewards-subtabs button.on');if(as&&typeof window.switchRewardsView==='function'){var v=as.getAttribute('data-view');if(v)window.switchRewardsView(v);}}catch(_){}
-} finally { setTimeout(function(){__refreshing=false;}, 100); }
-};
-var refreshTimer=null;
-function scheduleRefresh(delay){clearTimeout(refreshTimer);refreshTimer=setTimeout(function(){try{window.__v135_forceRefreshAll();}catch(_){}},delay||60);}
-var wrapAttempts=0,wrappedFns={};
-var TARGETS=['deleteTx','removeTx','removeTxById','deleteTransaction','removeTransaction','clearAllTx','clearTx','clearTransactions','clearAll','saveTx','saveTxFromModal','saveHeroLogPurchase','logPurchase'];
-function wrapFn(name){if(wrappedFns[name])return;if(typeof window[name]!=='function')return;var original=window[name];window[name]=function(){var r;try{r=original.apply(this,arguments);}catch(err){throw err;}scheduleRefresh(60);setTimeout(function(){try{window.__v135_forceRefreshAll();}catch(_){}},400);return r;};wrappedFns[name]=true;}
-function wrapAll(){TARGETS.forEach(wrapFn);}
-wrapAll();var wrapIv=setInterval(function(){wrapAll();if(++wrapAttempts>30)clearInterval(wrapIv);},300);
-var txListObserver=null;
-function watchTxList(){var txList=document.getElementById('txList');if(!txList||txList.__v135Watched)return;txList.__v135Watched=true;
-txListObserver=new MutationObserver(function(mutations){
-  if(__refreshing) return;
-  var removed=false;mutations.forEach(function(m){if(m.removedNodes&&m.removedNodes.length)removed=true;});
-  if(removed)scheduleRefresh(80);
-});
-txListObserver.observe(txList,{childList:true,subtree:true});
-}
-watchTxList();var watchIv=setInterval(watchTxList,500);setTimeout(function(){clearInterval(watchIv);},15000);
-document.addEventListener('click',function(e){
-  var t=e.target;if(!t)return;
-  var deleteBtn=t.closest&&t.closest('.txbtns button, .v82-dismiss-btn, .ccustom-del, .v81-del-btn');
-  var txContext=t.closest&&t.closest('.tx-item, .v82-month-body, #txList, .leak-item, .sub-card, .v81-membership-card');
-  var tc=(t.textContent||'').toLowerCase().trim();
-  var isDeleteText=tc==='\ud83d\uddd1'||tc==='delete'||tc==='\u00d7'||tc==='clear'||tc.indexOf('clear')===0;
-  if((deleteBtn&&txContext)||(txContext&&isDeleteText&&t.tagName==='BUTTON')){
-    scheduleRefresh(100);
-    setTimeout(function(){try{window.__v135_forceRefreshAll();}catch(_){}},400);
-    setTimeout(function(){try{window.__v135_forceRefreshAll();}catch(_){}},900);
-  }
-  if(t.matches&&t.matches('.sa-btn.danger, button.danger')){
-    scheduleRefresh(120);
-    setTimeout(function(){try{window.__v135_forceRefreshAll();}catch(_){}},500);
-  }
-},true);
 function boot(){installKeyboardDismiss();var kbIv=setInterval(installKeyboardDismiss,500);setTimeout(function(){clearInterval(kbIv);},10000);}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
-window.__v135={forceRefreshAll:window.__v135_forceRefreshAll,scheduleRefresh:scheduleRefresh};
+})();
+</script>
+
+<script id="v137-merchant-expansion">
+(function(){
+'use strict';
+var NEW_MERCHANTS = [["pne", "cineplex", "Pne", true, "\ud83c\udfa2"], ["playland", "cineplex", "Playland", true, "\ud83c\udfa2"], ["pne playland", "cineplex", "Pne Playland", true, "\ud83c\udfa2"], ["pacific national exhibition", "cineplex", "Pacific National Exhibition", true, "\ud83c\udfa2"], ["cultus lake adventure park", "cineplex", "Cultus Lake Adventure Park", true, "\ud83c\udfa2"], ["cultus lake waterpark", "cineplex", "Cultus Lake Waterpark", true, "\ud83c\udfa2"], ["bridal falls waterpark", "cineplex", "Bridal Falls Waterpark", true, "\ud83c\udfa2"], ["splashdown park", "cineplex", "Splashdown Park", true, "\ud83c\udfa2"], ["splashdown waterpark", "cineplex", "Splashdown Waterpark", true, "\ud83c\udfa2"], ["science world", "cineplex", "Science World", true, "\ud83c\udfa2"], ["telus world of science", "cineplex", "Telus World Of Science", true, "\ud83c\udfa2"], ["vancouver aquarium", "cineplex", "Vancouver Aquarium", true, "\ud83c\udfa2"], ["capilano suspension bridge", "cineplex", "Capilano Suspension Bridge", true, "\ud83c\udfa2"], ["grouse mountain", "cineplex", "Grouse Mountain", true, "\ud83c\udfa2"], ["cypress mountain", "cineplex", "Cypress Mountain", true, "\ud83c\udfa2"], ["whistler blackcomb", "cineplex", "Whistler Blackcomb", true, "\ud83c\udfa2"], ["whistler", "cineplex", "Whistler", true, "\ud83c\udfa2"], ["big white ski resort", "cineplex", "Big White Ski Resort", true, "\ud83c\udfa2"], ["silver star mountain", "cineplex", "Silver Star Mountain", true, "\ud83c\udfa2"], ["sun peaks resort", "cineplex", "Sun Peaks Resort", true, "\ud83c\udfa2"], ["revelstoke mountain resort", "cineplex", "Revelstoke Mountain Resort", true, "\ud83c\udfa2"], ["fernie alpine", "cineplex", "Fernie Alpine", true, "\ud83c\udfa2"], ["kicking horse mountain", "cineplex", "Kicking Horse Mountain", true, "\ud83c\udfa2"], ["flyover canada", "cineplex", "Flyover Canada", true, "\ud83c\udfa2"], ["butchart gardens", "cineplex", "Butchart Gardens", true, "\ud83c\udfa2"], ["royal bc museum", "cineplex", "Royal Bc Museum", true, "\ud83c\udfa2"], ["richmond night market", "other", "Richmond Night Market", false, "\ud83c\udfaa"], ["sabai thai spa", "other", "Sabai Thai Spa", true, "\ud83d\udc86"], ["sabai thai", "other", "Sabai Thai", true, "\ud83d\udc86"], ["sabai spa", "other", "Sabai Spa", true, "\ud83d\udc86"], ["absolute spa", "other", "Absolute Spa", true, "\ud83d\udc86"], ["skoah", "other", "Skoah", true, "\ud83d\udc86"], ["miraj hammam spa", "other", "Miraj Hammam Spa", true, "\ud83d\udc86"], ["miraj hammam", "other", "Miraj Hammam", true, "\ud83d\udc86"], ["willow stream spa", "other", "Willow Stream Spa", true, "\ud83d\udc86"], ["chi the spa", "other", "Chi The Spa", true, "\ud83d\udc86"], ["vida spa", "other", "Vida Spa", true, "\ud83d\udc86"], ["spa utopia", "other", "Spa Utopia", true, "\ud83d\udc86"], ["the refinery grooming lounge", "other", "The Refinery Grooming Lounge", true, "\ud83d\udc86"], ["the refinery", "other", "The Refinery", true, "\ud83d\udc86"], ["beauty mark", "other", "Beauty Mark", true, "\ud83d\udc86"], ["beautymark", "other", "Beautymark", true, "\ud83d\udc86"], ["eminence organic spa", "other", "Eminence Organic Spa", true, "\ud83d\udc86"], ["massage envy", "other", "Massage Envy", true, "\ud83d\udc86"], ["spa ritual", "other", "Spa Ritual", false, "\ud83d\udc86"], ["olia hair salon spa", "other", "Olia Hair Salon Spa", false, "\ud83d\udc86"], ["pure nail bar", "other", "Pure Nail Bar", false, "\ud83d\udc86"], ["hush hush spa", "other", "Hush Hush Spa", false, "\ud83d\udc86"], ["claritas spa", "other", "Claritas Spa", false, "\ud83d\udc86"], ["oasis spa", "other", "Oasis Spa", false, "\ud83d\udc86"], ["goodlife fitness", "other", "Goodlife Fitness", true, "\ud83d\udcaa"], ["good life fitness", "other", "Good Life Fitness", true, "\ud83d\udcaa"], ["goodlife", "other", "Goodlife", true, "\ud83d\udcaa"], ["steve nash fitness world", "other", "Steve Nash Fitness World", true, "\ud83d\udcaa"], ["steve nash fitness", "other", "Steve Nash Fitness", true, "\ud83d\udcaa"], ["steve nash", "other", "Steve Nash", true, "\ud83d\udcaa"], ["fitness world", "other", "Fitness World", true, "\ud83d\udcaa"], ["anytime fitness", "other", "Anytime Fitness", true, "\ud83d\udcaa"], ["club16 trevor linden fitness", "other", "Club16 Trevor Linden Fitness", true, "\ud83d\udcaa"], ["club16", "other", "Club16", true, "\ud83d\udcaa"], ["club 16", "other", "Club 16", true, "\ud83d\udcaa"], ["trevor linden fitness", "other", "Trevor Linden Fitness", true, "\ud83d\udcaa"], ["ymca vancouver", "other", "Ymca Vancouver", true, "\ud83d\udcaa"], ["ymca canada", "other", "Ymca Canada", true, "\ud83d\udcaa"], ["ymca", "other", "Ymca", true, "\ud83d\udcaa"], ["orangetheory fitness", "other", "Orangetheory Fitness", true, "\ud83d\udcaa"], ["orangetheory", "other", "Orangetheory", true, "\ud83d\udcaa"], ["orange theory", "other", "Orange Theory", true, "\ud83d\udcaa"], ["f45 training", "other", "F45 Training", true, "\ud83d\udcaa"], ["f45", "other", "F45", true, "\ud83d\udcaa"], ["barrys bootcamp", "other", "Barrys Bootcamp", true, "\ud83d\udcaa"], ["pure barre", "other", "Pure Barre", true, "\ud83d\udcaa"], ["oxygen yoga fitness", "other", "Oxygen Yoga Fitness", true, "\ud83d\udcaa"], ["oxygen yoga", "other", "Oxygen Yoga", true, "\ud83d\udcaa"], ["yyoga", "other", "Yyoga", true, "\ud83d\udcaa"], ["yyoga vancouver", "other", "Yyoga Vancouver", true, "\ud83d\udcaa"], ["planet fitness canada", "other", "Planet Fitness Canada", true, "\ud83d\udcaa"], ["planet fitness", "other", "Planet Fitness", true, "\ud83d\udcaa"], ["world gym", "other", "World Gym", true, "\ud83d\udcaa"], ["soulcycle canada", "other", "Soulcycle Canada", true, "\ud83d\udcaa"], ["soulcycle", "other", "Soulcycle", true, "\ud83d\udcaa"], ["peloton studio", "other", "Peloton Studio", true, "\ud83d\udcaa"], ["golds gym canada", "other", "Golds Gym Canada", true, "\ud83d\udcaa"], ["golds gym", "other", "Golds Gym", true, "\ud83d\udcaa"], ["fit4less", "other", "Fit4Less", true, "\ud83d\udcaa"], ["energie fitness", "other", "Energie Fitness", true, "\ud83d\udcaa"], ["semperviva yoga", "other", "Semperviva Yoga", false, "\ud83d\udcaa"], ["east side fitness", "other", "East Side Fitness", false, "\ud83d\udcaa"], ["iron wolf gym", "other", "Iron Wolf Gym", false, "\ud83d\udcaa"], ["energyplex", "other", "Energyplex", false, "\ud83d\udcaa"], ["crossfit vancouver", "other", "Crossfit Vancouver", false, "\ud83d\udcaa"], ["studeo55", "other", "Studeo55", false, "\ud83d\udcaa"], ["studeo 55", "other", "Studeo 55", false, "\ud83d\udcaa"], ["reformx pilates", "other", "Reformx Pilates", false, "\ud83d\udcaa"], ["supplement king", "shopping", "Supplement King", true, "\ud83d\udc8a"], ["popeyes supplements", "shopping", "Popeyes Supplements", true, "\ud83d\udc8a"], ["gnc", "shopping", "Gnc", true, "\ud83d\udc8a"], ["general nutrition centre", "shopping", "General Nutrition Centre", true, "\ud83d\udc8a"], ["body energy club", "shopping", "Body Energy Club", true, "\ud83d\udc8a"], ["vitamin shoppe", "shopping", "Vitamin Shoppe", true, "\ud83d\udc8a"], ["nutrition house", "shopping", "Nutrition House", true, "\ud83d\udc8a"], ["healthy planet", "shopping", "Healthy Planet", true, "\ud83d\udc8a"], ["iherb", "shopping", "Iherb", true, "\ud83d\udc8a"], ["true north nutrition", "shopping", "True North Nutrition", false, "\ud83d\udc8a"], ["sushi hachi", "dining", "Sushi Hachi", true, "\ud83c\udf7d"], ["miku", "dining", "Miku", true, "\ud83c\udf7d"], ["miku restaurant", "dining", "Miku Restaurant", true, "\ud83c\udf7d"], ["minami", "dining", "Minami", true, "\ud83c\udf7d"], ["sushi mura", "dining", "Sushi Mura", true, "\ud83c\udf7d"], ["ramen danbo", "dining", "Ramen Danbo", true, "\ud83c\udf7d"], ["santouka ramen", "dining", "Santouka Ramen", true, "\ud83c\udf7d"], ["kinton ramen", "dining", "Kinton Ramen", true, "\ud83c\udf7d"], ["marutama ramen", "dining", "Marutama Ramen", true, "\ud83c\udf7d"], ["jinya ramen", "dining", "Jinya Ramen", true, "\ud83c\udf7d"], ["ippudo", "dining", "Ippudo", true, "\ud83c\udf7d"], ["ajisai sushi bar", "dining", "Ajisai Sushi Bar", true, "\ud83c\udf7d"], ["toshi sushi", "dining", "Toshi Sushi", true, "\ud83c\udf7d"], ["tojos", "dining", "Tojos", true, "\ud83c\udf7d"], ["sushi bar maumi", "dining", "Sushi Bar Maumi", true, "\ud83c\udf7d"], ["masayoshi", "dining", "Masayoshi", true, "\ud83c\udf7d"], ["kishimoto", "dining", "Kishimoto", true, "\ud83c\udf7d"], ["yuwa", "dining", "Yuwa", true, "\ud83c\udf7d"], ["guu", "dining", "Guu", true, "\ud83c\udf7d"], ["kingyo izakaya", "dining", "Kingyo Izakaya", true, "\ud83c\udf7d"], ["suika izakaya", "dining", "Suika Izakaya", true, "\ud83c\udf7d"], ["zakkushi", "dining", "Zakkushi", true, "\ud83c\udf7d"], ["vijs", "dining", "Vijs", true, "\ud83c\udf7d"], ["rangoli", "dining", "Rangoli", true, "\ud83c\udf7d"], ["india gate", "dining", "India Gate", true, "\ud83c\udf7d"], ["indian oven", "dining", "Indian Oven", true, "\ud83c\udf7d"], ["fanny bay oyster bar", "dining", "Fanny Bay Oyster Bar", true, "\ud83c\udf7d"], ["rodneys oyster house", "dining", "Rodneys Oyster House", true, "\ud83c\udf7d"], ["joe fortes seafood", "dining", "Joe Fortes Seafood", true, "\ud83c\udf7d"], ["blue water cafe", "dining", "Blue Water Cafe", true, "\ud83c\udf7d"], ["ancora waterfront", "dining", "Ancora Waterfront", true, "\ud83c\udf7d"], ["provence marinaside", "dining", "Provence Marinaside", true, "\ud83c\udf7d"], ["black + blue", "dining", "Black + Blue", true, "\ud83c\udf7d"], ["gotham steakhouse", "dining", "Gotham Steakhouse", true, "\ud83c\udf7d"], ["hys steakhouse", "dining", "Hys Steakhouse", true, "\ud83c\udf7d"], ["bacchus restaurant", "dining", "Bacchus Restaurant", true, "\ud83c\udf7d"], ["hawksworth", "dining", "Hawksworth", true, "\ud83c\udf7d"], ["botanist", "dining", "Botanist", true, "\ud83c\udf7d"], ["forage vancouver", "dining", "Forage Vancouver", true, "\ud83c\udf7d"], ["st. lawrence", "dining", "St. Lawrence", true, "\ud83c\udf7d"], ["ask for luigi", "dining", "Ask For Luigi", true, "\ud83c\udf7d"], ["savio volpe", "dining", "Savio Volpe", true, "\ud83c\udf7d"], ["pizzeria farina", "dining", "Pizzeria Farina", true, "\ud83c\udf7d"], ["nicli antica", "dining", "Nicli Antica", true, "\ud83c\udf7d"], ["pizzeria barbarella", "dining", "Pizzeria Barbarella", true, "\ud83c\udf7d"], ["rocky mountain flatbread", "dining", "Rocky Mountain Flatbread", true, "\ud83c\udf7d"], ["freshslice pizza", "dining", "Freshslice Pizza", true, "\ud83c\udf7d"], ["pizza garden", "dining", "Pizza Garden", true, "\ud83c\udf7d"], ["tacofino", "dining", "Tacofino", true, "\ud83c\udf7d"], ["la taqueria", "dining", "La Taqueria", true, "\ud83c\udf7d"], ["las margaritas", "dining", "Las Margaritas", true, "\ud83c\udf7d"], ["burgoo", "dining", "Burgoo", true, "\ud83c\udf7d"], ["glowbal", "dining", "Glowbal", true, "\ud83c\udf7d"], ["coast restaurant", "dining", "Coast Restaurant", true, "\ud83c\udf7d"], ["yaletown brewing", "dining", "Yaletown Brewing", true, "\ud83c\udf7d"], ["craft beer market", "dining", "Craft Beer Market", true, "\ud83c\udf7d"], ["steamworks brewing", "dining", "Steamworks Brewing", true, "\ud83c\udf7d"], ["tap & barrel", "dining", "Tap & Barrel", true, "\ud83c\udf7d"], ["49th parallel coffee", "dining", "49Th Parallel Coffee", true, "\ud83c\udf7d"], ["revolver coffee", "dining", "Revolver Coffee", true, "\ud83c\udf7d"], ["prado cafe", "dining", "Prado Cafe", true, "\ud83c\udf7d"], ["matchstick coffee", "dining", "Matchstick Coffee", true, "\ud83c\udf7d"], ["moja coffee", "dining", "Moja Coffee", true, "\ud83c\udf7d"], ["purebread", "dining", "Purebread", true, "\ud83c\udf7d"], ["small victory bakery", "dining", "Small Victory Bakery", true, "\ud83c\udf7d"], ["thomas haas", "dining", "Thomas Haas", true, "\ud83c\udf7d"], ["beta5 chocolates", "dining", "Beta5 Chocolates", true, "\ud83c\udf7d"]];
+function extendMerchants(){
+  if(!window.ALIASES) { setTimeout(extendMerchants, 200); return; }
+  var added = 0;
+  NEW_MERCHANTS.forEach(function(entry){
+    var alias = entry[0], category = entry[1], displayName = entry[2], amexOK = entry[3], emoji = entry[4];
+    if(!window.ALIASES[alias]) { window.ALIASES[alias] = category; added++; }
+    if(window.MERCHANT_DIRECTORY && Array.isArray(window.MERCHANT_DIRECTORY)) {
+      var exists = window.MERCHANT_DIRECTORY.some(function(m){
+        var mn = (m.name || m.n || '').toLowerCase();
+        return mn === displayName.toLowerCase() || mn === alias;
+      });
+      if(!exists) {
+        window.MERCHANT_DIRECTORY.push({name: displayName, n: displayName, category: category, cat: category, categoryLabel: category, catLabel: category, emoji: emoji, e: emoji, icon: emoji, amex: amexOK});
+      }
+    }
+    if(window.ACCEPTANCE && window.ACCEPTANCE[alias] === undefined) {
+      window.ACCEPTANCE[alias] = { amex: amexOK };
+    }
+  });
+  try {
+    var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
+    var node;
+    while(node = walker.nextNode()) {
+      if(node.nodeValue && node.nodeValue.indexOf('5,500+') >= 0) node.nodeValue = node.nodeValue.replace('5,500+', '5,700+');
+      else if(node.nodeValue && node.nodeValue.indexOf('5500+') >= 0) node.nodeValue = node.nodeValue.replace('5500+', '5,700+');
+    }
+  } catch(e) {}
+}
+if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', extendMerchants);
+else extendMerchants();
+var retries = 0;
+var retryIv = setInterval(function(){
+  if(!window.ALIASES && retries<20) { retries++; return; }
+  if(window.ALIASES && !window.__v137Extended) { extendMerchants(); window.__v137Extended = true; }
+  if(++retries > 20) clearInterval(retryIv);
+}, 500);
+})();
+</script>
+
+<script id="v138-revert-fix">
+(function(){
+'use strict';
+var state = { recommendedCardKey: null, recommendedCardName: null, chosenCardKey: null, chosenCardName: null };
+function getCardName(key) { if (!key) return null; try { if (window.CARDS_DB && window.CARDS_DB[key]) return window.CARDS_DB[key].n || window.CARDS_DB[key].name || key; } catch(_) {} return key; }
+function readRecommendedFromHero() {
+  var hero = document.getElementById('hero'); if (!hero) return;
+  var key = hero.getAttribute('data-main-card-key');
+  if (!key) { var el = hero.querySelector('[data-card-key]'); if (el) key = el.getAttribute('data-card-key'); }
+  if (key && key !== state.recommendedCardKey) {
+    state.recommendedCardKey = key; state.recommendedCardName = getCardName(key);
+    var stillPresent = document.querySelector('.alt-cards .alt-item[data-card-key="' + (state.chosenCardKey || '') + '"]');
+    if (!stillPresent) { state.chosenCardKey = null; state.chosenCardName = null; }
+  }
+  updateLogButtonText(); updateRevertPillVisibility();
+}
+function getLogButton() { return document.querySelector('.hero-log-btn') || document.getElementById('logPurchaseBtn') || document.querySelector('button[onclick*="LogForm"]'); }
+function updateLogButtonText() {
+  var btn = getLogButton(); if (!btn) return;
+  var activeName = state.chosenCardName || state.recommendedCardName; if (!activeName) return;
+  var isChosen = !!state.chosenCardKey; var prefix = isChosen ? '\ud83d\udcb3 ' : '+ ';
+  var newText = prefix + 'Log purchase on ' + activeName;
+  if (btn.__v138Text !== newText) { btn.__v138Text = newText; btn.textContent = newText; }
+}
+function updateRevertPillVisibility() {
+  var altCards = document.querySelector('.alt-cards'); if (!altCards) return;
+  var pill = altCards.querySelector('.v138-revert-pill');
+  if (state.chosenCardKey && state.recommendedCardKey && state.chosenCardKey !== state.recommendedCardKey) {
+    if (!pill) {
+      pill = document.createElement('button'); pill.className = 'v138-revert-pill'; pill.setAttribute('type', 'button');
+      pill.addEventListener('click', function(e){ e.preventDefault(); e.stopPropagation(); revertToRecommended(); });
+      var title = altCards.querySelector('.alt-title');
+      if (title && title.nextSibling) altCards.insertBefore(pill, title.nextSibling);
+      else altCards.insertBefore(pill, altCards.firstChild);
+    }
+    pill.innerHTML = '<span class="v138-icon">\u21ba</span> Use recommended: ' + escapeHTML(state.recommendedCardName);
+    pill.classList.add('show');
+  } else { if (pill) pill.classList.remove('show'); }
+}
+function escapeHTML(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+function revertToRecommended() {
+  if (!state.recommendedCardKey) return;
+  state.chosenCardKey = null; state.chosenCardName = null;
+  document.querySelectorAll('.alt-item.chosen').forEach(function(el){ el.classList.remove('chosen'); });
+  var hidden = document.getElementById('heroLogCard'); if (hidden) hidden.value = state.recommendedCardKey;
+  if (window.__v70) { window.__v70.chosenCardKey = null; window.__v70.chosenCardName = null; }
+  showRevertToast(); updateLogButtonText(); updateRevertPillVisibility();
+}
+function showRevertToast() {
+  document.querySelectorAll('.v79-select-toast, .v138-revert-toast').forEach(function(t){ t.remove(); });
+  var toast = document.createElement('div');
+  toast.className = 'v79-select-toast v138-revert show v138-revert-toast';
+  toast.textContent = '\u21ba Reverted to recommended: ' + (state.recommendedCardName || 'default card');
+  document.body.appendChild(toast);
+  setTimeout(function(){ if (toast.parentNode) toast.parentNode.removeChild(toast); }, 2200);
+}
+document.addEventListener('click', function(e){
+  var alt = e.target && e.target.closest && e.target.closest('.alt-item'); if (!alt) return;
+  var isChosen = alt.classList.contains('chosen'); var altKey = alt.getAttribute('data-card-key');
+  if (isChosen) { e.stopPropagation(); e.stopImmediatePropagation(); e.preventDefault(); revertToRecommended(); return; }
+  if (altKey) { state.chosenCardKey = altKey; state.chosenCardName = getCardName(altKey); setTimeout(function(){ updateLogButtonText(); updateRevertPillVisibility(); }, 30); }
+}, true);
+function installObservers() {
+  var hero = document.getElementById('hero');
+  if (hero && !hero.__v138Watched) {
+    hero.__v138Watched = true;
+    new MutationObserver(function(){ readRecommendedFromHero(); }).observe(hero, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-main-card-key'] });
+    readRecommendedFromHero();
+  }
+}
+installObservers();
+var iv = setInterval(function(){ installObservers(); updateLogButtonText(); updateRevertPillVisibility(); }, 300);
+setTimeout(function(){ clearInterval(iv); }, 15000);
+var q = document.getElementById('q');
+if (q) { q.addEventListener('input', function(){ state.chosenCardKey = null; state.chosenCardName = null; }); }
+window.__v138 = { state: state, revert: revertToRecommended };
+})();
+</script>
+
+<script id="v139-rewards-sync">
+(function(){
+'use strict';
+var __syncing = false;
+var __lastSync = 0;
+var __syncTimer = null;
+
+function log(msg){ try { console.log('[V139]', msg); } catch(_){} }
+
+function reconcileAndRender(){
+  if (__syncing) return;
+  __syncing = true;
+  __lastSync = Date.now();
+  try {
+    // STEP 1: Reconcile the auto-accumulation ledger from scratch
+    // V128's tick() rebuilds walletiq_auto_earnings by summing all current transactions,
+    // so deleted tx contributions vanish automatically.
+    try { if (window.__v128 && typeof window.__v128.tick === 'function') window.__v128.tick(); } catch(e){ log('__v128.tick error ' + e); }
+    try { if (typeof window.__v106Tick === 'function') window.__v106Tick(); } catch(e){ log('__v106Tick error ' + e); }
+    try { if (typeof window.reconcileAutoEarnings === 'function') window.reconcileAutoEarnings(); } catch(e){}
+    // If V128 or v106 exposes a syncMemberships or similar, try it
+    try { if (window.__v128 && typeof window.__v128.syncMemberships === 'function') window.__v128.syncMemberships(); } catch(e){}
+    try { if (typeof window.syncEarningsToMemberships === 'function') window.syncEarningsToMemberships(); } catch(e){}
+
+    // STEP 2: Re-render transactions list
+    ['renderTxList','renderTransactions','renderTx','renderActivity','renderTxTab'].forEach(function(fn){
+      try { if (typeof window[fn] === 'function') window[fn](); } catch(e){}
+    });
+
+    // STEP 3: Re-fire the currently active month-pill so filter re-applies
+    try {
+      var ap = document.querySelector('.month-pill.on');
+      if (ap) ap.dispatchEvent(new MouseEvent('click', {bubbles:true, cancelable:true}));
+    } catch(e){}
+
+    // STEP 4: Re-render Rewards Studio hero (Total portfolio, This mo, YTD, Missed, Vault)
+    ['renderRewardsHero','updateRewardsHero','renderStudioHero','renderInsights','renderOverview','renderRewardsStudio','updateStudioHero'].forEach(function(fn){
+      try { if (typeof window[fn] === 'function') window[fn](); } catch(e){}
+    });
+
+    // STEP 5: Re-render Home page tiles + vault summary card
+    ['renderHome','renderHomeVaultSummary','renderVaultSummary','updateHomeStats','renderHomeTile'].forEach(function(fn){
+      try { if (typeof window[fn] === 'function') window[fn](); } catch(e){}
+    });
+    try { if (window.__v122 && typeof window.__v122.renderHome === 'function') window.__v122.renderHome(); } catch(e){}
+
+    // STEP 6: Re-render the Points Vault (Fastest earner + per-program values)
+    ['renderVaultV122','renderVault','renderPointsTab','renderV122','renderPointsVault'].forEach(function(fn){
+      try { if (typeof window[fn] === 'function') window[fn](); } catch(e){}
+    });
+    try { if (typeof window.scheduleVaultRefresh === 'function') window.scheduleVaultRefresh(); } catch(e){}
+
+    // STEP 7: Nudge the currently active rewards subtab via switchRewardsView
+    try {
+      var as = document.querySelector('.rewards-subtabs button.on');
+      if (as && typeof window.switchRewardsView === 'function') {
+        var v = as.getAttribute('data-view');
+        if (v) window.switchRewardsView(v);
+      }
+    } catch(e){}
+
+    // STEP 8: Dispatch synthetic storage events for every relevant key
+    var keys = ['walletiq_transactions','walletiq_auto_earnings','walletiq_memberships','walletIQ_v40_wallet','v82_tx','tx','transactions'];
+    keys.forEach(function(k){
+      try {
+        var val = localStorage.getItem(k) || '';
+        window.dispatchEvent(new StorageEvent('storage', {key: k, newValue: val}));
+      } catch(e){}
+    });
+
+    // STEP 9: Custom event so any downstream code can react
+    try { window.dispatchEvent(new CustomEvent('v139:rewardsSynced')); } catch(e){}
+
+    log('reconciled');
+  } finally {
+    setTimeout(function(){ __syncing = false; }, 100);
+  }
+}
+
+window.__v139_reconcileAndRender = reconcileAndRender;
+
+function scheduleReconcile(delay){
+  clearTimeout(__syncTimer);
+  __syncTimer = setTimeout(function(){
+    try { reconcileAndRender(); } catch(e){}
+  }, delay || 100);
+}
+
+// ==================== FUNCTION WRAP ====================
+var wrappedFns = {};
+var TARGET_PATTERNS = [/saveTx/i, /logPurchase/i, /deleteTx/i, /removeTx/i, /clearAllTx/i, /saveHeroLogPurchase/i, /clearTransactions/i, /addTx/i, /removeTransaction/i, /deleteTransaction/i];
+function isTargetName(name){
+  return TARGET_PATTERNS.some(function(p){ return p.test(name); });
+}
+function wrapFn(name){
+  if (wrappedFns[name]) return;
+  if (typeof window[name] !== 'function') return;
+  var original = window[name];
+  window[name] = function(){
+    var r;
+    try { r = original.apply(this, arguments); } catch(err){ throw err; }
+    scheduleReconcile(80);
+    setTimeout(function(){ try { reconcileAndRender(); } catch(_){} }, 300);
+    setTimeout(function(){ try { reconcileAndRender(); } catch(_){} }, 700);
+    return r;
+  };
+  wrappedFns[name] = true;
+  log('wrapped ' + name);
+}
+function wrapAllTargets(){
+  // Scan window for matching function names
+  for (var k in window){
+    try { if (typeof window[k] === 'function' && isTargetName(k)) wrapFn(k); } catch(e){}
+  }
+}
+wrapAllTargets();
+var wrapAttempts = 0;
+var wrapIv = setInterval(function(){
+  wrapAllTargets();
+  if (++wrapAttempts > 30) clearInterval(wrapIv);
+}, 300);
+
+// ==================== LOCALSTORAGE INTERCEPT ====================
+try {
+  var origSetItem = localStorage.setItem.bind(localStorage);
+  var origRemoveItem = localStorage.removeItem.bind(localStorage);
+  var TRIGGER_KEYS = /walletiq_transactions|v82_tx|^tx$|^transactions$|walletiq_auto_earnings|walletiq_memberships|walletIQ_v40_wallet/i;
+  localStorage.setItem = function(key, value){
+    var r = origSetItem(key, value);
+    try { if (key && TRIGGER_KEYS.test(key)) { scheduleReconcile(60); setTimeout(function(){ try{ reconcileAndRender(); } catch(_){} }, 250); } } catch(_){}
+    return r;
+  };
+  localStorage.removeItem = function(key){
+    var r = origRemoveItem(key);
+    try { if (key && TRIGGER_KEYS.test(key)) { scheduleReconcile(60); setTimeout(function(){ try{ reconcileAndRender(); } catch(_){} }, 250); } } catch(_){}
+    return r;
+  };
+  log('localStorage intercepted');
+} catch(e){ log('localStorage intercept failed: ' + e); }
+
+// ==================== CLICK LISTENER ====================
+document.addEventListener('click', function(e){
+  var t = e.target; if (!t) return;
+  // Delete button
+  var deleteBtn = t.closest && t.closest('.txbtns button, .v82-dismiss-btn, .ccustom-del, .v81-del-btn');
+  var txContext = t.closest && t.closest('.tx-item, .v82-month-body, #txList, .leak-item, .sub-card, .v81-membership-card');
+  var tc = (t.textContent || '').toLowerCase().trim();
+  var isDeleteText = tc === '\ud83d\uddd1' || tc === 'delete' || tc === '\u00d7' || tc.indexOf('clear') === 0;
+  if ((deleteBtn && txContext) || (txContext && isDeleteText && t.tagName === 'BUTTON')) {
+    scheduleReconcile(100);
+    setTimeout(function(){ try { reconcileAndRender(); } catch(_){} }, 500);
+    setTimeout(function(){ try { reconcileAndRender(); } catch(_){} }, 1000);
+  }
+  // Log/save purchase buttons
+  var logBtn = t.closest && t.closest('.hero-log-btn, #logPurchaseBtn, .hl-save, .sa-btn.primary');
+  if (logBtn) {
+    scheduleReconcile(80);
+    setTimeout(function(){ try { reconcileAndRender(); } catch(_){} }, 400);
+    setTimeout(function(){ try { reconcileAndRender(); } catch(_){} }, 900);
+  }
+  // Clear/danger buttons
+  if (t.matches && t.matches('.sa-btn.danger, button.danger')) {
+    scheduleReconcile(120);
+    setTimeout(function(){ try { reconcileAndRender(); } catch(_){} }, 500);
+  }
+}, true);
+
+// ==================== MUTATIONOBSERVERS ====================
+function watchTxList(){
+  var el = document.getElementById('txList'); if (!el || el.__v139Watched) return;
+  el.__v139Watched = true;
+  new MutationObserver(function(mutations){
+    if (__syncing) return;
+    var removed = false;
+    mutations.forEach(function(m){ if (m.removedNodes && m.removedNodes.length) removed = true; });
+    if (removed) scheduleReconcile(80);
+  }).observe(el, {childList:true, subtree:true});
+}
+watchTxList();
+var watchIv = setInterval(watchTxList, 500);
+setTimeout(function(){ clearInterval(watchIv); }, 15000);
+
+// ==================== PERIODIC SAFETY SYNC ====================
+setInterval(function(){
+  // Only if user is on rewards tab and it's been > 8s since last sync
+  var rewardsActive = document.getElementById('rewards') && document.getElementById('rewards').classList.contains('active');
+  if (!rewardsActive) return;
+  if (Date.now() - __lastSync < 8000) return;
+  scheduleReconcile(50);
+}, 5000);
+
+// ==================== INITIAL SYNC ====================
+setTimeout(function(){ try { reconcileAndRender(); } catch(_){} }, 1000);
+setTimeout(function(){ try { reconcileAndRender(); } catch(_){} }, 3000);
+
+window.__v139 = {
+  reconcileAndRender: reconcileAndRender,
+  scheduleReconcile: scheduleReconcile,
+  wrappedFns: wrappedFns
+};
 })();
 </script>
 </body>
