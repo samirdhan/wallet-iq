@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>Wallet IQ V139</title>
+<title>Wallet IQ V141</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Wallet IQ">
@@ -21087,6 +21087,787 @@ window.__v139 = {
   scheduleReconcile: scheduleReconcile,
   wrappedFns: wrappedFns
 };
+})();
+</script>
+
+<script id="v140-sync-engine">
+(function(){
+'use strict';
+
+// ==========================================================================
+// V140 SYNC ENGINE — Authoritative single source of truth for:
+//   - walletiq_transactions (READ ONLY)
+//   - walletiq_auto_earnings (WRITTEN by V140 only)
+//   - walletiq_memberships (V140 owns entries flagged __v140Auto)
+// Replaces the fragmented V70/V80/V96/V106/V122/V128/V139 sync logic.
+// UI-rendering modules (V70 alt-card, V96 optimizer UI, V122 vault renderer,
+// V138 revert pill) are LEFT ALONE.
+// ==========================================================================
+
+var VERSION = 'v140-clean-2026-07-12';
+
+// --------------- KILL SWITCHES for legacy sync code ----------------
+// These flags neutralize the legacy tick functions so they don't fight V140.
+window.__v106Disabled = true;
+window.__v128Disabled = true;
+window.__v139Disabled = true;
+window.__v140Enabled  = true;
+
+// --------------- CARD → PROGRAM CATALOG ----------------
+// Maps CARDS_DB card keys to their earning program.
+var CARD_TO_PROGRAM = {
+  // AMEX MR
+  cobalt:'MR', amexGold:'MR', amexPlatinum:'MR', amexSimplyCash:'MR',
+  amexAmericanCard:'MR', amexAeroplan:'Aeroplan', amexAeroplanBiz:'Aeroplan',
+  amexAeroReserve:'Aeroplan', amexBusinessGold:'MR', amexBusinessEdge:'MR',
+  amexBusinessPlat:'MR',
+  // Marriott Bonvoy
+  bonvoy:'Bonvoy', amexBonvoyBiz:'Bonvoy',
+  // Scotia Scene+
+  scotiaPlat:'ScenePlus', scotiaPass:'ScenePlus', scotiaGold:'ScenePlus',
+  scotiaAmexBasic:'ScenePlus', sceneVI:'ScenePlus',
+  // Scotia CASH
+  scotiaCashbackVisa:'CASH', scotiaValueVisa:'CASH', scotiaMomentumNoFee:'CASH',
+  scotiaGmVisa:'GMEarnings', scotiaMomentumMC:'CASH',
+  // TD
+  tdAero:'Aeroplan', tdCash:'CASH', tdRewardsVI:'TDRewards',
+  tdPlatTravel:'TDRewards', tdRewardsCard:'TDRewards', tdUsdVisa:'CASH',
+  tdFirstClass:'TDRewards',
+  // CIBC
+  cibcAventura:'Aventura', cibcAventuraGold:'Aventura', cibcAeroplan:'Aeroplan',
+  cibcDividendVI:'CASH', cibcDividendPlat:'CASH', cibcCostco:'CASH',
+  cibcSelect:'CASH', cibcTelus:'CASH', cibcVibe:'CASH',
+  // BMO
+  bmoEclipse:'BMORewards', bmoCashback:'CASH', bmoRewardsMC:'BMORewards',
+  bmoAirMiles:'BlueRewards', bmoCashbackMC:'CASH', bmoPrefRate:'CASH',
+  bmoWorldElite:'BMORewards', bmoAscend:'BMORewards',
+  // MBNA
+  mbnaRewards:'MBNARewards', mbnaSmart:'CASH', mbnaTrue:'CASH',
+  // RBC
+  rbcAvion:'AvionRewards', rbcAvionPlat:'AvionRewards',
+  rbcRewardsPlus:'AvionRewards', rbcSignature:'AvionRewards',
+  rbcION:'AvionRewards', rbcBizAvion:'AvionRewards',
+  rbcWestJet:'WestJetDollars', rbcBAVisa:'Avios',
+  rbcCashback:'CASH',
+  // Rogers
+  rogers:'RogersCash',
+  // PC
+  pcMC:'PCOptimum', pcInsiders:'PCOptimum',
+  // Wealthsimple (all CASH — direct cashback)
+  wsCashCard:'CASH', wsInfinite1:'CASH', wsInfinitePlus:'CASH', wsInfinitePrivilege:'CASH',
+  // Tangerine
+  tangerine:'CASH',
+  // Walmart
+  walmartMC:'WalmartCash',
+  // Canadian Tire
+  canadianTire:'CTMoney',
+  // Neo
+  neoMC:'NeoCash',
+  // HSBC (all handled by RBC now but still earn HSBC Rewards)
+  hsbcWorldElite:'HSBCRewards', hsbcRewards:'HSBCRewards',
+  // Brim
+  brimWE:'BrimRewards', brimStd:'BrimRewards',
+  // Other CASH cards
+  eqBank:'CASH', kohoExtra:'CASH', kohoStandard:'CASH', homeTrust:'CASH',
+  meridianCash:'CASH', capOneAspire:'CASH', coastCapital:'CASH',
+  vancityEnviro:'CASH', servusWE:'CASH', laurentianVI:'CASH',
+  desjardinsCashback:'CASH', desjardinsCashBackWE:'CASH',
+  desjardinsOdyssey:'BonusDollars',
+  nationalWorldElite:'ARewards', nationalSyncro:'CASH', nationalEcho:'CASH'
+};
+
+// --------------- PROGRAM INFO ----------------
+// cpp = cents per point (used to convert points to $ value).
+// unit = 'pts' for point programs, '$' for cash-equivalent programs.
+var PROGRAM_INFO = {
+  MR:              {cpp: 1.5,  unit: 'pts', name: 'Amex MR',           icon: '🔵'},
+  Aeroplan:        {cpp: 1.5,  unit: 'pts', name: 'Aeroplan',          icon: '✈️'},
+  ScenePlus:       {cpp: 1.0,  unit: 'pts', name: 'Scene+',            icon: '🎬'},
+  Bonvoy:          {cpp: 0.8,  unit: 'pts', name: 'Marriott Bonvoy',   icon: '🏨'},
+  Aventura:        {cpp: 1.5,  unit: 'pts', name: 'CIBC Aventura',     icon: '✈️'},
+  TDRewards:       {cpp: 0.5,  unit: 'pts', name: 'TD Rewards',        icon: '🟢'},
+  BMORewards:      {cpp: 0.67, unit: 'pts', name: 'BMO Rewards',       icon: '🔵'},
+  BlueRewards:     {cpp: 0.67, unit: 'pts', name: 'BMO Blue Rewards',  icon: '🔷'},
+  MBNARewards:     {cpp: 1.0,  unit: 'pts', name: 'MBNA Rewards',      icon: '💎'},
+  AvionRewards:    {cpp: 1.5,  unit: 'pts', name: 'RBC Avion',         icon: '✈️'},
+  WestJetDollars:  {cpp: 100,  unit: '$',   name: 'WestJet Dollars',   icon: '✈️'},
+  Avios:           {cpp: 1.5,  unit: 'pts', name: 'BA Avios',          icon: '✈️'},
+  RogersCash:      {cpp: 100,  unit: '$',   name: 'Rogers Cash',       icon: '🟠'},
+  PCOptimum:       {cpp: 0.1,  unit: 'pts', name: 'PC Optimum',        icon: '🛒'},
+  CASH:            {cpp: 100,  unit: '$',   name: 'Cashback',          icon: '💵'},
+  WalmartCash:     {cpp: 100,  unit: '$',   name: 'Walmart Cash',      icon: '🛍'},
+  CTMoney:         {cpp: 100,  unit: '$',   name: 'CT Money',          icon: '🔺'},
+  NeoCash:         {cpp: 100,  unit: '$',   name: 'Neo Cash',          icon: '⚡'},
+  HSBCRewards:     {cpp: 0.5,  unit: 'pts', name: 'HSBC Rewards',      icon: '🔴'},
+  BrimRewards:     {cpp: 1.0,  unit: 'pts', name: 'Brim Rewards',      icon: '🔷'},
+  BonusDollars:    {cpp: 100,  unit: '$',   name: 'Bonus Dollars',     icon: '💰'},
+  ARewards:        {cpp: 1.0,  unit: 'pts', name: 'À la Carte Rewards',icon: '🍁'},
+  GMEarnings:      {cpp: 100,  unit: '$',   name: 'GM Earnings',       icon: '🚗'}
+};
+
+// --------------- Guards ----------------
+var __syncing   = false;
+var __rendering = false;
+var __syncTimer = null;
+
+// --------------- Utilities ----------------
+function log(m){ try { console.log('[V140]', m); } catch(_){} }
+function warn(m){ try { console.warn('[V140]', m); } catch(_){} }
+
+function loadTxs(){
+  var candidates = ['walletiq_transactions','v82_tx','tx','transactions'];
+  for (var i = 0; i < candidates.length; i++){
+    try {
+      var raw = localStorage.getItem(candidates[i]);
+      if (raw){
+        var parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length) return parsed;
+      }
+    } catch(_){}
+  }
+  return [];
+}
+
+function monthKey(dateStr){
+  if (!dateStr) return 'unknown';
+  var d = new Date(dateStr);
+  if (isNaN(d.getTime())) return 'unknown';
+  var y = d.getFullYear();
+  var m = String(d.getMonth() + 1).padStart(2, '0');
+  return y + '-' + m;
+}
+
+function getCardRateForCategory(cardKey, category){
+  if (!cardKey || !window.CARDS_DB || !window.CARDS_DB[cardKey]) return 1;
+  var card = window.CARDS_DB[cardKey];
+  var rates = card.realRates || card.rates || {};
+  if (category && rates[category] != null) return rates[category];
+  if (rates.base != null) return rates.base;
+  if (rates.other != null) return rates.other;
+  return 1;
+}
+
+function getCategoryFromTx(tx){
+  // Try in order: tx.category, tx.cat, tx.merchantCategory,
+  // then look up ALIASES by merchant name
+  var cat = tx.category || tx.cat || tx.merchantCategory;
+  if (cat) return cat;
+  var merchant = (tx.merchant || tx.name || tx.m || '').toLowerCase().trim();
+  if (merchant && window.ALIASES){
+    if (window.ALIASES[merchant]) return window.ALIASES[merchant];
+    // Try substring match against alias keys
+    for (var k in window.ALIASES){
+      if (merchant.indexOf(k) >= 0) return window.ALIASES[k];
+    }
+  }
+  return 'other';
+}
+
+// --------------- Core: compute earnings from one transaction ---------------
+function computeEarnings(tx){
+  if (!tx || tx.historical) return null;
+  var amount = parseFloat(tx.amount || tx.amt || 0);
+  if (isNaN(amount) || amount <= 0) return null;
+  var cardKey = tx.card || tx.cardKey || tx.c;
+  if (!cardKey) return null;
+  var program = CARD_TO_PROGRAM[cardKey];
+  if (!program) return null;
+  var pi = PROGRAM_INFO[program];
+  if (!pi) return null;
+  var category = getCategoryFromTx(tx);
+  var ratePct = getCardRateForCategory(cardKey, category);
+  var dollarValue = amount * ratePct / 100;
+  // Points: for CASH-like programs (cpp=100), points = dollars.
+  // For point programs, points = dollarValue * 100 / cpp.
+  var points;
+  if (pi.unit === '$') {
+    points = dollarValue;
+  } else {
+    points = dollarValue * 100 / pi.cpp;
+  }
+  return {
+    program: program,
+    points: points,
+    dollarValue: dollarValue,
+    category: category,
+    month: monthKey(tx.date || tx.d)
+  };
+}
+
+// --------------- Core: reconcile the ledger from scratch ---------------
+function reconcile(){
+  var txs = loadTxs();
+  var autoEarnings = {};        // { program: { totalPoints, totalDollars, byMonth: {YYYY-MM: {points, dollars}} } }
+  var programOrder = [];        // insertion order for deterministic rendering
+
+  txs.forEach(function(tx){
+    var e = computeEarnings(tx);
+    if (!e) return;
+    if (!autoEarnings[e.program]){
+      autoEarnings[e.program] = {totalPoints: 0, totalDollars: 0, byMonth: {}};
+      programOrder.push(e.program);
+    }
+    var slot = autoEarnings[e.program];
+    slot.totalPoints  += e.points;
+    slot.totalDollars += e.dollarValue;
+    if (!slot.byMonth[e.month]) slot.byMonth[e.month] = {points: 0, dollars: 0};
+    slot.byMonth[e.month].points  += e.points;
+    slot.byMonth[e.month].dollars += e.dollarValue;
+  });
+
+  // Persist reconciled auto-earnings
+  try {
+    localStorage.setItem('walletiq_auto_earnings', JSON.stringify(autoEarnings));
+  } catch(e){ warn('failed to save auto_earnings: ' + e); }
+
+  // Sync memberships: rewrite __v140Auto entries, wipe legacy __v106Auto/__v128Auto
+  try {
+    var raw = localStorage.getItem('walletiq_memberships');
+    var mems = raw ? JSON.parse(raw) : [];
+    if (!Array.isArray(mems)) mems = [];
+    // Remove any auto entry from previous versions
+    mems = mems.filter(function(m){
+      return !m.__v106Auto && !m.__v128Auto && !m.__v140Auto;
+    });
+    // Add fresh __v140Auto entries
+    programOrder.forEach(function(prog){
+      var pi = PROGRAM_INFO[prog];
+      var slot = autoEarnings[prog];
+      if (!pi || !slot || slot.totalPoints <= 0) return;
+      // Find "this month" earnings for delta display
+      var now = new Date();
+      var thisMonth = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+      var thisMonthPts = (slot.byMonth[thisMonth] && slot.byMonth[thisMonth].points) || 0;
+      var thisMonthDollars = (slot.byMonth[thisMonth] && slot.byMonth[thisMonth].dollars) || 0;
+      mems.push({
+        __v140Auto: true,
+        program: prog,
+        programKey: prog,
+        name: pi.name,
+        n: pi.name,
+        icon: pi.icon,
+        emoji: pi.icon,
+        balance: Math.round(slot.totalPoints * 100) / 100,
+        pts: Math.round(slot.totalPoints * 100) / 100,
+        dollarValue: Math.round(slot.totalDollars * 100) / 100,
+        cashValue: Math.round(slot.totalDollars * 100) / 100,
+        cpp: pi.cpp,
+        unit: pi.unit,
+        thisMonth: Math.round(thisMonthPts * 100) / 100,
+        thisMonthDollars: Math.round(thisMonthDollars * 100) / 100,
+        source: 'v140-auto'
+      });
+    });
+    localStorage.setItem('walletiq_memberships', JSON.stringify(mems));
+  } catch(e){ warn('failed to sync memberships: ' + e); }
+
+  return autoEarnings;
+}
+
+// --------------- Core: fire all UI renderers ---------------
+function render(){
+  if (__rendering) return;
+  __rendering = true;
+  try {
+    // (1) Transactions list renderers
+    ['renderTxList','renderTransactions','renderTx','renderActivity','renderTxTab'].forEach(function(fn){
+      try { if (typeof window[fn] === 'function') window[fn](); } catch(_){}
+    });
+
+    // (2) Re-fire active month pill so filter re-applies to fresh list
+    try {
+      var ap = document.querySelector('.month-pill.on');
+      if (ap) ap.dispatchEvent(new MouseEvent('click', {bubbles: true, cancelable: true}));
+    } catch(_){}
+
+    // (3) Rewards Studio hero (Total portfolio, This mo, YTD, Missed, Vault)
+    ['renderRewardsHero','updateRewardsHero','renderStudioHero','renderInsights','renderOverview','renderRewardsStudio','updateStudioHero'].forEach(function(fn){
+      try { if (typeof window[fn] === 'function') window[fn](); } catch(_){}
+    });
+
+    // (4) Home page tiles + vault summary card
+    ['renderHome','renderHomeVaultSummary','renderVaultSummary','updateHomeStats','renderHomeTile'].forEach(function(fn){
+      try { if (typeof window[fn] === 'function') window[fn](); } catch(_){}
+    });
+    try { if (window.__v122 && typeof window.__v122.renderHome === 'function') window.__v122.renderHome(); } catch(_){}
+
+    // (5) Points Vault (Fastest earner + per-program values)
+    ['renderVaultV122','renderVault','renderPointsTab','renderV122','renderPointsVault'].forEach(function(fn){
+      try { if (typeof window[fn] === 'function') window[fn](); } catch(_){}
+    });
+
+    // (6) Nudge the currently-active rewards subtab
+    try {
+      var as = document.querySelector('.rewards-subtabs button.on');
+      if (as && typeof window.switchRewardsView === 'function'){
+        var v = as.getAttribute('data-view');
+        if (v) window.switchRewardsView(v);
+      }
+    } catch(_){}
+
+    // (7) Dispatch synthetic StorageEvents for legacy listeners
+    var keys = ['walletiq_transactions','walletiq_auto_earnings','walletiq_memberships','walletIQ_v40_wallet'];
+    keys.forEach(function(k){
+      try {
+        var val = localStorage.getItem(k) || '';
+        window.dispatchEvent(new StorageEvent('storage', {key: k, newValue: val}));
+      } catch(_){}
+    });
+
+    // (8) Custom event
+    try { window.dispatchEvent(new CustomEvent('v140:synced')); } catch(_){}
+
+    log('rendered');
+  } finally {
+    setTimeout(function(){ __rendering = false; }, 100);
+  }
+}
+
+// --------------- Combined sync: reconcile + render ---------------
+function sync(){
+  if (__syncing) return;
+  __syncing = true;
+  try {
+    reconcile();
+    render();
+  } catch(e){
+    warn('sync error: ' + e);
+  } finally {
+    setTimeout(function(){ __syncing = false; }, 120);
+  }
+}
+
+function scheduleSync(delay){
+  clearTimeout(__syncTimer);
+  __syncTimer = setTimeout(function(){
+    try { sync(); } catch(_){}
+  }, delay || 100);
+}
+
+// --------------- NEUTRALIZE legacy sync functions ---------------
+// After legacy modules define their tick functions, replace them with delegates.
+function neutralizeLegacy(){
+  try {
+    if (window.__v106Tick && !window.__v106Tick.__v140Delegate){
+      window.__v106Tick = function(){ scheduleSync(20); };
+      window.__v106Tick.__v140Delegate = true;
+    }
+  } catch(_){}
+  try {
+    if (window.__v128 && typeof window.__v128.tick === 'function' && !window.__v128.tick.__v140Delegate){
+      window.__v128.tick = function(){ scheduleSync(20); };
+      window.__v128.tick.__v140Delegate = true;
+    }
+  } catch(_){}
+  try {
+    if (window.__v139 && typeof window.__v139.reconcileAndRender === 'function' && !window.__v139.reconcileAndRender.__v140Delegate){
+      window.__v139.reconcileAndRender = function(){ scheduleSync(20); };
+      window.__v139.reconcileAndRender.__v140Delegate = true;
+    }
+    if (window.__v139 && typeof window.__v139.scheduleReconcile === 'function' && !window.__v139.scheduleReconcile.__v140Delegate){
+      window.__v139.scheduleReconcile = function(d){ scheduleSync(d || 100); };
+      window.__v139.scheduleReconcile.__v140Delegate = true;
+    }
+  } catch(_){}
+}
+neutralizeLegacy();
+var neutIv = setInterval(neutralizeLegacy, 400);
+setTimeout(function(){ clearInterval(neutIv); }, 15000);
+
+// --------------- Trigger: wrap tx save/delete functions ---------------
+var wrappedFns = {};
+var TARGET_PATTERNS = [
+  /^saveTx/i, /^saveTxFromModal$/i, /^saveHeroLogPurchase$/i, /^logPurchase/i,
+  /^deleteTx/i, /^removeTx/i, /^deleteTransaction/i, /^removeTransaction/i,
+  /^clearAllTx/i, /^clearTransactions/i, /^addTx/i
+];
+function isTarget(name){
+  for (var i = 0; i < TARGET_PATTERNS.length; i++){
+    if (TARGET_PATTERNS[i].test(name)) return true;
+  }
+  return false;
+}
+function wrapFn(name){
+  if (wrappedFns[name]) return;
+  try {
+    if (typeof window[name] !== 'function') return;
+    var original = window[name];
+    if (original.__v140Wrapped) { wrappedFns[name] = true; return; }
+    var wrapped = function(){
+      var r;
+      try { r = original.apply(this, arguments); } catch(err){ throw err; }
+      scheduleSync(80);
+      setTimeout(function(){ try { sync(); } catch(_){} }, 300);
+      setTimeout(function(){ try { sync(); } catch(_){} }, 700);
+      return r;
+    };
+    wrapped.__v140Wrapped = true;
+    window[name] = wrapped;
+    wrappedFns[name] = true;
+    log('wrapped ' + name);
+  } catch(e){ warn('wrap ' + name + ' failed: ' + e); }
+}
+function wrapAll(){
+  for (var k in window){
+    try { if (typeof window[k] === 'function' && isTarget(k)) wrapFn(k); } catch(_){}
+  }
+}
+wrapAll();
+var wrapAttempts = 0;
+var wrapIv = setInterval(function(){
+  wrapAll();
+  if (++wrapAttempts > 30) clearInterval(wrapIv);
+}, 300);
+
+// --------------- Trigger: localStorage intercept ---------------
+try {
+  var origSetItem = localStorage.setItem.bind(localStorage);
+  var origRemoveItem = localStorage.removeItem.bind(localStorage);
+  // Only trigger on TX-source keys. Do NOT trigger on our own writes to
+  // walletiq_auto_earnings or walletiq_memberships (those would loop).
+  var TRIGGER_KEYS = /^(walletiq_transactions|v82_tx|tx|transactions|walletIQ_v40_wallet)$/i;
+  localStorage.setItem = function(key, value){
+    var r = origSetItem(key, value);
+    try {
+      if (key && TRIGGER_KEYS.test(key) && !__syncing){
+        scheduleSync(60);
+      }
+    } catch(_){}
+    return r;
+  };
+  localStorage.removeItem = function(key){
+    var r = origRemoveItem(key);
+    try {
+      if (key && TRIGGER_KEYS.test(key) && !__syncing){
+        scheduleSync(60);
+      }
+    } catch(_){}
+    return r;
+  };
+  log('localStorage intercepted');
+} catch(e){ warn('localStorage intercept failed: ' + e); }
+
+// --------------- Trigger: click listener ---------------
+document.addEventListener('click', function(e){
+  var t = e.target; if (!t) return;
+  // Delete buttons
+  var deleteBtn = t.closest && t.closest('.txbtns button, .v82-dismiss-btn, .ccustom-del, .v81-del-btn');
+  var txContext = t.closest && t.closest('.tx-item, .v82-month-body, #txList, .leak-item, .sub-card, .v81-membership-card');
+  var tc = (t.textContent || '').toLowerCase().trim();
+  var isDeleteText = tc === '🗑' || tc === 'delete' || tc === '×' || tc.indexOf('clear') === 0;
+  if ((deleteBtn && txContext) || (txContext && isDeleteText && t.tagName === 'BUTTON')){
+    scheduleSync(100);
+    setTimeout(function(){ try { sync(); } catch(_){} }, 500);
+    setTimeout(function(){ try { sync(); } catch(_){} }, 1000);
+  }
+  // Log/save buttons
+  var logBtn = t.closest && t.closest('.hero-log-btn, #logPurchaseBtn, .hl-save');
+  if (logBtn){
+    scheduleSync(80);
+    setTimeout(function(){ try { sync(); } catch(_){} }, 400);
+  }
+  // Studio primary save (Add purchase modal)
+  if (t.matches && (t.matches('.sa-btn.primary') || t.closest('.modal-actions .primary'))){
+    scheduleSync(80);
+    setTimeout(function(){ try { sync(); } catch(_){} }, 400);
+  }
+  // Danger / clear
+  if (t.matches && t.matches('.sa-btn.danger, button.danger')){
+    scheduleSync(120);
+    setTimeout(function(){ try { sync(); } catch(_){} }, 500);
+  }
+}, true);
+
+// --------------- Trigger: MutationObserver on #txList ---------------
+function watchTxList(){
+  var el = document.getElementById('txList');
+  if (!el || el.__v140Watched) return;
+  el.__v140Watched = true;
+  new MutationObserver(function(muts){
+    if (__syncing || __rendering) return;
+    var removed = false;
+    muts.forEach(function(m){ if (m.removedNodes && m.removedNodes.length) removed = true; });
+    if (removed) scheduleSync(80);
+  }).observe(el, {childList: true, subtree: true});
+}
+watchTxList();
+var watchIv = setInterval(watchTxList, 500);
+setTimeout(function(){ clearInterval(watchIv); }, 15000);
+
+// --------------- Boot ---------------
+function boot(){
+  log('sync engine initialized (' + VERSION + ')');
+  // Initial sync passes: catch any state loaded before we booted
+  setTimeout(function(){ try { sync(); } catch(_){} }, 500);
+  setTimeout(function(){ try { sync(); } catch(_){} }, 2000);
+}
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', boot);
+} else {
+  boot();
+}
+
+// --------------- Expose public API ---------------
+window.__v140 = {
+  version: VERSION,
+  sync: sync,
+  reconcile: reconcile,
+  render: render,
+  scheduleSync: scheduleSync,
+  computeEarnings: computeEarnings,
+  CARD_TO_PROGRAM: CARD_TO_PROGRAM,
+  PROGRAM_INFO: PROGRAM_INFO,
+  wrappedFns: wrappedFns,
+  _guards: {
+    isSyncing: function(){ return __syncing; },
+    isRendering: function(){ return __rendering; }
+  }
+};
+})();
+</script>
+
+<script id="v141-globals-bridge">
+// ==========================================================================
+// V141 CRITICAL FIX: Bridge const-declared globals to window scope.
+//
+// V128 declares its core data as `const CARDS_DB = {...}` — accessible by
+// name inside classic scripts but NOT attached to `window`. Every recent
+// module (V137 merchants, V139 sync, V140 sync engine) checked
+// `window.CARDS_DB` / `window.ALIASES` which were always undefined,
+// so they all silently failed to run.
+//
+// V141 bridges those globals to `window.*`, re-injects the 172 V137
+// merchants, invalidates V127 caches, and kicks V140 into re-syncing.
+// ==========================================================================
+
+(function(){
+'use strict';
+
+function log(m){ try { console.log('[V141]', m); } catch(_){} }
+function warn(m){ try { console.warn('[V141]', m); } catch(_){} }
+
+log('V141 booting — bridging const globals to window');
+
+// ==========================================================================
+// A. BRIDGE const/var globals to window
+// ==========================================================================
+var bridged = {};
+var attempted = ['CARDS_DB','ALIASES','ACCEPTANCE','PROGRAMS','MERCHANT_DIRECTORY',
+                 'CARD_EARN','POINT_PROGRAMS','WALLET_KEY','MERCHANT_TO_CATEGORY',
+                 'PROGRAM_INFO','CARD_TO_PROGRAM'];
+
+// Use eval-in-scope trick to safely detect and bridge const declarations
+// without throwing ReferenceError.
+attempted.forEach(function(name){
+  try {
+    // typeof does NOT throw on undeclared identifiers, so this is safe
+    var expr = 'typeof ' + name + ' !== "undefined" ? ' + name + ' : undefined';
+    var val = (0, eval)(expr);
+    if (val !== undefined) {
+      if (!window[name] || (typeof window[name] === 'object' && Object.keys(window[name]).length === 0)) {
+        window[name] = val;
+        bridged[name] = 'bridged';
+      } else {
+        bridged[name] = 'already on window';
+      }
+    } else {
+      bridged[name] = 'not declared';
+    }
+  } catch(e) {
+    bridged[name] = 'error: ' + e.message;
+  }
+});
+
+log('bridge results: ' + JSON.stringify(bridged));
+
+// Bridge functions too
+var fnNames = ['saveTx','saveTxFromModal','saveHeroLogPurchase','logPurchase',
+               'deleteTx','removeTx','removeTxById','clearAllTx','addTx',
+               'renderHome','renderTxList','renderTransactions','renderRewardsHero',
+               'updateRewardsHero','renderVaultV122','renderVault','renderPointsTab',
+               'switchRewardsView','switchTab','renderHomeVaultSummary'];
+var fnBridged = 0;
+fnNames.forEach(function(name){
+  try {
+    var expr = 'typeof ' + name + ' === "function" ? ' + name + ' : undefined';
+    var fn = (0, eval)(expr);
+    if (fn && typeof window[name] !== 'function') {
+      window[name] = fn;
+      fnBridged++;
+    }
+  } catch(e){}
+});
+log('functions bridged: ' + fnBridged);
+
+// ==========================================================================
+// B. RE-INJECT 172 V137 MERCHANTS
+// ==========================================================================
+var NEW_MERCHANTS = [["pne", "cineplex", "Pne", true, "\ud83c\udfa2"], ["playland", "cineplex", "Playland", true, "\ud83c\udfa2"], ["pne playland", "cineplex", "Pne Playland", true, "\ud83c\udfa2"], ["pacific national exhibition", "cineplex", "Pacific National Exhibition", true, "\ud83c\udfa2"], ["cultus lake adventure park", "cineplex", "Cultus Lake Adventure Park", true, "\ud83c\udfa2"], ["cultus lake waterpark", "cineplex", "Cultus Lake Waterpark", true, "\ud83c\udfa2"], ["bridal falls waterpark", "cineplex", "Bridal Falls Waterpark", true, "\ud83c\udfa2"], ["splashdown park", "cineplex", "Splashdown Park", true, "\ud83c\udfa2"], ["splashdown waterpark", "cineplex", "Splashdown Waterpark", true, "\ud83c\udfa2"], ["science world", "cineplex", "Science World", true, "\ud83c\udfa2"], ["telus world of science", "cineplex", "Telus World Of Science", true, "\ud83c\udfa2"], ["vancouver aquarium", "cineplex", "Vancouver Aquarium", true, "\ud83c\udfa2"], ["capilano suspension bridge", "cineplex", "Capilano Suspension Bridge", true, "\ud83c\udfa2"], ["grouse mountain", "cineplex", "Grouse Mountain", true, "\ud83c\udfa2"], ["cypress mountain", "cineplex", "Cypress Mountain", true, "\ud83c\udfa2"], ["whistler blackcomb", "cineplex", "Whistler Blackcomb", true, "\ud83c\udfa2"], ["whistler", "cineplex", "Whistler", true, "\ud83c\udfa2"], ["big white ski resort", "cineplex", "Big White Ski Resort", true, "\ud83c\udfa2"], ["silver star mountain", "cineplex", "Silver Star Mountain", true, "\ud83c\udfa2"], ["sun peaks resort", "cineplex", "Sun Peaks Resort", true, "\ud83c\udfa2"], ["revelstoke mountain resort", "cineplex", "Revelstoke Mountain Resort", true, "\ud83c\udfa2"], ["fernie alpine", "cineplex", "Fernie Alpine", true, "\ud83c\udfa2"], ["kicking horse mountain", "cineplex", "Kicking Horse Mountain", true, "\ud83c\udfa2"], ["flyover canada", "cineplex", "Flyover Canada", true, "\ud83c\udfa2"], ["butchart gardens", "cineplex", "Butchart Gardens", true, "\ud83c\udfa2"], ["royal bc museum", "cineplex", "Royal Bc Museum", true, "\ud83c\udfa2"], ["richmond night market", "other", "Richmond Night Market", false, "\ud83c\udfaa"], ["sabai thai spa", "other", "Sabai Thai Spa", true, "\ud83d\udc86"], ["sabai thai", "other", "Sabai Thai", true, "\ud83d\udc86"], ["sabai spa", "other", "Sabai Spa", true, "\ud83d\udc86"], ["absolute spa", "other", "Absolute Spa", true, "\ud83d\udc86"], ["skoah", "other", "Skoah", true, "\ud83d\udc86"], ["miraj hammam spa", "other", "Miraj Hammam Spa", true, "\ud83d\udc86"], ["miraj hammam", "other", "Miraj Hammam", true, "\ud83d\udc86"], ["willow stream spa", "other", "Willow Stream Spa", true, "\ud83d\udc86"], ["chi the spa", "other", "Chi The Spa", true, "\ud83d\udc86"], ["vida spa", "other", "Vida Spa", true, "\ud83d\udc86"], ["spa utopia", "other", "Spa Utopia", true, "\ud83d\udc86"], ["the refinery grooming lounge", "other", "The Refinery Grooming Lounge", true, "\ud83d\udc86"], ["the refinery", "other", "The Refinery", true, "\ud83d\udc86"], ["beauty mark", "other", "Beauty Mark", true, "\ud83d\udc86"], ["beautymark", "other", "Beautymark", true, "\ud83d\udc86"], ["eminence organic spa", "other", "Eminence Organic Spa", true, "\ud83d\udc86"], ["massage envy", "other", "Massage Envy", true, "\ud83d\udc86"], ["spa ritual", "other", "Spa Ritual", false, "\ud83d\udc86"], ["olia hair salon spa", "other", "Olia Hair Salon Spa", false, "\ud83d\udc86"], ["pure nail bar", "other", "Pure Nail Bar", false, "\ud83d\udc86"], ["hush hush spa", "other", "Hush Hush Spa", false, "\ud83d\udc86"], ["claritas spa", "other", "Claritas Spa", false, "\ud83d\udc86"], ["oasis spa", "other", "Oasis Spa", false, "\ud83d\udc86"], ["goodlife fitness", "other", "Goodlife Fitness", true, "\ud83d\udcaa"], ["good life fitness", "other", "Good Life Fitness", true, "\ud83d\udcaa"], ["goodlife", "other", "Goodlife", true, "\ud83d\udcaa"], ["steve nash fitness world", "other", "Steve Nash Fitness World", true, "\ud83d\udcaa"], ["steve nash fitness", "other", "Steve Nash Fitness", true, "\ud83d\udcaa"], ["steve nash", "other", "Steve Nash", true, "\ud83d\udcaa"], ["fitness world", "other", "Fitness World", true, "\ud83d\udcaa"], ["anytime fitness", "other", "Anytime Fitness", true, "\ud83d\udcaa"], ["club16 trevor linden fitness", "other", "Club16 Trevor Linden Fitness", true, "\ud83d\udcaa"], ["club16", "other", "Club16", true, "\ud83d\udcaa"], ["club 16", "other", "Club 16", true, "\ud83d\udcaa"], ["trevor linden fitness", "other", "Trevor Linden Fitness", true, "\ud83d\udcaa"], ["ymca vancouver", "other", "Ymca Vancouver", true, "\ud83d\udcaa"], ["ymca canada", "other", "Ymca Canada", true, "\ud83d\udcaa"], ["ymca", "other", "Ymca", true, "\ud83d\udcaa"], ["orangetheory fitness", "other", "Orangetheory Fitness", true, "\ud83d\udcaa"], ["orangetheory", "other", "Orangetheory", true, "\ud83d\udcaa"], ["orange theory", "other", "Orange Theory", true, "\ud83d\udcaa"], ["f45 training", "other", "F45 Training", true, "\ud83d\udcaa"], ["f45", "other", "F45", true, "\ud83d\udcaa"], ["barrys bootcamp", "other", "Barrys Bootcamp", true, "\ud83d\udcaa"], ["pure barre", "other", "Pure Barre", true, "\ud83d\udcaa"], ["oxygen yoga fitness", "other", "Oxygen Yoga Fitness", true, "\ud83d\udcaa"], ["oxygen yoga", "other", "Oxygen Yoga", true, "\ud83d\udcaa"], ["yyoga", "other", "Yyoga", true, "\ud83d\udcaa"], ["yyoga vancouver", "other", "Yyoga Vancouver", true, "\ud83d\udcaa"], ["planet fitness canada", "other", "Planet Fitness Canada", true, "\ud83d\udcaa"], ["planet fitness", "other", "Planet Fitness", true, "\ud83d\udcaa"], ["world gym", "other", "World Gym", true, "\ud83d\udcaa"], ["soulcycle canada", "other", "Soulcycle Canada", true, "\ud83d\udcaa"], ["soulcycle", "other", "Soulcycle", true, "\ud83d\udcaa"], ["peloton studio", "other", "Peloton Studio", true, "\ud83d\udcaa"], ["golds gym canada", "other", "Golds Gym Canada", true, "\ud83d\udcaa"], ["golds gym", "other", "Golds Gym", true, "\ud83d\udcaa"], ["fit4less", "other", "Fit4Less", true, "\ud83d\udcaa"], ["energie fitness", "other", "Energie Fitness", true, "\ud83d\udcaa"], ["semperviva yoga", "other", "Semperviva Yoga", false, "\ud83d\udcaa"], ["east side fitness", "other", "East Side Fitness", false, "\ud83d\udcaa"], ["iron wolf gym", "other", "Iron Wolf Gym", false, "\ud83d\udcaa"], ["energyplex", "other", "Energyplex", false, "\ud83d\udcaa"], ["crossfit vancouver", "other", "Crossfit Vancouver", false, "\ud83d\udcaa"], ["studeo55", "other", "Studeo55", false, "\ud83d\udcaa"], ["studeo 55", "other", "Studeo 55", false, "\ud83d\udcaa"], ["reformx pilates", "other", "Reformx Pilates", false, "\ud83d\udcaa"], ["supplement king", "shopping", "Supplement King", true, "\ud83d\udc8a"], ["popeyes supplements", "shopping", "Popeyes Supplements", true, "\ud83d\udc8a"], ["gnc", "shopping", "Gnc", true, "\ud83d\udc8a"], ["general nutrition centre", "shopping", "General Nutrition Centre", true, "\ud83d\udc8a"], ["body energy club", "shopping", "Body Energy Club", true, "\ud83d\udc8a"], ["vitamin shoppe", "shopping", "Vitamin Shoppe", true, "\ud83d\udc8a"], ["nutrition house", "shopping", "Nutrition House", true, "\ud83d\udc8a"], ["healthy planet", "shopping", "Healthy Planet", true, "\ud83d\udc8a"], ["iherb", "shopping", "Iherb", true, "\ud83d\udc8a"], ["true north nutrition", "shopping", "True North Nutrition", false, "\ud83d\udc8a"], ["sushi hachi", "dining", "Sushi Hachi", true, "\ud83c\udf7d"], ["miku", "dining", "Miku", true, "\ud83c\udf7d"], ["miku restaurant", "dining", "Miku Restaurant", true, "\ud83c\udf7d"], ["minami", "dining", "Minami", true, "\ud83c\udf7d"], ["sushi mura", "dining", "Sushi Mura", true, "\ud83c\udf7d"], ["ramen danbo", "dining", "Ramen Danbo", true, "\ud83c\udf7d"], ["santouka ramen", "dining", "Santouka Ramen", true, "\ud83c\udf7d"], ["kinton ramen", "dining", "Kinton Ramen", true, "\ud83c\udf7d"], ["marutama ramen", "dining", "Marutama Ramen", true, "\ud83c\udf7d"], ["jinya ramen", "dining", "Jinya Ramen", true, "\ud83c\udf7d"], ["ippudo", "dining", "Ippudo", true, "\ud83c\udf7d"], ["ajisai sushi bar", "dining", "Ajisai Sushi Bar", true, "\ud83c\udf7d"], ["toshi sushi", "dining", "Toshi Sushi", true, "\ud83c\udf7d"], ["tojos", "dining", "Tojos", true, "\ud83c\udf7d"], ["sushi bar maumi", "dining", "Sushi Bar Maumi", true, "\ud83c\udf7d"], ["masayoshi", "dining", "Masayoshi", true, "\ud83c\udf7d"], ["kishimoto", "dining", "Kishimoto", true, "\ud83c\udf7d"], ["yuwa", "dining", "Yuwa", true, "\ud83c\udf7d"], ["guu", "dining", "Guu", true, "\ud83c\udf7d"], ["kingyo izakaya", "dining", "Kingyo Izakaya", true, "\ud83c\udf7d"], ["suika izakaya", "dining", "Suika Izakaya", true, "\ud83c\udf7d"], ["zakkushi", "dining", "Zakkushi", true, "\ud83c\udf7d"], ["vijs", "dining", "Vijs", true, "\ud83c\udf7d"], ["rangoli", "dining", "Rangoli", true, "\ud83c\udf7d"], ["india gate", "dining", "India Gate", true, "\ud83c\udf7d"], ["indian oven", "dining", "Indian Oven", true, "\ud83c\udf7d"], ["fanny bay oyster bar", "dining", "Fanny Bay Oyster Bar", true, "\ud83c\udf7d"], ["rodneys oyster house", "dining", "Rodneys Oyster House", true, "\ud83c\udf7d"], ["joe fortes seafood", "dining", "Joe Fortes Seafood", true, "\ud83c\udf7d"], ["blue water cafe", "dining", "Blue Water Cafe", true, "\ud83c\udf7d"], ["ancora waterfront", "dining", "Ancora Waterfront", true, "\ud83c\udf7d"], ["provence marinaside", "dining", "Provence Marinaside", true, "\ud83c\udf7d"], ["black + blue", "dining", "Black + Blue", true, "\ud83c\udf7d"], ["gotham steakhouse", "dining", "Gotham Steakhouse", true, "\ud83c\udf7d"], ["hys steakhouse", "dining", "Hys Steakhouse", true, "\ud83c\udf7d"], ["bacchus restaurant", "dining", "Bacchus Restaurant", true, "\ud83c\udf7d"], ["hawksworth", "dining", "Hawksworth", true, "\ud83c\udf7d"], ["botanist", "dining", "Botanist", true, "\ud83c\udf7d"], ["forage vancouver", "dining", "Forage Vancouver", true, "\ud83c\udf7d"], ["st. lawrence", "dining", "St. Lawrence", true, "\ud83c\udf7d"], ["ask for luigi", "dining", "Ask For Luigi", true, "\ud83c\udf7d"], ["savio volpe", "dining", "Savio Volpe", true, "\ud83c\udf7d"], ["pizzeria farina", "dining", "Pizzeria Farina", true, "\ud83c\udf7d"], ["nicli antica", "dining", "Nicli Antica", true, "\ud83c\udf7d"], ["pizzeria barbarella", "dining", "Pizzeria Barbarella", true, "\ud83c\udf7d"], ["rocky mountain flatbread", "dining", "Rocky Mountain Flatbread", true, "\ud83c\udf7d"], ["freshslice pizza", "dining", "Freshslice Pizza", true, "\ud83c\udf7d"], ["pizza garden", "dining", "Pizza Garden", true, "\ud83c\udf7d"], ["tacofino", "dining", "Tacofino", true, "\ud83c\udf7d"], ["la taqueria", "dining", "La Taqueria", true, "\ud83c\udf7d"], ["las margaritas", "dining", "Las Margaritas", true, "\ud83c\udf7d"], ["burgoo", "dining", "Burgoo", true, "\ud83c\udf7d"], ["glowbal", "dining", "Glowbal", true, "\ud83c\udf7d"], ["coast restaurant", "dining", "Coast Restaurant", true, "\ud83c\udf7d"], ["yaletown brewing", "dining", "Yaletown Brewing", true, "\ud83c\udf7d"], ["craft beer market", "dining", "Craft Beer Market", true, "\ud83c\udf7d"], ["steamworks brewing", "dining", "Steamworks Brewing", true, "\ud83c\udf7d"], ["tap & barrel", "dining", "Tap & Barrel", true, "\ud83c\udf7d"], ["49th parallel coffee", "dining", "49Th Parallel Coffee", true, "\ud83c\udf7d"], ["revolver coffee", "dining", "Revolver Coffee", true, "\ud83c\udf7d"], ["prado cafe", "dining", "Prado Cafe", true, "\ud83c\udf7d"], ["matchstick coffee", "dining", "Matchstick Coffee", true, "\ud83c\udf7d"], ["moja coffee", "dining", "Moja Coffee", true, "\ud83c\udf7d"], ["purebread", "dining", "Purebread", true, "\ud83c\udf7d"], ["small victory bakery", "dining", "Small Victory Bakery", true, "\ud83c\udf7d"], ["thomas haas", "dining", "Thomas Haas", true, "\ud83c\udf7d"], ["beta5 chocolates", "dining", "Beta5 Chocolates", true, "\ud83c\udf7d"]];
+
+var startAliasCount = window.ALIASES ? Object.keys(window.ALIASES).length : 0;
+var startDirCount   = (window.MERCHANT_DIRECTORY && window.MERCHANT_DIRECTORY.length) || 0;
+var addedToAliases = 0;
+var addedToDir = 0;
+var addedToAcceptance = 0;
+
+function injectMerchants(){
+  if (!window.ALIASES) {
+    warn('ALIASES still undefined — cannot inject merchants');
+    return false;
+  }
+  NEW_MERCHANTS.forEach(function(entry){
+    var alias = entry[0], category = entry[1], displayName = entry[2], amexOK = entry[3], emoji = entry[4];
+
+    // ALIASES: category lookup
+    if (!window.ALIASES[alias]) {
+      window.ALIASES[alias] = category;
+      addedToAliases++;
+    }
+
+    // MERCHANT_DIRECTORY: powers autocomplete
+    if (window.MERCHANT_DIRECTORY && Array.isArray(window.MERCHANT_DIRECTORY)) {
+      var exists = window.MERCHANT_DIRECTORY.some(function(m){
+        var mn = (m.name || m.n || '').toLowerCase();
+        return mn === displayName.toLowerCase() || mn === alias;
+      });
+      if (!exists) {
+        window.MERCHANT_DIRECTORY.push({
+          name: displayName, n: displayName,
+          category: category, cat: category,
+          categoryLabel: category, catLabel: category,
+          emoji: emoji, e: emoji, icon: emoji,
+          amex: amexOK
+        });
+        addedToDir++;
+      }
+    }
+
+    // ACCEPTANCE: Amex acceptance flag
+    if (window.ACCEPTANCE && window.ACCEPTANCE[alias] === undefined) {
+      window.ACCEPTANCE[alias] = { amex: amexOK };
+      addedToAcceptance++;
+    }
+  });
+  return true;
+}
+
+var injectOk = injectMerchants();
+log('merchants injected: aliases=+' + addedToAliases + ' dir=+' + addedToDir + ' acceptance=+' + addedToAcceptance);
+log('new totals: aliases=' + (window.ALIASES ? Object.keys(window.ALIASES).length : 'undef') +
+    ' dir=' + ((window.MERCHANT_DIRECTORY && window.MERCHANT_DIRECTORY.length) || 'undef'));
+
+// ==========================================================================
+// C. INVALIDATE V127 recommendation engine caches
+// ==========================================================================
+function invalidateV127(){
+  try {
+    if (window.__v127) {
+      // Rebuild longest-first alias index
+      if (window.ALIASES) {
+        window.__v127.aliasKeysDesc = Object.keys(window.ALIASES).sort(function(a,b){
+          return b.length - a.length;
+        });
+        // Rebuild alphanum index
+        if (typeof Map !== 'undefined') {
+          var map = new Map();
+          Object.keys(window.ALIASES).forEach(function(k){
+            var stripped = k.replace(/[^a-z0-9]/gi, '').toLowerCase();
+            if (stripped) map.set(stripped, k);
+          });
+          window.__v127.alphanumIndex = map;
+        }
+      }
+      // Clear memoization caches
+      if (window.__v127.catCache) window.__v127.catCache = {};
+      if (window.__v127.acceptCache) window.__v127.acceptCache = {};
+      if (window.__v127.recCache) window.__v127.recCache = {};
+      log('V127 caches invalidated');
+    }
+  } catch(e){ warn('V127 invalidate failed: ' + e); }
+}
+invalidateV127();
+
+// ==========================================================================
+// D. UPDATE homepage merchant counter text
+// ==========================================================================
+function updateCounter(){
+  try {
+    var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
+    var node, updated = 0;
+    while(node = walker.nextNode()) {
+      if (node.nodeValue) {
+        var orig = node.nodeValue;
+        var replaced = orig
+          .replace(/5,500\+/g, '5,700+')
+          .replace(/5500\+/g,  '5,700+');
+        if (replaced !== orig) {
+          node.nodeValue = replaced;
+          updated++;
+        }
+      }
+    }
+    if (updated) log('counter updated in ' + updated + ' text nodes');
+  } catch(e){ warn('counter update failed: ' + e); }
+}
+updateCounter();
+setTimeout(updateCounter, 500);
+setTimeout(updateCounter, 2000);
+
+// ==========================================================================
+// E. FORCE V140 sync engine to re-run now that CARDS_DB is bridged
+// ==========================================================================
+function kickV140(){
+  try {
+    if (window.__v140 && typeof window.__v140.sync === 'function') {
+      window.__v140.sync();
+      log('V140 sync kicked');
+    } else {
+      warn('V140 not available yet');
+    }
+  } catch(e){ warn('V140 kick failed: ' + e); }
+}
+setTimeout(kickV140, 100);
+setTimeout(kickV140, 500);
+setTimeout(kickV140, 1500);
+setTimeout(kickV140, 3000);
+
+// ==========================================================================
+// F. Guard against ALIASES being reassigned by some other module
+// ==========================================================================
+var __reinjected = false;
+setInterval(function(){
+  if (!window.ALIASES) return;
+  // Check if a canary merchant we injected is still there
+  if (!window.ALIASES['sabai thai spa']) {
+    if (!__reinjected) {
+      log('canary missing — re-injecting merchants');
+      __reinjected = true;
+      injectMerchants();
+      invalidateV127();
+      updateCounter();
+      kickV140();
+      setTimeout(function(){ __reinjected = false; }, 2000);
+    }
+  }
+}, 5000);
+
+// ==========================================================================
+// G. Expose diagnostics
+// ==========================================================================
+window.__v141 = {
+  version: 'v141-globals-bridge-2026-07-12',
+  bridged: bridged,
+  fnBridged: fnBridged,
+  merchantsAdded: {aliases: addedToAliases, dir: addedToDir, acceptance: addedToAcceptance},
+  aliasCount: function(){ return window.ALIASES ? Object.keys(window.ALIASES).length : 0; },
+  merchantDirCount: function(){ return (window.MERCHANT_DIRECTORY && window.MERCHANT_DIRECTORY.length) || 0; },
+  reinject: function(){ injectMerchants(); invalidateV127(); kickV140(); },
+  kickV140: kickV140
+};
+
+log('V141 boot complete. Alias total: ' + (window.__v141.aliasCount()) +
+    '. Merchant dir total: ' + window.__v141.merchantDirCount() + '.');
+
 })();
 </script>
 </body>
