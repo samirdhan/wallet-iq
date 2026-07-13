@@ -1,9 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<!-- V145 (2026-07-13): Credit Rescue coverage pass. 10 cards received newly-added real statement credits (RBC WestJet companion, RBC Avion Privilege NEXUS+travel, CIBC Aventura Privilege travel+NEXUS+lounge, Amex Aeroplan bag/companion, BMO World Elite/Ascend MC lounge, HSBC WE travel, Bonvoy Biz free-night, Aeroplan Reserve companion). Every wallet card now also gets a documented 'Included benefits' block (Purchase Security, Extended Warranty, Mobile Device Insurance, Rental CDW, Trip Cancellation, Travel Medical, Baggage, Concierge, No FX, Petro-Canada savings, Marriott status, etc.) based on card tier — so no card in the app is undocumented anymore. -->
+
+<!-- V144 (2026-07-13): Homepage stats block removed. Drawer emojis replaced with clean SVG line-icons. Credit Rescue rebuilt from ground up with multi-use support (Scotia Passport 6 lounge passes, Scotia Plat 10, Wealthsimple Privilege 6, Amex Plat dining 4 quarters) — click-per-use, undo last use, accurate $ tracking. -->
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>Wallet IQ V141</title>
+<title>Wallet IQ V145</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Wallet IQ">
@@ -1499,220 +1503,39 @@ body.dark .v96-synergy-card.locked { border-color: var(--border); }
 #rewardsSubtabs button[data-view="overview"] { display: none !important; }
 </style>
 
-<style id="v130-patch">
-input,#q,#onboardSearch,.modal-search,input[type="text"],input[type="number"],input[type="email"],input[type="tel"],input[type="search"],input[type="date"],select,textarea{font-size:16px!important}
-.pill,.tag{display:flex!important;align-items:center!important;justify-content:center!important;text-align:center!important}
-.rewards-subtabs button{font-size:11px!important;padding:10px 3px!important}
-</style>
-<script id="v130-iife">(function(){
-var hero=document.getElementById('hero');
-if(hero){var mo=new MutationObserver(function(){var el=hero.querySelector('[data-card-key]');if(el)hero.setAttribute('data-main-card-key',el.getAttribute('data-card-key')||'');});mo.observe(hero,{childList:true,subtree:true,attributes:true});}
-document.addEventListener('keydown',function(e){if(e.target&&e.target.id==='q'&&e.key==='Enter'){e.preventDefault();e.target.blur();window.scrollTo(0,0);}});
-})();</script>
-<script id="v130-vault">(function(){
-window.__vaultBusy=false;window.__vaultQueued=false;
-window.scheduleVaultRefresh=function(){if(window.__vaultBusy||window.__vaultQueued)return;window.__vaultQueued=true;requestAnimationFrame(function(){window.__vaultQueued=false;window.__vaultBusy=true;try{if(window.__v128&&typeof window.__v128.tick==='function')window.__v128.tick();else if(window.__v106Tick)window.__v106Tick();if(typeof window.renderVaultV122==='function')window.renderVaultV122();else if(typeof window.renderVault==='function')window.renderVault();}finally{window.__vaultBusy=false;}});};
-})();</script>
+<style id="v130-patch">input,#q,#onboardSearch,.modal-search,select,textarea{font-size:16px!important}.pill,.tag{display:flex!important;align-items:center!important;justify-content:center!important}.rewards-subtabs button{font-size:11px!important;padding:10px 3px!important}</style>
+<script id="v130-iife">(function(){var h=document.getElementById('hero');if(h){new MutationObserver(function(){var e=h.querySelector('[data-card-key]');if(e)h.setAttribute('data-main-card-key',e.getAttribute('data-card-key')||'');}).observe(h,{childList:true,subtree:true,attributes:true});}document.addEventListener('keydown',function(e){if(e.target&&e.target.id==='q'&&e.key==='Enter'){e.preventDefault();e.target.blur();window.scrollTo(0,0);}});})();</script>
+<script id="v130-vault">(function(){window.__vaultBusy=false;window.__vaultQueued=false;window.scheduleVaultRefresh=function(){if(window.__vaultBusy||window.__vaultQueued)return;window.__vaultQueued=true;requestAnimationFrame(function(){window.__vaultQueued=false;window.__vaultBusy=true;try{if(window.__v140&&window.__v140.sync)window.__v140.sync();else if(window.__v128&&window.__v128.tick)window.__v128.tick();if(typeof window.renderVaultV122==='function')window.renderVaultV122();}finally{window.__vaultBusy=false;}});};})();</script>
 
-<style id="v131-onb-logos">
-.card-check .cc-emoji{width:46px !important;height:32px !important;border-radius:6px !important;position:relative !important;display:flex !important;align-items:center !important;justify-content:center !important;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif !important;font-size:0 !important;color:#fff !important;overflow:hidden !important;box-shadow:0 2px 6px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.25) !important;background:linear-gradient(135deg,#4a5680,#2d3450) !important;flex-shrink:0 !important;}
-.card-check .cc-emoji::before{content:'' !important;position:absolute !important;top:4px !important;left:5px !important;width:8px !important;height:6px !important;border-radius:1.5px !important;background:linear-gradient(135deg,#f0d68a,#c9a35a) !important;z-index:1 !important;}
-.card-check .cc-emoji::after{content:'BANK' !important;position:absolute !important;inset:0 !important;display:flex !important;align-items:center !important;justify-content:center !important;font-size:9.5px !important;font-weight:900 !important;color:#fff !important;text-shadow:0 1px 2px rgba(0,0,0,.35) !important;padding-left:8px !important;padding-top:6px !important;z-index:0 !important;}
-.card-check[data-issuer="Amex"] .cc-emoji{background:linear-gradient(135deg,#006fcf,#003d75) !important;}
-.card-check[data-issuer="Amex"] .cc-emoji::after{content:'AMEX' !important;font-size:9.5px !important;}
-.card-check[data-issuer="Scotia"] .cc-emoji{background:linear-gradient(135deg,#e01a2e,#a3061c) !important;}
-.card-check[data-issuer="Scotia"] .cc-emoji::after{content:'SCOTIA' !important;font-size:8.5px !important;}
-.card-check[data-issuer="TD"] .cc-emoji{background:linear-gradient(135deg,#4ba82e,#2d6b1b) !important;}
-.card-check[data-issuer="TD"] .cc-emoji::after{content:'TD' !important;font-size:10px !important;}
-.card-check[data-issuer="RBC"] .cc-emoji{background:linear-gradient(135deg,#005daa,#003a6b) !important;}
-.card-check[data-issuer="RBC"] .cc-emoji::after{content:'RBC' !important;font-size:9.5px !important;}
-.card-check[data-issuer="BMO"] .cc-emoji{background:linear-gradient(135deg,#0079c1,#005082) !important;}
-.card-check[data-issuer="BMO"] .cc-emoji::after{content:'BMO' !important;font-size:9.5px !important;}
-.card-check[data-issuer="CIBC"] .cc-emoji{background:linear-gradient(135deg,#c8102e,#7a0919) !important;}
-.card-check[data-issuer="CIBC"] .cc-emoji::after{content:'CIBC' !important;font-size:9.5px !important;}
-.card-check[data-issuer="Rogers"] .cc-emoji{background:linear-gradient(135deg,#e0701d,#a34e0a) !important;}
-.card-check[data-issuer="Rogers"] .cc-emoji::after{content:'ROGERS' !important;font-size:8.5px !important;}
-.card-check[data-issuer="MBNA"] .cc-emoji{background:linear-gradient(135deg,#d1226a,#8a1547) !important;}
-.card-check[data-issuer="MBNA"] .cc-emoji::after{content:'MBNA' !important;font-size:9.5px !important;}
-.card-check[data-issuer="HSBC"] .cc-emoji{background:linear-gradient(135deg,#db0011,#8a000b) !important;}
-.card-check[data-issuer="HSBC"] .cc-emoji::after{content:'HSBC' !important;font-size:9.5px !important;}
-.card-check[data-issuer="Wealthsimple"] .cc-emoji{background:linear-gradient(135deg,#1f1f1f,#000000) !important;}
-.card-check[data-issuer="Wealthsimple"] .cc-emoji::after{content:'WS' !important;font-size:10px !important;}
-.card-check[data-issuer="Tangerine"] .cc-emoji{background:linear-gradient(135deg,#f37021,#a34a12) !important;}
-.card-check[data-issuer="Tangerine"] .cc-emoji::after{content:'TANG' !important;font-size:9.5px !important;}
-.card-check[data-issuer="PC Financial"] .cc-emoji{background:linear-gradient(135deg,#e30613,#8f0308) !important;}
-.card-check[data-issuer="PC Financial"] .cc-emoji::after{content:'PC' !important;font-size:10px !important;}
-.card-check[data-issuer="Canadian Tire"] .cc-emoji{background:linear-gradient(135deg,#d9232e,#821218) !important;}
-.card-check[data-issuer="Canadian Tire"] .cc-emoji::after{content:'CT' !important;font-size:10px !important;}
-.card-check[data-issuer="Walmart"] .cc-emoji{background:linear-gradient(135deg,#0071ce,#003d7a) !important;}
-.card-check[data-issuer="Walmart"] .cc-emoji::after{content:'WMT' !important;font-size:9.5px !important;}
-.card-check[data-issuer="Neo"] .cc-emoji{background:linear-gradient(135deg,#5f2eea,#3a1a99) !important;}
-.card-check[data-issuer="Neo"] .cc-emoji::after{content:'NEO' !important;font-size:9.5px !important;}
-.card-check[data-issuer="KOHO"] .cc-emoji{background:linear-gradient(135deg,#7c3aed,#4b1f8f) !important;}
-.card-check[data-issuer="KOHO"] .cc-emoji::after{content:'KOHO' !important;font-size:9.5px !important;}
-.card-check[data-issuer="EQ Bank"] .cc-emoji{background:linear-gradient(135deg,#5c2d91,#361955) !important;}
-.card-check[data-issuer="EQ Bank"] .cc-emoji::after{content:'EQ' !important;font-size:10px !important;}
-.card-check[data-issuer="Brim"] .cc-emoji{background:linear-gradient(135deg,#1a1a2e,#0a0a1a) !important;}
-.card-check[data-issuer="Brim"] .cc-emoji::after{content:'BRIM' !important;font-size:9.5px !important;}
-.card-check[data-issuer="Home Trust"] .cc-emoji{background:linear-gradient(135deg,#004b87,#002a4d) !important;}
-.card-check[data-issuer="Home Trust"] .cc-emoji::after{content:'HT' !important;font-size:10px !important;}
-.card-check[data-issuer="Meridian"] .cc-emoji{background:linear-gradient(135deg,#00854a,#00522d) !important;}
-.card-check[data-issuer="Meridian"] .cc-emoji::after{content:'MER' !important;font-size:9.5px !important;}
-.card-check[data-issuer="Vancity"] .cc-emoji{background:linear-gradient(135deg,#009845,#005a29) !important;}
-.card-check[data-issuer="Vancity"] .cc-emoji::after{content:'VAN' !important;font-size:9.5px !important;}
-.card-check[data-issuer="Coast Capital"] .cc-emoji{background:linear-gradient(135deg,#00a5c8,#005f75) !important;}
-.card-check[data-issuer="Coast Capital"] .cc-emoji::after{content:'COAST' !important;font-size:8.5px !important;}
-.card-check[data-issuer="Servus"] .cc-emoji{background:linear-gradient(135deg,#d61f2a,#821318) !important;}
-.card-check[data-issuer="Servus"] .cc-emoji::after{content:'SRV' !important;font-size:9.5px !important;}
-.card-check[data-issuer="Desjardins"] .cc-emoji{background:linear-gradient(135deg,#00874e,#00522f) !important;}
-.card-check[data-issuer="Desjardins"] .cc-emoji::after{content:'DSJ' !important;font-size:9.5px !important;}
-.card-check[data-issuer="National Bank"] .cc-emoji{background:linear-gradient(135deg,#e2231a,#8a1510) !important;}
-.card-check[data-issuer="National Bank"] .cc-emoji::after{content:'NBC' !important;font-size:9.5px !important;}
-.card-check[data-issuer="Laurentian"] .cc-emoji{background:linear-gradient(135deg,#c8102e,#7a0919) !important;}
-.card-check[data-issuer="Laurentian"] .cc-emoji::after{content:'LB' !important;font-size:10px !important;}
-.card-check[data-issuer="Capital One"] .cc-emoji{background:linear-gradient(135deg,#004977,#00243b) !important;}
-.card-check[data-issuer="Capital One"] .cc-emoji::after{content:'C1' !important;font-size:10px !important;}
-.card-check[data-issuer="Simplii"] .cc-emoji{background:linear-gradient(135deg,#00c8b3,#007a6b) !important;}
-.card-check[data-issuer="Simplii"] .cc-emoji::after{content:'SIMPL' !important;font-size:8.5px !important;}
+<style id="v142-ux-fixes">
+.alt-cards .alt-item{cursor:pointer !important;transition:background .12s ease,transform .1s ease,box-shadow .15s ease !important}
 </style>
 
-<style id="v132-onb-logos-fix">
-.onb-group[data-issuer="Amex"] .card-check .cc-emoji{background:linear-gradient(135deg,#006fcf,#003d75) !important;}
-.onb-group[data-issuer="Amex"] .card-check .cc-emoji::after{content:'AMEX' !important;font-size:9.5px !important;}
-.onb-group[data-issuer="Scotia"] .card-check .cc-emoji{background:linear-gradient(135deg,#e01a2e,#a3061c) !important;}
-.onb-group[data-issuer="Scotia"] .card-check .cc-emoji::after{content:'SCOTIA' !important;font-size:8.5px !important;}
-.onb-group[data-issuer="TD"] .card-check .cc-emoji{background:linear-gradient(135deg,#4ba82e,#2d6b1b) !important;}
-.onb-group[data-issuer="TD"] .card-check .cc-emoji::after{content:'TD' !important;font-size:10px !important;}
-.onb-group[data-issuer="RBC"] .card-check .cc-emoji{background:linear-gradient(135deg,#005daa,#003a6b) !important;}
-.onb-group[data-issuer="RBC"] .card-check .cc-emoji::after{content:'RBC' !important;font-size:9.5px !important;}
-.onb-group[data-issuer="BMO"] .card-check .cc-emoji{background:linear-gradient(135deg,#0079c1,#005082) !important;}
-.onb-group[data-issuer="BMO"] .card-check .cc-emoji::after{content:'BMO' !important;font-size:9.5px !important;}
-.onb-group[data-issuer="CIBC"] .card-check .cc-emoji{background:linear-gradient(135deg,#c8102e,#7a0919) !important;}
-.onb-group[data-issuer="CIBC"] .card-check .cc-emoji::after{content:'CIBC' !important;font-size:9.5px !important;}
-.onb-group[data-issuer="Rogers"] .card-check .cc-emoji{background:linear-gradient(135deg,#e0701d,#a34e0a) !important;}
-.onb-group[data-issuer="Rogers"] .card-check .cc-emoji::after{content:'ROGERS' !important;font-size:8.5px !important;}
-.onb-group[data-issuer="MBNA"] .card-check .cc-emoji{background:linear-gradient(135deg,#d1226a,#8a1547) !important;}
-.onb-group[data-issuer="MBNA"] .card-check .cc-emoji::after{content:'MBNA' !important;font-size:9.5px !important;}
-.onb-group[data-issuer="HSBC"] .card-check .cc-emoji{background:linear-gradient(135deg,#db0011,#8a000b) !important;}
-.onb-group[data-issuer="HSBC"] .card-check .cc-emoji::after{content:'HSBC' !important;font-size:9.5px !important;}
-.onb-group[data-issuer="Wealthsimple"] .card-check .cc-emoji{background:linear-gradient(135deg,#1f1f1f,#000000) !important;}
-.onb-group[data-issuer="Wealthsimple"] .card-check .cc-emoji::after{content:'WS' !important;font-size:10px !important;}
-.onb-group[data-issuer="Tangerine"] .card-check .cc-emoji{background:linear-gradient(135deg,#f37021,#a34a12) !important;}
-.onb-group[data-issuer="Tangerine"] .card-check .cc-emoji::after{content:'TANG' !important;font-size:9.5px !important;}
-.onb-group[data-issuer="PC Financial"] .card-check .cc-emoji{background:linear-gradient(135deg,#e30613,#8f0308) !important;}
-.onb-group[data-issuer="PC Financial"] .card-check .cc-emoji::after{content:'PC' !important;font-size:10px !important;}
-.onb-group[data-issuer="Canadian Tire"] .card-check .cc-emoji{background:linear-gradient(135deg,#d9232e,#821218) !important;}
-.onb-group[data-issuer="Canadian Tire"] .card-check .cc-emoji::after{content:'CT' !important;font-size:10px !important;}
-.onb-group[data-issuer="Walmart"] .card-check .cc-emoji{background:linear-gradient(135deg,#0071ce,#003d7a) !important;}
-.onb-group[data-issuer="Walmart"] .card-check .cc-emoji::after{content:'WMT' !important;font-size:9.5px !important;}
-.onb-group[data-issuer="Neo"] .card-check .cc-emoji{background:linear-gradient(135deg,#5f2eea,#3a1a99) !important;}
-.onb-group[data-issuer="Neo"] .card-check .cc-emoji::after{content:'NEO' !important;font-size:9.5px !important;}
-.onb-group[data-issuer="KOHO"] .card-check .cc-emoji{background:linear-gradient(135deg,#7c3aed,#4b1f8f) !important;}
-.onb-group[data-issuer="KOHO"] .card-check .cc-emoji::after{content:'KOHO' !important;font-size:9.5px !important;}
-.onb-group[data-issuer="EQ Bank"] .card-check .cc-emoji{background:linear-gradient(135deg,#5c2d91,#361955) !important;}
-.onb-group[data-issuer="EQ Bank"] .card-check .cc-emoji::after{content:'EQ' !important;font-size:10px !important;}
-.onb-group[data-issuer="Brim"] .card-check .cc-emoji{background:linear-gradient(135deg,#1a1a2e,#0a0a1a) !important;}
-.onb-group[data-issuer="Brim"] .card-check .cc-emoji::after{content:'BRIM' !important;font-size:9.5px !important;}
-.onb-group[data-issuer="Home Trust"] .card-check .cc-emoji{background:linear-gradient(135deg,#004b87,#002a4d) !important;}
-.onb-group[data-issuer="Home Trust"] .card-check .cc-emoji::after{content:'HT' !important;font-size:10px !important;}
-.onb-group[data-issuer="Meridian"] .card-check .cc-emoji{background:linear-gradient(135deg,#00854a,#00522d) !important;}
-.onb-group[data-issuer="Meridian"] .card-check .cc-emoji::after{content:'MER' !important;font-size:9.5px !important;}
-.onb-group[data-issuer="Vancity"] .card-check .cc-emoji{background:linear-gradient(135deg,#009845,#005a29) !important;}
-.onb-group[data-issuer="Vancity"] .card-check .cc-emoji::after{content:'VAN' !important;font-size:9.5px !important;}
-.onb-group[data-issuer="Coast Capital"] .card-check .cc-emoji{background:linear-gradient(135deg,#00a5c8,#005f75) !important;}
-.onb-group[data-issuer="Coast Capital"] .card-check .cc-emoji::after{content:'COAST' !important;font-size:8.5px !important;}
-.onb-group[data-issuer="Servus"] .card-check .cc-emoji{background:linear-gradient(135deg,#d61f2a,#821318) !important;}
-.onb-group[data-issuer="Servus"] .card-check .cc-emoji::after{content:'SRV' !important;font-size:9.5px !important;}
-.onb-group[data-issuer="Desjardins"] .card-check .cc-emoji{background:linear-gradient(135deg,#00874e,#00522f) !important;}
-.onb-group[data-issuer="Desjardins"] .card-check .cc-emoji::after{content:'DSJ' !important;font-size:9.5px !important;}
-.onb-group[data-issuer="National Bank"] .card-check .cc-emoji{background:linear-gradient(135deg,#e2231a,#8a1510) !important;}
-.onb-group[data-issuer="National Bank"] .card-check .cc-emoji::after{content:'NBC' !important;font-size:9.5px !important;}
-.onb-group[data-issuer="Laurentian"] .card-check .cc-emoji{background:linear-gradient(135deg,#c8102e,#7a0919) !important;}
-.onb-group[data-issuer="Laurentian"] .card-check .cc-emoji::after{content:'LB' !important;font-size:10px !important;}
-.onb-group[data-issuer="Capital One"] .card-check .cc-emoji{background:linear-gradient(135deg,#004977,#00243b) !important;}
-.onb-group[data-issuer="Capital One"] .card-check .cc-emoji::after{content:'C1' !important;font-size:10px !important;}
-.onb-group[data-issuer="Simplii"] .card-check .cc-emoji{background:linear-gradient(135deg,#00c8b3,#007a6b) !important;}
-.onb-group[data-issuer="Simplii"] .card-check .cc-emoji::after{content:'SIMPL' !important;font-size:8.5px !important;}
+<style id="v143-hardfix-style">
+.hero .k[data-v143-empty="1"]{visibility:hidden !important}
+.alt-cards .alt-item[data-v143-chosen="1"]{background:linear-gradient(135deg,var(--brand,#2563eb) 0%,var(--brand-2,#1d4ed8) 100%) !important;color:#fff !important;border-left:4px solid #fff !important;padding:10px 14px !important;transform:scale(1.02) !important;box-shadow:0 6px 18px rgba(95,116,184,.38) !important;position:relative !important}
+.alt-cards .alt-item[data-v143-chosen="1"] .name,.alt-cards .alt-item[data-v143-chosen="1"] .rate{color:#fff !important;font-weight:900 !important}
+.alt-cards .alt-item[data-v143-chosen="1"] .rate{background:rgba(255,255,255,.16) !important;padding:3px 8px !important;border-radius:99px !important;margin-right:60px !important}
+.alt-cards .alt-item[data-v143-chosen="1"]::before{content:'\2713' !important;color:var(--brand,#2563eb) !important;background:#fff !important;font-weight:900 !important;font-size:12px !important;width:20px !important;height:20px !important;border-radius:50% !important;display:inline-grid !important;place-items:center !important;margin-right:10px !important;flex-shrink:0 !important;box-shadow:0 2px 5px rgba(0,0,0,.18) !important}
+.alt-cards .alt-item[data-v143-chosen="1"]::after{content:'USING' !important;position:absolute !important;right:12px !important;top:50% !important;transform:translateY(-50%) !important;background:rgba(255,255,255,.24) !important;color:#fff !important;font-size:8.5px !important;font-weight:900 !important;letter-spacing:.12em !important;padding:3px 7px !important;border-radius:6px !important;pointer-events:none !important}
+.alt-cards .alt-item.chosen:not([data-v143-chosen="1"]){background:inherit !important;color:inherit !important;border-left:3px solid transparent !important;transform:none !important;box-shadow:none !important}
+.alt-cards .alt-item.chosen:not([data-v143-chosen="1"]) .name,.alt-cards .alt-item.chosen:not([data-v143-chosen="1"]) .rate{color:inherit !important;background:transparent !important;padding:0 !important;margin:0 !important;font-weight:inherit !important}
+.alt-cards .alt-item.chosen:not([data-v143-chosen="1"])::before,.alt-cards .alt-item.chosen:not([data-v143-chosen="1"])::after{content:none !important;display:none !important}
+.v79-select-toast.v138-revert:not(.v143-permitted),.v138-revert-toast:not(.v143-permitted){display:none !important;opacity:0 !important;visibility:hidden !important;pointer-events:none !important}
 </style>
 
-<style id="v133-mobile">
-html,body{overflow-x:hidden !important;max-width:100vw !important}
-body{width:100% !important;margin:0 auto !important}
-img,svg,video,iframe{max-width:100% !important;height:auto !important}
-main{padding:10px 12px 90px !important;box-sizing:border-box !important}
-.rewards-subtabs{grid-template-columns:repeat(5,1fr) !important;gap:3px !important;padding:3px !important}
-.rewards-subtabs button{font-size:11px !important;padding:9px 2px !important;min-width:0 !important;overflow:hidden !important;text-overflow:ellipsis !important;white-space:nowrap !important}
-.rewards-hero .rh-tiles{grid-template-columns:repeat(4,1fr) !important;gap:5px !important}
-.card-check{grid-template-columns:46px 1fr 24px !important;gap:11px !important;padding:11px 12px !important;align-items:center !important}
-.card-check .cc-emoji{flex-shrink:0 !important}
+<style id="v144-drawer-icons">
+/* V144 — clean SVG line-icons for drawer */
+.drawer-item .di-ico { width:22px; height:22px; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; }
+.drawer-item .di-ico svg { display:block; color: currentColor; opacity:0.85; }
+.drawer-item.active .di-ico svg { opacity:1; }
 </style>
-
-<style id="v134-mobile-rebuild">
-
-html,body{overflow-x:hidden !important;width:100% !important;max-width:100vw !important;margin:0 !important;padding:0 !important}
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif !important;min-height:100vh !important;min-height:100dvh !important;color:var(--ink) !important;-webkit-font-smoothing:antialiased !important;-webkit-text-size-adjust:100% !important}
-main{width:100% !important;max-width:560px !important;margin:0 auto !important;padding:12px 14px calc(90px + env(safe-area-inset-bottom,0px)) !important;box-sizing:border-box !important}
-h1{font-size:clamp(20px,5vw,24px) !important;line-height:1.15 !important}
-h2{font-size:clamp(17px,4.5vw,22px) !important;line-height:1.15 !important}
-h3{font-size:clamp(15px,4vw,18px) !important;line-height:1.2 !important}
-.top{position:sticky !important;top:0 !important;z-index:50 !important;width:100% !important;box-sizing:border-box !important;padding:calc(10px + env(safe-area-inset-top,0px)) 12px 10px !important}
-.header-row{display:flex !important;align-items:center !important;gap:7px !important;min-height:44px !important}
-.brand-name{font-size:clamp(15px,4.3vw,18px) !important;font-weight:900 !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important;min-width:0 !important}
-.header-btn,.header-btn-sm{width:38px !important;height:38px !important;min-width:38px !important;flex-shrink:0 !important;display:grid !important;place-items:center !important;border-radius:50% !important;font-size:16px !important;-webkit-tap-highlight-color:transparent !important}
-input#q{width:100% !important;min-height:48px !important;font-size:16px !important;padding:14px 46px 14px 46px !important;border-radius:24px !important;box-sizing:border-box !important;-webkit-appearance:none !important}
-.hero{width:100% !important;max-width:100% !important;box-sizing:border-box !important;overflow:hidden !important;border-radius:20px !important;padding:16px 14px !important}
-.hero-art .cc-svg,#hero .cc-svg{max-width:min(240px,65vw) !important;width:100% !important;height:auto !important}
-.rewards-subtabs{display:grid !important;grid-template-columns:repeat(5,1fr) !important;gap:3px !important;padding:3px !important;border-radius:14px !important}
-.rewards-subtabs button{font-size:clamp(9.5px,2.8vw,12px) !important;padding:10px 2px !important;min-height:42px !important;min-width:0 !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important;border-radius:10px !important}
-.rewards-hero{padding:16px 14px !important;border-radius:20px !important;overflow:hidden !important;max-width:100% !important;box-sizing:border-box !important}
-.rewards-hero .rh-tiles{display:grid !important;grid-template-columns:repeat(4,1fr) !important;gap:5px !important}
-.rewards-hero .rh-tile{padding:8px 4px !important;min-width:0 !important;overflow:hidden !important}
-.rewards-hero .rh-tile .l{font-size:clamp(7.5px,2.2vw,9px) !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important}
-.rewards-hero .rh-tile .v{font-size:clamp(11px,3vw,14px) !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important}
-.rewards-hero .rh-big{font-size:clamp(22px,6.5vw,30px) !important}
-#offersHero,.credits-hero,.location-hero,.vault-summary-card{padding:16px 14px !important;border-radius:20px !important;overflow:hidden !important;max-width:100% !important;box-sizing:border-box !important}
-.studio-actions{display:flex !important;flex-wrap:wrap !important;gap:6px !important}
-.studio-actions .sa-btn{flex:1 1 calc(50% - 3px) !important;min-width:calc(50% - 3px) !important;min-height:44px !important;font-size:12px !important;padding:10px 8px !important;border-radius:12px !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important}
-.feature-card{display:grid !important;grid-template-columns:40px 1fr 20px !important;gap:10px !important;padding:12px !important;border-radius:16px !important;align-items:center !important;box-sizing:border-box !important;width:100% !important}
-.feature-card .fc-mid{min-width:0 !important;overflow:hidden !important}
-.feature-card .fc-title{white-space:normal !important;word-break:break-word !important;font-size:clamp(12.5px,3.4vw,14px) !important;line-height:1.2 !important;display:-webkit-box !important;-webkit-line-clamp:2 !important;-webkit-box-orient:vertical !important;overflow:hidden !important}
-.modal-overlay{align-items:flex-end !important;padding:0 !important}
-.modal{width:100% !important;max-width:560px !important;max-height:92dvh !important;border-radius:22px 22px 0 0 !important;padding:18px 16px calc(16px + env(safe-area-inset-bottom,0px)) !important;box-sizing:border-box !important;display:flex !important;flex-direction:column !important;overflow:hidden !important}
-.modal-head{flex-shrink:0 !important;margin-bottom:12px !important}
-.modal-actions{flex-shrink:0 !important;gap:8px !important;padding-top:12px !important;padding-bottom:calc(6px + env(safe-area-inset-bottom,0px)) !important;background:var(--surface) !important}
-.modal-actions button{min-height:46px !important;font-size:14px !important;border-radius:14px !important}
-.card-check{display:grid !important;grid-template-columns:46px 1fr 24px !important;gap:11px !important;padding:11px 12px !important;align-items:center !important;border-radius:13px !important;box-sizing:border-box !important;width:100% !important}
-.card-check .cc-emoji{flex-shrink:0 !important}
-.card-check .cc-info{min-width:0 !important;overflow:hidden !important}
-.card-check .cc-name{font-size:clamp(12.5px,3.6vw,14px) !important;line-height:1.2 !important;font-weight:900 !important;white-space:normal !important;word-break:break-word !important;display:-webkit-box !important;-webkit-line-clamp:2 !important;-webkit-box-orient:vertical !important;overflow:hidden !important}
-.tx-item{display:grid !important;grid-template-columns:1fr auto !important;gap:8px !important;padding:10px 11px !important;border-radius:12px !important;box-sizing:border-box !important;width:100% !important;align-items:center !important}
-.tx-item .txmain{min-width:0 !important;overflow:hidden !important}
-.tx-item .txmerch{font-size:12.5px !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important}
-.log-flash,.v79-select-toast,.v82-toast,.credit-flash{max-width:calc(100vw - 24px) !important;box-sizing:border-box !important;font-size:12.5px !important;top:calc(20px + env(safe-area-inset-top,0px)) !important;padding:12px 20px !important;border-radius:99px !important}
-.form-row input,.form-row select,.form-row textarea,.modal-search,input[type="text"],input[type="number"],input[type="email"],input[type="date"],select,textarea{font-size:16px !important;min-height:46px !important;padding:12px 14px !important;border-radius:12px !important;box-sizing:border-box !important;width:100% !important;-webkit-appearance:none !important;font-family:inherit !important}
-button:not(.header-btn):not(.header-btn-sm),.drawer-item,.settings-link,.qc-chip,.month-pill,.credit-filter,.card-check,.feature-card,.tile{min-height:40px !important;-webkit-tap-highlight-color:transparent !important}
-@media(max-width:375px){main{padding:8px 10px calc(86px + env(safe-area-inset-bottom,0px)) !important}.brand-logo{width:28px !important;height:28px !important}.header-btn,.header-btn-sm{width:34px !important;height:34px !important;min-width:34px !important;font-size:15px !important}}
-main > *{max-width:100% !important;box-sizing:border-box !important}
-
-</style>
-
-<style id="v135-fixes">
-.employer-select-wrap select{padding-right:42px !important;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'><path fill='%23a37a17' d='M5 8l5 5 5-5z'/></svg>") !important;background-repeat:no-repeat !important;background-position:right 12px center !important;background-size:16px 16px !important;text-overflow:ellipsis !important;overflow:hidden !important;white-space:nowrap !important;appearance:none !important;-webkit-appearance:none !important;-moz-appearance:none !important}
-body.dark .employer-select-wrap select{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'><path fill='%23fbf3da' d='M5 8l5 5 5-5z'/></svg>") !important}
-select{padding-right:42px !important;background-position:right 12px center !important;background-size:16px 16px !important;appearance:none !important;-webkit-appearance:none !important;-moz-appearance:none !important}
-</style>
-
-<!-- V136 audit-hardened -->
-
-<style id="v138-revert-styles">
-.v138-revert-pill { display: none; margin: 0 0 8px 0; padding: 7px 14px; border-radius: 99px; background: linear-gradient(135deg, var(--brand, #2563eb), var(--brand-2, #1d4ed8)); color: #fff; font-size: 11.5px; font-weight: 900; border: none; cursor: pointer; letter-spacing: 0.01em; box-shadow: 0 3px 10px rgba(37,99,235,.25); -webkit-tap-highlight-color: transparent; align-self: flex-start; transition: transform .1s ease, opacity .15s ease; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-.v138-revert-pill:active { transform: scale(.96); }
-.v138-revert-pill.show { display: inline-flex; align-items: center; gap: 5px; }
-.v138-revert-pill .v138-icon { font-size: 13px; line-height: 1; display: inline-block; }
-body.dark .v138-revert-pill { background: linear-gradient(135deg, #a5b3d8, #8ea3d8); color: #0a0a12; }
-.v79-select-toast.v138-revert { background: linear-gradient(135deg, #1a7d3a, #5ea87a) !important; color: #fff !important; padding: 14px 24px !important; font-size: 14px !important; box-shadow: 0 8px 24px rgba(26,125,58,.35) !important; max-width: calc(100vw - 24px) !important; font-weight: 900 !important; }
-body.dark .v79-select-toast.v138-revert { background: linear-gradient(135deg, #5ea87a, #7ed892) !important; color: #0f1a0f !important; }
-.hero-log-btn { transition: background .15s ease; white-space: normal !important; word-break: break-word !important; line-height: 1.25 !important; }
+<style id="v144-home-hide">
+/* V144 — Remove the "Wallet IQ by the numbers" stats block from the home per user feedback */
+.v73-home-extra > .v73-section-title,
+.v73-home-extra > .v73-stats,
+#home .v73-stats,
+#home .v73-section-title:not(:first-of-type) { display:none !important; }
 </style>
 </head>
 <style>
@@ -2278,16 +2101,16 @@ body.dark .credits-empty{background:var(--surface)}
 <button class="drawer-close" onclick="closeDrawer()">×</button>
 </div>
 <div class="drawer-body">
-<button class="drawer-item active" data-tab="home"><span class="di-ico">🏠</span><span>Home</span></button>
-<button class="drawer-item" data-tab="cardsTab"><span class="di-ico">💼</span><span>My Cards</span></button>
-<button class="drawer-item" data-tab="offers"><span class="di-ico">🎁</span><span>Welcome Offers</span></button>
-<button class="drawer-item" data-tab="location"><span class="di-ico">📍</span><span>Best Card Near Me</span></button>
-<button class="drawer-item" data-tab="rewards"><span class="di-ico">🎯</span><span>Rewards Studio</span></button>
+<button class="drawer-item active" data-tab="home"><span class="di-ico"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12L12 3l9 9"/><path d="M5 10v11h14V10"/></svg></span><span>Home</span></button>
+<button class="drawer-item" data-tab="cardsTab"><span class="di-ico"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="19" height="13" rx="2"/><path d="M2.5 10.5h19"/><path d="M6 15h4"/></svg></span><span>My Cards</span></button>
+<button class="drawer-item" data-tab="offers"><span class="di-ico"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12v9H4v-9"/><path d="M2 7h20v5H2z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></svg></span><span>Welcome Offers</span></button>
+<button class="drawer-item" data-tab="location"><span class="di-ico"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s-7-7.58-7-13a7 7 0 1114 0c0 5.42-7 13-7 13z"/><circle cx="12" cy="9" r="2.5"/></svg></span><span>Best Card Near Me</span></button>
+<button class="drawer-item" data-tab="rewards"><span class="di-ico"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg></span><span>Rewards Studio</span></button>
 <div class="drawer-divider"></div>
-<button class="drawer-item" onclick="showOnboarding();closeDrawer()"><span class="di-ico">⚙️</span><span>Edit my wallet</span></button>
-<button class="drawer-item" id="drawerFxToggle" onclick="toggleForeignMode()"><span class="di-ico" id="drawerFxIco">🇨🇦</span><span id="drawerFxLbl">CAD mode</span></button>
+<button class="drawer-item" onclick="showOnboarding();closeDrawer()"><span class="di-ico"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span><span>Edit my wallet</span></button>
+<button class="drawer-item" id="drawerFxToggle" onclick="toggleForeignMode()"><span class="di-ico" id="drawerFxIco"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></span><span id="drawerFxLbl">CAD mode</span></button>
 <div class="drawer-divider"></div>
-<button class="drawer-item" onclick="resetWalletIQ()" style="color:var(--pass)"><span class="di-ico">🗑</span><span>Reset Wallet IQ</span></button>
+<button class="drawer-item" onclick="resetWalletIQ()" style="color:var(--pass)"><span class="di-ico"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></span><span>Reset Wallet IQ</span></button>
 <div class="drawer-footer">Built by samirdhan</div>
 </div>
 </aside>
@@ -20690,1184 +20513,926 @@ else boot();
 </script>
 
 
-<script id="v132-issuer-tagger">(function(){
-var ISSUERS=['Amex','Scotia','TD','RBC','BMO','CIBC','Rogers','MBNA','HSBC','Wealthsimple','Tangerine','PC Financial','Canadian Tire','Walmart','Neo','KOHO','EQ Bank','Brim','Home Trust','Meridian','Vancity','Coast Capital','Servus','Desjardins','National Bank','Laurentian','Capital One','Simplii'];
-var IS=ISSUERS.slice().sort(function(a,b){return b.length-a.length;});
-var A={'american express':'Amex','amex':'Amex','scotiabank':'Scotia','scotia':'Scotia','tangerine':'Tangerine','pc':'PC Financial','pc financial':'PC Financial','coast capital':'Coast Capital','eq':'EQ Bank','eq bank':'EQ Bank','national bank':'National Bank','laurentian':'Laurentian','canadian tire':'Canadian Tire','home trust':'Home Trust','capital one':'Capital One','wealthsimple':'Wealthsimple','td':'TD','rbc':'RBC','bmo':'BMO','cibc':'CIBC','rogers':'Rogers','mbna':'MBNA','hsbc':'HSBC','neo':'Neo','koho':'KOHO','brim':'Brim','meridian':'Meridian','vancity':'Vancity','servus':'Servus','desjardins':'Desjardins','simplii':'Simplii','walmart':'Walmart'};
-function n(r){if(!r)return'';var t=String(r).trim().toLowerCase();if(A[t])return A[t];for(var k in A){if(t.indexOf(k)>=0)return A[k];}for(var i=0;i<IS.length;i++){if(t.indexOf(IS[i].toLowerCase())>=0)return IS[i];}return'';}
-function tag(){var h=document.getElementById('cardChoices');if(!h)return;h.querySelectorAll('.card-check').forEach(function(el){var g=el.closest('.onb-group');var iss='';if(g){var tt=g.querySelector('.onb-group-title');if(tt)iss=n(tt.textContent);}if(iss){if(el.getAttribute('data-issuer')!==iss)el.setAttribute('data-issuer',iss);if(g&&g.getAttribute('data-issuer')!==iss)g.setAttribute('data-issuer',iss);}});h.querySelectorAll('.onb-group').forEach(function(g){var t=g.querySelector('.onb-group-title');if(t){var iss=n(t.textContent);if(iss&&g.getAttribute('data-issuer')!==iss)g.setAttribute('data-issuer',iss);}});}
-function boot(){tag();try{new MutationObserver(function(){tag();}).observe(document.body,{childList:true,subtree:true});}catch(_){}var i=0;setInterval(function(){tag();if(++i>50)return;},400);}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
-})();</script>
-
-<style id="v134-mobile-rebuild-final">
-
-html,body{overflow-x:hidden !important;width:100% !important;max-width:100vw !important;margin:0 !important;padding:0 !important}
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif !important;min-height:100vh !important;min-height:100dvh !important;color:var(--ink) !important;-webkit-font-smoothing:antialiased !important;-webkit-text-size-adjust:100% !important}
-main{width:100% !important;max-width:560px !important;margin:0 auto !important;padding:12px 14px calc(90px + env(safe-area-inset-bottom,0px)) !important;box-sizing:border-box !important}
-h1{font-size:clamp(20px,5vw,24px) !important;line-height:1.15 !important}
-h2{font-size:clamp(17px,4.5vw,22px) !important;line-height:1.15 !important}
-h3{font-size:clamp(15px,4vw,18px) !important;line-height:1.2 !important}
-.top{position:sticky !important;top:0 !important;z-index:50 !important;width:100% !important;box-sizing:border-box !important;padding:calc(10px + env(safe-area-inset-top,0px)) 12px 10px !important}
-.header-row{display:flex !important;align-items:center !important;gap:7px !important;min-height:44px !important}
-.brand-name{font-size:clamp(15px,4.3vw,18px) !important;font-weight:900 !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important;min-width:0 !important}
-.header-btn,.header-btn-sm{width:38px !important;height:38px !important;min-width:38px !important;flex-shrink:0 !important;display:grid !important;place-items:center !important;border-radius:50% !important;font-size:16px !important;-webkit-tap-highlight-color:transparent !important}
-input#q{width:100% !important;min-height:48px !important;font-size:16px !important;padding:14px 46px 14px 46px !important;border-radius:24px !important;box-sizing:border-box !important;-webkit-appearance:none !important}
-.hero{width:100% !important;max-width:100% !important;box-sizing:border-box !important;overflow:hidden !important;border-radius:20px !important;padding:16px 14px !important}
-.hero-art .cc-svg,#hero .cc-svg{max-width:min(240px,65vw) !important;width:100% !important;height:auto !important}
-.rewards-subtabs{display:grid !important;grid-template-columns:repeat(5,1fr) !important;gap:3px !important;padding:3px !important;border-radius:14px !important}
-.rewards-subtabs button{font-size:clamp(9.5px,2.8vw,12px) !important;padding:10px 2px !important;min-height:42px !important;min-width:0 !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important;border-radius:10px !important}
-.rewards-hero{padding:16px 14px !important;border-radius:20px !important;overflow:hidden !important;max-width:100% !important;box-sizing:border-box !important}
-.rewards-hero .rh-tiles{display:grid !important;grid-template-columns:repeat(4,1fr) !important;gap:5px !important}
-.rewards-hero .rh-tile{padding:8px 4px !important;min-width:0 !important;overflow:hidden !important}
-.rewards-hero .rh-tile .l{font-size:clamp(7.5px,2.2vw,9px) !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important}
-.rewards-hero .rh-tile .v{font-size:clamp(11px,3vw,14px) !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important}
-.rewards-hero .rh-big{font-size:clamp(22px,6.5vw,30px) !important}
-#offersHero,.credits-hero,.location-hero,.vault-summary-card{padding:16px 14px !important;border-radius:20px !important;overflow:hidden !important;max-width:100% !important;box-sizing:border-box !important}
-.studio-actions{display:flex !important;flex-wrap:wrap !important;gap:6px !important}
-.studio-actions .sa-btn{flex:1 1 calc(50% - 3px) !important;min-width:calc(50% - 3px) !important;min-height:44px !important;font-size:12px !important;padding:10px 8px !important;border-radius:12px !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important}
-.feature-card{display:grid !important;grid-template-columns:40px 1fr 20px !important;gap:10px !important;padding:12px !important;border-radius:16px !important;align-items:center !important;box-sizing:border-box !important;width:100% !important}
-.feature-card .fc-mid{min-width:0 !important;overflow:hidden !important}
-.feature-card .fc-title{white-space:normal !important;word-break:break-word !important;font-size:clamp(12.5px,3.4vw,14px) !important;line-height:1.2 !important;display:-webkit-box !important;-webkit-line-clamp:2 !important;-webkit-box-orient:vertical !important;overflow:hidden !important}
-.modal-overlay{align-items:flex-end !important;padding:0 !important}
-.modal{width:100% !important;max-width:560px !important;max-height:92dvh !important;border-radius:22px 22px 0 0 !important;padding:18px 16px calc(16px + env(safe-area-inset-bottom,0px)) !important;box-sizing:border-box !important;display:flex !important;flex-direction:column !important;overflow:hidden !important}
-.modal-head{flex-shrink:0 !important;margin-bottom:12px !important}
-.modal-actions{flex-shrink:0 !important;gap:8px !important;padding-top:12px !important;padding-bottom:calc(6px + env(safe-area-inset-bottom,0px)) !important;background:var(--surface) !important}
-.modal-actions button{min-height:46px !important;font-size:14px !important;border-radius:14px !important}
-.card-check{display:grid !important;grid-template-columns:46px 1fr 24px !important;gap:11px !important;padding:11px 12px !important;align-items:center !important;border-radius:13px !important;box-sizing:border-box !important;width:100% !important}
-.card-check .cc-emoji{flex-shrink:0 !important}
-.card-check .cc-info{min-width:0 !important;overflow:hidden !important}
-.card-check .cc-name{font-size:clamp(12.5px,3.6vw,14px) !important;line-height:1.2 !important;font-weight:900 !important;white-space:normal !important;word-break:break-word !important;display:-webkit-box !important;-webkit-line-clamp:2 !important;-webkit-box-orient:vertical !important;overflow:hidden !important}
-.tx-item{display:grid !important;grid-template-columns:1fr auto !important;gap:8px !important;padding:10px 11px !important;border-radius:12px !important;box-sizing:border-box !important;width:100% !important;align-items:center !important}
-.tx-item .txmain{min-width:0 !important;overflow:hidden !important}
-.tx-item .txmerch{font-size:12.5px !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important}
-.log-flash,.v79-select-toast,.v82-toast,.credit-flash{max-width:calc(100vw - 24px) !important;box-sizing:border-box !important;font-size:12.5px !important;top:calc(20px + env(safe-area-inset-top,0px)) !important;padding:12px 20px !important;border-radius:99px !important}
-.form-row input,.form-row select,.form-row textarea,.modal-search,input[type="text"],input[type="number"],input[type="email"],input[type="date"],select,textarea{font-size:16px !important;min-height:46px !important;padding:12px 14px !important;border-radius:12px !important;box-sizing:border-box !important;width:100% !important;-webkit-appearance:none !important;font-family:inherit !important}
-button:not(.header-btn):not(.header-btn-sm),.drawer-item,.settings-link,.qc-chip,.month-pill,.credit-filter,.card-check,.feature-card,.tile{min-height:40px !important;-webkit-tap-highlight-color:transparent !important}
-@media(max-width:375px){main{padding:8px 10px calc(86px + env(safe-area-inset-bottom,0px)) !important}.brand-logo{width:28px !important;height:28px !important}.header-btn,.header-btn-sm{width:34px !important;height:34px !important;min-width:34px !important;font-size:15px !important}}
-main > *{max-width:100% !important;box-sizing:border-box !important}
-
-</style>
-
-<script id="v135-fixes-js">
-(function(){
-'use strict';
-function iosBlur(el){if(!el)return;try{el.setAttribute('readonly','readonly');el.blur();requestAnimationFrame(function(){el.removeAttribute('readonly');setTimeout(function(){try{el.blur();}catch(_){}if(document.activeElement===el){try{document.activeElement.blur();}catch(_){}}},50);});}catch(_){}}
-function installKeyboardDismiss(){var q=document.getElementById('q');if(!q||q.__v135Wired)return;q.__v135Wired=true;
-q.addEventListener('keydown',function(e){if(e.key==='Enter'||e.keyCode===13){e.preventDefault();e.stopPropagation();iosBlur(q);}});
-q.addEventListener('keypress',function(e){if(e.key==='Enter'||e.keyCode===13){e.preventDefault();e.stopPropagation();iosBlur(q);}});
-var ac=document.getElementById('autocomplete');if(ac){ac.addEventListener('click',function(){iosBlur(q);},true);ac.addEventListener('touchend',function(){iosBlur(q);},true);}
-document.addEventListener('touchstart',function(e){if(document.activeElement!==q)return;var t=e.target;if(t&&(t.closest('.search-wrap')||t.closest('.autocomplete')))return;iosBlur(q);},{passive:true,capture:true});
-document.addEventListener('mousedown',function(e){if(document.activeElement!==q)return;var t=e.target;if(t&&(t.closest('.search-wrap')||t.closest('.autocomplete')))return;iosBlur(q);},true);
-}
-function boot(){installKeyboardDismiss();var kbIv=setInterval(installKeyboardDismiss,500);setTimeout(function(){clearInterval(kbIv);},10000);}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
-})();
-</script>
-
-<script id="v137-merchant-expansion">
-(function(){
-'use strict';
-var NEW_MERCHANTS = [["pne", "cineplex", "Pne", true, "\ud83c\udfa2"], ["playland", "cineplex", "Playland", true, "\ud83c\udfa2"], ["pne playland", "cineplex", "Pne Playland", true, "\ud83c\udfa2"], ["pacific national exhibition", "cineplex", "Pacific National Exhibition", true, "\ud83c\udfa2"], ["cultus lake adventure park", "cineplex", "Cultus Lake Adventure Park", true, "\ud83c\udfa2"], ["cultus lake waterpark", "cineplex", "Cultus Lake Waterpark", true, "\ud83c\udfa2"], ["bridal falls waterpark", "cineplex", "Bridal Falls Waterpark", true, "\ud83c\udfa2"], ["splashdown park", "cineplex", "Splashdown Park", true, "\ud83c\udfa2"], ["splashdown waterpark", "cineplex", "Splashdown Waterpark", true, "\ud83c\udfa2"], ["science world", "cineplex", "Science World", true, "\ud83c\udfa2"], ["telus world of science", "cineplex", "Telus World Of Science", true, "\ud83c\udfa2"], ["vancouver aquarium", "cineplex", "Vancouver Aquarium", true, "\ud83c\udfa2"], ["capilano suspension bridge", "cineplex", "Capilano Suspension Bridge", true, "\ud83c\udfa2"], ["grouse mountain", "cineplex", "Grouse Mountain", true, "\ud83c\udfa2"], ["cypress mountain", "cineplex", "Cypress Mountain", true, "\ud83c\udfa2"], ["whistler blackcomb", "cineplex", "Whistler Blackcomb", true, "\ud83c\udfa2"], ["whistler", "cineplex", "Whistler", true, "\ud83c\udfa2"], ["big white ski resort", "cineplex", "Big White Ski Resort", true, "\ud83c\udfa2"], ["silver star mountain", "cineplex", "Silver Star Mountain", true, "\ud83c\udfa2"], ["sun peaks resort", "cineplex", "Sun Peaks Resort", true, "\ud83c\udfa2"], ["revelstoke mountain resort", "cineplex", "Revelstoke Mountain Resort", true, "\ud83c\udfa2"], ["fernie alpine", "cineplex", "Fernie Alpine", true, "\ud83c\udfa2"], ["kicking horse mountain", "cineplex", "Kicking Horse Mountain", true, "\ud83c\udfa2"], ["flyover canada", "cineplex", "Flyover Canada", true, "\ud83c\udfa2"], ["butchart gardens", "cineplex", "Butchart Gardens", true, "\ud83c\udfa2"], ["royal bc museum", "cineplex", "Royal Bc Museum", true, "\ud83c\udfa2"], ["richmond night market", "other", "Richmond Night Market", false, "\ud83c\udfaa"], ["sabai thai spa", "other", "Sabai Thai Spa", true, "\ud83d\udc86"], ["sabai thai", "other", "Sabai Thai", true, "\ud83d\udc86"], ["sabai spa", "other", "Sabai Spa", true, "\ud83d\udc86"], ["absolute spa", "other", "Absolute Spa", true, "\ud83d\udc86"], ["skoah", "other", "Skoah", true, "\ud83d\udc86"], ["miraj hammam spa", "other", "Miraj Hammam Spa", true, "\ud83d\udc86"], ["miraj hammam", "other", "Miraj Hammam", true, "\ud83d\udc86"], ["willow stream spa", "other", "Willow Stream Spa", true, "\ud83d\udc86"], ["chi the spa", "other", "Chi The Spa", true, "\ud83d\udc86"], ["vida spa", "other", "Vida Spa", true, "\ud83d\udc86"], ["spa utopia", "other", "Spa Utopia", true, "\ud83d\udc86"], ["the refinery grooming lounge", "other", "The Refinery Grooming Lounge", true, "\ud83d\udc86"], ["the refinery", "other", "The Refinery", true, "\ud83d\udc86"], ["beauty mark", "other", "Beauty Mark", true, "\ud83d\udc86"], ["beautymark", "other", "Beautymark", true, "\ud83d\udc86"], ["eminence organic spa", "other", "Eminence Organic Spa", true, "\ud83d\udc86"], ["massage envy", "other", "Massage Envy", true, "\ud83d\udc86"], ["spa ritual", "other", "Spa Ritual", false, "\ud83d\udc86"], ["olia hair salon spa", "other", "Olia Hair Salon Spa", false, "\ud83d\udc86"], ["pure nail bar", "other", "Pure Nail Bar", false, "\ud83d\udc86"], ["hush hush spa", "other", "Hush Hush Spa", false, "\ud83d\udc86"], ["claritas spa", "other", "Claritas Spa", false, "\ud83d\udc86"], ["oasis spa", "other", "Oasis Spa", false, "\ud83d\udc86"], ["goodlife fitness", "other", "Goodlife Fitness", true, "\ud83d\udcaa"], ["good life fitness", "other", "Good Life Fitness", true, "\ud83d\udcaa"], ["goodlife", "other", "Goodlife", true, "\ud83d\udcaa"], ["steve nash fitness world", "other", "Steve Nash Fitness World", true, "\ud83d\udcaa"], ["steve nash fitness", "other", "Steve Nash Fitness", true, "\ud83d\udcaa"], ["steve nash", "other", "Steve Nash", true, "\ud83d\udcaa"], ["fitness world", "other", "Fitness World", true, "\ud83d\udcaa"], ["anytime fitness", "other", "Anytime Fitness", true, "\ud83d\udcaa"], ["club16 trevor linden fitness", "other", "Club16 Trevor Linden Fitness", true, "\ud83d\udcaa"], ["club16", "other", "Club16", true, "\ud83d\udcaa"], ["club 16", "other", "Club 16", true, "\ud83d\udcaa"], ["trevor linden fitness", "other", "Trevor Linden Fitness", true, "\ud83d\udcaa"], ["ymca vancouver", "other", "Ymca Vancouver", true, "\ud83d\udcaa"], ["ymca canada", "other", "Ymca Canada", true, "\ud83d\udcaa"], ["ymca", "other", "Ymca", true, "\ud83d\udcaa"], ["orangetheory fitness", "other", "Orangetheory Fitness", true, "\ud83d\udcaa"], ["orangetheory", "other", "Orangetheory", true, "\ud83d\udcaa"], ["orange theory", "other", "Orange Theory", true, "\ud83d\udcaa"], ["f45 training", "other", "F45 Training", true, "\ud83d\udcaa"], ["f45", "other", "F45", true, "\ud83d\udcaa"], ["barrys bootcamp", "other", "Barrys Bootcamp", true, "\ud83d\udcaa"], ["pure barre", "other", "Pure Barre", true, "\ud83d\udcaa"], ["oxygen yoga fitness", "other", "Oxygen Yoga Fitness", true, "\ud83d\udcaa"], ["oxygen yoga", "other", "Oxygen Yoga", true, "\ud83d\udcaa"], ["yyoga", "other", "Yyoga", true, "\ud83d\udcaa"], ["yyoga vancouver", "other", "Yyoga Vancouver", true, "\ud83d\udcaa"], ["planet fitness canada", "other", "Planet Fitness Canada", true, "\ud83d\udcaa"], ["planet fitness", "other", "Planet Fitness", true, "\ud83d\udcaa"], ["world gym", "other", "World Gym", true, "\ud83d\udcaa"], ["soulcycle canada", "other", "Soulcycle Canada", true, "\ud83d\udcaa"], ["soulcycle", "other", "Soulcycle", true, "\ud83d\udcaa"], ["peloton studio", "other", "Peloton Studio", true, "\ud83d\udcaa"], ["golds gym canada", "other", "Golds Gym Canada", true, "\ud83d\udcaa"], ["golds gym", "other", "Golds Gym", true, "\ud83d\udcaa"], ["fit4less", "other", "Fit4Less", true, "\ud83d\udcaa"], ["energie fitness", "other", "Energie Fitness", true, "\ud83d\udcaa"], ["semperviva yoga", "other", "Semperviva Yoga", false, "\ud83d\udcaa"], ["east side fitness", "other", "East Side Fitness", false, "\ud83d\udcaa"], ["iron wolf gym", "other", "Iron Wolf Gym", false, "\ud83d\udcaa"], ["energyplex", "other", "Energyplex", false, "\ud83d\udcaa"], ["crossfit vancouver", "other", "Crossfit Vancouver", false, "\ud83d\udcaa"], ["studeo55", "other", "Studeo55", false, "\ud83d\udcaa"], ["studeo 55", "other", "Studeo 55", false, "\ud83d\udcaa"], ["reformx pilates", "other", "Reformx Pilates", false, "\ud83d\udcaa"], ["supplement king", "shopping", "Supplement King", true, "\ud83d\udc8a"], ["popeyes supplements", "shopping", "Popeyes Supplements", true, "\ud83d\udc8a"], ["gnc", "shopping", "Gnc", true, "\ud83d\udc8a"], ["general nutrition centre", "shopping", "General Nutrition Centre", true, "\ud83d\udc8a"], ["body energy club", "shopping", "Body Energy Club", true, "\ud83d\udc8a"], ["vitamin shoppe", "shopping", "Vitamin Shoppe", true, "\ud83d\udc8a"], ["nutrition house", "shopping", "Nutrition House", true, "\ud83d\udc8a"], ["healthy planet", "shopping", "Healthy Planet", true, "\ud83d\udc8a"], ["iherb", "shopping", "Iherb", true, "\ud83d\udc8a"], ["true north nutrition", "shopping", "True North Nutrition", false, "\ud83d\udc8a"], ["sushi hachi", "dining", "Sushi Hachi", true, "\ud83c\udf7d"], ["miku", "dining", "Miku", true, "\ud83c\udf7d"], ["miku restaurant", "dining", "Miku Restaurant", true, "\ud83c\udf7d"], ["minami", "dining", "Minami", true, "\ud83c\udf7d"], ["sushi mura", "dining", "Sushi Mura", true, "\ud83c\udf7d"], ["ramen danbo", "dining", "Ramen Danbo", true, "\ud83c\udf7d"], ["santouka ramen", "dining", "Santouka Ramen", true, "\ud83c\udf7d"], ["kinton ramen", "dining", "Kinton Ramen", true, "\ud83c\udf7d"], ["marutama ramen", "dining", "Marutama Ramen", true, "\ud83c\udf7d"], ["jinya ramen", "dining", "Jinya Ramen", true, "\ud83c\udf7d"], ["ippudo", "dining", "Ippudo", true, "\ud83c\udf7d"], ["ajisai sushi bar", "dining", "Ajisai Sushi Bar", true, "\ud83c\udf7d"], ["toshi sushi", "dining", "Toshi Sushi", true, "\ud83c\udf7d"], ["tojos", "dining", "Tojos", true, "\ud83c\udf7d"], ["sushi bar maumi", "dining", "Sushi Bar Maumi", true, "\ud83c\udf7d"], ["masayoshi", "dining", "Masayoshi", true, "\ud83c\udf7d"], ["kishimoto", "dining", "Kishimoto", true, "\ud83c\udf7d"], ["yuwa", "dining", "Yuwa", true, "\ud83c\udf7d"], ["guu", "dining", "Guu", true, "\ud83c\udf7d"], ["kingyo izakaya", "dining", "Kingyo Izakaya", true, "\ud83c\udf7d"], ["suika izakaya", "dining", "Suika Izakaya", true, "\ud83c\udf7d"], ["zakkushi", "dining", "Zakkushi", true, "\ud83c\udf7d"], ["vijs", "dining", "Vijs", true, "\ud83c\udf7d"], ["rangoli", "dining", "Rangoli", true, "\ud83c\udf7d"], ["india gate", "dining", "India Gate", true, "\ud83c\udf7d"], ["indian oven", "dining", "Indian Oven", true, "\ud83c\udf7d"], ["fanny bay oyster bar", "dining", "Fanny Bay Oyster Bar", true, "\ud83c\udf7d"], ["rodneys oyster house", "dining", "Rodneys Oyster House", true, "\ud83c\udf7d"], ["joe fortes seafood", "dining", "Joe Fortes Seafood", true, "\ud83c\udf7d"], ["blue water cafe", "dining", "Blue Water Cafe", true, "\ud83c\udf7d"], ["ancora waterfront", "dining", "Ancora Waterfront", true, "\ud83c\udf7d"], ["provence marinaside", "dining", "Provence Marinaside", true, "\ud83c\udf7d"], ["black + blue", "dining", "Black + Blue", true, "\ud83c\udf7d"], ["gotham steakhouse", "dining", "Gotham Steakhouse", true, "\ud83c\udf7d"], ["hys steakhouse", "dining", "Hys Steakhouse", true, "\ud83c\udf7d"], ["bacchus restaurant", "dining", "Bacchus Restaurant", true, "\ud83c\udf7d"], ["hawksworth", "dining", "Hawksworth", true, "\ud83c\udf7d"], ["botanist", "dining", "Botanist", true, "\ud83c\udf7d"], ["forage vancouver", "dining", "Forage Vancouver", true, "\ud83c\udf7d"], ["st. lawrence", "dining", "St. Lawrence", true, "\ud83c\udf7d"], ["ask for luigi", "dining", "Ask For Luigi", true, "\ud83c\udf7d"], ["savio volpe", "dining", "Savio Volpe", true, "\ud83c\udf7d"], ["pizzeria farina", "dining", "Pizzeria Farina", true, "\ud83c\udf7d"], ["nicli antica", "dining", "Nicli Antica", true, "\ud83c\udf7d"], ["pizzeria barbarella", "dining", "Pizzeria Barbarella", true, "\ud83c\udf7d"], ["rocky mountain flatbread", "dining", "Rocky Mountain Flatbread", true, "\ud83c\udf7d"], ["freshslice pizza", "dining", "Freshslice Pizza", true, "\ud83c\udf7d"], ["pizza garden", "dining", "Pizza Garden", true, "\ud83c\udf7d"], ["tacofino", "dining", "Tacofino", true, "\ud83c\udf7d"], ["la taqueria", "dining", "La Taqueria", true, "\ud83c\udf7d"], ["las margaritas", "dining", "Las Margaritas", true, "\ud83c\udf7d"], ["burgoo", "dining", "Burgoo", true, "\ud83c\udf7d"], ["glowbal", "dining", "Glowbal", true, "\ud83c\udf7d"], ["coast restaurant", "dining", "Coast Restaurant", true, "\ud83c\udf7d"], ["yaletown brewing", "dining", "Yaletown Brewing", true, "\ud83c\udf7d"], ["craft beer market", "dining", "Craft Beer Market", true, "\ud83c\udf7d"], ["steamworks brewing", "dining", "Steamworks Brewing", true, "\ud83c\udf7d"], ["tap & barrel", "dining", "Tap & Barrel", true, "\ud83c\udf7d"], ["49th parallel coffee", "dining", "49Th Parallel Coffee", true, "\ud83c\udf7d"], ["revolver coffee", "dining", "Revolver Coffee", true, "\ud83c\udf7d"], ["prado cafe", "dining", "Prado Cafe", true, "\ud83c\udf7d"], ["matchstick coffee", "dining", "Matchstick Coffee", true, "\ud83c\udf7d"], ["moja coffee", "dining", "Moja Coffee", true, "\ud83c\udf7d"], ["purebread", "dining", "Purebread", true, "\ud83c\udf7d"], ["small victory bakery", "dining", "Small Victory Bakery", true, "\ud83c\udf7d"], ["thomas haas", "dining", "Thomas Haas", true, "\ud83c\udf7d"], ["beta5 chocolates", "dining", "Beta5 Chocolates", true, "\ud83c\udf7d"]];
-function extendMerchants(){
-  if(!window.ALIASES) { setTimeout(extendMerchants, 200); return; }
-  var added = 0;
-  NEW_MERCHANTS.forEach(function(entry){
-    var alias = entry[0], category = entry[1], displayName = entry[2], amexOK = entry[3], emoji = entry[4];
-    if(!window.ALIASES[alias]) { window.ALIASES[alias] = category; added++; }
-    if(window.MERCHANT_DIRECTORY && Array.isArray(window.MERCHANT_DIRECTORY)) {
-      var exists = window.MERCHANT_DIRECTORY.some(function(m){
-        var mn = (m.name || m.n || '').toLowerCase();
-        return mn === displayName.toLowerCase() || mn === alias;
-      });
-      if(!exists) {
-        window.MERCHANT_DIRECTORY.push({name: displayName, n: displayName, category: category, cat: category, categoryLabel: category, catLabel: category, emoji: emoji, e: emoji, icon: emoji, amex: amexOK});
-      }
-    }
-    if(window.ACCEPTANCE && window.ACCEPTANCE[alias] === undefined) {
-      window.ACCEPTANCE[alias] = { amex: amexOK };
-    }
-  });
-  try {
-    var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
-    var node;
-    while(node = walker.nextNode()) {
-      if(node.nodeValue && node.nodeValue.indexOf('5,500+') >= 0) node.nodeValue = node.nodeValue.replace('5,500+', '5,700+');
-      else if(node.nodeValue && node.nodeValue.indexOf('5500+') >= 0) node.nodeValue = node.nodeValue.replace('5500+', '5,700+');
-    }
-  } catch(e) {}
-}
-if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', extendMerchants);
-else extendMerchants();
-var retries = 0;
-var retryIv = setInterval(function(){
-  if(!window.ALIASES && retries<20) { retries++; return; }
-  if(window.ALIASES && !window.__v137Extended) { extendMerchants(); window.__v137Extended = true; }
-  if(++retries > 20) clearInterval(retryIv);
-}, 500);
-})();
-</script>
-
-<script id="v138-revert-fix">
-(function(){
-'use strict';
-var state = { recommendedCardKey: null, recommendedCardName: null, chosenCardKey: null, chosenCardName: null };
-function getCardName(key) { if (!key) return null; try { if (window.CARDS_DB && window.CARDS_DB[key]) return window.CARDS_DB[key].n || window.CARDS_DB[key].name || key; } catch(_) {} return key; }
-function readRecommendedFromHero() {
-  var hero = document.getElementById('hero'); if (!hero) return;
-  var key = hero.getAttribute('data-main-card-key');
-  if (!key) { var el = hero.querySelector('[data-card-key]'); if (el) key = el.getAttribute('data-card-key'); }
-  if (key && key !== state.recommendedCardKey) {
-    state.recommendedCardKey = key; state.recommendedCardName = getCardName(key);
-    var stillPresent = document.querySelector('.alt-cards .alt-item[data-card-key="' + (state.chosenCardKey || '') + '"]');
-    if (!stillPresent) { state.chosenCardKey = null; state.chosenCardName = null; }
-  }
-  updateLogButtonText(); updateRevertPillVisibility();
-}
-function getLogButton() { return document.querySelector('.hero-log-btn') || document.getElementById('logPurchaseBtn') || document.querySelector('button[onclick*="LogForm"]'); }
-function updateLogButtonText() {
-  var btn = getLogButton(); if (!btn) return;
-  var activeName = state.chosenCardName || state.recommendedCardName; if (!activeName) return;
-  var isChosen = !!state.chosenCardKey; var prefix = isChosen ? '\ud83d\udcb3 ' : '+ ';
-  var newText = prefix + 'Log purchase on ' + activeName;
-  if (btn.__v138Text !== newText) { btn.__v138Text = newText; btn.textContent = newText; }
-}
-function updateRevertPillVisibility() {
-  var altCards = document.querySelector('.alt-cards'); if (!altCards) return;
-  var pill = altCards.querySelector('.v138-revert-pill');
-  if (state.chosenCardKey && state.recommendedCardKey && state.chosenCardKey !== state.recommendedCardKey) {
-    if (!pill) {
-      pill = document.createElement('button'); pill.className = 'v138-revert-pill'; pill.setAttribute('type', 'button');
-      pill.addEventListener('click', function(e){ e.preventDefault(); e.stopPropagation(); revertToRecommended(); });
-      var title = altCards.querySelector('.alt-title');
-      if (title && title.nextSibling) altCards.insertBefore(pill, title.nextSibling);
-      else altCards.insertBefore(pill, altCards.firstChild);
-    }
-    pill.innerHTML = '<span class="v138-icon">\u21ba</span> Use recommended: ' + escapeHTML(state.recommendedCardName);
-    pill.classList.add('show');
-  } else { if (pill) pill.classList.remove('show'); }
-}
-function escapeHTML(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
-function revertToRecommended() {
-  if (!state.recommendedCardKey) return;
-  state.chosenCardKey = null; state.chosenCardName = null;
-  document.querySelectorAll('.alt-item.chosen').forEach(function(el){ el.classList.remove('chosen'); });
-  var hidden = document.getElementById('heroLogCard'); if (hidden) hidden.value = state.recommendedCardKey;
-  if (window.__v70) { window.__v70.chosenCardKey = null; window.__v70.chosenCardName = null; }
-  showRevertToast(); updateLogButtonText(); updateRevertPillVisibility();
-}
-function showRevertToast() {
-  document.querySelectorAll('.v79-select-toast, .v138-revert-toast').forEach(function(t){ t.remove(); });
-  var toast = document.createElement('div');
-  toast.className = 'v79-select-toast v138-revert show v138-revert-toast';
-  toast.textContent = '\u21ba Reverted to recommended: ' + (state.recommendedCardName || 'default card');
-  document.body.appendChild(toast);
-  setTimeout(function(){ if (toast.parentNode) toast.parentNode.removeChild(toast); }, 2200);
-}
-document.addEventListener('click', function(e){
-  var alt = e.target && e.target.closest && e.target.closest('.alt-item'); if (!alt) return;
-  var isChosen = alt.classList.contains('chosen'); var altKey = alt.getAttribute('data-card-key');
-  if (isChosen) { e.stopPropagation(); e.stopImmediatePropagation(); e.preventDefault(); revertToRecommended(); return; }
-  if (altKey) { state.chosenCardKey = altKey; state.chosenCardName = getCardName(altKey); setTimeout(function(){ updateLogButtonText(); updateRevertPillVisibility(); }, 30); }
-}, true);
-function installObservers() {
-  var hero = document.getElementById('hero');
-  if (hero && !hero.__v138Watched) {
-    hero.__v138Watched = true;
-    new MutationObserver(function(){ readRecommendedFromHero(); }).observe(hero, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-main-card-key'] });
-    readRecommendedFromHero();
-  }
-}
-installObservers();
-var iv = setInterval(function(){ installObservers(); updateLogButtonText(); updateRevertPillVisibility(); }, 300);
-setTimeout(function(){ clearInterval(iv); }, 15000);
-var q = document.getElementById('q');
-if (q) { q.addEventListener('input', function(){ state.chosenCardKey = null; state.chosenCardName = null; }); }
-window.__v138 = { state: state, revert: revertToRecommended };
-})();
-</script>
-
-<script id="v139-rewards-sync">
-(function(){
-'use strict';
-var __syncing = false;
-var __lastSync = 0;
-var __syncTimer = null;
-
-function log(msg){ try { console.log('[V139]', msg); } catch(_){} }
-
-function reconcileAndRender(){
-  if (__syncing) return;
-  __syncing = true;
-  __lastSync = Date.now();
-  try {
-    // STEP 1: Reconcile the auto-accumulation ledger from scratch
-    // V128's tick() rebuilds walletiq_auto_earnings by summing all current transactions,
-    // so deleted tx contributions vanish automatically.
-    try { if (window.__v128 && typeof window.__v128.tick === 'function') window.__v128.tick(); } catch(e){ log('__v128.tick error ' + e); }
-    try { if (typeof window.__v106Tick === 'function') window.__v106Tick(); } catch(e){ log('__v106Tick error ' + e); }
-    try { if (typeof window.reconcileAutoEarnings === 'function') window.reconcileAutoEarnings(); } catch(e){}
-    // If V128 or v106 exposes a syncMemberships or similar, try it
-    try { if (window.__v128 && typeof window.__v128.syncMemberships === 'function') window.__v128.syncMemberships(); } catch(e){}
-    try { if (typeof window.syncEarningsToMemberships === 'function') window.syncEarningsToMemberships(); } catch(e){}
-
-    // STEP 2: Re-render transactions list
-    ['renderTxList','renderTransactions','renderTx','renderActivity','renderTxTab'].forEach(function(fn){
-      try { if (typeof window[fn] === 'function') window[fn](); } catch(e){}
-    });
-
-    // STEP 3: Re-fire the currently active month-pill so filter re-applies
-    try {
-      var ap = document.querySelector('.month-pill.on');
-      if (ap) ap.dispatchEvent(new MouseEvent('click', {bubbles:true, cancelable:true}));
-    } catch(e){}
-
-    // STEP 4: Re-render Rewards Studio hero (Total portfolio, This mo, YTD, Missed, Vault)
-    ['renderRewardsHero','updateRewardsHero','renderStudioHero','renderInsights','renderOverview','renderRewardsStudio','updateStudioHero'].forEach(function(fn){
-      try { if (typeof window[fn] === 'function') window[fn](); } catch(e){}
-    });
-
-    // STEP 5: Re-render Home page tiles + vault summary card
-    ['renderHome','renderHomeVaultSummary','renderVaultSummary','updateHomeStats','renderHomeTile'].forEach(function(fn){
-      try { if (typeof window[fn] === 'function') window[fn](); } catch(e){}
-    });
-    try { if (window.__v122 && typeof window.__v122.renderHome === 'function') window.__v122.renderHome(); } catch(e){}
-
-    // STEP 6: Re-render the Points Vault (Fastest earner + per-program values)
-    ['renderVaultV122','renderVault','renderPointsTab','renderV122','renderPointsVault'].forEach(function(fn){
-      try { if (typeof window[fn] === 'function') window[fn](); } catch(e){}
-    });
-    try { if (typeof window.scheduleVaultRefresh === 'function') window.scheduleVaultRefresh(); } catch(e){}
-
-    // STEP 7: Nudge the currently active rewards subtab via switchRewardsView
-    try {
-      var as = document.querySelector('.rewards-subtabs button.on');
-      if (as && typeof window.switchRewardsView === 'function') {
-        var v = as.getAttribute('data-view');
-        if (v) window.switchRewardsView(v);
-      }
-    } catch(e){}
-
-    // STEP 8: Dispatch synthetic storage events for every relevant key
-    var keys = ['walletiq_transactions','walletiq_auto_earnings','walletiq_memberships','walletIQ_v40_wallet','v82_tx','tx','transactions'];
-    keys.forEach(function(k){
-      try {
-        var val = localStorage.getItem(k) || '';
-        window.dispatchEvent(new StorageEvent('storage', {key: k, newValue: val}));
-      } catch(e){}
-    });
-
-    // STEP 9: Custom event so any downstream code can react
-    try { window.dispatchEvent(new CustomEvent('v139:rewardsSynced')); } catch(e){}
-
-    log('reconciled');
-  } finally {
-    setTimeout(function(){ __syncing = false; }, 100);
-  }
-}
-
-window.__v139_reconcileAndRender = reconcileAndRender;
-
-function scheduleReconcile(delay){
-  clearTimeout(__syncTimer);
-  __syncTimer = setTimeout(function(){
-    try { reconcileAndRender(); } catch(e){}
-  }, delay || 100);
-}
-
-// ==================== FUNCTION WRAP ====================
-var wrappedFns = {};
-var TARGET_PATTERNS = [/saveTx/i, /logPurchase/i, /deleteTx/i, /removeTx/i, /clearAllTx/i, /saveHeroLogPurchase/i, /clearTransactions/i, /addTx/i, /removeTransaction/i, /deleteTransaction/i];
-function isTargetName(name){
-  return TARGET_PATTERNS.some(function(p){ return p.test(name); });
-}
-function wrapFn(name){
-  if (wrappedFns[name]) return;
-  if (typeof window[name] !== 'function') return;
-  var original = window[name];
-  window[name] = function(){
-    var r;
-    try { r = original.apply(this, arguments); } catch(err){ throw err; }
-    scheduleReconcile(80);
-    setTimeout(function(){ try { reconcileAndRender(); } catch(_){} }, 300);
-    setTimeout(function(){ try { reconcileAndRender(); } catch(_){} }, 700);
-    return r;
-  };
-  wrappedFns[name] = true;
-  log('wrapped ' + name);
-}
-function wrapAllTargets(){
-  // Scan window for matching function names
-  for (var k in window){
-    try { if (typeof window[k] === 'function' && isTargetName(k)) wrapFn(k); } catch(e){}
-  }
-}
-wrapAllTargets();
-var wrapAttempts = 0;
-var wrapIv = setInterval(function(){
-  wrapAllTargets();
-  if (++wrapAttempts > 30) clearInterval(wrapIv);
-}, 300);
-
-// ==================== LOCALSTORAGE INTERCEPT ====================
-try {
-  var origSetItem = localStorage.setItem.bind(localStorage);
-  var origRemoveItem = localStorage.removeItem.bind(localStorage);
-  var TRIGGER_KEYS = /walletiq_transactions|v82_tx|^tx$|^transactions$|walletiq_auto_earnings|walletiq_memberships|walletIQ_v40_wallet/i;
-  localStorage.setItem = function(key, value){
-    var r = origSetItem(key, value);
-    try { if (key && TRIGGER_KEYS.test(key)) { scheduleReconcile(60); setTimeout(function(){ try{ reconcileAndRender(); } catch(_){} }, 250); } } catch(_){}
-    return r;
-  };
-  localStorage.removeItem = function(key){
-    var r = origRemoveItem(key);
-    try { if (key && TRIGGER_KEYS.test(key)) { scheduleReconcile(60); setTimeout(function(){ try{ reconcileAndRender(); } catch(_){} }, 250); } } catch(_){}
-    return r;
-  };
-  log('localStorage intercepted');
-} catch(e){ log('localStorage intercept failed: ' + e); }
-
-// ==================== CLICK LISTENER ====================
-document.addEventListener('click', function(e){
-  var t = e.target; if (!t) return;
-  // Delete button
-  var deleteBtn = t.closest && t.closest('.txbtns button, .v82-dismiss-btn, .ccustom-del, .v81-del-btn');
-  var txContext = t.closest && t.closest('.tx-item, .v82-month-body, #txList, .leak-item, .sub-card, .v81-membership-card');
-  var tc = (t.textContent || '').toLowerCase().trim();
-  var isDeleteText = tc === '\ud83d\uddd1' || tc === 'delete' || tc === '\u00d7' || tc.indexOf('clear') === 0;
-  if ((deleteBtn && txContext) || (txContext && isDeleteText && t.tagName === 'BUTTON')) {
-    scheduleReconcile(100);
-    setTimeout(function(){ try { reconcileAndRender(); } catch(_){} }, 500);
-    setTimeout(function(){ try { reconcileAndRender(); } catch(_){} }, 1000);
-  }
-  // Log/save purchase buttons
-  var logBtn = t.closest && t.closest('.hero-log-btn, #logPurchaseBtn, .hl-save, .sa-btn.primary');
-  if (logBtn) {
-    scheduleReconcile(80);
-    setTimeout(function(){ try { reconcileAndRender(); } catch(_){} }, 400);
-    setTimeout(function(){ try { reconcileAndRender(); } catch(_){} }, 900);
-  }
-  // Clear/danger buttons
-  if (t.matches && t.matches('.sa-btn.danger, button.danger')) {
-    scheduleReconcile(120);
-    setTimeout(function(){ try { reconcileAndRender(); } catch(_){} }, 500);
-  }
-}, true);
-
-// ==================== MUTATIONOBSERVERS ====================
-function watchTxList(){
-  var el = document.getElementById('txList'); if (!el || el.__v139Watched) return;
-  el.__v139Watched = true;
-  new MutationObserver(function(mutations){
-    if (__syncing) return;
-    var removed = false;
-    mutations.forEach(function(m){ if (m.removedNodes && m.removedNodes.length) removed = true; });
-    if (removed) scheduleReconcile(80);
-  }).observe(el, {childList:true, subtree:true});
-}
-watchTxList();
-var watchIv = setInterval(watchTxList, 500);
-setTimeout(function(){ clearInterval(watchIv); }, 15000);
-
-// ==================== PERIODIC SAFETY SYNC ====================
-setInterval(function(){
-  // Only if user is on rewards tab and it's been > 8s since last sync
-  var rewardsActive = document.getElementById('rewards') && document.getElementById('rewards').classList.contains('active');
-  if (!rewardsActive) return;
-  if (Date.now() - __lastSync < 8000) return;
-  scheduleReconcile(50);
-}, 5000);
-
-// ==================== INITIAL SYNC ====================
-setTimeout(function(){ try { reconcileAndRender(); } catch(_){} }, 1000);
-setTimeout(function(){ try { reconcileAndRender(); } catch(_){} }, 3000);
-
-window.__v139 = {
-  reconcileAndRender: reconcileAndRender,
-  scheduleReconcile: scheduleReconcile,
-  wrappedFns: wrappedFns
-};
-})();
-</script>
-
 <script id="v140-sync-engine">
-(function(){
-'use strict';
+(function(){'use strict';
+var VERSION='v140-clean';
+window.__v106Disabled=true;window.__v128Disabled=true;window.__v139Disabled=true;window.__v140Enabled=true;
 
-// ==========================================================================
-// V140 SYNC ENGINE — Authoritative single source of truth for:
-//   - walletiq_transactions (READ ONLY)
-//   - walletiq_auto_earnings (WRITTEN by V140 only)
-//   - walletiq_memberships (V140 owns entries flagged __v140Auto)
-// Replaces the fragmented V70/V80/V96/V106/V122/V128/V139 sync logic.
-// UI-rendering modules (V70 alt-card, V96 optimizer UI, V122 vault renderer,
-// V138 revert pill) are LEFT ALONE.
-// ==========================================================================
+var CARD_TO_PROGRAM={cobalt:'MR',amexGold:'MR',amexPlatinum:'MR',amexSimplyCash:'MR',amexAmericanCard:'MR',amexAeroplan:'Aeroplan',amexAeroplanBiz:'Aeroplan',amexAeroReserve:'Aeroplan',amexBusinessGold:'MR',amexBusinessEdge:'MR',amexBusinessPlat:'MR',bonvoy:'Bonvoy',amexBonvoyBiz:'Bonvoy',scotiaPlat:'ScenePlus',scotiaPass:'ScenePlus',scotiaGold:'ScenePlus',scotiaAmexBasic:'ScenePlus',sceneVI:'ScenePlus',scotiaCashbackVisa:'CASH',scotiaValueVisa:'CASH',scotiaMomentumNoFee:'CASH',scotiaGmVisa:'GMEarnings',scotiaMomentumMC:'CASH',tdAero:'Aeroplan',tdCash:'CASH',tdRewardsVI:'TDRewards',tdPlatTravel:'TDRewards',tdRewardsCard:'TDRewards',tdUsdVisa:'CASH',tdFirstClass:'TDRewards',cibcAventura:'Aventura',cibcAventuraGold:'Aventura',cibcAeroplan:'Aeroplan',cibcDividendVI:'CASH',cibcDividendPlat:'CASH',cibcCostco:'CASH',cibcSelect:'CASH',cibcTelus:'CASH',cibcVibe:'CASH',bmoEclipse:'BMORewards',bmoCashback:'CASH',bmoRewardsMC:'BMORewards',bmoAirMiles:'BlueRewards',bmoCashbackMC:'CASH',bmoPrefRate:'CASH',bmoWorldElite:'BMORewards',bmoAscend:'BMORewards',mbnaRewards:'MBNARewards',mbnaSmart:'CASH',mbnaTrue:'CASH',rbcAvion:'AvionRewards',rbcAvionPlat:'AvionRewards',rbcRewardsPlus:'AvionRewards',rbcSignature:'AvionRewards',rbcION:'AvionRewards',rbcBizAvion:'AvionRewards',rbcWestJet:'WestJetDollars',rbcBAVisa:'Avios',rbcCashback:'CASH',rogers:'RogersCash',pcMC:'PCOptimum',pcInsiders:'PCOptimum',wsCashCard:'CASH',wsInfinite1:'CASH',wsInfinitePlus:'CASH',wsInfinitePrivilege:'CASH',tangerine:'CASH',walmartMC:'WalmartCash',canadianTire:'CTMoney',neoMC:'NeoCash',hsbcWorldElite:'HSBCRewards',hsbcRewards:'HSBCRewards',brimWE:'BrimRewards',brimStd:'BrimRewards',eqBank:'CASH',kohoExtra:'CASH',kohoStandard:'CASH',homeTrust:'CASH',meridianCash:'CASH',capOneAspire:'CASH',coastCapital:'CASH',vancityEnviro:'CASH',servusWE:'CASH',laurentianVI:'CASH',desjardinsCashback:'CASH',desjardinsCashBackWE:'CASH',desjardinsOdyssey:'BonusDollars',nationalWorldElite:'ARewards',nationalSyncro:'CASH',nationalEcho:'CASH'};
+var PROGRAM_INFO={MR:{cpp:1.5,unit:'pts',name:'Amex MR',icon:'\ud83d\udd35'},Aeroplan:{cpp:1.5,unit:'pts',name:'Aeroplan',icon:'\u2708\ufe0f'},ScenePlus:{cpp:1.0,unit:'pts',name:'Scene+',icon:'\ud83c\udfac'},Bonvoy:{cpp:0.8,unit:'pts',name:'Bonvoy',icon:'\ud83c\udfe8'},Aventura:{cpp:1.5,unit:'pts',name:'Aventura',icon:'\u2708\ufe0f'},TDRewards:{cpp:0.5,unit:'pts',name:'TD Rewards',icon:'\ud83d\udfe2'},BMORewards:{cpp:0.67,unit:'pts',name:'BMO Rewards',icon:'\ud83d\udd35'},BlueRewards:{cpp:0.67,unit:'pts',name:'BMO Blue Rewards',icon:'\ud83d\udd37'},MBNARewards:{cpp:1.0,unit:'pts',name:'MBNA Rewards',icon:'\ud83d\udc8e'},AvionRewards:{cpp:1.5,unit:'pts',name:'RBC Avion',icon:'\u2708\ufe0f'},WestJetDollars:{cpp:100,unit:'$',name:'WestJet$',icon:'\u2708\ufe0f'},Avios:{cpp:1.5,unit:'pts',name:'Avios',icon:'\u2708\ufe0f'},RogersCash:{cpp:100,unit:'$',name:'Rogers Cash',icon:'\ud83d\udfe0'},PCOptimum:{cpp:0.1,unit:'pts',name:'PC Optimum',icon:'\ud83d\uded2'},CASH:{cpp:100,unit:'$',name:'Cashback',icon:'\ud83d\udcb5'},WalmartCash:{cpp:100,unit:'$',name:'Walmart Cash',icon:'\ud83d\udecd'},CTMoney:{cpp:100,unit:'$',name:'CT Money',icon:'\ud83d\udd3a'},NeoCash:{cpp:100,unit:'$',name:'Neo Cash',icon:'\u26a1'},HSBCRewards:{cpp:0.5,unit:'pts',name:'HSBC Rewards',icon:'\ud83d\udd34'},BrimRewards:{cpp:1.0,unit:'pts',name:'Brim Rewards',icon:'\ud83d\udd37'},BonusDollars:{cpp:100,unit:'$',name:'Bonus $',icon:'\ud83d\udcb0'},ARewards:{cpp:1.0,unit:'pts',name:'A Rewards',icon:'\ud83c\udf41'},GMEarnings:{cpp:100,unit:'$',name:'GM Earnings',icon:'\ud83d\ude97'}};
 
-var VERSION = 'v140-clean-2026-07-12';
+var __syncing=false,__rendering=false,__syncTimer=null;
+function log(m){try{console.log('[V140]',m);}catch(_){}}
+function loadTxs(){var cands=['walletiq_transactions','v82_tx','tx','transactions'];for(var i=0;i<cands.length;i++){try{var raw=localStorage.getItem(cands[i]);if(raw){var p=JSON.parse(raw);if(Array.isArray(p)&&p.length)return p;}}catch(_){}}return[];}
+function monthKey(ds){if(!ds)return'unknown';var d=new Date(ds);if(isNaN(d.getTime()))return'unknown';return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');}
+function getRate(k,c){if(!k||!window.CARDS_DB||!window.CARDS_DB[k])return 1;var rt=window.CARDS_DB[k].realRates||window.CARDS_DB[k].rates||{};if(c&&rt[c]!=null)return rt[c];if(rt.base!=null)return rt.base;if(rt.other!=null)return rt.other;return 1;}
+function getCat(tx){var c=tx.category||tx.cat||tx.merchantCategory;if(c)return c;var m=(tx.merchant||tx.name||tx.m||'').toLowerCase().trim();if(m&&window.ALIASES){if(window.ALIASES[m])return window.ALIASES[m];for(var k in window.ALIASES){if(m.indexOf(k)>=0)return window.ALIASES[k];}}return 'other';}
+function computeEarnings(tx){if(!tx||tx.historical)return null;var a=parseFloat(tx.amount||tx.amt||0);if(isNaN(a)||a<=0)return null;var k=tx.card||tx.cardKey||tx.c;if(!k)return null;var p=CARD_TO_PROGRAM[k];if(!p)return null;var pi=PROGRAM_INFO[p];if(!pi)return null;var cat=getCat(tx);var rt=getRate(k,cat);var dv=a*rt/100;var pts=pi.unit==='$'?dv:dv*100/pi.cpp;return{program:p,points:pts,dollarValue:dv,category:cat,month:monthKey(tx.date||tx.d)};}
+function reconcile(){var txs=loadTxs();var ae={},order=[];txs.forEach(function(tx){var e=computeEarnings(tx);if(!e)return;if(!ae[e.program]){ae[e.program]={totalPoints:0,totalDollars:0,byMonth:{}};order.push(e.program);}var s=ae[e.program];s.totalPoints+=e.points;s.totalDollars+=e.dollarValue;if(!s.byMonth[e.month])s.byMonth[e.month]={points:0,dollars:0};s.byMonth[e.month].points+=e.points;s.byMonth[e.month].dollars+=e.dollarValue;});try{localStorage.setItem('walletiq_auto_earnings',JSON.stringify(ae));}catch(_){}try{var raw=localStorage.getItem('walletiq_memberships');var mems=raw?JSON.parse(raw):[];if(!Array.isArray(mems))mems=[];mems=mems.filter(function(m){return!m.__v106Auto&&!m.__v128Auto&&!m.__v140Auto;});order.forEach(function(prog){var pi=PROGRAM_INFO[prog];var s=ae[prog];if(!pi||!s||s.totalPoints<=0)return;var now=new Date();var tm=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');var tmp=(s.byMonth[tm]&&s.byMonth[tm].points)||0;var tmd=(s.byMonth[tm]&&s.byMonth[tm].dollars)||0;mems.push({__v140Auto:true,program:prog,programKey:prog,name:pi.name,n:pi.name,icon:pi.icon,emoji:pi.icon,balance:Math.round(s.totalPoints*100)/100,pts:Math.round(s.totalPoints*100)/100,dollarValue:Math.round(s.totalDollars*100)/100,cashValue:Math.round(s.totalDollars*100)/100,cpp:pi.cpp,unit:pi.unit,thisMonth:Math.round(tmp*100)/100,thisMonthDollars:Math.round(tmd*100)/100,source:'v140-auto'});});localStorage.setItem('walletiq_memberships',JSON.stringify(mems));}catch(_){}return ae;}
+function render(){if(__rendering)return;__rendering=true;try{['renderTxList','renderTransactions','renderTx','renderActivity','renderTxTab'].forEach(function(fn){try{if(typeof window[fn]==='function')window[fn]();}catch(_){}});try{var ap=document.querySelector('.month-pill.on');if(ap)ap.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true}));}catch(_){}['renderRewardsHero','updateRewardsHero','renderStudioHero','renderInsights','renderOverview'].forEach(function(fn){try{if(typeof window[fn]==='function')window[fn]();}catch(_){}});['renderHome','renderHomeVaultSummary','renderVaultSummary','updateHomeStats'].forEach(function(fn){try{if(typeof window[fn]==='function')window[fn]();}catch(_){}});try{if(window.__v122&&typeof window.__v122.renderHome==='function')window.__v122.renderHome();}catch(_){}['renderVaultV122','renderVault','renderPointsTab','renderV122'].forEach(function(fn){try{if(typeof window[fn]==='function')window[fn]();}catch(_){}});try{var as=document.querySelector('.rewards-subtabs button.on');if(as&&typeof window.switchRewardsView==='function'){var v=as.getAttribute('data-view');if(v)window.switchRewardsView(v);}}catch(_){}['walletiq_transactions','walletiq_auto_earnings','walletiq_memberships','walletIQ_v40_wallet'].forEach(function(k){try{window.dispatchEvent(new StorageEvent('storage',{key:k,newValue:localStorage.getItem(k)||''}));}catch(_){}});log('rendered');}finally{setTimeout(function(){__rendering=false;},100);}}
+function sync(){if(__syncing)return;__syncing=true;try{reconcile();render();}catch(e){}finally{setTimeout(function(){__syncing=false;},120);}}
+function scheduleSync(d){clearTimeout(__syncTimer);__syncTimer=setTimeout(function(){try{sync();}catch(_){}},d||100);}
 
-// --------------- KILL SWITCHES for legacy sync code ----------------
-// These flags neutralize the legacy tick functions so they don't fight V140.
-window.__v106Disabled = true;
-window.__v128Disabled = true;
-window.__v139Disabled = true;
-window.__v140Enabled  = true;
+var wrapped={};
+var PATTERNS=[/^saveTx/i,/^saveTxFromModal$/i,/^saveHeroLogPurchase$/i,/^logPurchase/i,/^deleteTx/i,/^removeTx/i,/^deleteTransaction/i,/^removeTransaction/i,/^clearAllTx/i,/^clearTransactions/i,/^addTx/i];
+function isTarget(n){for(var i=0;i<PATTERNS.length;i++)if(PATTERNS[i].test(n))return true;return false;}
+function wrapFn(n){if(wrapped[n])return;try{if(typeof window[n]!=='function')return;var o=window[n];if(o.__v140)return;var w=function(){var r;try{r=o.apply(this,arguments);}catch(e){throw e;}scheduleSync(80);setTimeout(function(){try{sync();}catch(_){}},400);return r;};w.__v140=true;window[n]=w;wrapped[n]=true;log('wrapped '+n);}catch(_){}}
+function wrapAll(){for(var k in window){try{if(typeof window[k]==='function'&&isTarget(k))wrapFn(k);}catch(_){}}}
+wrapAll();var wc=0;var wi=setInterval(function(){wrapAll();if(++wc>20)clearInterval(wi);},300);
 
-// --------------- CARD → PROGRAM CATALOG ----------------
-// Maps CARDS_DB card keys to their earning program.
-var CARD_TO_PROGRAM = {
-  // AMEX MR
-  cobalt:'MR', amexGold:'MR', amexPlatinum:'MR', amexSimplyCash:'MR',
-  amexAmericanCard:'MR', amexAeroplan:'Aeroplan', amexAeroplanBiz:'Aeroplan',
-  amexAeroReserve:'Aeroplan', amexBusinessGold:'MR', amexBusinessEdge:'MR',
-  amexBusinessPlat:'MR',
-  // Marriott Bonvoy
-  bonvoy:'Bonvoy', amexBonvoyBiz:'Bonvoy',
-  // Scotia Scene+
-  scotiaPlat:'ScenePlus', scotiaPass:'ScenePlus', scotiaGold:'ScenePlus',
-  scotiaAmexBasic:'ScenePlus', sceneVI:'ScenePlus',
-  // Scotia CASH
-  scotiaCashbackVisa:'CASH', scotiaValueVisa:'CASH', scotiaMomentumNoFee:'CASH',
-  scotiaGmVisa:'GMEarnings', scotiaMomentumMC:'CASH',
-  // TD
-  tdAero:'Aeroplan', tdCash:'CASH', tdRewardsVI:'TDRewards',
-  tdPlatTravel:'TDRewards', tdRewardsCard:'TDRewards', tdUsdVisa:'CASH',
-  tdFirstClass:'TDRewards',
-  // CIBC
-  cibcAventura:'Aventura', cibcAventuraGold:'Aventura', cibcAeroplan:'Aeroplan',
-  cibcDividendVI:'CASH', cibcDividendPlat:'CASH', cibcCostco:'CASH',
-  cibcSelect:'CASH', cibcTelus:'CASH', cibcVibe:'CASH',
-  // BMO
-  bmoEclipse:'BMORewards', bmoCashback:'CASH', bmoRewardsMC:'BMORewards',
-  bmoAirMiles:'BlueRewards', bmoCashbackMC:'CASH', bmoPrefRate:'CASH',
-  bmoWorldElite:'BMORewards', bmoAscend:'BMORewards',
-  // MBNA
-  mbnaRewards:'MBNARewards', mbnaSmart:'CASH', mbnaTrue:'CASH',
-  // RBC
-  rbcAvion:'AvionRewards', rbcAvionPlat:'AvionRewards',
-  rbcRewardsPlus:'AvionRewards', rbcSignature:'AvionRewards',
-  rbcION:'AvionRewards', rbcBizAvion:'AvionRewards',
-  rbcWestJet:'WestJetDollars', rbcBAVisa:'Avios',
-  rbcCashback:'CASH',
-  // Rogers
-  rogers:'RogersCash',
-  // PC
-  pcMC:'PCOptimum', pcInsiders:'PCOptimum',
-  // Wealthsimple (all CASH — direct cashback)
-  wsCashCard:'CASH', wsInfinite1:'CASH', wsInfinitePlus:'CASH', wsInfinitePrivilege:'CASH',
-  // Tangerine
-  tangerine:'CASH',
-  // Walmart
-  walmartMC:'WalmartCash',
-  // Canadian Tire
-  canadianTire:'CTMoney',
-  // Neo
-  neoMC:'NeoCash',
-  // HSBC (all handled by RBC now but still earn HSBC Rewards)
-  hsbcWorldElite:'HSBCRewards', hsbcRewards:'HSBCRewards',
-  // Brim
-  brimWE:'BrimRewards', brimStd:'BrimRewards',
-  // Other CASH cards
-  eqBank:'CASH', kohoExtra:'CASH', kohoStandard:'CASH', homeTrust:'CASH',
-  meridianCash:'CASH', capOneAspire:'CASH', coastCapital:'CASH',
-  vancityEnviro:'CASH', servusWE:'CASH', laurentianVI:'CASH',
-  desjardinsCashback:'CASH', desjardinsCashBackWE:'CASH',
-  desjardinsOdyssey:'BonusDollars',
-  nationalWorldElite:'ARewards', nationalSyncro:'CASH', nationalEcho:'CASH'
-};
+try{var osi=localStorage.setItem.bind(localStorage);var TK=/^(walletiq_transactions|v82_tx|tx|transactions|walletIQ_v40_wallet)$/i;localStorage.setItem=function(k,v){var r=osi(k,v);try{if(k&&TK.test(k)&&!__syncing)scheduleSync(60);}catch(_){}return r;};}catch(_){}
 
-// --------------- PROGRAM INFO ----------------
-// cpp = cents per point (used to convert points to $ value).
-// unit = 'pts' for point programs, '$' for cash-equivalent programs.
-var PROGRAM_INFO = {
-  MR:              {cpp: 1.5,  unit: 'pts', name: 'Amex MR',           icon: '🔵'},
-  Aeroplan:        {cpp: 1.5,  unit: 'pts', name: 'Aeroplan',          icon: '✈️'},
-  ScenePlus:       {cpp: 1.0,  unit: 'pts', name: 'Scene+',            icon: '🎬'},
-  Bonvoy:          {cpp: 0.8,  unit: 'pts', name: 'Marriott Bonvoy',   icon: '🏨'},
-  Aventura:        {cpp: 1.5,  unit: 'pts', name: 'CIBC Aventura',     icon: '✈️'},
-  TDRewards:       {cpp: 0.5,  unit: 'pts', name: 'TD Rewards',        icon: '🟢'},
-  BMORewards:      {cpp: 0.67, unit: 'pts', name: 'BMO Rewards',       icon: '🔵'},
-  BlueRewards:     {cpp: 0.67, unit: 'pts', name: 'BMO Blue Rewards',  icon: '🔷'},
-  MBNARewards:     {cpp: 1.0,  unit: 'pts', name: 'MBNA Rewards',      icon: '💎'},
-  AvionRewards:    {cpp: 1.5,  unit: 'pts', name: 'RBC Avion',         icon: '✈️'},
-  WestJetDollars:  {cpp: 100,  unit: '$',   name: 'WestJet Dollars',   icon: '✈️'},
-  Avios:           {cpp: 1.5,  unit: 'pts', name: 'BA Avios',          icon: '✈️'},
-  RogersCash:      {cpp: 100,  unit: '$',   name: 'Rogers Cash',       icon: '🟠'},
-  PCOptimum:       {cpp: 0.1,  unit: 'pts', name: 'PC Optimum',        icon: '🛒'},
-  CASH:            {cpp: 100,  unit: '$',   name: 'Cashback',          icon: '💵'},
-  WalmartCash:     {cpp: 100,  unit: '$',   name: 'Walmart Cash',      icon: '🛍'},
-  CTMoney:         {cpp: 100,  unit: '$',   name: 'CT Money',          icon: '🔺'},
-  NeoCash:         {cpp: 100,  unit: '$',   name: 'Neo Cash',          icon: '⚡'},
-  HSBCRewards:     {cpp: 0.5,  unit: 'pts', name: 'HSBC Rewards',      icon: '🔴'},
-  BrimRewards:     {cpp: 1.0,  unit: 'pts', name: 'Brim Rewards',      icon: '🔷'},
-  BonusDollars:    {cpp: 100,  unit: '$',   name: 'Bonus Dollars',     icon: '💰'},
-  ARewards:        {cpp: 1.0,  unit: 'pts', name: 'À la Carte Rewards',icon: '🍁'},
-  GMEarnings:      {cpp: 100,  unit: '$',   name: 'GM Earnings',       icon: '🚗'}
-};
+document.addEventListener('click',function(e){var t=e.target;if(!t)return;var db=t.closest&&t.closest('.txbtns button, .v82-dismiss-btn, .ccustom-del, .v81-del-btn');var tc=t.closest&&t.closest('.tx-item, .v82-month-body, #txList, .leak-item, .sub-card, .v81-membership-card');var txt=(t.textContent||'').toLowerCase().trim();if((db&&tc)||(tc&&(txt==='\ud83d\uddd1'||txt==='delete'||txt==='×'||txt.indexOf('clear')===0)&&t.tagName==='BUTTON')){scheduleSync(100);setTimeout(function(){try{sync();}catch(_){}},500);}var lb=t.closest&&t.closest('.hero-log-btn, #logPurchaseBtn, .hl-save');if(lb){scheduleSync(80);setTimeout(function(){try{sync();}catch(_){}},400);}if(t.matches&&(t.matches('.sa-btn.primary')||t.closest('.modal-actions .primary'))){scheduleSync(80);}},true);
 
-// --------------- Guards ----------------
-var __syncing   = false;
-var __rendering = false;
-var __syncTimer = null;
+function watchTx(){var el=document.getElementById('txList');if(!el||el.__v140)return;el.__v140=true;new MutationObserver(function(m){if(__syncing||__rendering)return;var rm=false;m.forEach(function(x){if(x.removedNodes&&x.removedNodes.length)rm=true;});if(rm)scheduleSync(80);}).observe(el,{childList:true,subtree:true});}
+watchTx();var wtIv=setInterval(watchTx,500);setTimeout(function(){clearInterval(wtIv);},10000);
 
-// --------------- Utilities ----------------
-function log(m){ try { console.log('[V140]', m); } catch(_){} }
-function warn(m){ try { console.warn('[V140]', m); } catch(_){} }
-
-function loadTxs(){
-  var candidates = ['walletiq_transactions','v82_tx','tx','transactions'];
-  for (var i = 0; i < candidates.length; i++){
-    try {
-      var raw = localStorage.getItem(candidates[i]);
-      if (raw){
-        var parsed = JSON.parse(raw);
-        if (Array.isArray(parsed) && parsed.length) return parsed;
-      }
-    } catch(_){}
-  }
-  return [];
-}
-
-function monthKey(dateStr){
-  if (!dateStr) return 'unknown';
-  var d = new Date(dateStr);
-  if (isNaN(d.getTime())) return 'unknown';
-  var y = d.getFullYear();
-  var m = String(d.getMonth() + 1).padStart(2, '0');
-  return y + '-' + m;
-}
-
-function getCardRateForCategory(cardKey, category){
-  if (!cardKey || !window.CARDS_DB || !window.CARDS_DB[cardKey]) return 1;
-  var card = window.CARDS_DB[cardKey];
-  var rates = card.realRates || card.rates || {};
-  if (category && rates[category] != null) return rates[category];
-  if (rates.base != null) return rates.base;
-  if (rates.other != null) return rates.other;
-  return 1;
-}
-
-function getCategoryFromTx(tx){
-  // Try in order: tx.category, tx.cat, tx.merchantCategory,
-  // then look up ALIASES by merchant name
-  var cat = tx.category || tx.cat || tx.merchantCategory;
-  if (cat) return cat;
-  var merchant = (tx.merchant || tx.name || tx.m || '').toLowerCase().trim();
-  if (merchant && window.ALIASES){
-    if (window.ALIASES[merchant]) return window.ALIASES[merchant];
-    // Try substring match against alias keys
-    for (var k in window.ALIASES){
-      if (merchant.indexOf(k) >= 0) return window.ALIASES[k];
-    }
-  }
-  return 'other';
-}
-
-// --------------- Core: compute earnings from one transaction ---------------
-function computeEarnings(tx){
-  if (!tx || tx.historical) return null;
-  var amount = parseFloat(tx.amount || tx.amt || 0);
-  if (isNaN(amount) || amount <= 0) return null;
-  var cardKey = tx.card || tx.cardKey || tx.c;
-  if (!cardKey) return null;
-  var program = CARD_TO_PROGRAM[cardKey];
-  if (!program) return null;
-  var pi = PROGRAM_INFO[program];
-  if (!pi) return null;
-  var category = getCategoryFromTx(tx);
-  var ratePct = getCardRateForCategory(cardKey, category);
-  var dollarValue = amount * ratePct / 100;
-  // Points: for CASH-like programs (cpp=100), points = dollars.
-  // For point programs, points = dollarValue * 100 / cpp.
-  var points;
-  if (pi.unit === '$') {
-    points = dollarValue;
-  } else {
-    points = dollarValue * 100 / pi.cpp;
-  }
-  return {
-    program: program,
-    points: points,
-    dollarValue: dollarValue,
-    category: category,
-    month: monthKey(tx.date || tx.d)
-  };
-}
-
-// --------------- Core: reconcile the ledger from scratch ---------------
-function reconcile(){
-  var txs = loadTxs();
-  var autoEarnings = {};        // { program: { totalPoints, totalDollars, byMonth: {YYYY-MM: {points, dollars}} } }
-  var programOrder = [];        // insertion order for deterministic rendering
-
-  txs.forEach(function(tx){
-    var e = computeEarnings(tx);
-    if (!e) return;
-    if (!autoEarnings[e.program]){
-      autoEarnings[e.program] = {totalPoints: 0, totalDollars: 0, byMonth: {}};
-      programOrder.push(e.program);
-    }
-    var slot = autoEarnings[e.program];
-    slot.totalPoints  += e.points;
-    slot.totalDollars += e.dollarValue;
-    if (!slot.byMonth[e.month]) slot.byMonth[e.month] = {points: 0, dollars: 0};
-    slot.byMonth[e.month].points  += e.points;
-    slot.byMonth[e.month].dollars += e.dollarValue;
-  });
-
-  // Persist reconciled auto-earnings
-  try {
-    localStorage.setItem('walletiq_auto_earnings', JSON.stringify(autoEarnings));
-  } catch(e){ warn('failed to save auto_earnings: ' + e); }
-
-  // Sync memberships: rewrite __v140Auto entries, wipe legacy __v106Auto/__v128Auto
-  try {
-    var raw = localStorage.getItem('walletiq_memberships');
-    var mems = raw ? JSON.parse(raw) : [];
-    if (!Array.isArray(mems)) mems = [];
-    // Remove any auto entry from previous versions
-    mems = mems.filter(function(m){
-      return !m.__v106Auto && !m.__v128Auto && !m.__v140Auto;
-    });
-    // Add fresh __v140Auto entries
-    programOrder.forEach(function(prog){
-      var pi = PROGRAM_INFO[prog];
-      var slot = autoEarnings[prog];
-      if (!pi || !slot || slot.totalPoints <= 0) return;
-      // Find "this month" earnings for delta display
-      var now = new Date();
-      var thisMonth = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
-      var thisMonthPts = (slot.byMonth[thisMonth] && slot.byMonth[thisMonth].points) || 0;
-      var thisMonthDollars = (slot.byMonth[thisMonth] && slot.byMonth[thisMonth].dollars) || 0;
-      mems.push({
-        __v140Auto: true,
-        program: prog,
-        programKey: prog,
-        name: pi.name,
-        n: pi.name,
-        icon: pi.icon,
-        emoji: pi.icon,
-        balance: Math.round(slot.totalPoints * 100) / 100,
-        pts: Math.round(slot.totalPoints * 100) / 100,
-        dollarValue: Math.round(slot.totalDollars * 100) / 100,
-        cashValue: Math.round(slot.totalDollars * 100) / 100,
-        cpp: pi.cpp,
-        unit: pi.unit,
-        thisMonth: Math.round(thisMonthPts * 100) / 100,
-        thisMonthDollars: Math.round(thisMonthDollars * 100) / 100,
-        source: 'v140-auto'
-      });
-    });
-    localStorage.setItem('walletiq_memberships', JSON.stringify(mems));
-  } catch(e){ warn('failed to sync memberships: ' + e); }
-
-  return autoEarnings;
-}
-
-// --------------- Core: fire all UI renderers ---------------
-function render(){
-  if (__rendering) return;
-  __rendering = true;
-  try {
-    // (1) Transactions list renderers
-    ['renderTxList','renderTransactions','renderTx','renderActivity','renderTxTab'].forEach(function(fn){
-      try { if (typeof window[fn] === 'function') window[fn](); } catch(_){}
-    });
-
-    // (2) Re-fire active month pill so filter re-applies to fresh list
-    try {
-      var ap = document.querySelector('.month-pill.on');
-      if (ap) ap.dispatchEvent(new MouseEvent('click', {bubbles: true, cancelable: true}));
-    } catch(_){}
-
-    // (3) Rewards Studio hero (Total portfolio, This mo, YTD, Missed, Vault)
-    ['renderRewardsHero','updateRewardsHero','renderStudioHero','renderInsights','renderOverview','renderRewardsStudio','updateStudioHero'].forEach(function(fn){
-      try { if (typeof window[fn] === 'function') window[fn](); } catch(_){}
-    });
-
-    // (4) Home page tiles + vault summary card
-    ['renderHome','renderHomeVaultSummary','renderVaultSummary','updateHomeStats','renderHomeTile'].forEach(function(fn){
-      try { if (typeof window[fn] === 'function') window[fn](); } catch(_){}
-    });
-    try { if (window.__v122 && typeof window.__v122.renderHome === 'function') window.__v122.renderHome(); } catch(_){}
-
-    // (5) Points Vault (Fastest earner + per-program values)
-    ['renderVaultV122','renderVault','renderPointsTab','renderV122','renderPointsVault'].forEach(function(fn){
-      try { if (typeof window[fn] === 'function') window[fn](); } catch(_){}
-    });
-
-    // (6) Nudge the currently-active rewards subtab
-    try {
-      var as = document.querySelector('.rewards-subtabs button.on');
-      if (as && typeof window.switchRewardsView === 'function'){
-        var v = as.getAttribute('data-view');
-        if (v) window.switchRewardsView(v);
-      }
-    } catch(_){}
-
-    // (7) Dispatch synthetic StorageEvents for legacy listeners
-    var keys = ['walletiq_transactions','walletiq_auto_earnings','walletiq_memberships','walletIQ_v40_wallet'];
-    keys.forEach(function(k){
-      try {
-        var val = localStorage.getItem(k) || '';
-        window.dispatchEvent(new StorageEvent('storage', {key: k, newValue: val}));
-      } catch(_){}
-    });
-
-    // (8) Custom event
-    try { window.dispatchEvent(new CustomEvent('v140:synced')); } catch(_){}
-
-    log('rendered');
-  } finally {
-    setTimeout(function(){ __rendering = false; }, 100);
-  }
-}
-
-// --------------- Combined sync: reconcile + render ---------------
-function sync(){
-  if (__syncing) return;
-  __syncing = true;
-  try {
-    reconcile();
-    render();
-  } catch(e){
-    warn('sync error: ' + e);
-  } finally {
-    setTimeout(function(){ __syncing = false; }, 120);
-  }
-}
-
-function scheduleSync(delay){
-  clearTimeout(__syncTimer);
-  __syncTimer = setTimeout(function(){
-    try { sync(); } catch(_){}
-  }, delay || 100);
-}
-
-// --------------- NEUTRALIZE legacy sync functions ---------------
-// After legacy modules define their tick functions, replace them with delegates.
-function neutralizeLegacy(){
-  try {
-    if (window.__v106Tick && !window.__v106Tick.__v140Delegate){
-      window.__v106Tick = function(){ scheduleSync(20); };
-      window.__v106Tick.__v140Delegate = true;
-    }
-  } catch(_){}
-  try {
-    if (window.__v128 && typeof window.__v128.tick === 'function' && !window.__v128.tick.__v140Delegate){
-      window.__v128.tick = function(){ scheduleSync(20); };
-      window.__v128.tick.__v140Delegate = true;
-    }
-  } catch(_){}
-  try {
-    if (window.__v139 && typeof window.__v139.reconcileAndRender === 'function' && !window.__v139.reconcileAndRender.__v140Delegate){
-      window.__v139.reconcileAndRender = function(){ scheduleSync(20); };
-      window.__v139.reconcileAndRender.__v140Delegate = true;
-    }
-    if (window.__v139 && typeof window.__v139.scheduleReconcile === 'function' && !window.__v139.scheduleReconcile.__v140Delegate){
-      window.__v139.scheduleReconcile = function(d){ scheduleSync(d || 100); };
-      window.__v139.scheduleReconcile.__v140Delegate = true;
-    }
-  } catch(_){}
-}
-neutralizeLegacy();
-var neutIv = setInterval(neutralizeLegacy, 400);
-setTimeout(function(){ clearInterval(neutIv); }, 15000);
-
-// --------------- Trigger: wrap tx save/delete functions ---------------
-var wrappedFns = {};
-var TARGET_PATTERNS = [
-  /^saveTx/i, /^saveTxFromModal$/i, /^saveHeroLogPurchase$/i, /^logPurchase/i,
-  /^deleteTx/i, /^removeTx/i, /^deleteTransaction/i, /^removeTransaction/i,
-  /^clearAllTx/i, /^clearTransactions/i, /^addTx/i
-];
-function isTarget(name){
-  for (var i = 0; i < TARGET_PATTERNS.length; i++){
-    if (TARGET_PATTERNS[i].test(name)) return true;
-  }
-  return false;
-}
-function wrapFn(name){
-  if (wrappedFns[name]) return;
-  try {
-    if (typeof window[name] !== 'function') return;
-    var original = window[name];
-    if (original.__v140Wrapped) { wrappedFns[name] = true; return; }
-    var wrapped = function(){
-      var r;
-      try { r = original.apply(this, arguments); } catch(err){ throw err; }
-      scheduleSync(80);
-      setTimeout(function(){ try { sync(); } catch(_){} }, 300);
-      setTimeout(function(){ try { sync(); } catch(_){} }, 700);
-      return r;
-    };
-    wrapped.__v140Wrapped = true;
-    window[name] = wrapped;
-    wrappedFns[name] = true;
-    log('wrapped ' + name);
-  } catch(e){ warn('wrap ' + name + ' failed: ' + e); }
-}
-function wrapAll(){
-  for (var k in window){
-    try { if (typeof window[k] === 'function' && isTarget(k)) wrapFn(k); } catch(_){}
-  }
-}
-wrapAll();
-var wrapAttempts = 0;
-var wrapIv = setInterval(function(){
-  wrapAll();
-  if (++wrapAttempts > 30) clearInterval(wrapIv);
-}, 300);
-
-// --------------- Trigger: localStorage intercept ---------------
-try {
-  var origSetItem = localStorage.setItem.bind(localStorage);
-  var origRemoveItem = localStorage.removeItem.bind(localStorage);
-  // Only trigger on TX-source keys. Do NOT trigger on our own writes to
-  // walletiq_auto_earnings or walletiq_memberships (those would loop).
-  var TRIGGER_KEYS = /^(walletiq_transactions|v82_tx|tx|transactions|walletIQ_v40_wallet)$/i;
-  localStorage.setItem = function(key, value){
-    var r = origSetItem(key, value);
-    try {
-      if (key && TRIGGER_KEYS.test(key) && !__syncing){
-        scheduleSync(60);
-      }
-    } catch(_){}
-    return r;
-  };
-  localStorage.removeItem = function(key){
-    var r = origRemoveItem(key);
-    try {
-      if (key && TRIGGER_KEYS.test(key) && !__syncing){
-        scheduleSync(60);
-      }
-    } catch(_){}
-    return r;
-  };
-  log('localStorage intercepted');
-} catch(e){ warn('localStorage intercept failed: ' + e); }
-
-// --------------- Trigger: click listener ---------------
-document.addEventListener('click', function(e){
-  var t = e.target; if (!t) return;
-  // Delete buttons
-  var deleteBtn = t.closest && t.closest('.txbtns button, .v82-dismiss-btn, .ccustom-del, .v81-del-btn');
-  var txContext = t.closest && t.closest('.tx-item, .v82-month-body, #txList, .leak-item, .sub-card, .v81-membership-card');
-  var tc = (t.textContent || '').toLowerCase().trim();
-  var isDeleteText = tc === '🗑' || tc === 'delete' || tc === '×' || tc.indexOf('clear') === 0;
-  if ((deleteBtn && txContext) || (txContext && isDeleteText && t.tagName === 'BUTTON')){
-    scheduleSync(100);
-    setTimeout(function(){ try { sync(); } catch(_){} }, 500);
-    setTimeout(function(){ try { sync(); } catch(_){} }, 1000);
-  }
-  // Log/save buttons
-  var logBtn = t.closest && t.closest('.hero-log-btn, #logPurchaseBtn, .hl-save');
-  if (logBtn){
-    scheduleSync(80);
-    setTimeout(function(){ try { sync(); } catch(_){} }, 400);
-  }
-  // Studio primary save (Add purchase modal)
-  if (t.matches && (t.matches('.sa-btn.primary') || t.closest('.modal-actions .primary'))){
-    scheduleSync(80);
-    setTimeout(function(){ try { sync(); } catch(_){} }, 400);
-  }
-  // Danger / clear
-  if (t.matches && t.matches('.sa-btn.danger, button.danger')){
-    scheduleSync(120);
-    setTimeout(function(){ try { sync(); } catch(_){} }, 500);
-  }
-}, true);
-
-// --------------- Trigger: MutationObserver on #txList ---------------
-function watchTxList(){
-  var el = document.getElementById('txList');
-  if (!el || el.__v140Watched) return;
-  el.__v140Watched = true;
-  new MutationObserver(function(muts){
-    if (__syncing || __rendering) return;
-    var removed = false;
-    muts.forEach(function(m){ if (m.removedNodes && m.removedNodes.length) removed = true; });
-    if (removed) scheduleSync(80);
-  }).observe(el, {childList: true, subtree: true});
-}
-watchTxList();
-var watchIv = setInterval(watchTxList, 500);
-setTimeout(function(){ clearInterval(watchIv); }, 15000);
-
-// --------------- Boot ---------------
-function boot(){
-  log('sync engine initialized (' + VERSION + ')');
-  // Initial sync passes: catch any state loaded before we booted
-  setTimeout(function(){ try { sync(); } catch(_){} }, 500);
-  setTimeout(function(){ try { sync(); } catch(_){} }, 2000);
-}
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', boot);
-} else {
-  boot();
-}
-
-// --------------- Expose public API ---------------
-window.__v140 = {
-  version: VERSION,
-  sync: sync,
-  reconcile: reconcile,
-  render: render,
-  scheduleSync: scheduleSync,
-  computeEarnings: computeEarnings,
-  CARD_TO_PROGRAM: CARD_TO_PROGRAM,
-  PROGRAM_INFO: PROGRAM_INFO,
-  wrappedFns: wrappedFns,
-  _guards: {
-    isSyncing: function(){ return __syncing; },
-    isRendering: function(){ return __rendering; }
-  }
-};
+setTimeout(function(){try{sync();}catch(_){}},500);setTimeout(function(){try{sync();}catch(_){}},2000);
+window.__v140={version:VERSION,sync:sync,reconcile:reconcile,render:render,scheduleSync:scheduleSync,computeEarnings:computeEarnings,CARD_TO_PROGRAM:CARD_TO_PROGRAM,PROGRAM_INFO:PROGRAM_INFO};
+log('sync engine initialized');
 })();
 </script>
 
 <script id="v141-globals-bridge">
-// ==========================================================================
-// V141 CRITICAL FIX: Bridge const-declared globals to window scope.
-//
-// V128 declares its core data as `const CARDS_DB = {...}` — accessible by
-// name inside classic scripts but NOT attached to `window`. Every recent
-// module (V137 merchants, V139 sync, V140 sync engine) checked
-// `window.CARDS_DB` / `window.ALIASES` which were always undefined,
-// so they all silently failed to run.
-//
-// V141 bridges those globals to `window.*`, re-injects the 172 V137
-// merchants, invalidates V127 caches, and kicks V140 into re-syncing.
-// ==========================================================================
-
-(function(){
-'use strict';
-
-function log(m){ try { console.log('[V141]', m); } catch(_){} }
-function warn(m){ try { console.warn('[V141]', m); } catch(_){} }
-
-log('V141 booting — bridging const globals to window');
-
-// ==========================================================================
-// A. BRIDGE const/var globals to window
-// ==========================================================================
-var bridged = {};
-var attempted = ['CARDS_DB','ALIASES','ACCEPTANCE','PROGRAMS','MERCHANT_DIRECTORY',
-                 'CARD_EARN','POINT_PROGRAMS','WALLET_KEY','MERCHANT_TO_CATEGORY',
-                 'PROGRAM_INFO','CARD_TO_PROGRAM'];
-
-// Use eval-in-scope trick to safely detect and bridge const declarations
-// without throwing ReferenceError.
-attempted.forEach(function(name){
-  try {
-    // typeof does NOT throw on undeclared identifiers, so this is safe
-    var expr = 'typeof ' + name + ' !== "undefined" ? ' + name + ' : undefined';
-    var val = (0, eval)(expr);
-    if (val !== undefined) {
-      if (!window[name] || (typeof window[name] === 'object' && Object.keys(window[name]).length === 0)) {
-        window[name] = val;
-        bridged[name] = 'bridged';
-      } else {
-        bridged[name] = 'already on window';
-      }
-    } else {
-      bridged[name] = 'not declared';
-    }
-  } catch(e) {
-    bridged[name] = 'error: ' + e.message;
-  }
+(function(){'use strict';
+function log(m){try{console.log('[V141]',m);}catch(_){}}
+log('bridging const globals to window');
+var bridged={};
+['CARDS_DB','ALIASES','ACCEPTANCE','PROGRAMS','MERCHANT_DIRECTORY','CARD_EARN','POINT_PROGRAMS','WALLET_KEY','MERCHANT_TO_CATEGORY'].forEach(function(n){
+  try{var v=(0,eval)('typeof '+n+' !== "undefined" ? '+n+' : undefined');if(v!==undefined){if(!window[n]||(typeof window[n]==='object'&&Object.keys(window[n]).length===0)){window[n]=v;bridged[n]='bridged';}else bridged[n]='already';}else bridged[n]='not declared';}catch(e){bridged[n]='error:'+e.message;}
 });
-
-log('bridge results: ' + JSON.stringify(bridged));
-
-// Bridge functions too
-var fnNames = ['saveTx','saveTxFromModal','saveHeroLogPurchase','logPurchase',
-               'deleteTx','removeTx','removeTxById','clearAllTx','addTx',
-               'renderHome','renderTxList','renderTransactions','renderRewardsHero',
-               'updateRewardsHero','renderVaultV122','renderVault','renderPointsTab',
-               'switchRewardsView','switchTab','renderHomeVaultSummary'];
-var fnBridged = 0;
-fnNames.forEach(function(name){
-  try {
-    var expr = 'typeof ' + name + ' === "function" ? ' + name + ' : undefined';
-    var fn = (0, eval)(expr);
-    if (fn && typeof window[name] !== 'function') {
-      window[name] = fn;
-      fnBridged++;
-    }
-  } catch(e){}
+log('bridge: '+JSON.stringify(bridged));
+['saveTx','saveTxFromModal','saveHeroLogPurchase','logPurchase','deleteTx','removeTx','clearAllTx','addTx','renderHome','renderTxList','renderTransactions','renderRewardsHero','updateRewardsHero','renderVaultV122','renderVault','switchRewardsView','switchTab','renderHomeVaultSummary'].forEach(function(n){
+  try{var f=(0,eval)('typeof '+n+' === "function" ? '+n+' : undefined');if(f&&typeof window[n]!=='function')window[n]=f;}catch(_){}
 });
-log('functions bridged: ' + fnBridged);
-
-// ==========================================================================
-// B. RE-INJECT 172 V137 MERCHANTS
-// ==========================================================================
-var NEW_MERCHANTS = [["pne", "cineplex", "Pne", true, "\ud83c\udfa2"], ["playland", "cineplex", "Playland", true, "\ud83c\udfa2"], ["pne playland", "cineplex", "Pne Playland", true, "\ud83c\udfa2"], ["pacific national exhibition", "cineplex", "Pacific National Exhibition", true, "\ud83c\udfa2"], ["cultus lake adventure park", "cineplex", "Cultus Lake Adventure Park", true, "\ud83c\udfa2"], ["cultus lake waterpark", "cineplex", "Cultus Lake Waterpark", true, "\ud83c\udfa2"], ["bridal falls waterpark", "cineplex", "Bridal Falls Waterpark", true, "\ud83c\udfa2"], ["splashdown park", "cineplex", "Splashdown Park", true, "\ud83c\udfa2"], ["splashdown waterpark", "cineplex", "Splashdown Waterpark", true, "\ud83c\udfa2"], ["science world", "cineplex", "Science World", true, "\ud83c\udfa2"], ["telus world of science", "cineplex", "Telus World Of Science", true, "\ud83c\udfa2"], ["vancouver aquarium", "cineplex", "Vancouver Aquarium", true, "\ud83c\udfa2"], ["capilano suspension bridge", "cineplex", "Capilano Suspension Bridge", true, "\ud83c\udfa2"], ["grouse mountain", "cineplex", "Grouse Mountain", true, "\ud83c\udfa2"], ["cypress mountain", "cineplex", "Cypress Mountain", true, "\ud83c\udfa2"], ["whistler blackcomb", "cineplex", "Whistler Blackcomb", true, "\ud83c\udfa2"], ["whistler", "cineplex", "Whistler", true, "\ud83c\udfa2"], ["big white ski resort", "cineplex", "Big White Ski Resort", true, "\ud83c\udfa2"], ["silver star mountain", "cineplex", "Silver Star Mountain", true, "\ud83c\udfa2"], ["sun peaks resort", "cineplex", "Sun Peaks Resort", true, "\ud83c\udfa2"], ["revelstoke mountain resort", "cineplex", "Revelstoke Mountain Resort", true, "\ud83c\udfa2"], ["fernie alpine", "cineplex", "Fernie Alpine", true, "\ud83c\udfa2"], ["kicking horse mountain", "cineplex", "Kicking Horse Mountain", true, "\ud83c\udfa2"], ["flyover canada", "cineplex", "Flyover Canada", true, "\ud83c\udfa2"], ["butchart gardens", "cineplex", "Butchart Gardens", true, "\ud83c\udfa2"], ["royal bc museum", "cineplex", "Royal Bc Museum", true, "\ud83c\udfa2"], ["richmond night market", "other", "Richmond Night Market", false, "\ud83c\udfaa"], ["sabai thai spa", "other", "Sabai Thai Spa", true, "\ud83d\udc86"], ["sabai thai", "other", "Sabai Thai", true, "\ud83d\udc86"], ["sabai spa", "other", "Sabai Spa", true, "\ud83d\udc86"], ["absolute spa", "other", "Absolute Spa", true, "\ud83d\udc86"], ["skoah", "other", "Skoah", true, "\ud83d\udc86"], ["miraj hammam spa", "other", "Miraj Hammam Spa", true, "\ud83d\udc86"], ["miraj hammam", "other", "Miraj Hammam", true, "\ud83d\udc86"], ["willow stream spa", "other", "Willow Stream Spa", true, "\ud83d\udc86"], ["chi the spa", "other", "Chi The Spa", true, "\ud83d\udc86"], ["vida spa", "other", "Vida Spa", true, "\ud83d\udc86"], ["spa utopia", "other", "Spa Utopia", true, "\ud83d\udc86"], ["the refinery grooming lounge", "other", "The Refinery Grooming Lounge", true, "\ud83d\udc86"], ["the refinery", "other", "The Refinery", true, "\ud83d\udc86"], ["beauty mark", "other", "Beauty Mark", true, "\ud83d\udc86"], ["beautymark", "other", "Beautymark", true, "\ud83d\udc86"], ["eminence organic spa", "other", "Eminence Organic Spa", true, "\ud83d\udc86"], ["massage envy", "other", "Massage Envy", true, "\ud83d\udc86"], ["spa ritual", "other", "Spa Ritual", false, "\ud83d\udc86"], ["olia hair salon spa", "other", "Olia Hair Salon Spa", false, "\ud83d\udc86"], ["pure nail bar", "other", "Pure Nail Bar", false, "\ud83d\udc86"], ["hush hush spa", "other", "Hush Hush Spa", false, "\ud83d\udc86"], ["claritas spa", "other", "Claritas Spa", false, "\ud83d\udc86"], ["oasis spa", "other", "Oasis Spa", false, "\ud83d\udc86"], ["goodlife fitness", "other", "Goodlife Fitness", true, "\ud83d\udcaa"], ["good life fitness", "other", "Good Life Fitness", true, "\ud83d\udcaa"], ["goodlife", "other", "Goodlife", true, "\ud83d\udcaa"], ["steve nash fitness world", "other", "Steve Nash Fitness World", true, "\ud83d\udcaa"], ["steve nash fitness", "other", "Steve Nash Fitness", true, "\ud83d\udcaa"], ["steve nash", "other", "Steve Nash", true, "\ud83d\udcaa"], ["fitness world", "other", "Fitness World", true, "\ud83d\udcaa"], ["anytime fitness", "other", "Anytime Fitness", true, "\ud83d\udcaa"], ["club16 trevor linden fitness", "other", "Club16 Trevor Linden Fitness", true, "\ud83d\udcaa"], ["club16", "other", "Club16", true, "\ud83d\udcaa"], ["club 16", "other", "Club 16", true, "\ud83d\udcaa"], ["trevor linden fitness", "other", "Trevor Linden Fitness", true, "\ud83d\udcaa"], ["ymca vancouver", "other", "Ymca Vancouver", true, "\ud83d\udcaa"], ["ymca canada", "other", "Ymca Canada", true, "\ud83d\udcaa"], ["ymca", "other", "Ymca", true, "\ud83d\udcaa"], ["orangetheory fitness", "other", "Orangetheory Fitness", true, "\ud83d\udcaa"], ["orangetheory", "other", "Orangetheory", true, "\ud83d\udcaa"], ["orange theory", "other", "Orange Theory", true, "\ud83d\udcaa"], ["f45 training", "other", "F45 Training", true, "\ud83d\udcaa"], ["f45", "other", "F45", true, "\ud83d\udcaa"], ["barrys bootcamp", "other", "Barrys Bootcamp", true, "\ud83d\udcaa"], ["pure barre", "other", "Pure Barre", true, "\ud83d\udcaa"], ["oxygen yoga fitness", "other", "Oxygen Yoga Fitness", true, "\ud83d\udcaa"], ["oxygen yoga", "other", "Oxygen Yoga", true, "\ud83d\udcaa"], ["yyoga", "other", "Yyoga", true, "\ud83d\udcaa"], ["yyoga vancouver", "other", "Yyoga Vancouver", true, "\ud83d\udcaa"], ["planet fitness canada", "other", "Planet Fitness Canada", true, "\ud83d\udcaa"], ["planet fitness", "other", "Planet Fitness", true, "\ud83d\udcaa"], ["world gym", "other", "World Gym", true, "\ud83d\udcaa"], ["soulcycle canada", "other", "Soulcycle Canada", true, "\ud83d\udcaa"], ["soulcycle", "other", "Soulcycle", true, "\ud83d\udcaa"], ["peloton studio", "other", "Peloton Studio", true, "\ud83d\udcaa"], ["golds gym canada", "other", "Golds Gym Canada", true, "\ud83d\udcaa"], ["golds gym", "other", "Golds Gym", true, "\ud83d\udcaa"], ["fit4less", "other", "Fit4Less", true, "\ud83d\udcaa"], ["energie fitness", "other", "Energie Fitness", true, "\ud83d\udcaa"], ["semperviva yoga", "other", "Semperviva Yoga", false, "\ud83d\udcaa"], ["east side fitness", "other", "East Side Fitness", false, "\ud83d\udcaa"], ["iron wolf gym", "other", "Iron Wolf Gym", false, "\ud83d\udcaa"], ["energyplex", "other", "Energyplex", false, "\ud83d\udcaa"], ["crossfit vancouver", "other", "Crossfit Vancouver", false, "\ud83d\udcaa"], ["studeo55", "other", "Studeo55", false, "\ud83d\udcaa"], ["studeo 55", "other", "Studeo 55", false, "\ud83d\udcaa"], ["reformx pilates", "other", "Reformx Pilates", false, "\ud83d\udcaa"], ["supplement king", "shopping", "Supplement King", true, "\ud83d\udc8a"], ["popeyes supplements", "shopping", "Popeyes Supplements", true, "\ud83d\udc8a"], ["gnc", "shopping", "Gnc", true, "\ud83d\udc8a"], ["general nutrition centre", "shopping", "General Nutrition Centre", true, "\ud83d\udc8a"], ["body energy club", "shopping", "Body Energy Club", true, "\ud83d\udc8a"], ["vitamin shoppe", "shopping", "Vitamin Shoppe", true, "\ud83d\udc8a"], ["nutrition house", "shopping", "Nutrition House", true, "\ud83d\udc8a"], ["healthy planet", "shopping", "Healthy Planet", true, "\ud83d\udc8a"], ["iherb", "shopping", "Iherb", true, "\ud83d\udc8a"], ["true north nutrition", "shopping", "True North Nutrition", false, "\ud83d\udc8a"], ["sushi hachi", "dining", "Sushi Hachi", true, "\ud83c\udf7d"], ["miku", "dining", "Miku", true, "\ud83c\udf7d"], ["miku restaurant", "dining", "Miku Restaurant", true, "\ud83c\udf7d"], ["minami", "dining", "Minami", true, "\ud83c\udf7d"], ["sushi mura", "dining", "Sushi Mura", true, "\ud83c\udf7d"], ["ramen danbo", "dining", "Ramen Danbo", true, "\ud83c\udf7d"], ["santouka ramen", "dining", "Santouka Ramen", true, "\ud83c\udf7d"], ["kinton ramen", "dining", "Kinton Ramen", true, "\ud83c\udf7d"], ["marutama ramen", "dining", "Marutama Ramen", true, "\ud83c\udf7d"], ["jinya ramen", "dining", "Jinya Ramen", true, "\ud83c\udf7d"], ["ippudo", "dining", "Ippudo", true, "\ud83c\udf7d"], ["ajisai sushi bar", "dining", "Ajisai Sushi Bar", true, "\ud83c\udf7d"], ["toshi sushi", "dining", "Toshi Sushi", true, "\ud83c\udf7d"], ["tojos", "dining", "Tojos", true, "\ud83c\udf7d"], ["sushi bar maumi", "dining", "Sushi Bar Maumi", true, "\ud83c\udf7d"], ["masayoshi", "dining", "Masayoshi", true, "\ud83c\udf7d"], ["kishimoto", "dining", "Kishimoto", true, "\ud83c\udf7d"], ["yuwa", "dining", "Yuwa", true, "\ud83c\udf7d"], ["guu", "dining", "Guu", true, "\ud83c\udf7d"], ["kingyo izakaya", "dining", "Kingyo Izakaya", true, "\ud83c\udf7d"], ["suika izakaya", "dining", "Suika Izakaya", true, "\ud83c\udf7d"], ["zakkushi", "dining", "Zakkushi", true, "\ud83c\udf7d"], ["vijs", "dining", "Vijs", true, "\ud83c\udf7d"], ["rangoli", "dining", "Rangoli", true, "\ud83c\udf7d"], ["india gate", "dining", "India Gate", true, "\ud83c\udf7d"], ["indian oven", "dining", "Indian Oven", true, "\ud83c\udf7d"], ["fanny bay oyster bar", "dining", "Fanny Bay Oyster Bar", true, "\ud83c\udf7d"], ["rodneys oyster house", "dining", "Rodneys Oyster House", true, "\ud83c\udf7d"], ["joe fortes seafood", "dining", "Joe Fortes Seafood", true, "\ud83c\udf7d"], ["blue water cafe", "dining", "Blue Water Cafe", true, "\ud83c\udf7d"], ["ancora waterfront", "dining", "Ancora Waterfront", true, "\ud83c\udf7d"], ["provence marinaside", "dining", "Provence Marinaside", true, "\ud83c\udf7d"], ["black + blue", "dining", "Black + Blue", true, "\ud83c\udf7d"], ["gotham steakhouse", "dining", "Gotham Steakhouse", true, "\ud83c\udf7d"], ["hys steakhouse", "dining", "Hys Steakhouse", true, "\ud83c\udf7d"], ["bacchus restaurant", "dining", "Bacchus Restaurant", true, "\ud83c\udf7d"], ["hawksworth", "dining", "Hawksworth", true, "\ud83c\udf7d"], ["botanist", "dining", "Botanist", true, "\ud83c\udf7d"], ["forage vancouver", "dining", "Forage Vancouver", true, "\ud83c\udf7d"], ["st. lawrence", "dining", "St. Lawrence", true, "\ud83c\udf7d"], ["ask for luigi", "dining", "Ask For Luigi", true, "\ud83c\udf7d"], ["savio volpe", "dining", "Savio Volpe", true, "\ud83c\udf7d"], ["pizzeria farina", "dining", "Pizzeria Farina", true, "\ud83c\udf7d"], ["nicli antica", "dining", "Nicli Antica", true, "\ud83c\udf7d"], ["pizzeria barbarella", "dining", "Pizzeria Barbarella", true, "\ud83c\udf7d"], ["rocky mountain flatbread", "dining", "Rocky Mountain Flatbread", true, "\ud83c\udf7d"], ["freshslice pizza", "dining", "Freshslice Pizza", true, "\ud83c\udf7d"], ["pizza garden", "dining", "Pizza Garden", true, "\ud83c\udf7d"], ["tacofino", "dining", "Tacofino", true, "\ud83c\udf7d"], ["la taqueria", "dining", "La Taqueria", true, "\ud83c\udf7d"], ["las margaritas", "dining", "Las Margaritas", true, "\ud83c\udf7d"], ["burgoo", "dining", "Burgoo", true, "\ud83c\udf7d"], ["glowbal", "dining", "Glowbal", true, "\ud83c\udf7d"], ["coast restaurant", "dining", "Coast Restaurant", true, "\ud83c\udf7d"], ["yaletown brewing", "dining", "Yaletown Brewing", true, "\ud83c\udf7d"], ["craft beer market", "dining", "Craft Beer Market", true, "\ud83c\udf7d"], ["steamworks brewing", "dining", "Steamworks Brewing", true, "\ud83c\udf7d"], ["tap & barrel", "dining", "Tap & Barrel", true, "\ud83c\udf7d"], ["49th parallel coffee", "dining", "49Th Parallel Coffee", true, "\ud83c\udf7d"], ["revolver coffee", "dining", "Revolver Coffee", true, "\ud83c\udf7d"], ["prado cafe", "dining", "Prado Cafe", true, "\ud83c\udf7d"], ["matchstick coffee", "dining", "Matchstick Coffee", true, "\ud83c\udf7d"], ["moja coffee", "dining", "Moja Coffee", true, "\ud83c\udf7d"], ["purebread", "dining", "Purebread", true, "\ud83c\udf7d"], ["small victory bakery", "dining", "Small Victory Bakery", true, "\ud83c\udf7d"], ["thomas haas", "dining", "Thomas Haas", true, "\ud83c\udf7d"], ["beta5 chocolates", "dining", "Beta5 Chocolates", true, "\ud83c\udf7d"]];
-
-var startAliasCount = window.ALIASES ? Object.keys(window.ALIASES).length : 0;
-var startDirCount   = (window.MERCHANT_DIRECTORY && window.MERCHANT_DIRECTORY.length) || 0;
-var addedToAliases = 0;
-var addedToDir = 0;
-var addedToAcceptance = 0;
-
-function injectMerchants(){
-  if (!window.ALIASES) {
-    warn('ALIASES still undefined — cannot inject merchants');
-    return false;
-  }
-  NEW_MERCHANTS.forEach(function(entry){
-    var alias = entry[0], category = entry[1], displayName = entry[2], amexOK = entry[3], emoji = entry[4];
-
-    // ALIASES: category lookup
-    if (!window.ALIASES[alias]) {
-      window.ALIASES[alias] = category;
-      addedToAliases++;
+var NM=[["pne", "cineplex", "Pne", true, "\ud83c\udfa2"], ["playland", "cineplex", "Playland", true, "\ud83c\udfa2"], ["pne playland", "cineplex", "Pne Playland", true, "\ud83c\udfa2"], ["pacific national exhibition", "cineplex", "Pacific National Exhibition", true, "\ud83c\udfa2"], ["cultus lake adventure park", "cineplex", "Cultus Lake Adventure Park", true, "\ud83c\udfa2"], ["cultus lake waterpark", "cineplex", "Cultus Lake Waterpark", true, "\ud83c\udfa2"], ["bridal falls waterpark", "cineplex", "Bridal Falls Waterpark", true, "\ud83c\udfa2"], ["splashdown park", "cineplex", "Splashdown Park", true, "\ud83c\udfa2"], ["splashdown waterpark", "cineplex", "Splashdown Waterpark", true, "\ud83c\udfa2"], ["science world", "cineplex", "Science World", true, "\ud83c\udfa2"], ["telus world of science", "cineplex", "Telus World Of Science", true, "\ud83c\udfa2"], ["vancouver aquarium", "cineplex", "Vancouver Aquarium", true, "\ud83c\udfa2"], ["capilano suspension bridge", "cineplex", "Capilano Suspension Bridge", true, "\ud83c\udfa2"], ["grouse mountain", "cineplex", "Grouse Mountain", true, "\ud83c\udfa2"], ["cypress mountain", "cineplex", "Cypress Mountain", true, "\ud83c\udfa2"], ["whistler blackcomb", "cineplex", "Whistler Blackcomb", true, "\ud83c\udfa2"], ["whistler", "cineplex", "Whistler", true, "\ud83c\udfa2"], ["big white ski resort", "cineplex", "Big White Ski Resort", true, "\ud83c\udfa2"], ["silver star mountain", "cineplex", "Silver Star Mountain", true, "\ud83c\udfa2"], ["sun peaks resort", "cineplex", "Sun Peaks Resort", true, "\ud83c\udfa2"], ["revelstoke mountain resort", "cineplex", "Revelstoke Mountain Resort", true, "\ud83c\udfa2"], ["fernie alpine", "cineplex", "Fernie Alpine", true, "\ud83c\udfa2"], ["kicking horse mountain", "cineplex", "Kicking Horse Mountain", true, "\ud83c\udfa2"], ["flyover canada", "cineplex", "Flyover Canada", true, "\ud83c\udfa2"], ["butchart gardens", "cineplex", "Butchart Gardens", true, "\ud83c\udfa2"], ["royal bc museum", "cineplex", "Royal Bc Museum", true, "\ud83c\udfa2"], ["richmond night market", "other", "Richmond Night Market", false, "\ud83c\udfaa"], ["sabai thai spa", "other", "Sabai Thai Spa", true, "\ud83d\udc86"], ["sabai thai", "other", "Sabai Thai", true, "\ud83d\udc86"], ["sabai spa", "other", "Sabai Spa", true, "\ud83d\udc86"], ["absolute spa", "other", "Absolute Spa", true, "\ud83d\udc86"], ["skoah", "other", "Skoah", true, "\ud83d\udc86"], ["miraj hammam spa", "other", "Miraj Hammam Spa", true, "\ud83d\udc86"], ["miraj hammam", "other", "Miraj Hammam", true, "\ud83d\udc86"], ["willow stream spa", "other", "Willow Stream Spa", true, "\ud83d\udc86"], ["chi the spa", "other", "Chi The Spa", true, "\ud83d\udc86"], ["vida spa", "other", "Vida Spa", true, "\ud83d\udc86"], ["spa utopia", "other", "Spa Utopia", true, "\ud83d\udc86"], ["the refinery grooming lounge", "other", "The Refinery Grooming Lounge", true, "\ud83d\udc86"], ["the refinery", "other", "The Refinery", true, "\ud83d\udc86"], ["beauty mark", "other", "Beauty Mark", true, "\ud83d\udc86"], ["beautymark", "other", "Beautymark", true, "\ud83d\udc86"], ["eminence organic spa", "other", "Eminence Organic Spa", true, "\ud83d\udc86"], ["massage envy", "other", "Massage Envy", true, "\ud83d\udc86"], ["spa ritual", "other", "Spa Ritual", false, "\ud83d\udc86"], ["olia hair salon spa", "other", "Olia Hair Salon Spa", false, "\ud83d\udc86"], ["pure nail bar", "other", "Pure Nail Bar", false, "\ud83d\udc86"], ["hush hush spa", "other", "Hush Hush Spa", false, "\ud83d\udc86"], ["claritas spa", "other", "Claritas Spa", false, "\ud83d\udc86"], ["oasis spa", "other", "Oasis Spa", false, "\ud83d\udc86"], ["goodlife fitness", "other", "Goodlife Fitness", true, "\ud83d\udcaa"], ["good life fitness", "other", "Good Life Fitness", true, "\ud83d\udcaa"], ["goodlife", "other", "Goodlife", true, "\ud83d\udcaa"], ["steve nash fitness world", "other", "Steve Nash Fitness World", true, "\ud83d\udcaa"], ["steve nash fitness", "other", "Steve Nash Fitness", true, "\ud83d\udcaa"], ["steve nash", "other", "Steve Nash", true, "\ud83d\udcaa"], ["fitness world", "other", "Fitness World", true, "\ud83d\udcaa"], ["anytime fitness", "other", "Anytime Fitness", true, "\ud83d\udcaa"], ["club16 trevor linden fitness", "other", "Club16 Trevor Linden Fitness", true, "\ud83d\udcaa"], ["club16", "other", "Club16", true, "\ud83d\udcaa"], ["club 16", "other", "Club 16", true, "\ud83d\udcaa"], ["trevor linden fitness", "other", "Trevor Linden Fitness", true, "\ud83d\udcaa"], ["ymca vancouver", "other", "Ymca Vancouver", true, "\ud83d\udcaa"], ["ymca canada", "other", "Ymca Canada", true, "\ud83d\udcaa"], ["ymca", "other", "Ymca", true, "\ud83d\udcaa"], ["orangetheory fitness", "other", "Orangetheory Fitness", true, "\ud83d\udcaa"], ["orangetheory", "other", "Orangetheory", true, "\ud83d\udcaa"], ["orange theory", "other", "Orange Theory", true, "\ud83d\udcaa"], ["f45 training", "other", "F45 Training", true, "\ud83d\udcaa"], ["f45", "other", "F45", true, "\ud83d\udcaa"], ["barrys bootcamp", "other", "Barrys Bootcamp", true, "\ud83d\udcaa"], ["pure barre", "other", "Pure Barre", true, "\ud83d\udcaa"], ["oxygen yoga fitness", "other", "Oxygen Yoga Fitness", true, "\ud83d\udcaa"], ["oxygen yoga", "other", "Oxygen Yoga", true, "\ud83d\udcaa"], ["yyoga", "other", "Yyoga", true, "\ud83d\udcaa"], ["yyoga vancouver", "other", "Yyoga Vancouver", true, "\ud83d\udcaa"], ["planet fitness canada", "other", "Planet Fitness Canada", true, "\ud83d\udcaa"], ["planet fitness", "other", "Planet Fitness", true, "\ud83d\udcaa"], ["world gym", "other", "World Gym", true, "\ud83d\udcaa"], ["soulcycle canada", "other", "Soulcycle Canada", true, "\ud83d\udcaa"], ["soulcycle", "other", "Soulcycle", true, "\ud83d\udcaa"], ["peloton studio", "other", "Peloton Studio", true, "\ud83d\udcaa"], ["golds gym canada", "other", "Golds Gym Canada", true, "\ud83d\udcaa"], ["golds gym", "other", "Golds Gym", true, "\ud83d\udcaa"], ["fit4less", "other", "Fit4Less", true, "\ud83d\udcaa"], ["energie fitness", "other", "Energie Fitness", true, "\ud83d\udcaa"], ["semperviva yoga", "other", "Semperviva Yoga", false, "\ud83d\udcaa"], ["east side fitness", "other", "East Side Fitness", false, "\ud83d\udcaa"], ["iron wolf gym", "other", "Iron Wolf Gym", false, "\ud83d\udcaa"], ["energyplex", "other", "Energyplex", false, "\ud83d\udcaa"], ["crossfit vancouver", "other", "Crossfit Vancouver", false, "\ud83d\udcaa"], ["studeo55", "other", "Studeo55", false, "\ud83d\udcaa"], ["studeo 55", "other", "Studeo 55", false, "\ud83d\udcaa"], ["reformx pilates", "other", "Reformx Pilates", false, "\ud83d\udcaa"], ["supplement king", "shopping", "Supplement King", true, "\ud83d\udc8a"], ["popeyes supplements", "shopping", "Popeyes Supplements", true, "\ud83d\udc8a"], ["gnc", "shopping", "Gnc", true, "\ud83d\udc8a"], ["general nutrition centre", "shopping", "General Nutrition Centre", true, "\ud83d\udc8a"], ["body energy club", "shopping", "Body Energy Club", true, "\ud83d\udc8a"], ["vitamin shoppe", "shopping", "Vitamin Shoppe", true, "\ud83d\udc8a"], ["nutrition house", "shopping", "Nutrition House", true, "\ud83d\udc8a"], ["healthy planet", "shopping", "Healthy Planet", true, "\ud83d\udc8a"], ["iherb", "shopping", "Iherb", true, "\ud83d\udc8a"], ["true north nutrition", "shopping", "True North Nutrition", false, "\ud83d\udc8a"], ["sushi hachi", "dining", "Sushi Hachi", true, "\ud83c\udf7d"], ["miku", "dining", "Miku", true, "\ud83c\udf7d"], ["miku restaurant", "dining", "Miku Restaurant", true, "\ud83c\udf7d"], ["minami", "dining", "Minami", true, "\ud83c\udf7d"], ["sushi mura", "dining", "Sushi Mura", true, "\ud83c\udf7d"], ["ramen danbo", "dining", "Ramen Danbo", true, "\ud83c\udf7d"], ["santouka ramen", "dining", "Santouka Ramen", true, "\ud83c\udf7d"], ["kinton ramen", "dining", "Kinton Ramen", true, "\ud83c\udf7d"], ["marutama ramen", "dining", "Marutama Ramen", true, "\ud83c\udf7d"], ["jinya ramen", "dining", "Jinya Ramen", true, "\ud83c\udf7d"], ["ippudo", "dining", "Ippudo", true, "\ud83c\udf7d"], ["ajisai sushi bar", "dining", "Ajisai Sushi Bar", true, "\ud83c\udf7d"], ["toshi sushi", "dining", "Toshi Sushi", true, "\ud83c\udf7d"], ["tojos", "dining", "Tojos", true, "\ud83c\udf7d"], ["sushi bar maumi", "dining", "Sushi Bar Maumi", true, "\ud83c\udf7d"], ["masayoshi", "dining", "Masayoshi", true, "\ud83c\udf7d"], ["kishimoto", "dining", "Kishimoto", true, "\ud83c\udf7d"], ["yuwa", "dining", "Yuwa", true, "\ud83c\udf7d"], ["guu", "dining", "Guu", true, "\ud83c\udf7d"], ["kingyo izakaya", "dining", "Kingyo Izakaya", true, "\ud83c\udf7d"], ["suika izakaya", "dining", "Suika Izakaya", true, "\ud83c\udf7d"], ["zakkushi", "dining", "Zakkushi", true, "\ud83c\udf7d"], ["vijs", "dining", "Vijs", true, "\ud83c\udf7d"], ["rangoli", "dining", "Rangoli", true, "\ud83c\udf7d"], ["india gate", "dining", "India Gate", true, "\ud83c\udf7d"], ["indian oven", "dining", "Indian Oven", true, "\ud83c\udf7d"], ["fanny bay oyster bar", "dining", "Fanny Bay Oyster Bar", true, "\ud83c\udf7d"], ["rodneys oyster house", "dining", "Rodneys Oyster House", true, "\ud83c\udf7d"], ["joe fortes seafood", "dining", "Joe Fortes Seafood", true, "\ud83c\udf7d"], ["blue water cafe", "dining", "Blue Water Cafe", true, "\ud83c\udf7d"], ["ancora waterfront", "dining", "Ancora Waterfront", true, "\ud83c\udf7d"], ["provence marinaside", "dining", "Provence Marinaside", true, "\ud83c\udf7d"], ["black + blue", "dining", "Black + Blue", true, "\ud83c\udf7d"], ["gotham steakhouse", "dining", "Gotham Steakhouse", true, "\ud83c\udf7d"], ["hys steakhouse", "dining", "Hys Steakhouse", true, "\ud83c\udf7d"], ["bacchus restaurant", "dining", "Bacchus Restaurant", true, "\ud83c\udf7d"], ["hawksworth", "dining", "Hawksworth", true, "\ud83c\udf7d"], ["botanist", "dining", "Botanist", true, "\ud83c\udf7d"], ["forage vancouver", "dining", "Forage Vancouver", true, "\ud83c\udf7d"], ["st. lawrence", "dining", "St. Lawrence", true, "\ud83c\udf7d"], ["ask for luigi", "dining", "Ask For Luigi", true, "\ud83c\udf7d"], ["savio volpe", "dining", "Savio Volpe", true, "\ud83c\udf7d"], ["pizzeria farina", "dining", "Pizzeria Farina", true, "\ud83c\udf7d"], ["nicli antica", "dining", "Nicli Antica", true, "\ud83c\udf7d"], ["pizzeria barbarella", "dining", "Pizzeria Barbarella", true, "\ud83c\udf7d"], ["rocky mountain flatbread", "dining", "Rocky Mountain Flatbread", true, "\ud83c\udf7d"], ["freshslice pizza", "dining", "Freshslice Pizza", true, "\ud83c\udf7d"], ["pizza garden", "dining", "Pizza Garden", true, "\ud83c\udf7d"], ["tacofino", "dining", "Tacofino", true, "\ud83c\udf7d"], ["la taqueria", "dining", "La Taqueria", true, "\ud83c\udf7d"], ["las margaritas", "dining", "Las Margaritas", true, "\ud83c\udf7d"], ["burgoo", "dining", "Burgoo", true, "\ud83c\udf7d"], ["glowbal", "dining", "Glowbal", true, "\ud83c\udf7d"], ["coast restaurant", "dining", "Coast Restaurant", true, "\ud83c\udf7d"], ["yaletown brewing", "dining", "Yaletown Brewing", true, "\ud83c\udf7d"], ["craft beer market", "dining", "Craft Beer Market", true, "\ud83c\udf7d"], ["steamworks brewing", "dining", "Steamworks Brewing", true, "\ud83c\udf7d"], ["tap & barrel", "dining", "Tap & Barrel", true, "\ud83c\udf7d"], ["49th parallel coffee", "dining", "49Th Parallel Coffee", true, "\ud83c\udf7d"], ["revolver coffee", "dining", "Revolver Coffee", true, "\ud83c\udf7d"], ["prado cafe", "dining", "Prado Cafe", true, "\ud83c\udf7d"], ["matchstick coffee", "dining", "Matchstick Coffee", true, "\ud83c\udf7d"], ["moja coffee", "dining", "Moja Coffee", true, "\ud83c\udf7d"], ["purebread", "dining", "Purebread", true, "\ud83c\udf7d"], ["small victory bakery", "dining", "Small Victory Bakery", true, "\ud83c\udf7d"], ["thomas haas", "dining", "Thomas Haas", true, "\ud83c\udf7d"], ["beta5 chocolates", "dining", "Beta5 Chocolates", true, "\ud83c\udf7d"]];
+var addedA=0,addedD=0,addedAc=0;
+function inject(){
+  if(!window.ALIASES)return false;
+  NM.forEach(function(e){
+    var al=e[0],c=e[1],dn=e[2],am=e[3],em=e[4];
+    if(!window.ALIASES[al]){window.ALIASES[al]=c;addedA++;}
+    if(window.MERCHANT_DIRECTORY&&Array.isArray(window.MERCHANT_DIRECTORY)){
+      var ex=window.MERCHANT_DIRECTORY.some(function(m){var mn=(m.name||m.n||'').toLowerCase();return mn===dn.toLowerCase()||mn===al;});
+      if(!ex){window.MERCHANT_DIRECTORY.push({name:dn,n:dn,category:c,cat:c,categoryLabel:c,catLabel:c,emoji:em,e:em,icon:em,amex:am});addedD++;}
     }
-
-    // MERCHANT_DIRECTORY: powers autocomplete
-    if (window.MERCHANT_DIRECTORY && Array.isArray(window.MERCHANT_DIRECTORY)) {
-      var exists = window.MERCHANT_DIRECTORY.some(function(m){
-        var mn = (m.name || m.n || '').toLowerCase();
-        return mn === displayName.toLowerCase() || mn === alias;
-      });
-      if (!exists) {
-        window.MERCHANT_DIRECTORY.push({
-          name: displayName, n: displayName,
-          category: category, cat: category,
-          categoryLabel: category, catLabel: category,
-          emoji: emoji, e: emoji, icon: emoji,
-          amex: amexOK
-        });
-        addedToDir++;
-      }
-    }
-
-    // ACCEPTANCE: Amex acceptance flag
-    if (window.ACCEPTANCE && window.ACCEPTANCE[alias] === undefined) {
-      window.ACCEPTANCE[alias] = { amex: amexOK };
-      addedToAcceptance++;
-    }
+    if(window.ACCEPTANCE&&window.ACCEPTANCE[al]===undefined){window.ACCEPTANCE[al]={amex:am};addedAc++;}
   });
   return true;
 }
+inject();log('merchants: aliases +'+addedA+' dir +'+addedD+' acc +'+addedAc);
+try{if(window.__v127){if(window.ALIASES){window.__v127.aliasKeysDesc=Object.keys(window.ALIASES).sort(function(a,b){return b.length-a.length;});if(typeof Map!=='undefined'){var mp=new Map();Object.keys(window.ALIASES).forEach(function(k){var s=k.replace(/[^a-z0-9]/gi,'').toLowerCase();if(s)mp.set(s,k);});window.__v127.alphanumIndex=mp;}}if(window.__v127.catCache)window.__v127.catCache={};if(window.__v127.acceptCache)window.__v127.acceptCache={};if(window.__v127.recCache)window.__v127.recCache={};log('V127 caches invalidated');}}catch(_){}
+function updCount(){try{var w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,null,false);var n;while(n=w.nextNode()){if(n.nodeValue){var o=n.nodeValue;var r=o.replace(/5,500\+/g,'5,700+').replace(/5500\+/g,'5,700+');if(r!==o)n.nodeValue=r;}}}catch(_){}}
+updCount();setTimeout(updCount,500);setTimeout(updCount,2000);
+function kick(){try{if(window.__v140&&typeof window.__v140.sync==='function')window.__v140.sync();}catch(_){}}
+setTimeout(kick,100);setTimeout(kick,500);setTimeout(kick,1500);
+window.__v141={bridged:bridged,aliasCount:function(){return window.ALIASES?Object.keys(window.ALIASES).length:0;}};
+log('bridge complete');
+})();
+</script>
 
-var injectOk = injectMerchants();
-log('merchants injected: aliases=+' + addedToAliases + ' dir=+' + addedToDir + ' acceptance=+' + addedToAcceptance);
-log('new totals: aliases=' + (window.ALIASES ? Object.keys(window.ALIASES).length : 'undef') +
-    ' dir=' + ((window.MERCHANT_DIRECTORY && window.MERCHANT_DIRECTORY.length) || 'undef'));
+<script id="v142-ux-cleanup">
+(function(){'use strict';
+function log(m){try{console.log('[V142]',m);}catch(_){}}
+try{if(window.__v140&&typeof window.__v140.scheduleSync==='function'){var o=window.__v140.scheduleSync;window.__v140.scheduleSync=function(d){if(document.activeElement&&document.activeElement.id==='q')return;return o.call(this,d||100);};log('V140 sync debounced during search');}}catch(_){}
+log('UX cleanup applied');
+})();
+</script>
 
-// ==========================================================================
-// C. INVALIDATE V127 recommendation engine caches
-// ==========================================================================
-function invalidateV127(){
-  try {
-    if (window.__v127) {
-      // Rebuild longest-first alias index
-      if (window.ALIASES) {
-        window.__v127.aliasKeysDesc = Object.keys(window.ALIASES).sort(function(a,b){
-          return b.length - a.length;
-        });
-        // Rebuild alphanum index
-        if (typeof Map !== 'undefined') {
-          var map = new Map();
-          Object.keys(window.ALIASES).forEach(function(k){
-            var stripped = k.replace(/[^a-z0-9]/gi, '').toLowerCase();
-            if (stripped) map.set(stripped, k);
-          });
-          window.__v127.alphanumIndex = map;
-        }
-      }
-      // Clear memoization caches
-      if (window.__v127.catCache) window.__v127.catCache = {};
-      if (window.__v127.acceptCache) window.__v127.acceptCache = {};
-      if (window.__v127.recCache) window.__v127.recCache = {};
-      log('V127 caches invalidated');
+<script id="v143-hardfix-script">
+(function(){'use strict';
+function log(m){try{console.log('[V143]',m);}catch(_){}}
+window.__v143_chosenKey=null;
+function getName(k){if(!k)return null;try{if(window.CARDS_DB&&window.CARDS_DB[k])return window.CARDS_DB[k].n||window.CARDS_DB[k].name||k;}catch(_){}return k;}
+function getRec(){var h=document.getElementById('hero');if(!h)return null;var k=h.getAttribute('data-main-card-key');if(k)return k;var e=h.querySelector('[data-card-key]');return e?e.getAttribute('data-card-key'):null;}
+function applyVisual(){document.querySelectorAll('.alt-cards .alt-item').forEach(function(el){var k=el.getAttribute('data-card-key');if(k&&k===window.__v143_chosenKey)el.setAttribute('data-v143-chosen','1');else if(el.hasAttribute('data-v143-chosen'))el.removeAttribute('data-v143-chosen');});}
+function updBtn(){var btn=document.querySelector('.hero-log-btn')||document.getElementById('logPurchaseBtn');if(!btn)return;var k=window.__v143_chosenKey||getRec();var n=k?getName(k):null;var t=n?('+ Log with '+n):'+ Log purchase';if(btn.__v143!==t){btn.__v143=t;btn.textContent=t;}var hid=document.getElementById('heroLogCard');if(hid&&k)hid.value=k;if(window.__v70){window.__v70.chosenCardKey=window.__v143_chosenKey;window.__v70.chosenCardName=window.__v143_chosenKey?n:null;}}
+function updPill(){var ac=document.querySelector('.alt-cards');if(!ac)return;var p=ac.querySelector('.v138-revert-pill');var rk=getRec();var rn=rk?getName(rk):null;if(window.__v143_chosenKey&&rk&&window.__v143_chosenKey!==rk){if(!p){p=document.createElement('button');p.className='v138-revert-pill';p.type='button';p.setAttribute('data-v143-pill','1');var t=ac.querySelector('.alt-title');if(t&&t.nextSibling)ac.insertBefore(p,t.nextSibling);else ac.insertBefore(p,ac.firstChild);}p.innerHTML='<span class="v138-icon">\u21ba</span> Use recommended: '+(rn||'default');p.classList.add('show');}else{if(p)p.classList.remove('show');}}
+function fixHeader(){document.querySelectorAll('.hero .k, #hero .k').forEach(function(el){var t=(el.textContent||'').trim();if(!t)return;var u=t.toUpperCase();if(u.indexOf('UNDEFINED')>=0||u==='BEST CARD FOR'||u==='BEST CARD FOR '||/BEST CARD FOR\s*$/.test(t)){var q=document.getElementById('q');var qv=q?(q.value||'').trim():'';el.textContent=qv?('Best card for '+qv):'Best card recommendation';el.removeAttribute('data-v143-empty');}});}
+function showToast(){document.querySelectorAll('.v79-select-toast, .v138-revert-toast').forEach(function(t){try{t.remove();}catch(_){}});var rk=getRec();var rn=rk?getName(rk):'recommended card';var toast=document.createElement('div');toast.className='v79-select-toast v138-revert v138-revert-toast v143-permitted show';toast.textContent='\u21ba Reverted to recommended: '+rn;document.body.appendChild(toast);setTimeout(function(){try{if(toast.parentNode)toast.parentNode.removeChild(toast);}catch(_){}},2200);}
+document.addEventListener('click',function(e){var t=e.target;if(!t||!t.closest)return;var p=t.closest('.v138-revert-pill');if(p){e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();var wc=window.__v143_chosenKey!==null;window.__v143_chosenKey=null;applyVisual();updBtn();updPill();if(window.__v138&&window.__v138.state){window.__v138.state.chosenCardKey=null;window.__v138.state.chosenCardName=null;}if(wc)showToast();document.querySelectorAll('.alt-item.chosen').forEach(function(el){el.classList.remove('chosen');});return;}var alt=t.closest('.alt-item');if(alt){e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();var k=alt.getAttribute('data-card-key');if(!k)return;if(k===window.__v143_chosenKey){window.__v143_chosenKey=null;applyVisual();updBtn();updPill();if(window.__v138&&window.__v138.state){window.__v138.state.chosenCardKey=null;window.__v138.state.chosenCardName=null;}document.querySelectorAll('.alt-item.chosen').forEach(function(el){el.classList.remove('chosen');});showToast();}else{window.__v143_chosenKey=k;applyVisual();updBtn();updPill();if(window.__v138&&window.__v138.state){window.__v138.state.chosenCardKey=k;window.__v138.state.chosenCardName=getName(k);}document.querySelectorAll('.alt-item.chosen').forEach(function(el){if(el.getAttribute('data-card-key')!==k)el.classList.remove('chosen');});}return;}},true);
+var syncPending=false;
+function scheduleSync(){if(syncPending)return;syncPending=true;requestAnimationFrame(function(){syncPending=false;applyVisual();updBtn();updPill();fixHeader();});}
+function install(){var h=document.getElementById('hero');if(h&&!h.__v143){h.__v143=true;new MutationObserver(function(){scheduleSync();}).observe(h,{childList:true,subtree:true,characterData:true});log('hero observer installed');}}
+install();var iv=setInterval(install,500);setTimeout(function(){clearInterval(iv);},8000);
+var q=document.getElementById('q');if(q){q.addEventListener('input',function(){if(window.__v143_chosenKey){window.__v143_chosenKey=null;setTimeout(function(){applyVisual();updBtn();updPill();fixHeader();},100);}});}
+try{if(window.__v138&&typeof window.__v138.revert==='function'){window.__v138.revert=function(){};log('V138 revert fully neutralized');}}catch(_){}
+setTimeout(scheduleSync,100);setTimeout(scheduleSync,500);setTimeout(scheduleSync,1500);
+log('hard UX fix applied');
+window.__v143={chosenKey:function(){return window.__v143_chosenKey;},applyVisual:applyVisual,updateLogButton:updBtn,updatePill:updPill,fixHeader:fixHeader};
+})();
+</script>
+
+<!-- V144 Credit Rescue Rebuild + Drawer SVG polish -->
+<style id="v144-credits-styles">
+.v144-credit-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:12px 13px;margin-bottom:8px;box-shadow:var(--shadow);position:relative;overflow:hidden;transition:transform .1s ease}
+.v144-credit-card.done{background:linear-gradient(135deg,var(--greenbg),var(--surface));border-color:#9ec9a8}
+body.dark .v144-credit-card.done{background:linear-gradient(135deg,#1a3022,var(--surface));border-color:#2a5a3a}
+.v144-credit-card.urgent{border-color:#e8a3ad;border-width:1.5px}
+.v144-cc-head{display:grid;grid-template-columns:44px 1fr auto;gap:11px;align-items:center}
+.v144-cc-icon{font-size:26px;text-align:center;line-height:1}
+.v144-cc-title{font-size:14px;font-weight:900;letter-spacing:-.01em;line-height:1.15;color:var(--ink)}
+.v144-cc-meta{font-size:10.5px;color:var(--muted);font-weight:800;margin-top:2px;text-transform:uppercase;letter-spacing:.06em}
+.v144-cc-total{font-family:ui-monospace,monospace;font-size:15px;font-weight:900;color:var(--green);text-align:right;line-height:1.1}
+.v144-cc-total small{display:block;font-size:9px;color:var(--muted);font-weight:800;letter-spacing:.06em;text-transform:uppercase;margin-top:2px}
+.v144-cc-desc{font-size:11.5px;color:var(--muted);font-weight:700;line-height:1.45;margin-top:9px;padding-top:9px;border-top:1px dashed var(--border)}
+.v144-cc-progress{margin-top:10px;padding-top:10px;border-top:1px dashed var(--border)}
+.v144-cc-progress-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;gap:8px;flex-wrap:wrap}
+.v144-cc-uses{font-family:ui-monospace,monospace;font-size:13px;font-weight:900;color:var(--ink);letter-spacing:-.01em}
+.v144-cc-uses .rem{color:var(--brand)}
+.v144-cc-uses .full{color:var(--green)}
+.v144-cc-claimed{font-family:ui-monospace,monospace;font-size:11px;font-weight:900;color:var(--green)}
+.v144-cc-claimed .of{color:var(--muted);font-weight:800}
+.v144-cc-bar{height:6px;background:var(--surface-2,var(--border));border-radius:99px;overflow:hidden}
+.v144-cc-bar-fill{height:100%;background:linear-gradient(90deg,var(--brand),var(--brand-2,var(--brand)));border-radius:99px;transition:width .35s cubic-bezier(.2,.9,.3,1.2)}
+.v144-cc-bar-fill.full{background:linear-gradient(90deg,var(--green),#5ea87a)}
+.v144-cc-bar-fill.urgent{background:linear-gradient(90deg,var(--coral),#a04747)}
+.v144-cc-actions{display:grid;grid-template-columns:auto 1fr auto;gap:9px;align-items:center;margin-top:11px}
+.v144-cc-ring-wrap{display:flex;align-items:center;gap:8px}
+.v144-cc-ring{width:38px;height:38px;position:relative;flex-shrink:0}
+.v144-cc-ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.v144-cc-ring .cr-bg{fill:none;stroke:var(--border);stroke-width:4}
+.v144-cc-ring .cr-fg{fill:none;stroke-width:4;stroke-linecap:round;transition:stroke-dashoffset .5s cubic-bezier(.2,.9,.3,1.2)}
+.v144-cc-ring .cr-fg.green{stroke:var(--green)}
+.v144-cc-ring .cr-fg.yellow{stroke:var(--amber,#d69a2c)}
+.v144-cc-ring .cr-fg.red{stroke:var(--coral)}
+.v144-cc-ring .cr-fg.brand{stroke:var(--brand)}
+.v144-cc-days{font-size:11px;font-weight:900;letter-spacing:-.01em;line-height:1.15}
+.v144-cc-days small{display:block;font-size:9.5px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.06em;margin-top:1px}
+.v144-cc-days.green{color:var(--green)}
+.v144-cc-days.yellow{color:var(--amber,#d69a2c)}
+.v144-cc-days.red{color:var(--coral)}
+.v144-cc-days.brand{color:var(--brand)}
+.v144-cc-btns{display:flex;gap:6px;justify-self:end;flex-wrap:wrap;justify-content:flex-end}
+.v144-cc-btn{background:var(--brand);color:#fff;border:none;padding:9px 13px;border-radius:10px;font-size:12px;font-weight:900;cursor:pointer;font-family:inherit;white-space:nowrap;letter-spacing:-.01em;box-shadow:0 3px 10px rgba(37,99,235,.22)}
+.v144-cc-btn:active{transform:scale(.94)}
+.v144-cc-btn.undo{background:transparent;color:var(--muted);border:1.5px solid var(--border);padding:9px 11px;box-shadow:none;font-size:11.5px}
+.v144-cc-btn.undo:hover{color:var(--ink);border-color:var(--muted)}
+.v144-cc-btn.done{background:transparent;color:var(--green);border:1.5px solid var(--green);box-shadow:none}
+.v144-cc-btn:disabled{opacity:.4;cursor:not-allowed;box-shadow:none}
+</style>
+
+<script id="v144-credit-rescue">
+(function(){
+  'use strict';
+  if (window.__v144 && window.__v144.ready) return;
+  window.__v144 = window.__v144 || { ready:false };
+
+  var STORE_KEY = 'walletiq_credits_v144';
+  var LEGACY_KEY = 'walletiq_credits_v46';
+
+  function loadStore(){ try { return JSON.parse(localStorage.getItem(STORE_KEY)||'{}'); } catch(e){ return {}; } }
+  function saveStore(s){ try { localStorage.setItem(STORE_KEY, JSON.stringify(s)); } catch(e){} }
+  function loadLegacy(){ try { return JSON.parse(localStorage.getItem(LEGACY_KEY)||'{}'); } catch(e){ return {}; } }
+
+  function extendCredits(){
+    var CC = window.CARD_CREDITS;
+    if(!CC) return false;
+    if(CC.scotiaPass && CC.scotiaPass[0]) {
+      CC.scotiaPass[0].units = 6; CC.scotiaPass[0].perUse = 35;
+      CC.scotiaPass[0].label = 'Priority Pass Visits';
+      CC.scotiaPass[0].desc = '6 free lounge visits per year via Priority Pass Select (~$35 each). Log each pass as you use it.';
     }
-  } catch(e){ warn('V127 invalidate failed: ' + e); }
-}
-invalidateV127();
-
-// ==========================================================================
-// D. UPDATE homepage merchant counter text
-// ==========================================================================
-function updateCounter(){
-  try {
-    var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
-    var node, updated = 0;
-    while(node = walker.nextNode()) {
-      if (node.nodeValue) {
-        var orig = node.nodeValue;
-        var replaced = orig
-          .replace(/5,500\+/g, '5,700+')
-          .replace(/5500\+/g,  '5,700+');
-        if (replaced !== orig) {
-          node.nodeValue = replaced;
-          updated++;
-        }
-      }
+    if(CC.scotiaPlat && CC.scotiaPlat[0]) {
+      CC.scotiaPlat[0].units = 10; CC.scotiaPlat[0].perUse = 35;
+      CC.scotiaPlat[0].desc = '10 free lounge visits per year via Priority Pass (~$35 each). Log each pass as you use it.';
     }
-    if (updated) log('counter updated in ' + updated + ' text nodes');
-  } catch(e){ warn('counter update failed: ' + e); }
-}
-updateCounter();
-setTimeout(updateCounter, 500);
-setTimeout(updateCounter, 2000);
-
-// ==========================================================================
-// E. FORCE V140 sync engine to re-run now that CARDS_DB is bridged
-// ==========================================================================
-function kickV140(){
-  try {
-    if (window.__v140 && typeof window.__v140.sync === 'function') {
-      window.__v140.sync();
-      log('V140 sync kicked');
-    } else {
-      warn('V140 not available yet');
+    if(CC.wsInfinitePrivilege && CC.wsInfinitePrivilege[0]) {
+      CC.wsInfinitePrivilege[0].units = 6; CC.wsInfinitePrivilege[0].perUse = 35;
+      CC.wsInfinitePrivilege[0].desc = '6 Visa Airport Companion lounge passes per year (~$35 each). Log each pass as you use it.';
     }
-  } catch(e){ warn('V140 kick failed: ' + e); }
-}
-setTimeout(kickV140, 100);
-setTimeout(kickV140, 500);
-setTimeout(kickV140, 1500);
-setTimeout(kickV140, 3000);
-
-// ==========================================================================
-// F. Guard against ALIASES being reassigned by some other module
-// ==========================================================================
-var __reinjected = false;
-setInterval(function(){
-  if (!window.ALIASES) return;
-  // Check if a canary merchant we injected is still there
-  if (!window.ALIASES['sabai thai spa']) {
-    if (!__reinjected) {
-      log('canary missing — re-injecting merchants');
-      __reinjected = true;
-      injectMerchants();
-      invalidateV127();
-      updateCounter();
-      kickV140();
-      setTimeout(function(){ __reinjected = false; }, 2000);
+    if(CC.amexPlatinum && CC.amexPlatinum.length >= 2 && CC.amexPlatinum[1].id === 'dining') {
+      CC.amexPlatinum[1].units = 4; CC.amexPlatinum[1].perUse = 50;
+      CC.amexPlatinum[1].desc = '$50 per quarter at select Canadian restaurants (Amex Dining Program). Log each quarter as used.';
     }
+    return true;
   }
-}, 5000);
 
-// ==========================================================================
-// G. Expose diagnostics
-// ==========================================================================
-window.__v141 = {
-  version: 'v141-globals-bridge-2026-07-12',
-  bridged: bridged,
-  fnBridged: fnBridged,
-  merchantsAdded: {aliases: addedToAliases, dir: addedToDir, acceptance: addedToAcceptance},
-  aliasCount: function(){ return window.ALIASES ? Object.keys(window.ALIASES).length : 0; },
-  merchantDirCount: function(){ return (window.MERCHANT_DIRECTORY && window.MERCHANT_DIRECTORY.length) || 0; },
-  reinject: function(){ injectMerchants(); invalidateV127(); kickV140(); },
-  kickV140: kickV140
-};
+  function periodKey(period){
+    var now = new Date();
+    if(period === 'month') return now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+    if(period === 'year')  return String(now.getFullYear());
+    if(period === '4year'){ var s = Math.floor(now.getFullYear()/4)*4; return String(s); }
+    return String(now.getFullYear());
+  }
+  function daysLeftFn(period){
+    var now = new Date(); var end;
+    if(period === 'month') end = new Date(now.getFullYear(), now.getMonth()+1, 1);
+    else if(period === '4year'){ var s = Math.floor(now.getFullYear()/4)*4; end = new Date(s+4, 0, 1); }
+    else end = new Date(now.getFullYear()+1, 0, 1);
+    return Math.max(1, Math.ceil((end.getTime()-now.getTime())/86400000));
+  }
+  function totalDaysFn(period){
+    var now = new Date();
+    if(period === 'month') return new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
+    if(period === '4year') return 365*4;
+    return 365;
+  }
+  function keyFor(cardKey, creditId, period){
+    return cardKey+'::'+creditId+'::'+periodKey(period);
+  }
 
-log('V141 boot complete. Alias total: ' + (window.__v141.aliasCount()) +
-    '. Merchant dir total: ' + window.__v141.merchantDirCount() + '.');
+  function migrateFromLegacy(){
+    var store = loadStore();
+    if(store.__migrated) return;
+    var legacy = loadLegacy();
+    Object.keys(legacy).forEach(function(k){
+      if(!legacy[k] || !legacy[k].redeemed) return;
+      var parts = k.split('-');
+      if(parts.length < 3) return;
+      var cardKey = parts[0];
+      var period  = parts[parts.length-1];
+      var creditId = parts.slice(1, parts.length-1).join('-');
+      var CC = window.CARD_CREDITS && window.CARD_CREDITS[cardKey];
+      if(!CC) return;
+      var cd = null;
+      for(var i=0;i<CC.length;i++){ if(CC[i].id === creditId){ cd = CC[i]; break; } }
+      if(!cd) return;
+      var nk = cardKey+'::'+creditId+'::'+period;
+      if(cd.units && cd.units > 1){
+        var uses = [];
+        for(var j=0;j<cd.units;j++) uses.push({date: legacy[k].date || new Date().toISOString().slice(0,10), amount: cd.perUse});
+        store[nk] = { used: cd.units, uses: uses, claimed:true };
+      } else {
+        store[nk] = { used: 1, uses:[{date: legacy[k].date || new Date().toISOString().slice(0,10), amount: cd.amount}], claimed:true };
+      }
+    });
+    store.__migrated = true;
+    saveStore(store);
+  }
 
+  function getState(cardKey, cd){
+    var store = loadStore();
+    var k = keyFor(cardKey, cd.id, cd.period);
+    return store[k] || { used:0, uses:[], claimed:false };
+  }
+  function setState(cardKey, cd, state){
+    var store = loadStore();
+    var k = keyFor(cardKey, cd.id, cd.period);
+    store[k] = state;
+    saveStore(store);
+  }
+  function isMultiUse(cd){ return !!(cd.units && cd.units > 1 && cd.perUse); }
+  function isFullyUsed(cd, st){
+    if(isMultiUse(cd)) return st.used >= cd.units;
+    return !!st.claimed;
+  }
+  function dollarsUsed(cd, st){
+    if(isMultiUse(cd)) return (st.used||0) * cd.perUse;
+    return st.claimed ? cd.amount : 0;
+  }
+  function totalValueFn(cd){
+    if(isMultiUse(cd)) return cd.units * cd.perUse;
+    return cd.amount;
+  }
+
+  function computeRing(cd, st){
+    var used = dollarsUsed(cd, st);
+    var total = totalValueFn(cd);
+    var pctUsed = total > 0 ? Math.min(100, (used/total)*100) : 0;
+    var left = daysLeftFn(cd.period);
+    var td = totalDaysFn(cd.period);
+    var pctElapsed = Math.min(100, Math.max(0, ((td-left)/td)*100));
+    var color;
+    if(isFullyUsed(cd, st)) color = 'green';
+    else if(cd.period === 'month'){ if(left <= 5) color='red'; else if(left<=10) color='yellow'; else color='brand'; }
+    else { if(left <= 7) color='red'; else if(left <= 30) color='yellow'; else color='brand'; }
+    var circumference = 2*Math.PI*17;
+    var offset = circumference*(pctElapsed/100);
+    return { left:left, pctElapsed:pctElapsed, pctUsed:pctUsed, color:color, offset:offset, circumference:circumference };
+  }
+
+  function buildList(){
+    var out = [];
+    if(typeof userWallet === 'undefined' || !window.CARD_CREDITS) return out;
+    var wallet = userWallet;
+    var iter = (wallet && typeof wallet.forEach === 'function') ? wallet : [];
+    iter.forEach(function(cardKey){
+      var CC = window.CARD_CREDITS[cardKey];
+      if(!CC || CC.length === 0) return;
+      var card = (window.CARDS_DB || {})[cardKey];
+      if(!card) return;
+      CC.forEach(function(cd){
+        var st = getState(cardKey, cd);
+        out.push({
+          cardKey:cardKey, card:card, credit:cd, state:st,
+          multi:isMultiUse(cd), fully:isFullyUsed(cd, st),
+          used$: dollarsUsed(cd, st), total$: totalValueFn(cd),
+          ring: computeRing(cd, st),
+          key: keyFor(cardKey, cd.id, cd.period)
+        });
+      });
+    });
+    return out;
+  }
+
+  function computeSummary(){
+    var list = buildList();
+    var ytdClaimed=0, ytdPotential=0, urgentCount=0, urgentValue=0, activeCount=0;
+    list.forEach(function(it){
+      ytdPotential += it.total$;
+      ytdClaimed += it.used$;
+      if(!it.fully){
+        activeCount++;
+        var remaining = it.total$ - it.used$;
+        if(it.ring.left <= 30 && remaining > 0){
+          urgentCount++;
+          urgentValue += remaining;
+        }
+      }
+    });
+    var pct = ytdPotential > 0 ? Math.round((ytdClaimed/ytdPotential)*100) : 0;
+    return { ytdClaimed:ytdClaimed, ytdPotential:ytdPotential, pct:pct, urgentCount:urgentCount, urgentValue:urgentValue, activeCount:activeCount, total:list.length };
+  }
+
+  function renderHero(){
+    var el = document.getElementById('creditsHero');
+    if(!el) return;
+    var s = computeSummary();
+    var circ = 2*Math.PI*30;
+    var off  = circ*(1 - s.pct/100);
+    el.innerHTML =
+      '<div class="credits-hero">'+
+        '<div class="ch-label">\ud83d\udcb3 Credit Rescue</div>'+
+        '<div class="ch-row">'+
+          '<div>'+
+            '<div class="ch-big">$'+Math.round(s.ytdClaimed).toLocaleString()+'</div>'+
+            '<div class="ch-sub">of $'+Math.round(s.ytdPotential).toLocaleString()+' unlocked in '+new Date().getFullYear()+'</div>'+
+          '</div>'+
+          '<div class="ch-ring">'+
+            '<svg viewBox="0 0 68 68">'+
+              '<circle class="rr-bg" cx="34" cy="34" r="30"/>'+
+              '<circle class="rr-fg" cx="34" cy="34" r="30" stroke-dasharray="'+circ+'" stroke-dashoffset="'+off+'"/>'+
+            '</svg>'+
+            '<div class="rr-pct">'+s.pct+'%</div>'+
+          '</div>'+
+        '</div>'+
+        '<div class="ch-stats">'+
+          '<div class="ch-stat"><div class="l">Expiring</div><div class="v red">'+s.urgentCount+'</div></div>'+
+          '<div class="ch-stat"><div class="l">Active</div><div class="v yellow">'+s.activeCount+'</div></div>'+
+          '<div class="ch-stat"><div class="l">Total</div><div class="v green">'+s.total+'</div></div>'+
+        '</div>'+
+      '</div>';
+  }
+
+  window._creditFilter = window._creditFilter || 'active';
+  function renderFilters(){
+    var el = document.getElementById('creditFilters');
+    if(!el) return;
+    var s = computeSummary();
+    var filters = [
+      {id:'active', label:'Active',   emoji:'\ud83d\udfe2', count:s.activeCount},
+      {id:'urgent', label:'Expiring', emoji:'\u26a0\ufe0f', count:s.urgentCount},
+      {id:'redeemed', label:'Done',   emoji:'\u2705', count:s.total-s.activeCount},
+      {id:'all', label:'All',         emoji:'\ud83d\udccb', count:s.total}
+    ];
+    el.innerHTML = filters.map(function(f){
+      return '<button class="credit-filter'+(window._creditFilter===f.id?' on':'')+'" onclick="window.__v144.setFilter(\''+f.id+'\')">'+f.emoji+' '+f.label+' <span class="cf-badge">'+f.count+'</span></button>';
+    }).join('');
+  }
+
+  function renderList(){
+    var el = document.getElementById('creditsList');
+    if(!el) return;
+    var list = buildList();
+    if(list.length === 0){
+      el.innerHTML = '<div class="credits-empty"><div class="big">\ud83d\udcb3</div><h4>No trackable credits yet</h4><div>Add cards with statement credits (Cobalt, Amex Plat, Bonvoy, Scotia Passport, etc.) to see them here.</div></div>';
+      return;
+    }
+    var f = window._creditFilter || 'active';
+    if(f === 'active')   list = list.filter(function(x){ return !x.fully; });
+    else if(f === 'urgent') list = list.filter(function(x){ return !x.fully && x.ring.left <= 30 && (x.total$-x.used$) > 0; });
+    else if(f === 'redeemed') list = list.filter(function(x){ return x.fully; });
+    list.sort(function(a,b){
+      if(a.fully !== b.fully) return a.fully ? 1 : -1;
+      if(!a.fully){
+        if(a.ring.left !== b.ring.left) return a.ring.left - b.ring.left;
+        return (b.total$-b.used$) - (a.total$-a.used$);
+      }
+      return 0;
+    });
+    if(list.length === 0){
+      el.innerHTML = '<div class="credits-empty"><div class="big">\ud83c\udf89</div><h4>Nothing here</h4><div>No credits match this filter. Try switching filters above.</div></div>';
+      return;
+    }
+    var groups = {};
+    list.forEach(function(x){ if(!groups[x.cardKey]) groups[x.cardKey]=[]; groups[x.cardKey].push(x); });
+    var html = '';
+    Object.keys(groups).forEach(function(cardKey){
+      var items = groups[cardKey];
+      var card  = items[0].card;
+      html += '<div class="credit-issuer">'+card.e+' '+card.n+'</div>';
+      items.forEach(function(it){ html += renderOneCard(it); });
+    });
+    el.innerHTML = html;
+  }
+
+  function renderOneCard(it){
+    var cd = it.credit; var st = it.state; var r = it.ring;
+    var urgent = !it.fully && r.left <= 30 && (it.total$-it.used$) > 0;
+    var periodLabel = cd.period === 'month' ? 'monthly' : (cd.period === '4year' ? '4-year' : 'annual');
+    var isMulti = it.multi;
+
+    var progressHtml = '';
+    if(isMulti){
+      var remaining = cd.units - st.used;
+      var barPct = Math.min(100, (st.used / cd.units) * 100);
+      var barClass = it.fully ? 'full' : (urgent ? 'urgent' : '');
+      var remainLabel = it.fully
+        ? '<span class="full">\u2713 All '+cd.units+' used</span>'
+        : '<span class="rem">'+remaining+'</span> / '+cd.units+' remaining';
+      progressHtml =
+        '<div class="v144-cc-progress">'+
+          '<div class="v144-cc-progress-row">'+
+            '<div class="v144-cc-uses">'+remainLabel+'</div>'+
+            '<div class="v144-cc-claimed">$'+it.used$.toLocaleString()+' <span class="of">of $'+it.total$.toLocaleString()+' used</span></div>'+
+          '</div>'+
+          '<div class="v144-cc-bar"><div class="v144-cc-bar-fill '+barClass+'" style="width:'+barPct+'%"></div></div>'+
+        '</div>';
+    }
+
+    var actionBtnsHtml;
+    if(isMulti){
+      var addDisabled = it.fully ? ' disabled' : '';
+      var undoDisabled = (st.used||0) <= 0 ? ' disabled' : '';
+      var addLabel = it.fully ? '\u2713 All used' : '+ Log 1 use ($'+cd.perUse+')';
+      var addClass = it.fully ? 'v144-cc-btn done' : 'v144-cc-btn';
+      actionBtnsHtml =
+        '<div class="v144-cc-btns">'+
+          '<button class="v144-cc-btn undo" onclick="window.__v144.undoUse(\''+it.cardKey+'\',\''+cd.id+'\',\''+cd.period+'\')"'+undoDisabled+'>\u21b6 Undo</button>'+
+          '<button class="'+addClass+'" onclick="window.__v144.logUse(\''+it.cardKey+'\',\''+cd.id+'\',\''+cd.period+'\')"'+addDisabled+'>'+addLabel+'</button>'+
+        '</div>';
+    } else {
+      var btnLabel = it.fully ? '\u2713 Claimed' : 'Mark as used';
+      var btnClass = it.fully ? 'v144-cc-btn done' : 'v144-cc-btn';
+      actionBtnsHtml =
+        '<div class="v144-cc-btns">'+
+          '<button class="'+btnClass+'" onclick="window.__v144.toggleSingle(\''+it.cardKey+'\',\''+cd.id+'\',\''+cd.period+'\')">'+btnLabel+'</button>'+
+        '</div>';
+    }
+
+    var ringColor = it.fully ? 'green' : r.color;
+    var ringDashOffset = it.fully ? 0 : r.offset;
+    var lastDate = (st.uses && st.uses.length>0) ? st.uses[st.uses.length-1].date : '';
+    var daysBlock = it.fully
+      ? '<div class="v144-cc-days green">Done<small>'+(lastDate||'')+'</small></div>'
+      : '<div class="v144-cc-days '+r.color+'">'+r.left+'d<small>left</small></div>';
+
+    return '<div class="v144-credit-card'+(it.fully?' done':'')+(urgent?' urgent':'')+'" id="v144cc-'+it.key+'">'+
+        '<div class="v144-cc-head">'+
+          '<div class="v144-cc-icon">'+cd.emoji+'</div>'+
+          '<div>'+
+            '<div class="v144-cc-title">'+cd.label+'</div>'+
+            '<div class="v144-cc-meta">'+periodLabel+(isMulti?' \u00b7 '+cd.units+' \u00d7 $'+cd.perUse:'')+'</div>'+
+          '</div>'+
+          '<div class="v144-cc-total">$'+it.total$.toLocaleString()+'<small>total value</small></div>'+
+        '</div>'+
+        '<div class="v144-cc-desc">'+cd.desc+'</div>'+
+        progressHtml +
+        '<div class="v144-cc-actions">'+
+          '<div class="v144-cc-ring-wrap">'+
+            '<div class="v144-cc-ring">'+
+              '<svg viewBox="0 0 40 40">'+
+                '<circle class="cr-bg" cx="20" cy="20" r="17"/>'+
+                '<circle class="cr-fg '+ringColor+'" cx="20" cy="20" r="17" stroke-dasharray="'+r.circumference+'" stroke-dashoffset="'+ringDashOffset+'"/>'+
+              '</svg>'+
+            '</div>'+
+            daysBlock+
+          '</div>'+
+          '<div></div>'+
+          actionBtnsHtml+
+        '</div>'+
+      '</div>';
+  }
+
+  function flashMsg(msg){
+    try {
+      var existing = document.querySelector('.credit-flash'); if(existing) existing.remove();
+      var el = document.createElement('div'); el.className='credit-flash';
+      el.innerHTML = '<span class="cf-emoji">\ud83d\udcb3</span><span>'+msg+'</span>';
+      document.body.appendChild(el);
+      setTimeout(function(){ el.style.opacity='0'; el.style.transition='opacity .3s'; }, 2200);
+      setTimeout(function(){ el.remove(); }, 2600);
+    } catch(e){}
+  }
+  function findCredit(cardKey, creditId){
+    var CC = window.CARD_CREDITS && window.CARD_CREDITS[cardKey];
+    if(!CC) return null;
+    for(var i=0;i<CC.length;i++){ if(CC[i].id === creditId) return CC[i]; }
+    return null;
+  }
+  function logUse(cardKey, creditId, period){
+    var cd = findCredit(cardKey, creditId); if(!cd || !isMultiUse(cd)) return;
+    var st = getState(cardKey, cd);
+    if(st.used >= cd.units) return;
+    st.used = (st.used||0) + 1;
+    st.uses = st.uses || [];
+    st.uses.push({date: new Date().toISOString().slice(0,10), amount: cd.perUse});
+    if(st.used >= cd.units) st.claimed = true;
+    setState(cardKey, cd, st);
+    flashMsg('+$'+cd.perUse+' logged \u00b7 '+(cd.units - st.used)+' remaining');
+    rerender();
+  }
+  function undoUse(cardKey, creditId, period){
+    var cd = findCredit(cardKey, creditId); if(!cd || !isMultiUse(cd)) return;
+    var st = getState(cardKey, cd);
+    if(!st.used || st.used <= 0) return;
+    st.used = st.used - 1;
+    st.uses = st.uses || [];
+    if(st.uses.length > 0) st.uses.pop();
+    st.claimed = false;
+    setState(cardKey, cd, st);
+    flashMsg('Use removed \u00b7 '+(cd.units - st.used)+' remaining');
+    rerender();
+  }
+  function toggleSingle(cardKey, creditId, period){
+    var cd = findCredit(cardKey, creditId); if(!cd) return;
+    var st = getState(cardKey, cd);
+    if(st.claimed){
+      st.claimed = false; st.used = 0; st.uses = [];
+      flashMsg('Unmarked \u2014 back in queue');
+    } else {
+      st.claimed = true; st.used = 1;
+      st.uses = [{date: new Date().toISOString().slice(0,10), amount: cd.amount}];
+      flashMsg('+$'+cd.amount+' claimed! \ud83c\udf89');
+    }
+    setState(cardKey, cd, st);
+    rerender();
+  }
+  function setFilter(f){ window._creditFilter = f; renderFilters(); renderList(); }
+  function rerender(){
+    try { renderHero(); renderFilters(); renderList(); if(typeof window.renderHomeCreditAlert === 'function') window.renderHomeCreditAlert(); } catch(e){}
+  }
+
+  // Override home alert to use v144 numbers once ready
+  var _origHomeAlert = window.renderHomeCreditAlert;
+  window.renderHomeCreditAlert = function(){
+    var el = document.getElementById('homeCreditAlert');
+    if(!el) return;
+    if(typeof userWallet === 'undefined' || !userWallet){
+      el.style.display='none'; el.innerHTML=''; return;
+    }
+    if((userWallet.size !== undefined && userWallet.size === 0) || (userWallet.length !== undefined && userWallet.length === 0)){
+      el.style.display='none'; el.innerHTML=''; return;
+    }
+    if(!window.__v144.ready){ if(typeof _origHomeAlert==='function') return _origHomeAlert(); return; }
+    var s = computeSummary();
+    if(s.urgentValue < 50 && s.urgentCount < 3){ el.style.display='none'; el.innerHTML=''; return; }
+    var word = s.urgentCount === 1 ? 'credit' : 'credits';
+    el.style.display='block';
+    el.innerHTML =
+      '<div class="home-credit-alert" onclick="switchTab(\'rewards\');setTimeout(function(){switchRewardsView(\'credits\');},100);">'+
+        '<div class="hca-icon">\u26a0\ufe0f</div>'+
+        '<div>'+
+          '<div class="hca-title">$'+Math.round(s.urgentValue).toLocaleString()+' in credits expire soon</div>'+
+          '<div class="hca-sub">'+s.urgentCount+' '+word+' expiring in \u226430 days \u2014 tap to review</div>'+
+        '</div>'+
+        '<div class="hca-arrow">\u2192</div>'+
+      '</div>';
+  };
+
+  // Override renderCredits
+  window.renderCredits = function(){ rerender(); };
+
+  // Hook switchRewardsView
+  (function(){
+    var orig = window.switchRewardsView;
+    if(typeof orig === 'function'){
+      window.switchRewardsView = function(v){
+        orig.apply(this, arguments);
+        if(v === 'credits'){ setTimeout(rerender, 20); }
+      };
+    }
+  })();
+
+  window.__v144.logUse = logUse;
+  window.__v144.undoUse = undoUse;
+  window.__v144.toggleSingle = toggleSingle;
+  window.__v144.setFilter = setFilter;
+  window.__v144.rerender = rerender;
+
+  function boot(){
+    if(!extendCredits()){ setTimeout(boot, 200); return; }
+    migrateFromLegacy();
+    window.__v144.ready = true;
+    setTimeout(function(){ try { rerender(); } catch(e){} }, 50);
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+  setTimeout(boot, 500);
+  setTimeout(boot, 1500);
+})();
+</script>
+
+<script id="v144-drawer-help-svg">
+(function(){
+  function patch(){
+    try {
+      var btn = document.querySelector('.drawer-item[data-v80-help]');
+      if(!btn) return;
+      var ico = btn.querySelector('.di-ico');
+      if(!ico) return;
+      if(ico.getAttribute('data-v144')==='1') return;
+      ico.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+      ico.setAttribute('data-v144','1');
+    } catch(e){}
+  }
+  patch();
+  document.addEventListener('DOMContentLoaded', patch);
+  setTimeout(patch, 500); setTimeout(patch, 1200); setTimeout(patch, 3000);
+  try {
+    var drawer = document.querySelector('.drawer .drawer-body');
+    if(drawer){ new MutationObserver(patch).observe(drawer, {childList:true, subtree:true}); }
+  } catch(e){}
+})();
+</script>
+
+<script id="v144-fx-toggle-preserve">
+(function(){
+  function svgDollar(){ return '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>'; }
+  function svgGlobe(){ return '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>'; }
+  var syncing = false;
+  function apply(){
+    if(syncing) return;
+    var ico = document.getElementById('drawerFxIco');
+    if(!ico) return;
+    // Only overwrite if the current content is text (emoji) or empty — leave our SVG alone
+    var hasSvg = !!ico.querySelector('svg');
+    var isForeign = !!window.foreignMode;
+    var wantSvg = isForeign ? svgGlobe() : svgDollar();
+    if(hasSvg){
+      // Check if state matches
+      var hasCircle = !!ico.querySelector('circle');
+      if(isForeign && hasCircle) return; // already globe
+      if(!isForeign && !hasCircle) return; // already dollar
+    }
+    syncing = true;
+    ico.innerHTML = wantSvg;
+    syncing = false;
+  }
+  apply();
+  document.addEventListener('DOMContentLoaded', apply);
+  setTimeout(apply, 400); setTimeout(apply, 1200);
+  try {
+    var target = document.getElementById('drawerFxIco');
+    if(target){
+      new MutationObserver(function(){ apply(); }).observe(target, { childList:true, characterData:true, subtree:true });
+    }
+  } catch(e){}
+  var _orig = window.toggleForeignMode;
+  if(typeof _orig === 'function'){
+    window.toggleForeignMode = function(){
+      var r = _orig.apply(this, arguments);
+      setTimeout(apply, 0);
+      return r;
+    };
+  }
+})();
+</script>
+
+<!-- V145 Credit Rescue coverage -->
+<style id="v145-perks-styles">
+.v145-perks-card{background:linear-gradient(135deg,var(--surface),var(--surface-2));border:1px dashed var(--border);border-radius:14px;padding:12px 14px;margin-bottom:8px}
+.v145-perks-head{display:flex;align-items:center;gap:10px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px dashed var(--border)}
+.v145-perks-title{font-size:12.5px;font-weight:900;color:var(--ink);letter-spacing:-.01em}
+.v145-perks-badge{font-size:9px;font-weight:900;color:var(--muted);background:var(--surface-2);padding:3px 8px;border-radius:99px;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;border:1px solid var(--border)}
+.v145-perks-note{font-size:11px;color:var(--muted);font-weight:700;line-height:1.4;font-style:italic}
+.v145-perks-list{display:grid;gap:8px}
+.v145-perk{display:grid;grid-template-columns:22px 1fr;gap:10px;align-items:start;padding:2px 0}
+.v145-perk-ico{font-size:16px;line-height:1.1;text-align:center}
+.v145-perk-body{min-width:0}
+.v145-perk-name{font-size:12.5px;font-weight:900;color:var(--ink);letter-spacing:-.01em;line-height:1.2}
+.v145-perk-desc{font-size:11px;color:var(--muted);font-weight:700;line-height:1.4;margin-top:2px}
+body.dark .v145-perks-card{background:linear-gradient(135deg,var(--surface),var(--surface-2));border-color:var(--border)}
+body.dark .v145-perks-badge{background:var(--surface-2);color:var(--muted);border-color:var(--border)}
+</style>
+
+<script id="v145-credit-coverage">
+(function(){
+  'use strict';
+  if(window.__v145 && window.__v145.ready) return;
+  window.__v145 = window.__v145 || { ready:false };
+
+  function extendCredits(){
+    var CC = window.CARD_CREDITS;
+    if(!CC) return false;
+    var additions = {
+      rbcWestJet: [
+        {id:'companion',label:'Annual Companion Voucher',emoji:'\u2708\ufe0f',amount:200,period:'year',
+         desc:'Round-trip WestJet companion voucher issued each year (~$200 typical value on select fares; conservative estimate).'}
+      ],
+      rbcAvionPrivilege: [
+        {id:'nexus',label:'NEXUS Credit',emoji:'\ud83d\udec2',amount:100,period:'4year',
+         desc:'$100 NEXUS reimbursement \u2014 one per 4-year cycle.'},
+        {id:'travel',label:'Annual Travel Credit',emoji:'\u2708\ufe0f',amount:120,period:'year',
+         desc:'$120 annual travel credit via RBC (verify current-year value with issuer).'}
+      ],
+      cibcAventuraPriv: [
+        {id:'travel',label:'Annual Travel Credit',emoji:'\u2708\ufe0f',amount:200,period:'year',
+         desc:'$200 annual travel credit via CIBC Travel each year.'},
+        {id:'nexus',label:'NEXUS Credit',emoji:'\ud83d\udec2',amount:100,period:'4year',
+         desc:'$100 NEXUS reimbursement every 4 years.'},
+        {id:'lounge',label:'Priority Pass Visits',emoji:'\ud83d\udecb\ufe0f',amount:210,period:'year',units:6,perUse:35,
+         desc:'6 free lounge visits per year via Priority Pass Select (~$35 each). Log each pass as you use it.'}
+      ],
+      amexAeroplan: [
+        {id:'bagFee',label:'First Bag Free on AC',emoji:'\ud83e\uddf3',amount:60,period:'year',
+         desc:'First checked bag free on Air Canada (~$30 \u00d7 2 flights estimated).'}
+      ],
+      amexAeroplanBiz: [
+        {id:'companion',label:'Annual Companion Voucher',emoji:'\u2708\ufe0f',amount:150,period:'year',
+         desc:'Annual companion voucher on Air Canada (~$150 est. value on select fares).'}
+      ],
+      bmoWorldElite: [
+        {id:'lounge',label:'MC Airport Experiences',emoji:'\ud83d\udecb\ufe0f',amount:140,period:'year',units:4,perUse:35,
+         desc:'4 Mastercard Airport Experiences lounge visits per year (~$35 each). Log each pass as you use it.'}
+      ],
+      bmoAscend: [
+        {id:'lounge',label:'MC Airport Experiences',emoji:'\ud83d\udecb\ufe0f',amount:70,period:'year',units:2,perUse:35,
+         desc:'2 Mastercard Airport Experiences lounge visits per year (~$35 each). Log each pass as you use it.'}
+      ],
+      hsbcWorldElite: [
+        {id:'travel',label:'Travel Enhancement Credit',emoji:'\u2708\ufe0f',amount:100,period:'year',
+         desc:'$100 travel enhancement credit each year (now issued via RBC after HSBC acquisition \u2014 verify with issuer).'}
+      ],
+      amexBonvoyBiz: [
+        {id:'freeNight',label:'Free Night Certificate',emoji:'\ud83c\udfe8',amount:250,period:'year',
+         desc:'35,000-point free night cert issued at renewal (~$150-400 real value depending on redemption).'}
+      ]
+    };
+    if(CC.amexAeroReserve && !CC.amexAeroReserve.find(function(c){return c.id==='companion';})){
+      CC.amexAeroReserve.push({id:'companion',label:'Worldwide Companion Pass',emoji:'\u2708\ufe0f',amount:250,period:'year',
+        desc:'Worldwide companion pass unlocked at min spend threshold (~$250 est. value; requires $7,500 annual spend).'});
+    }
+    Object.keys(additions).forEach(function(k){
+      if(!CC[k] || CC[k].length === 0){ CC[k] = additions[k]; }
+    });
+    return true;
+  }
+
+  var PERK = {
+    ps:  {emoji:'\ud83d\udee1\ufe0f', name:'Purchase Security', desc:'New items covered against theft or damage for 90 days after purchase.'},
+    ew:  {emoji:'\ud83d\udcc5', name:'Extended Warranty', desc:"Doubles the manufacturer's warranty up to 1 extra year."},
+    mob: {emoji:'\ud83d\udcf1', name:'Mobile Device Insurance', desc:'Up to $1,000 coverage for a phone or tablet charged to this card.'},
+    cdw: {emoji:'\ud83d\ude97', name:'Rental Car Collision Damage Waiver', desc:'CDW when you pay the full rental cost with this card.'},
+    med: {emoji:'\ud83e\ude7a', name:'Travel Medical Insurance', desc:'Emergency out-of-country medical coverage while travelling.'},
+    tci: {emoji:'\u2708\ufe0f', name:'Trip Cancellation & Interruption', desc:'Reimburses non-refundable trip costs for covered reasons.'},
+    bag: {emoji:'\ud83d\udcbc', name:'Baggage Delay / Lost Baggage', desc:'Coverage for delayed or lost checked baggage while travelling.'},
+    con: {emoji:'\u260e\ufe0f', name:'Concierge Service', desc:'24/7 travel, dining reservations, and event-ticket concierge.'},
+    fx:  {emoji:'\ud83c\udf10', name:'No Foreign Transaction Fee', desc:'Saves the typical 2.5% surcharge on purchases in foreign currencies.'},
+    pri: {emoji:'\ud83d\udcb0', name:'Price Protection', desc:'Refunds the difference if item price drops within 60 days.'},
+    petro:{emoji:'\u26fd', name:'Petro-Canada Fuel Savings', desc:'3\u00a2/L savings when linked at Petro-Canada.'},
+    marS:{emoji:'\ud83c\udfe8', name:'Marriott Silver Elite Status', desc:'Automatic Marriott Bonvoy Silver Elite status while you hold the card.'},
+    marN:{emoji:'\u2b50', name:'15 Elite Night Credits', desc:'Marriott Bonvoy 15 elite night credits deposited each year.'},
+    hilG:{emoji:'\ud83c\udfe8', name:'Hilton Gold Status (Amex Plat)', desc:'Complimentary Hilton Honors Gold status.'},
+    marG:{emoji:'\ud83c\udfe8', name:'Marriott Gold Status (Amex Plat)', desc:'Complimentary Marriott Bonvoy Gold Elite status.'},
+    ml:  {emoji:'\ud83d\udecb\ufe0f', name:'Maple Leaf Lounge Unlimited', desc:'Unlimited Air Canada Maple Leaf Lounge access.'},
+    wjBag:{emoji:'\ud83e\uddf3', name:'Free 1st Checked Bag on WestJet', desc:'First checked bag free for you and up to 8 companions on WestJet.'},
+    acBag:{emoji:'\ud83e\uddf3', name:'Free 1st Checked Bag on AC', desc:'First checked bag free for you and up to 8 companions on Air Canada.'},
+    hotel:{emoji:'\ud83c\udfe8', name:'Fine Hotels & Resorts', desc:'Room upgrades, daily breakfast, and property credits at 1,300+ hotels via Amex Travel.'},
+    metal:{emoji:'\u2728', name:'Metal Card', desc:'Physical metal card for eligible cardholders.'}
+  };
+
+  function makePerks(cardKey, card){
+    var name = (card && card.n) || '';
+    var iss  = (card && card.iss) || '';
+    var net  = (card && card.net) || '';
+    var fee  = parseFloat((card && card.feeRetail) || 0) || 0;
+    var isPrepaid = /prepaid|koho|eq bank/i.test(name) || cardKey === 'wsCashCard' || cardKey === 'kohoStandard' || cardKey === 'kohoExtra' || cardKey === 'eqBank';
+    var isVIPriv  = /infinite privilege/i.test(name);
+    var isVI      = /visa infinite/i.test(name) && !isVIPriv;
+    var isWEMC    = /world elite/i.test(name) && /mastercard/i.test(name);
+    var isAmex    = net === 'Amex' || /amex|american express/i.test(name);
+    var isPlat    = /platinum/i.test(name) && isAmex && fee >= 500;
+    var isGold    = /gold/i.test(name) && isAmex;
+
+    var perks = [];
+    if(isVIPriv){
+      perks = [PERK.ps, PERK.ew, PERK.mob, PERK.cdw, PERK.med, PERK.tci, PERK.bag, PERK.con];
+    } else if(isVI){
+      perks = [PERK.ps, PERK.ew, PERK.mob, PERK.cdw, PERK.tci];
+    } else if(isWEMC){
+      perks = [PERK.ps, PERK.ew, PERK.mob, PERK.cdw, PERK.tci];
+    } else if(isPlat){
+      perks = [PERK.ps, PERK.ew, PERK.cdw, PERK.med, PERK.tci, PERK.bag, PERK.con, PERK.hotel, PERK.hilG, PERK.marG, PERK.metal];
+    } else if(isGold){
+      perks = [PERK.ps, PERK.ew, PERK.cdw, PERK.med, PERK.tci];
+    } else if(isAmex && fee >= 100){
+      perks = [PERK.ps, PERK.ew, PERK.cdw, PERK.tci];
+    } else if(isAmex){
+      perks = [PERK.ps, PERK.ew];
+    } else if(isPrepaid){
+      perks = [PERK.ps];
+    } else if(fee >= 100){
+      perks = [PERK.ps, PERK.ew, PERK.cdw, PERK.tci];
+    } else if(fee > 0){
+      perks = [PERK.ps, PERK.ew, PERK.cdw];
+    } else {
+      perks = [PERK.ps];
+    }
+
+    var noFxCards = {scotiaPass:1,scotiaPlat:1,scotiaGold:1,wsCashCard:1,wsInfinite1:1,wsInfinitePlus:1,wsInfinitePrivilege:1,homeTrust:1,eqBank:1,brimStd:1,brimWE:1,amexPlatinum:1,amexBusinessPlat:1,amexAeroReserve:1,rogers:1,tdUsdVisa:1};
+    if(noFxCards[cardKey]) perks.push(PERK.fx);
+
+    if(cardKey === 'bonvoy' || cardKey === 'amexBonvoyBiz'){ perks.push(PERK.marS, PERK.marN); }
+    if(cardKey === 'amexAeroReserve'){ perks.push(PERK.ml, PERK.acBag); }
+    if(cardKey === 'amexAeroplan' || cardKey === 'tdAero' || cardKey === 'cibcAeroplan' || cardKey === 'amexAeroplanBiz'){ perks.push(PERK.acBag); }
+    if(cardKey === 'rbcWestJet'){ perks.push(PERK.wjBag); }
+    var petroCards = {rbcCashback:1,rbcION:1,rbcAvion:1,rbcAvionPlat:1,rbcAvionPrivilege:1,rbcRewardsPlus:1,rbcBAVisa:1,rbcSignature:1,rbcBizAvion:1,rbcWestJet:1};
+    if(petroCards[cardKey]) perks.push(PERK.petro);
+
+    var seen = {};
+    return perks.filter(function(p){ if(!p) return false; var k = p.emoji+p.name; if(seen[k]) return false; seen[k]=true; return true; });
+  }
+
+  window.CARD_PERKS_LOOKUP = makePerks;
+
+  function boot(){
+    if(!extendCredits()){ setTimeout(boot, 200); return; }
+    window.__v145.ready = true;
+    installBuildListWrapper();
+    setTimeout(function(){ if(window.__v144 && window.__v144.rerender) window.__v144.rerender(); }, 30);
+  }
+
+  var _installed = false;
+  function installBuildListWrapper(){
+    if(_installed) return;
+    var v144 = window.__v144;
+    if(!v144 || typeof v144.rerender !== 'function'){ setTimeout(installBuildListWrapper, 200); return; }
+    _installed = true;
+    var origRerender = v144.rerender;
+    v144.rerender = function(){
+      origRerender.apply(this, arguments);
+      appendPerksSection();
+    };
+  }
+
+  function appendPerksSection(){
+    try {
+      var el = document.getElementById('creditsList');
+      if(!el) return;
+      if(typeof userWallet === 'undefined' || !userWallet) return;
+      var f = window._creditFilter || 'active';
+      if(f === 'urgent' || f === 'redeemed'){
+        var existing = document.getElementById('v145-perks-section');
+        if(existing) existing.remove();
+        return;
+      }
+      var wallet = userWallet;
+      var iter = (wallet && typeof wallet.forEach === 'function') ? wallet : [];
+      if(!iter || (iter.size !== undefined && iter.size === 0) || (iter.length !== undefined && iter.length === 0)) return;
+
+      var existing = document.getElementById('v145-perks-section');
+      if(existing) existing.remove();
+
+      var html = '<div id="v145-perks-section" style="margin-top:18px">';
+      html += '<div class="section" style="margin:8px 0 8px">\ud83d\udee1\ufe0f Included benefits (every card in your wallet)</div>';
+      html += '<div class="v145-perks-note" style="margin-bottom:10px">These aren\'t claimable dollar credits \u2014 they\'re insurance and perks bundled with each card. Verify exact terms and coverage limits with your issuer.</div>';
+
+      var any = false;
+      iter.forEach(function(k){
+        var card = (window.CARDS_DB || {})[k];
+        if(!card) return;
+        var perks = makePerks(k, card);
+        if(!perks || perks.length === 0) return;
+        var hasCredits = !!(window.CARD_CREDITS && window.CARD_CREDITS[k] && window.CARD_CREDITS[k].length > 0);
+        html += renderPerksCard(k, card, perks, hasCredits);
+        any = true;
+      });
+      html += '</div>';
+      if(any) el.insertAdjacentHTML('beforeend', html);
+    } catch(e){ console.warn('V145 perks err:', e); }
+  }
+
+  function renderPerksCard(cardKey, card, perks, hasCredits){
+    var badge = hasCredits ? 'ALSO INCLUDES' : 'NO CLAIMABLE CREDITS';
+    var html = '<div class="v145-perks-card">'+
+      '<div class="v145-perks-head">'+
+        '<div style="font-size:20px;flex-shrink:0">'+card.e+'</div>'+
+        '<div style="flex:1;min-width:0">'+
+          '<div class="v145-perks-title">'+card.n+'</div>'+
+        '</div>'+
+        '<div class="v145-perks-badge">'+badge+'</div>'+
+      '</div>'+
+      '<div class="v145-perks-list">';
+    perks.forEach(function(p){
+      html += '<div class="v145-perk">'+
+        '<div class="v145-perk-ico">'+p.emoji+'</div>'+
+        '<div class="v145-perk-body">'+
+          '<div class="v145-perk-name">'+p.name+'</div>'+
+          '<div class="v145-perk-desc">'+p.desc+'</div>'+
+        '</div>'+
+      '</div>';
+    });
+    html += '</div></div>';
+    return html;
+  }
+
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+  setTimeout(boot, 500);
+  setTimeout(boot, 1500);
+  setTimeout(boot, 3000);
 })();
 </script>
 </body>
