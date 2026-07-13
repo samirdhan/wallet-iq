@@ -1,13 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- V145 (2026-07-13): Credit Rescue coverage pass. 10 cards received newly-added real statement credits (RBC WestJet companion, RBC Avion Privilege NEXUS+travel, CIBC Aventura Privilege travel+NEXUS+lounge, Amex Aeroplan bag/companion, BMO World Elite/Ascend MC lounge, HSBC WE travel, Bonvoy Biz free-night, Aeroplan Reserve companion). Every wallet card now also gets a documented 'Included benefits' block (Purchase Security, Extended Warranty, Mobile Device Insurance, Rental CDW, Trip Cancellation, Travel Medical, Baggage, Concierge, No FX, Petro-Canada savings, Marriott status, etc.) based on card tier — so no card in the app is undocumented anymore. -->
-
-<!-- V144 (2026-07-13): Homepage stats block removed. Drawer emojis replaced with clean SVG line-icons. Credit Rescue rebuilt from ground up with multi-use support (Scotia Passport 6 lounge passes, Scotia Plat 10, Wealthsimple Privilege 6, Amex Plat dining 4 quarters) — click-per-use, undo last use, accurate $ tracking. -->
+<!-- V144 (2026-07-13): Homepage stats block removed. Drawer emojis replaced with clean SVG line-icons. Credit Rescue rebuilt from ground up with multi-use lounge pass support. -->
+<!-- V145 (2026-07-13): Every wallet card now gets a documented 'Included benefits' block. 10 cards received real statement credits. -->
+<!-- V146 (2026-07-13): FIXED Steve Nash triple-entry via cross-category MERCHANT_DIRECTORY dedupe + push-guard. +100 authentic BC/Metro Van aliases. -->
+<!-- V147 (2026-07-13): +120 highly-rated Vancouver + Richmond restaurants (Michelin starred/recommended + Bib Gourmand + Richmond dim sum trail + Richmond fine dining). -->
+<!-- V148 (2026-07-13): Renamed 'Best Card Near Me' tab to 'Where to Pay' (clearer + matches existing panel heading). Only user-facing strings changed. -->
+<!-- V149 (2026-07-13): NEW Wise-style wallet UI for the My Cards tab. Cards render as a stacked wallet (peeking behind one another). Tap any card and it lifts up, expands, and reveals the full existing detail card (fees, benefits, notes, insurance) as an inline drawer below. Tap the same card again to collapse. All existing #cardList rendering / data-card-key / expand notes remain intact — this is a pure presentational layer with graceful fallback if browsers don't support the animations. -->
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>Wallet IQ V145</title>
+<title>Wallet IQ V149</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Wallet IQ">
@@ -1525,13 +1528,11 @@ body.dark .v96-synergy-card.locked { border-color: var(--border); }
 </style>
 
 <style id="v144-drawer-icons">
-/* V144 — clean SVG line-icons for drawer */
 .drawer-item .di-ico { width:22px; height:22px; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; }
 .drawer-item .di-ico svg { display:block; color: currentColor; opacity:0.85; }
 .drawer-item.active .di-ico svg { opacity:1; }
 </style>
 <style id="v144-home-hide">
-/* V144 — Remove the "Wallet IQ by the numbers" stats block from the home per user feedback */
 .v73-home-extra > .v73-section-title,
 .v73-home-extra > .v73-stats,
 #home .v73-stats,
@@ -1878,10 +1879,10 @@ body.dark .credits-empty{background:var(--surface)}
 
 <!-- LOCATION PANEL -->
 <section id="location" class="panel">
-<div class="section">📍 Where should I pay?</div>
+<div class="section">📍 Where to Pay</div>
 <div class="location-hero">
 <div style="font-size:44px;margin-bottom:8px">📍</div>
-<div style="font-size:18px;font-weight:900;margin-bottom:4px">Find the best card near you</div>
+<div style="font-size:18px;font-weight:900;margin-bottom:4px">Find the best card at your location</div>
 <div style="font-size:12px;opacity:.7;margin-bottom:14px">Uses GPS to detect your merchant and recommend the best card from YOUR wallet</div>
 <button onclick="lookupBestCard()" class="location-detect-btn">🧭 Detect my location</button>
 </div>
@@ -2104,7 +2105,7 @@ body.dark .credits-empty{background:var(--surface)}
 <button class="drawer-item active" data-tab="home"><span class="di-ico"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12L12 3l9 9"/><path d="M5 10v11h14V10"/></svg></span><span>Home</span></button>
 <button class="drawer-item" data-tab="cardsTab"><span class="di-ico"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="19" height="13" rx="2"/><path d="M2.5 10.5h19"/><path d="M6 15h4"/></svg></span><span>My Cards</span></button>
 <button class="drawer-item" data-tab="offers"><span class="di-ico"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12v9H4v-9"/><path d="M2 7h20v5H2z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></svg></span><span>Welcome Offers</span></button>
-<button class="drawer-item" data-tab="location"><span class="di-ico"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s-7-7.58-7-13a7 7 0 1114 0c0 5.42-7 13-7 13z"/><circle cx="12" cy="9" r="2.5"/></svg></span><span>Best Card Near Me</span></button>
+<button class="drawer-item" data-tab="location"><span class="di-ico"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s-7-7.58-7-13a7 7 0 1114 0c0 5.42-7 13-7 13z"/><circle cx="12" cy="9" r="2.5"/></svg></span><span>Where to Pay</span></button>
 <button class="drawer-item" data-tab="rewards"><span class="di-ico"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg></span><span>Rewards Studio</span></button>
 <div class="drawer-divider"></div>
 <button class="drawer-item" onclick="showOnboarding();closeDrawer()"><span class="di-ico"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span><span>Edit my wallet</span></button>
@@ -20623,7 +20624,9 @@ window.__v143={chosenKey:function(){return window.__v143_chosenKey;},applyVisual
 })();
 </script>
 
-<!-- V144 Credit Rescue Rebuild + Drawer SVG polish -->
+<!-- ================================================================== -->
+<!-- V144 Credit Rescue Rebuild (multi-use credits + fresh engine)      -->
+<!-- ================================================================== -->
 <style id="v144-credits-styles">
 .v144-credit-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:12px 13px;margin-bottom:8px;box-shadow:var(--shadow);position:relative;overflow:hidden;transition:transform .1s ease}
 .v144-credit-card.done{background:linear-gradient(135deg,var(--greenbg),var(--surface));border-color:#9ec9a8}
@@ -20670,6 +20673,7 @@ body.dark .v144-credit-card.done{background:linear-gradient(135deg,#1a3022,var(-
 .v144-cc-btn.undo:hover{color:var(--ink);border-color:var(--muted)}
 .v144-cc-btn.done{background:transparent;color:var(--green);border:1.5px solid var(--green);box-shadow:none}
 .v144-cc-btn:disabled{opacity:.4;cursor:not-allowed;box-shadow:none}
+body.dark .v144-cc-btn.done{background:transparent;color:var(--green);border-color:var(--green)}
 </style>
 
 <script id="v144-credit-rescue">
@@ -20677,61 +20681,24 @@ body.dark .v144-credit-card.done{background:linear-gradient(135deg,#1a3022,var(-
   'use strict';
   if (window.__v144 && window.__v144.ready) return;
   window.__v144 = window.__v144 || { ready:false };
-
   var STORE_KEY = 'walletiq_credits_v144';
   var LEGACY_KEY = 'walletiq_credits_v46';
-
   function loadStore(){ try { return JSON.parse(localStorage.getItem(STORE_KEY)||'{}'); } catch(e){ return {}; } }
   function saveStore(s){ try { localStorage.setItem(STORE_KEY, JSON.stringify(s)); } catch(e){} }
   function loadLegacy(){ try { return JSON.parse(localStorage.getItem(LEGACY_KEY)||'{}'); } catch(e){ return {}; } }
-
   function extendCredits(){
     var CC = window.CARD_CREDITS;
     if(!CC) return false;
-    if(CC.scotiaPass && CC.scotiaPass[0]) {
-      CC.scotiaPass[0].units = 6; CC.scotiaPass[0].perUse = 35;
-      CC.scotiaPass[0].label = 'Priority Pass Visits';
-      CC.scotiaPass[0].desc = '6 free lounge visits per year via Priority Pass Select (~$35 each). Log each pass as you use it.';
-    }
-    if(CC.scotiaPlat && CC.scotiaPlat[0]) {
-      CC.scotiaPlat[0].units = 10; CC.scotiaPlat[0].perUse = 35;
-      CC.scotiaPlat[0].desc = '10 free lounge visits per year via Priority Pass (~$35 each). Log each pass as you use it.';
-    }
-    if(CC.wsInfinitePrivilege && CC.wsInfinitePrivilege[0]) {
-      CC.wsInfinitePrivilege[0].units = 6; CC.wsInfinitePrivilege[0].perUse = 35;
-      CC.wsInfinitePrivilege[0].desc = '6 Visa Airport Companion lounge passes per year (~$35 each). Log each pass as you use it.';
-    }
-    if(CC.amexPlatinum && CC.amexPlatinum.length >= 2 && CC.amexPlatinum[1].id === 'dining') {
-      CC.amexPlatinum[1].units = 4; CC.amexPlatinum[1].perUse = 50;
-      CC.amexPlatinum[1].desc = '$50 per quarter at select Canadian restaurants (Amex Dining Program). Log each quarter as used.';
-    }
+    if(CC.scotiaPass && CC.scotiaPass[0]) { CC.scotiaPass[0].units = 6; CC.scotiaPass[0].perUse = 35; CC.scotiaPass[0].label = 'Priority Pass Visits'; CC.scotiaPass[0].desc = '6 free lounge visits per year via Priority Pass Select (~$35 each). Log each pass as you use it.'; }
+    if(CC.scotiaPlat && CC.scotiaPlat[0]) { CC.scotiaPlat[0].units = 10; CC.scotiaPlat[0].perUse = 35; CC.scotiaPlat[0].desc = '10 free lounge visits per year via Priority Pass (~$35 each). Log each pass as you use it.'; }
+    if(CC.wsInfinitePrivilege && CC.wsInfinitePrivilege[0]) { CC.wsInfinitePrivilege[0].units = 6; CC.wsInfinitePrivilege[0].perUse = 35; CC.wsInfinitePrivilege[0].desc = '6 Visa Airport Companion lounge passes per year (~$35 each). Log each pass as you use it.'; }
+    if(CC.amexPlatinum && CC.amexPlatinum.length >= 2 && CC.amexPlatinum[1].id === 'dining') { CC.amexPlatinum[1].units = 4; CC.amexPlatinum[1].perUse = 50; CC.amexPlatinum[1].desc = '$50 per quarter at select Canadian restaurants (Amex Dining Program). Log each quarter as used.'; }
     return true;
   }
-
-  function periodKey(period){
-    var now = new Date();
-    if(period === 'month') return now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
-    if(period === 'year')  return String(now.getFullYear());
-    if(period === '4year'){ var s = Math.floor(now.getFullYear()/4)*4; return String(s); }
-    return String(now.getFullYear());
-  }
-  function daysLeftFn(period){
-    var now = new Date(); var end;
-    if(period === 'month') end = new Date(now.getFullYear(), now.getMonth()+1, 1);
-    else if(period === '4year'){ var s = Math.floor(now.getFullYear()/4)*4; end = new Date(s+4, 0, 1); }
-    else end = new Date(now.getFullYear()+1, 0, 1);
-    return Math.max(1, Math.ceil((end.getTime()-now.getTime())/86400000));
-  }
-  function totalDaysFn(period){
-    var now = new Date();
-    if(period === 'month') return new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
-    if(period === '4year') return 365*4;
-    return 365;
-  }
-  function keyFor(cardKey, creditId, period){
-    return cardKey+'::'+creditId+'::'+periodKey(period);
-  }
-
+  function periodKey(period){ var now = new Date(); if(period === 'month') return now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0'); if(period === 'year') return String(now.getFullYear()); if(period === '4year'){ var s = Math.floor(now.getFullYear()/4)*4; return String(s); } return String(now.getFullYear()); }
+  function daysLeftFn(period){ var now = new Date(); var end; if(period === 'month') end = new Date(now.getFullYear(), now.getMonth()+1, 1); else if(period === '4year'){ var s = Math.floor(now.getFullYear()/4)*4; end = new Date(s+4, 0, 1); } else end = new Date(now.getFullYear()+1, 0, 1); return Math.max(1, Math.ceil((end.getTime()-now.getTime())/86400000)); }
+  function totalDaysFn(period){ var now = new Date(); if(period === 'month') return new Date(now.getFullYear(), now.getMonth()+1, 0).getDate(); if(period === '4year') return 365*4; return 365; }
+  function keyFor(cardKey, creditId, period){ return cardKey+'::'+creditId+'::'+periodKey(period); }
   function migrateFromLegacy(){
     var store = loadStore();
     if(store.__migrated) return;
@@ -20760,38 +20727,16 @@ body.dark .v144-credit-card.done{background:linear-gradient(135deg,#1a3022,var(-
     store.__migrated = true;
     saveStore(store);
   }
-
-  function getState(cardKey, cd){
-    var store = loadStore();
-    var k = keyFor(cardKey, cd.id, cd.period);
-    return store[k] || { used:0, uses:[], claimed:false };
-  }
-  function setState(cardKey, cd, state){
-    var store = loadStore();
-    var k = keyFor(cardKey, cd.id, cd.period);
-    store[k] = state;
-    saveStore(store);
-  }
+  function getState(cardKey, cd){ var s=loadStore(); var k=keyFor(cardKey,cd.id,cd.period); return s[k]||{used:0,uses:[],claimed:false}; }
+  function setState(cardKey, cd, state){ var s=loadStore(); var k=keyFor(cardKey,cd.id,cd.period); s[k]=state; saveStore(s); }
   function isMultiUse(cd){ return !!(cd.units && cd.units > 1 && cd.perUse); }
-  function isFullyUsed(cd, st){
-    if(isMultiUse(cd)) return st.used >= cd.units;
-    return !!st.claimed;
-  }
-  function dollarsUsed(cd, st){
-    if(isMultiUse(cd)) return (st.used||0) * cd.perUse;
-    return st.claimed ? cd.amount : 0;
-  }
-  function totalValueFn(cd){
-    if(isMultiUse(cd)) return cd.units * cd.perUse;
-    return cd.amount;
-  }
-
+  function isFullyUsed(cd, st){ if(isMultiUse(cd)) return st.used >= cd.units; return !!st.claimed; }
+  function dollarsUsed(cd, st){ if(isMultiUse(cd)) return (st.used||0) * cd.perUse; return st.claimed ? cd.amount : 0; }
+  function totalValueFn(cd){ if(isMultiUse(cd)) return cd.units * cd.perUse; return cd.amount; }
   function computeRing(cd, st){
-    var used = dollarsUsed(cd, st);
-    var total = totalValueFn(cd);
+    var used = dollarsUsed(cd, st); var total = totalValueFn(cd);
     var pctUsed = total > 0 ? Math.min(100, (used/total)*100) : 0;
-    var left = daysLeftFn(cd.period);
-    var td = totalDaysFn(cd.period);
+    var left = daysLeftFn(cd.period); var td = totalDaysFn(cd.period);
     var pctElapsed = Math.min(100, Math.max(0, ((td-left)/td)*100));
     var color;
     if(isFullyUsed(cd, st)) color = 'green';
@@ -20801,7 +20746,6 @@ body.dark .v144-credit-card.done{background:linear-gradient(135deg,#1a3022,var(-
     var offset = circumference*(pctElapsed/100);
     return { left:left, pctElapsed:pctElapsed, pctUsed:pctUsed, color:color, offset:offset, circumference:circumference };
   }
-
   function buildList(){
     var out = [];
     if(typeof userWallet === 'undefined' || !window.CARD_CREDITS) return out;
@@ -20814,313 +20758,104 @@ body.dark .v144-credit-card.done{background:linear-gradient(135deg,#1a3022,var(-
       if(!card) return;
       CC.forEach(function(cd){
         var st = getState(cardKey, cd);
-        out.push({
-          cardKey:cardKey, card:card, credit:cd, state:st,
-          multi:isMultiUse(cd), fully:isFullyUsed(cd, st),
-          used$: dollarsUsed(cd, st), total$: totalValueFn(cd),
-          ring: computeRing(cd, st),
-          key: keyFor(cardKey, cd.id, cd.period)
-        });
+        out.push({ cardKey:cardKey, card:card, credit:cd, state:st, multi:isMultiUse(cd), fully:isFullyUsed(cd, st), used$: dollarsUsed(cd, st), total$: totalValueFn(cd), ring: computeRing(cd, st), key: keyFor(cardKey, cd.id, cd.period) });
       });
     });
     return out;
   }
-
   function computeSummary(){
     var list = buildList();
     var ytdClaimed=0, ytdPotential=0, urgentCount=0, urgentValue=0, activeCount=0;
     list.forEach(function(it){
-      ytdPotential += it.total$;
-      ytdClaimed += it.used$;
-      if(!it.fully){
-        activeCount++;
-        var remaining = it.total$ - it.used$;
-        if(it.ring.left <= 30 && remaining > 0){
-          urgentCount++;
-          urgentValue += remaining;
-        }
-      }
+      ytdPotential += it.total$; ytdClaimed += it.used$;
+      if(!it.fully){ activeCount++; var remaining = it.total$ - it.used$; if(it.ring.left <= 30 && remaining > 0){ urgentCount++; urgentValue += remaining; } }
     });
     var pct = ytdPotential > 0 ? Math.round((ytdClaimed/ytdPotential)*100) : 0;
     return { ytdClaimed:ytdClaimed, ytdPotential:ytdPotential, pct:pct, urgentCount:urgentCount, urgentValue:urgentValue, activeCount:activeCount, total:list.length };
   }
-
   function renderHero(){
-    var el = document.getElementById('creditsHero');
-    if(!el) return;
-    var s = computeSummary();
-    var circ = 2*Math.PI*30;
-    var off  = circ*(1 - s.pct/100);
-    el.innerHTML =
-      '<div class="credits-hero">'+
-        '<div class="ch-label">\ud83d\udcb3 Credit Rescue</div>'+
-        '<div class="ch-row">'+
-          '<div>'+
-            '<div class="ch-big">$'+Math.round(s.ytdClaimed).toLocaleString()+'</div>'+
-            '<div class="ch-sub">of $'+Math.round(s.ytdPotential).toLocaleString()+' unlocked in '+new Date().getFullYear()+'</div>'+
-          '</div>'+
-          '<div class="ch-ring">'+
-            '<svg viewBox="0 0 68 68">'+
-              '<circle class="rr-bg" cx="34" cy="34" r="30"/>'+
-              '<circle class="rr-fg" cx="34" cy="34" r="30" stroke-dasharray="'+circ+'" stroke-dashoffset="'+off+'"/>'+
-            '</svg>'+
-            '<div class="rr-pct">'+s.pct+'%</div>'+
-          '</div>'+
-        '</div>'+
-        '<div class="ch-stats">'+
-          '<div class="ch-stat"><div class="l">Expiring</div><div class="v red">'+s.urgentCount+'</div></div>'+
-          '<div class="ch-stat"><div class="l">Active</div><div class="v yellow">'+s.activeCount+'</div></div>'+
-          '<div class="ch-stat"><div class="l">Total</div><div class="v green">'+s.total+'</div></div>'+
-        '</div>'+
-      '</div>';
+    var el = document.getElementById('creditsHero'); if(!el) return;
+    var s = computeSummary(); var circ = 2*Math.PI*30; var off = circ*(1 - s.pct/100);
+    el.innerHTML = '<div class="credits-hero"><div class="ch-label">\ud83d\udcb3 Credit Rescue</div><div class="ch-row"><div><div class="ch-big">$'+Math.round(s.ytdClaimed).toLocaleString()+'</div><div class="ch-sub">of $'+Math.round(s.ytdPotential).toLocaleString()+' unlocked in '+new Date().getFullYear()+'</div></div><div class="ch-ring"><svg viewBox="0 0 68 68"><circle class="rr-bg" cx="34" cy="34" r="30"/><circle class="rr-fg" cx="34" cy="34" r="30" stroke-dasharray="'+circ+'" stroke-dashoffset="'+off+'"/></svg><div class="rr-pct">'+s.pct+'%</div></div></div><div class="ch-stats"><div class="ch-stat"><div class="l">Expiring</div><div class="v red">'+s.urgentCount+'</div></div><div class="ch-stat"><div class="l">Active</div><div class="v yellow">'+s.activeCount+'</div></div><div class="ch-stat"><div class="l">Total</div><div class="v green">'+s.total+'</div></div></div></div>';
   }
-
   window._creditFilter = window._creditFilter || 'active';
   function renderFilters(){
-    var el = document.getElementById('creditFilters');
-    if(!el) return;
+    var el = document.getElementById('creditFilters'); if(!el) return;
     var s = computeSummary();
-    var filters = [
-      {id:'active', label:'Active',   emoji:'\ud83d\udfe2', count:s.activeCount},
-      {id:'urgent', label:'Expiring', emoji:'\u26a0\ufe0f', count:s.urgentCount},
-      {id:'redeemed', label:'Done',   emoji:'\u2705', count:s.total-s.activeCount},
-      {id:'all', label:'All',         emoji:'\ud83d\udccb', count:s.total}
-    ];
-    el.innerHTML = filters.map(function(f){
-      return '<button class="credit-filter'+(window._creditFilter===f.id?' on':'')+'" onclick="window.__v144.setFilter(\''+f.id+'\')">'+f.emoji+' '+f.label+' <span class="cf-badge">'+f.count+'</span></button>';
-    }).join('');
+    var filters = [ {id:'active', label:'Active', emoji:'\ud83d\udfe2', count:s.activeCount},{id:'urgent', label:'Expiring', emoji:'\u26a0\ufe0f', count:s.urgentCount},{id:'redeemed', label:'Done', emoji:'\u2705', count:s.total-s.activeCount},{id:'all', label:'All', emoji:'\ud83d\udccb', count:s.total} ];
+    el.innerHTML = filters.map(function(f){ return '<button class="credit-filter'+(window._creditFilter===f.id?' on':'')+'" onclick="window.__v144.setFilter(\''+f.id+'\')">'+f.emoji+' '+f.label+' <span class="cf-badge">'+f.count+'</span></button>'; }).join('');
   }
-
   function renderList(){
-    var el = document.getElementById('creditsList');
-    if(!el) return;
+    var el = document.getElementById('creditsList'); if(!el) return;
     var list = buildList();
-    if(list.length === 0){
-      el.innerHTML = '<div class="credits-empty"><div class="big">\ud83d\udcb3</div><h4>No trackable credits yet</h4><div>Add cards with statement credits (Cobalt, Amex Plat, Bonvoy, Scotia Passport, etc.) to see them here.</div></div>';
-      return;
-    }
+    if(list.length === 0){ el.innerHTML = '<div class="credits-empty"><div class="big">\ud83d\udcb3</div><h4>No trackable credits yet</h4><div>Add cards with statement credits (Cobalt, Amex Plat, Bonvoy, Scotia Passport, etc.) to see them here.</div></div>'; return; }
     var f = window._creditFilter || 'active';
-    if(f === 'active')   list = list.filter(function(x){ return !x.fully; });
+    if(f === 'active') list = list.filter(function(x){ return !x.fully; });
     else if(f === 'urgent') list = list.filter(function(x){ return !x.fully && x.ring.left <= 30 && (x.total$-x.used$) > 0; });
     else if(f === 'redeemed') list = list.filter(function(x){ return x.fully; });
-    list.sort(function(a,b){
-      if(a.fully !== b.fully) return a.fully ? 1 : -1;
-      if(!a.fully){
-        if(a.ring.left !== b.ring.left) return a.ring.left - b.ring.left;
-        return (b.total$-b.used$) - (a.total$-a.used$);
-      }
-      return 0;
-    });
-    if(list.length === 0){
-      el.innerHTML = '<div class="credits-empty"><div class="big">\ud83c\udf89</div><h4>Nothing here</h4><div>No credits match this filter. Try switching filters above.</div></div>';
-      return;
-    }
+    list.sort(function(a,b){ if(a.fully !== b.fully) return a.fully ? 1 : -1; if(!a.fully){ if(a.ring.left !== b.ring.left) return a.ring.left - b.ring.left; return (b.total$-b.used$) - (a.total$-a.used$); } return 0; });
+    if(list.length === 0){ el.innerHTML = '<div class="credits-empty"><div class="big">\ud83c\udf89</div><h4>Nothing here</h4><div>No credits match this filter. Try switching filters above.</div></div>'; return; }
     var groups = {};
     list.forEach(function(x){ if(!groups[x.cardKey]) groups[x.cardKey]=[]; groups[x.cardKey].push(x); });
     var html = '';
-    Object.keys(groups).forEach(function(cardKey){
-      var items = groups[cardKey];
-      var card  = items[0].card;
-      html += '<div class="credit-issuer">'+card.e+' '+card.n+'</div>';
-      items.forEach(function(it){ html += renderOneCard(it); });
-    });
+    Object.keys(groups).forEach(function(cardKey){ var items = groups[cardKey]; var card = items[0].card; html += '<div class="credit-issuer">'+card.e+' '+card.n+'</div>'; items.forEach(function(it){ html += renderOneCard(it); }); });
     el.innerHTML = html;
   }
-
   function renderOneCard(it){
     var cd = it.credit; var st = it.state; var r = it.ring;
     var urgent = !it.fully && r.left <= 30 && (it.total$-it.used$) > 0;
     var periodLabel = cd.period === 'month' ? 'monthly' : (cd.period === '4year' ? '4-year' : 'annual');
     var isMulti = it.multi;
-
     var progressHtml = '';
     if(isMulti){
-      var remaining = cd.units - st.used;
-      var barPct = Math.min(100, (st.used / cd.units) * 100);
+      var remaining = cd.units - st.used; var barPct = Math.min(100, (st.used / cd.units) * 100);
       var barClass = it.fully ? 'full' : (urgent ? 'urgent' : '');
-      var remainLabel = it.fully
-        ? '<span class="full">\u2713 All '+cd.units+' used</span>'
-        : '<span class="rem">'+remaining+'</span> / '+cd.units+' remaining';
-      progressHtml =
-        '<div class="v144-cc-progress">'+
-          '<div class="v144-cc-progress-row">'+
-            '<div class="v144-cc-uses">'+remainLabel+'</div>'+
-            '<div class="v144-cc-claimed">$'+it.used$.toLocaleString()+' <span class="of">of $'+it.total$.toLocaleString()+' used</span></div>'+
-          '</div>'+
-          '<div class="v144-cc-bar"><div class="v144-cc-bar-fill '+barClass+'" style="width:'+barPct+'%"></div></div>'+
-        '</div>';
+      var remainLabel = it.fully ? '<span class="full">\u2713 All '+cd.units+' used</span>' : '<span class="rem">'+remaining+'</span> / '+cd.units+' remaining';
+      progressHtml = '<div class="v144-cc-progress"><div class="v144-cc-progress-row"><div class="v144-cc-uses">'+remainLabel+'</div><div class="v144-cc-claimed">$'+it.used$.toLocaleString()+' <span class="of">of $'+it.total$.toLocaleString()+' used</span></div></div><div class="v144-cc-bar"><div class="v144-cc-bar-fill '+barClass+'" style="width:'+barPct+'%"></div></div></div>';
     }
-
     var actionBtnsHtml;
     if(isMulti){
       var addDisabled = it.fully ? ' disabled' : '';
       var undoDisabled = (st.used||0) <= 0 ? ' disabled' : '';
       var addLabel = it.fully ? '\u2713 All used' : '+ Log 1 use ($'+cd.perUse+')';
       var addClass = it.fully ? 'v144-cc-btn done' : 'v144-cc-btn';
-      actionBtnsHtml =
-        '<div class="v144-cc-btns">'+
-          '<button class="v144-cc-btn undo" onclick="window.__v144.undoUse(\''+it.cardKey+'\',\''+cd.id+'\',\''+cd.period+'\')"'+undoDisabled+'>\u21b6 Undo</button>'+
-          '<button class="'+addClass+'" onclick="window.__v144.logUse(\''+it.cardKey+'\',\''+cd.id+'\',\''+cd.period+'\')"'+addDisabled+'>'+addLabel+'</button>'+
-        '</div>';
+      actionBtnsHtml = '<div class="v144-cc-btns"><button class="v144-cc-btn undo" onclick="window.__v144.undoUse(\''+it.cardKey+'\',\''+cd.id+'\',\''+cd.period+'\')"'+undoDisabled+'>\u21b6 Undo</button><button class="'+addClass+'" onclick="window.__v144.logUse(\''+it.cardKey+'\',\''+cd.id+'\',\''+cd.period+'\')"'+addDisabled+'>'+addLabel+'</button></div>';
     } else {
       var btnLabel = it.fully ? '\u2713 Claimed' : 'Mark as used';
       var btnClass = it.fully ? 'v144-cc-btn done' : 'v144-cc-btn';
-      actionBtnsHtml =
-        '<div class="v144-cc-btns">'+
-          '<button class="'+btnClass+'" onclick="window.__v144.toggleSingle(\''+it.cardKey+'\',\''+cd.id+'\',\''+cd.period+'\')">'+btnLabel+'</button>'+
-        '</div>';
+      actionBtnsHtml = '<div class="v144-cc-btns"><button class="'+btnClass+'" onclick="window.__v144.toggleSingle(\''+it.cardKey+'\',\''+cd.id+'\',\''+cd.period+'\')">'+btnLabel+'</button></div>';
     }
-
     var ringColor = it.fully ? 'green' : r.color;
     var ringDashOffset = it.fully ? 0 : r.offset;
     var lastDate = (st.uses && st.uses.length>0) ? st.uses[st.uses.length-1].date : '';
-    var daysBlock = it.fully
-      ? '<div class="v144-cc-days green">Done<small>'+(lastDate||'')+'</small></div>'
-      : '<div class="v144-cc-days '+r.color+'">'+r.left+'d<small>left</small></div>';
-
-    return '<div class="v144-credit-card'+(it.fully?' done':'')+(urgent?' urgent':'')+'" id="v144cc-'+it.key+'">'+
-        '<div class="v144-cc-head">'+
-          '<div class="v144-cc-icon">'+cd.emoji+'</div>'+
-          '<div>'+
-            '<div class="v144-cc-title">'+cd.label+'</div>'+
-            '<div class="v144-cc-meta">'+periodLabel+(isMulti?' \u00b7 '+cd.units+' \u00d7 $'+cd.perUse:'')+'</div>'+
-          '</div>'+
-          '<div class="v144-cc-total">$'+it.total$.toLocaleString()+'<small>total value</small></div>'+
-        '</div>'+
-        '<div class="v144-cc-desc">'+cd.desc+'</div>'+
-        progressHtml +
-        '<div class="v144-cc-actions">'+
-          '<div class="v144-cc-ring-wrap">'+
-            '<div class="v144-cc-ring">'+
-              '<svg viewBox="0 0 40 40">'+
-                '<circle class="cr-bg" cx="20" cy="20" r="17"/>'+
-                '<circle class="cr-fg '+ringColor+'" cx="20" cy="20" r="17" stroke-dasharray="'+r.circumference+'" stroke-dashoffset="'+ringDashOffset+'"/>'+
-              '</svg>'+
-            '</div>'+
-            daysBlock+
-          '</div>'+
-          '<div></div>'+
-          actionBtnsHtml+
-        '</div>'+
-      '</div>';
+    var daysBlock = it.fully ? '<div class="v144-cc-days green">Done<small>'+(lastDate||'')+'</small></div>' : '<div class="v144-cc-days '+r.color+'">'+r.left+'d<small>left</small></div>';
+    return '<div class="v144-credit-card'+(it.fully?' done':'')+(urgent?' urgent':'')+'" id="v144cc-'+it.key+'"><div class="v144-cc-head"><div class="v144-cc-icon">'+cd.emoji+'</div><div><div class="v144-cc-title">'+cd.label+'</div><div class="v144-cc-meta">'+periodLabel+(isMulti?' \u00b7 '+cd.units+' \u00d7 $'+cd.perUse:'')+'</div></div><div class="v144-cc-total">$'+it.total$.toLocaleString()+'<small>total value</small></div></div><div class="v144-cc-desc">'+cd.desc+'</div>'+progressHtml+'<div class="v144-cc-actions"><div class="v144-cc-ring-wrap"><div class="v144-cc-ring"><svg viewBox="0 0 40 40"><circle class="cr-bg" cx="20" cy="20" r="17"/><circle class="cr-fg '+ringColor+'" cx="20" cy="20" r="17" stroke-dasharray="'+r.circumference+'" stroke-dashoffset="'+ringDashOffset+'"/></svg></div>'+daysBlock+'</div><div></div>'+actionBtnsHtml+'</div></div>';
   }
-
-  function flashMsg(msg){
-    try {
-      var existing = document.querySelector('.credit-flash'); if(existing) existing.remove();
-      var el = document.createElement('div'); el.className='credit-flash';
-      el.innerHTML = '<span class="cf-emoji">\ud83d\udcb3</span><span>'+msg+'</span>';
-      document.body.appendChild(el);
-      setTimeout(function(){ el.style.opacity='0'; el.style.transition='opacity .3s'; }, 2200);
-      setTimeout(function(){ el.remove(); }, 2600);
-    } catch(e){}
-  }
-  function findCredit(cardKey, creditId){
-    var CC = window.CARD_CREDITS && window.CARD_CREDITS[cardKey];
-    if(!CC) return null;
-    for(var i=0;i<CC.length;i++){ if(CC[i].id === creditId) return CC[i]; }
-    return null;
-  }
-  function logUse(cardKey, creditId, period){
-    var cd = findCredit(cardKey, creditId); if(!cd || !isMultiUse(cd)) return;
-    var st = getState(cardKey, cd);
-    if(st.used >= cd.units) return;
-    st.used = (st.used||0) + 1;
-    st.uses = st.uses || [];
-    st.uses.push({date: new Date().toISOString().slice(0,10), amount: cd.perUse});
-    if(st.used >= cd.units) st.claimed = true;
-    setState(cardKey, cd, st);
-    flashMsg('+$'+cd.perUse+' logged \u00b7 '+(cd.units - st.used)+' remaining');
-    rerender();
-  }
-  function undoUse(cardKey, creditId, period){
-    var cd = findCredit(cardKey, creditId); if(!cd || !isMultiUse(cd)) return;
-    var st = getState(cardKey, cd);
-    if(!st.used || st.used <= 0) return;
-    st.used = st.used - 1;
-    st.uses = st.uses || [];
-    if(st.uses.length > 0) st.uses.pop();
-    st.claimed = false;
-    setState(cardKey, cd, st);
-    flashMsg('Use removed \u00b7 '+(cd.units - st.used)+' remaining');
-    rerender();
-  }
-  function toggleSingle(cardKey, creditId, period){
-    var cd = findCredit(cardKey, creditId); if(!cd) return;
-    var st = getState(cardKey, cd);
-    if(st.claimed){
-      st.claimed = false; st.used = 0; st.uses = [];
-      flashMsg('Unmarked \u2014 back in queue');
-    } else {
-      st.claimed = true; st.used = 1;
-      st.uses = [{date: new Date().toISOString().slice(0,10), amount: cd.amount}];
-      flashMsg('+$'+cd.amount+' claimed! \ud83c\udf89');
-    }
-    setState(cardKey, cd, st);
-    rerender();
-  }
+  function flashMsg(msg){ try { var existing = document.querySelector('.credit-flash'); if(existing) existing.remove(); var el = document.createElement('div'); el.className='credit-flash'; el.innerHTML = '<span class="cf-emoji">\ud83d\udcb3</span><span>'+msg+'</span>'; document.body.appendChild(el); setTimeout(function(){ el.style.opacity='0'; el.style.transition='opacity .3s'; }, 2200); setTimeout(function(){ el.remove(); }, 2600); } catch(e){} }
+  function findCredit(cardKey, creditId){ var CC = window.CARD_CREDITS && window.CARD_CREDITS[cardKey]; if(!CC) return null; for(var i=0;i<CC.length;i++){ if(CC[i].id === creditId) return CC[i]; } return null; }
+  function logUse(cardKey, creditId, period){ var cd = findCredit(cardKey, creditId); if(!cd || !isMultiUse(cd)) return; var st = getState(cardKey, cd); if(st.used >= cd.units) return; st.used = (st.used||0) + 1; st.uses = st.uses || []; st.uses.push({date: new Date().toISOString().slice(0,10), amount: cd.perUse}); if(st.used >= cd.units) st.claimed = true; setState(cardKey, cd, st); flashMsg('+$'+cd.perUse+' logged \u00b7 '+(cd.units - st.used)+' remaining'); rerender(); }
+  function undoUse(cardKey, creditId, period){ var cd = findCredit(cardKey, creditId); if(!cd || !isMultiUse(cd)) return; var st = getState(cardKey, cd); if(!st.used || st.used <= 0) return; st.used = st.used - 1; st.uses = st.uses || []; if(st.uses.length > 0) st.uses.pop(); st.claimed = false; setState(cardKey, cd, st); flashMsg('Use removed \u00b7 '+(cd.units - st.used)+' remaining'); rerender(); }
+  function toggleSingle(cardKey, creditId, period){ var cd = findCredit(cardKey, creditId); if(!cd) return; var st = getState(cardKey, cd); if(st.claimed){ st.claimed = false; st.used = 0; st.uses = []; flashMsg('Unmarked \u2014 back in queue'); } else { st.claimed = true; st.used = 1; st.uses = [{date: new Date().toISOString().slice(0,10), amount: cd.amount}]; flashMsg('+$'+cd.amount+' claimed! \ud83c\udf89'); } setState(cardKey, cd, st); rerender(); }
   function setFilter(f){ window._creditFilter = f; renderFilters(); renderList(); }
-  function rerender(){
-    try { renderHero(); renderFilters(); renderList(); if(typeof window.renderHomeCreditAlert === 'function') window.renderHomeCreditAlert(); } catch(e){}
-  }
-
-  // Override home alert to use v144 numbers once ready
+  function rerender(){ try { renderHero(); renderFilters(); renderList(); if(typeof window.renderHomeCreditAlert === 'function') window.renderHomeCreditAlert(); } catch(e){} }
   var _origHomeAlert = window.renderHomeCreditAlert;
   window.renderHomeCreditAlert = function(){
-    var el = document.getElementById('homeCreditAlert');
-    if(!el) return;
-    if(typeof userWallet === 'undefined' || !userWallet){
-      el.style.display='none'; el.innerHTML=''; return;
-    }
-    if((userWallet.size !== undefined && userWallet.size === 0) || (userWallet.length !== undefined && userWallet.length === 0)){
-      el.style.display='none'; el.innerHTML=''; return;
-    }
+    var el = document.getElementById('homeCreditAlert'); if(!el) return;
+    if(typeof userWallet === 'undefined' || !userWallet){ el.style.display='none'; el.innerHTML=''; return; }
+    if((userWallet.size !== undefined && userWallet.size === 0) || (userWallet.length !== undefined && userWallet.length === 0)){ el.style.display='none'; el.innerHTML=''; return; }
     if(!window.__v144.ready){ if(typeof _origHomeAlert==='function') return _origHomeAlert(); return; }
     var s = computeSummary();
     if(s.urgentValue < 50 && s.urgentCount < 3){ el.style.display='none'; el.innerHTML=''; return; }
     var word = s.urgentCount === 1 ? 'credit' : 'credits';
     el.style.display='block';
-    el.innerHTML =
-      '<div class="home-credit-alert" onclick="switchTab(\'rewards\');setTimeout(function(){switchRewardsView(\'credits\');},100);">'+
-        '<div class="hca-icon">\u26a0\ufe0f</div>'+
-        '<div>'+
-          '<div class="hca-title">$'+Math.round(s.urgentValue).toLocaleString()+' in credits expire soon</div>'+
-          '<div class="hca-sub">'+s.urgentCount+' '+word+' expiring in \u226430 days \u2014 tap to review</div>'+
-        '</div>'+
-        '<div class="hca-arrow">\u2192</div>'+
-      '</div>';
+    el.innerHTML = '<div class="home-credit-alert" onclick="switchTab(\'rewards\');setTimeout(function(){switchRewardsView(\'credits\');},100);"><div class="hca-icon">\u26a0\ufe0f</div><div><div class="hca-title">$'+Math.round(s.urgentValue).toLocaleString()+' in credits expire soon</div><div class="hca-sub">'+s.urgentCount+' '+word+' expiring in \u226430 days \u2014 tap to review</div></div><div class="hca-arrow">\u2192</div></div>';
   };
-
-  // Override renderCredits
   window.renderCredits = function(){ rerender(); };
-
-  // Hook switchRewardsView
-  (function(){
-    var orig = window.switchRewardsView;
-    if(typeof orig === 'function'){
-      window.switchRewardsView = function(v){
-        orig.apply(this, arguments);
-        if(v === 'credits'){ setTimeout(rerender, 20); }
-      };
-    }
-  })();
-
-  window.__v144.logUse = logUse;
-  window.__v144.undoUse = undoUse;
-  window.__v144.toggleSingle = toggleSingle;
-  window.__v144.setFilter = setFilter;
-  window.__v144.rerender = rerender;
-
-  function boot(){
-    if(!extendCredits()){ setTimeout(boot, 200); return; }
-    migrateFromLegacy();
-    window.__v144.ready = true;
-    setTimeout(function(){ try { rerender(); } catch(e){} }, 50);
-  }
-  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
-  else boot();
-  setTimeout(boot, 500);
-  setTimeout(boot, 1500);
+  (function(){ var orig = window.switchRewardsView; if(typeof orig === 'function'){ window.switchRewardsView = function(v){ orig.apply(this, arguments); if(v === 'credits'){ setTimeout(rerender, 20); } }; } })();
+  window.__v144.logUse = logUse; window.__v144.undoUse = undoUse; window.__v144.toggleSingle = toggleSingle; window.__v144.setFilter = setFilter; window.__v144.rerender = rerender;
+  function boot(){ if(!extendCredits()){ setTimeout(boot, 200); return; } migrateFromLegacy(); window.__v144.ready = true; setTimeout(function(){ try { rerender(); } catch(e){} }, 50); }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+  setTimeout(boot, 500); setTimeout(boot, 1500);
 })();
 </script>
 
@@ -21129,21 +20864,15 @@ body.dark .v144-credit-card.done{background:linear-gradient(135deg,#1a3022,var(-
   function patch(){
     try {
       var btn = document.querySelector('.drawer-item[data-v80-help]');
-      if(!btn) return;
-      var ico = btn.querySelector('.di-ico');
-      if(!ico) return;
+      if(!btn) return; var ico = btn.querySelector('.di-ico'); if(!ico) return;
       if(ico.getAttribute('data-v144')==='1') return;
       ico.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
       ico.setAttribute('data-v144','1');
     } catch(e){}
   }
-  patch();
-  document.addEventListener('DOMContentLoaded', patch);
+  patch(); document.addEventListener('DOMContentLoaded', patch);
   setTimeout(patch, 500); setTimeout(patch, 1200); setTimeout(patch, 3000);
-  try {
-    var drawer = document.querySelector('.drawer .drawer-body');
-    if(drawer){ new MutationObserver(patch).observe(drawer, {childList:true, subtree:true}); }
-  } catch(e){}
+  try { var drawer = document.querySelector('.drawer .drawer-body'); if(drawer){ new MutationObserver(patch).observe(drawer, {childList:true, subtree:true}); } } catch(e){}
 })();
 </script>
 
@@ -21153,44 +20882,23 @@ body.dark .v144-credit-card.done{background:linear-gradient(135deg,#1a3022,var(-
   function svgGlobe(){ return '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>'; }
   var syncing = false;
   function apply(){
-    if(syncing) return;
-    var ico = document.getElementById('drawerFxIco');
-    if(!ico) return;
-    // Only overwrite if the current content is text (emoji) or empty — leave our SVG alone
-    var hasSvg = !!ico.querySelector('svg');
-    var isForeign = !!window.foreignMode;
+    if(syncing) return; var ico = document.getElementById('drawerFxIco'); if(!ico) return;
+    var hasSvg = !!ico.querySelector('svg'); var isForeign = !!window.foreignMode;
     var wantSvg = isForeign ? svgGlobe() : svgDollar();
-    if(hasSvg){
-      // Check if state matches
-      var hasCircle = !!ico.querySelector('circle');
-      if(isForeign && hasCircle) return; // already globe
-      if(!isForeign && !hasCircle) return; // already dollar
-    }
-    syncing = true;
-    ico.innerHTML = wantSvg;
-    syncing = false;
+    if(hasSvg){ var hasCircle = !!ico.querySelector('circle'); if(isForeign && hasCircle) return; if(!isForeign && !hasCircle) return; }
+    syncing = true; ico.innerHTML = wantSvg; syncing = false;
   }
-  apply();
-  document.addEventListener('DOMContentLoaded', apply);
+  apply(); document.addEventListener('DOMContentLoaded', apply);
   setTimeout(apply, 400); setTimeout(apply, 1200);
-  try {
-    var target = document.getElementById('drawerFxIco');
-    if(target){
-      new MutationObserver(function(){ apply(); }).observe(target, { childList:true, characterData:true, subtree:true });
-    }
-  } catch(e){}
+  try { var target = document.getElementById('drawerFxIco'); if(target){ new MutationObserver(function(){ apply(); }).observe(target, { childList:true, characterData:true, subtree:true }); } } catch(e){}
   var _orig = window.toggleForeignMode;
-  if(typeof _orig === 'function'){
-    window.toggleForeignMode = function(){
-      var r = _orig.apply(this, arguments);
-      setTimeout(apply, 0);
-      return r;
-    };
-  }
+  if(typeof _orig === 'function'){ window.toggleForeignMode = function(){ var r = _orig.apply(this, arguments); setTimeout(apply, 0); return r; }; }
 })();
 </script>
 
-<!-- V145 Credit Rescue coverage -->
+<!-- ================================================================== -->
+<!-- V145 Credit Rescue coverage (additional credits + perks by tier)   -->
+<!-- ================================================================== -->
 <style id="v145-perks-styles">
 .v145-perks-card{background:linear-gradient(135deg,var(--surface),var(--surface-2));border:1px dashed var(--border);border-radius:14px;padding:12px 14px;margin-bottom:8px}
 .v145-perks-head{display:flex;align-items:center;gap:10px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px dashed var(--border)}
@@ -21212,227 +20920,1023 @@ body.dark .v145-perks-badge{background:var(--surface-2);color:var(--muted);borde
   'use strict';
   if(window.__v145 && window.__v145.ready) return;
   window.__v145 = window.__v145 || { ready:false };
-
   function extendCredits(){
-    var CC = window.CARD_CREDITS;
-    if(!CC) return false;
+    var CC = window.CARD_CREDITS; if(!CC) return false;
     var additions = {
-      rbcWestJet: [
-        {id:'companion',label:'Annual Companion Voucher',emoji:'\u2708\ufe0f',amount:200,period:'year',
-         desc:'Round-trip WestJet companion voucher issued each year (~$200 typical value on select fares; conservative estimate).'}
-      ],
-      rbcAvionPrivilege: [
-        {id:'nexus',label:'NEXUS Credit',emoji:'\ud83d\udec2',amount:100,period:'4year',
-         desc:'$100 NEXUS reimbursement \u2014 one per 4-year cycle.'},
-        {id:'travel',label:'Annual Travel Credit',emoji:'\u2708\ufe0f',amount:120,period:'year',
-         desc:'$120 annual travel credit via RBC (verify current-year value with issuer).'}
-      ],
-      cibcAventuraPriv: [
-        {id:'travel',label:'Annual Travel Credit',emoji:'\u2708\ufe0f',amount:200,period:'year',
-         desc:'$200 annual travel credit via CIBC Travel each year.'},
-        {id:'nexus',label:'NEXUS Credit',emoji:'\ud83d\udec2',amount:100,period:'4year',
-         desc:'$100 NEXUS reimbursement every 4 years.'},
-        {id:'lounge',label:'Priority Pass Visits',emoji:'\ud83d\udecb\ufe0f',amount:210,period:'year',units:6,perUse:35,
-         desc:'6 free lounge visits per year via Priority Pass Select (~$35 each). Log each pass as you use it.'}
-      ],
-      amexAeroplan: [
-        {id:'bagFee',label:'First Bag Free on AC',emoji:'\ud83e\uddf3',amount:60,period:'year',
-         desc:'First checked bag free on Air Canada (~$30 \u00d7 2 flights estimated).'}
-      ],
-      amexAeroplanBiz: [
-        {id:'companion',label:'Annual Companion Voucher',emoji:'\u2708\ufe0f',amount:150,period:'year',
-         desc:'Annual companion voucher on Air Canada (~$150 est. value on select fares).'}
-      ],
-      bmoWorldElite: [
-        {id:'lounge',label:'MC Airport Experiences',emoji:'\ud83d\udecb\ufe0f',amount:140,period:'year',units:4,perUse:35,
-         desc:'4 Mastercard Airport Experiences lounge visits per year (~$35 each). Log each pass as you use it.'}
-      ],
-      bmoAscend: [
-        {id:'lounge',label:'MC Airport Experiences',emoji:'\ud83d\udecb\ufe0f',amount:70,period:'year',units:2,perUse:35,
-         desc:'2 Mastercard Airport Experiences lounge visits per year (~$35 each). Log each pass as you use it.'}
-      ],
-      hsbcWorldElite: [
-        {id:'travel',label:'Travel Enhancement Credit',emoji:'\u2708\ufe0f',amount:100,period:'year',
-         desc:'$100 travel enhancement credit each year (now issued via RBC after HSBC acquisition \u2014 verify with issuer).'}
-      ],
-      amexBonvoyBiz: [
-        {id:'freeNight',label:'Free Night Certificate',emoji:'\ud83c\udfe8',amount:250,period:'year',
-         desc:'35,000-point free night cert issued at renewal (~$150-400 real value depending on redemption).'}
-      ]
+      rbcWestJet: [{id:'companion',label:'Annual Companion Voucher',emoji:'\u2708\ufe0f',amount:200,period:'year',desc:'Round-trip WestJet companion voucher issued each year (~$200 typical value on select fares).'}],
+      rbcAvionPrivilege: [{id:'nexus',label:'NEXUS Credit',emoji:'\ud83d\udec2',amount:100,period:'4year',desc:'$100 NEXUS reimbursement \u2014 one per 4-year cycle.'},{id:'travel',label:'Annual Travel Credit',emoji:'\u2708\ufe0f',amount:120,period:'year',desc:'$120 annual travel credit via RBC (verify current-year value with issuer).'}],
+      cibcAventuraPriv: [{id:'travel',label:'Annual Travel Credit',emoji:'\u2708\ufe0f',amount:200,period:'year',desc:'$200 annual travel credit via CIBC Travel each year.'},{id:'nexus',label:'NEXUS Credit',emoji:'\ud83d\udec2',amount:100,period:'4year',desc:'$100 NEXUS reimbursement every 4 years.'},{id:'lounge',label:'Priority Pass Visits',emoji:'\ud83d\udecb\ufe0f',amount:210,period:'year',units:6,perUse:35,desc:'6 free lounge visits per year via Priority Pass Select (~$35 each). Log each pass as you use it.'}],
+      amexAeroplan: [{id:'bagFee',label:'First Bag Free on AC',emoji:'\ud83e\uddf3',amount:60,period:'year',desc:'First checked bag free on Air Canada (~$30 \u00d7 2 flights estimated).'}],
+      amexAeroplanBiz: [{id:'companion',label:'Annual Companion Voucher',emoji:'\u2708\ufe0f',amount:150,period:'year',desc:'Annual companion voucher on Air Canada (~$150 est. value on select fares).'}],
+      bmoWorldElite: [{id:'lounge',label:'MC Airport Experiences',emoji:'\ud83d\udecb\ufe0f',amount:140,period:'year',units:4,perUse:35,desc:'4 Mastercard Airport Experiences lounge visits per year (~$35 each). Log each pass as you use it.'}],
+      bmoAscend: [{id:'lounge',label:'MC Airport Experiences',emoji:'\ud83d\udecb\ufe0f',amount:70,period:'year',units:2,perUse:35,desc:'2 Mastercard Airport Experiences lounge visits per year (~$35 each). Log each pass as you use it.'}],
+      hsbcWorldElite: [{id:'travel',label:'Travel Enhancement Credit',emoji:'\u2708\ufe0f',amount:100,period:'year',desc:'$100 travel enhancement credit each year (now issued via RBC after HSBC acquisition \u2014 verify with issuer).'}],
+      amexBonvoyBiz: [{id:'freeNight',label:'Free Night Certificate',emoji:'\ud83c\udfe8',amount:250,period:'year',desc:'35,000-point free night cert issued at renewal (~$150-400 real value depending on redemption).'}]
     };
-    if(CC.amexAeroReserve && !CC.amexAeroReserve.find(function(c){return c.id==='companion';})){
-      CC.amexAeroReserve.push({id:'companion',label:'Worldwide Companion Pass',emoji:'\u2708\ufe0f',amount:250,period:'year',
-        desc:'Worldwide companion pass unlocked at min spend threshold (~$250 est. value; requires $7,500 annual spend).'});
-    }
-    Object.keys(additions).forEach(function(k){
-      if(!CC[k] || CC[k].length === 0){ CC[k] = additions[k]; }
-    });
+    if(CC.amexAeroReserve && !CC.amexAeroReserve.find(function(c){return c.id==='companion';})){ CC.amexAeroReserve.push({id:'companion',label:'Worldwide Companion Pass',emoji:'\u2708\ufe0f',amount:250,period:'year',desc:'Worldwide companion pass unlocked at min spend threshold (~$250 est. value; requires $7,500 annual spend).'}); }
+    Object.keys(additions).forEach(function(k){ if(!CC[k] || CC[k].length === 0){ CC[k] = additions[k]; } });
     return true;
   }
-
   var PERK = {
-    ps:  {emoji:'\ud83d\udee1\ufe0f', name:'Purchase Security', desc:'New items covered against theft or damage for 90 days after purchase.'},
-    ew:  {emoji:'\ud83d\udcc5', name:'Extended Warranty', desc:"Doubles the manufacturer's warranty up to 1 extra year."},
-    mob: {emoji:'\ud83d\udcf1', name:'Mobile Device Insurance', desc:'Up to $1,000 coverage for a phone or tablet charged to this card.'},
-    cdw: {emoji:'\ud83d\ude97', name:'Rental Car Collision Damage Waiver', desc:'CDW when you pay the full rental cost with this card.'},
-    med: {emoji:'\ud83e\ude7a', name:'Travel Medical Insurance', desc:'Emergency out-of-country medical coverage while travelling.'},
-    tci: {emoji:'\u2708\ufe0f', name:'Trip Cancellation & Interruption', desc:'Reimburses non-refundable trip costs for covered reasons.'},
-    bag: {emoji:'\ud83d\udcbc', name:'Baggage Delay / Lost Baggage', desc:'Coverage for delayed or lost checked baggage while travelling.'},
-    con: {emoji:'\u260e\ufe0f', name:'Concierge Service', desc:'24/7 travel, dining reservations, and event-ticket concierge.'},
-    fx:  {emoji:'\ud83c\udf10', name:'No Foreign Transaction Fee', desc:'Saves the typical 2.5% surcharge on purchases in foreign currencies.'},
-    pri: {emoji:'\ud83d\udcb0', name:'Price Protection', desc:'Refunds the difference if item price drops within 60 days.'},
-    petro:{emoji:'\u26fd', name:'Petro-Canada Fuel Savings', desc:'3\u00a2/L savings when linked at Petro-Canada.'},
-    marS:{emoji:'\ud83c\udfe8', name:'Marriott Silver Elite Status', desc:'Automatic Marriott Bonvoy Silver Elite status while you hold the card.'},
-    marN:{emoji:'\u2b50', name:'15 Elite Night Credits', desc:'Marriott Bonvoy 15 elite night credits deposited each year.'},
-    hilG:{emoji:'\ud83c\udfe8', name:'Hilton Gold Status (Amex Plat)', desc:'Complimentary Hilton Honors Gold status.'},
-    marG:{emoji:'\ud83c\udfe8', name:'Marriott Gold Status (Amex Plat)', desc:'Complimentary Marriott Bonvoy Gold Elite status.'},
-    ml:  {emoji:'\ud83d\udecb\ufe0f', name:'Maple Leaf Lounge Unlimited', desc:'Unlimited Air Canada Maple Leaf Lounge access.'},
-    wjBag:{emoji:'\ud83e\uddf3', name:'Free 1st Checked Bag on WestJet', desc:'First checked bag free for you and up to 8 companions on WestJet.'},
-    acBag:{emoji:'\ud83e\uddf3', name:'Free 1st Checked Bag on AC', desc:'First checked bag free for you and up to 8 companions on Air Canada.'},
-    hotel:{emoji:'\ud83c\udfe8', name:'Fine Hotels & Resorts', desc:'Room upgrades, daily breakfast, and property credits at 1,300+ hotels via Amex Travel.'},
-    metal:{emoji:'\u2728', name:'Metal Card', desc:'Physical metal card for eligible cardholders.'}
+    ps:{emoji:'\ud83d\udee1\ufe0f',name:'Purchase Security',desc:'New items covered against theft or damage for 90 days after purchase.'},
+    ew:{emoji:'\ud83d\udcc5',name:'Extended Warranty',desc:"Doubles the manufacturer's warranty up to 1 extra year."},
+    mob:{emoji:'\ud83d\udcf1',name:'Mobile Device Insurance',desc:'Up to $1,000 coverage for a phone or tablet charged to this card.'},
+    cdw:{emoji:'\ud83d\ude97',name:'Rental Car Collision Damage Waiver',desc:'CDW when you pay the full rental cost with this card.'},
+    med:{emoji:'\ud83e\ude7a',name:'Travel Medical Insurance',desc:'Emergency out-of-country medical coverage while travelling.'},
+    tci:{emoji:'\u2708\ufe0f',name:'Trip Cancellation & Interruption',desc:'Reimburses non-refundable trip costs for covered reasons.'},
+    bag:{emoji:'\ud83d\udcbc',name:'Baggage Delay / Lost Baggage',desc:'Coverage for delayed or lost checked baggage while travelling.'},
+    con:{emoji:'\u260e\ufe0f',name:'Concierge Service',desc:'24/7 travel, dining reservations, and event-ticket concierge.'},
+    fx:{emoji:'\ud83c\udf10',name:'No Foreign Transaction Fee',desc:'Saves the typical 2.5% surcharge on purchases in foreign currencies.'},
+    petro:{emoji:'\u26fd',name:'Petro-Canada Fuel Savings',desc:'3\u00a2/L savings when linked at Petro-Canada.'},
+    marS:{emoji:'\ud83c\udfe8',name:'Marriott Silver Elite Status',desc:'Automatic Marriott Bonvoy Silver Elite status while you hold the card.'},
+    marN:{emoji:'\u2b50',name:'15 Elite Night Credits',desc:'Marriott Bonvoy 15 elite night credits deposited each year.'},
+    hilG:{emoji:'\ud83c\udfe8',name:'Hilton Gold Status (Amex Plat)',desc:'Complimentary Hilton Honors Gold status.'},
+    marG:{emoji:'\ud83c\udfe8',name:'Marriott Gold Status (Amex Plat)',desc:'Complimentary Marriott Bonvoy Gold Elite status.'},
+    ml:{emoji:'\ud83d\udecb\ufe0f',name:'Maple Leaf Lounge Unlimited',desc:'Unlimited Air Canada Maple Leaf Lounge access.'},
+    wjBag:{emoji:'\ud83e\uddf3',name:'Free 1st Checked Bag on WestJet',desc:'First checked bag free for you and up to 8 companions on WestJet.'},
+    acBag:{emoji:'\ud83e\uddf3',name:'Free 1st Checked Bag on AC',desc:'First checked bag free for you and up to 8 companions on Air Canada.'},
+    hotel:{emoji:'\ud83c\udfe8',name:'Fine Hotels & Resorts',desc:'Room upgrades, daily breakfast, and property credits at 1,300+ hotels via Amex Travel.'},
+    metal:{emoji:'\u2728',name:'Metal Card',desc:'Physical metal card for eligible cardholders.'}
   };
-
   function makePerks(cardKey, card){
-    var name = (card && card.n) || '';
-    var iss  = (card && card.iss) || '';
-    var net  = (card && card.net) || '';
-    var fee  = parseFloat((card && card.feeRetail) || 0) || 0;
+    var name = (card && card.n) || ''; var net = (card && card.net) || ''; var fee = parseFloat((card && card.feeRetail) || 0) || 0;
     var isPrepaid = /prepaid|koho|eq bank/i.test(name) || cardKey === 'wsCashCard' || cardKey === 'kohoStandard' || cardKey === 'kohoExtra' || cardKey === 'eqBank';
-    var isVIPriv  = /infinite privilege/i.test(name);
-    var isVI      = /visa infinite/i.test(name) && !isVIPriv;
-    var isWEMC    = /world elite/i.test(name) && /mastercard/i.test(name);
-    var isAmex    = net === 'Amex' || /amex|american express/i.test(name);
-    var isPlat    = /platinum/i.test(name) && isAmex && fee >= 500;
-    var isGold    = /gold/i.test(name) && isAmex;
-
+    var isVIPriv = /infinite privilege/i.test(name);
+    var isVI = /visa infinite/i.test(name) && !isVIPriv;
+    var isWEMC = /world elite/i.test(name) && /mastercard/i.test(name);
+    var isAmex = net === 'Amex' || /amex|american express/i.test(name);
+    var isPlat = /platinum/i.test(name) && isAmex && fee >= 500;
+    var isGold = /gold/i.test(name) && isAmex;
     var perks = [];
-    if(isVIPriv){
-      perks = [PERK.ps, PERK.ew, PERK.mob, PERK.cdw, PERK.med, PERK.tci, PERK.bag, PERK.con];
-    } else if(isVI){
-      perks = [PERK.ps, PERK.ew, PERK.mob, PERK.cdw, PERK.tci];
-    } else if(isWEMC){
-      perks = [PERK.ps, PERK.ew, PERK.mob, PERK.cdw, PERK.tci];
-    } else if(isPlat){
-      perks = [PERK.ps, PERK.ew, PERK.cdw, PERK.med, PERK.tci, PERK.bag, PERK.con, PERK.hotel, PERK.hilG, PERK.marG, PERK.metal];
-    } else if(isGold){
-      perks = [PERK.ps, PERK.ew, PERK.cdw, PERK.med, PERK.tci];
-    } else if(isAmex && fee >= 100){
-      perks = [PERK.ps, PERK.ew, PERK.cdw, PERK.tci];
-    } else if(isAmex){
-      perks = [PERK.ps, PERK.ew];
-    } else if(isPrepaid){
-      perks = [PERK.ps];
-    } else if(fee >= 100){
-      perks = [PERK.ps, PERK.ew, PERK.cdw, PERK.tci];
-    } else if(fee > 0){
-      perks = [PERK.ps, PERK.ew, PERK.cdw];
-    } else {
-      perks = [PERK.ps];
-    }
-
+    if(isVIPriv){ perks = [PERK.ps, PERK.ew, PERK.mob, PERK.cdw, PERK.med, PERK.tci, PERK.bag, PERK.con]; }
+    else if(isVI){ perks = [PERK.ps, PERK.ew, PERK.mob, PERK.cdw, PERK.tci]; }
+    else if(isWEMC){ perks = [PERK.ps, PERK.ew, PERK.mob, PERK.cdw, PERK.tci]; }
+    else if(isPlat){ perks = [PERK.ps, PERK.ew, PERK.cdw, PERK.med, PERK.tci, PERK.bag, PERK.con, PERK.hotel, PERK.hilG, PERK.marG, PERK.metal]; }
+    else if(isGold){ perks = [PERK.ps, PERK.ew, PERK.cdw, PERK.med, PERK.tci]; }
+    else if(isAmex && fee >= 100){ perks = [PERK.ps, PERK.ew, PERK.cdw, PERK.tci]; }
+    else if(isAmex){ perks = [PERK.ps, PERK.ew]; }
+    else if(isPrepaid){ perks = [PERK.ps]; }
+    else if(fee >= 100){ perks = [PERK.ps, PERK.ew, PERK.cdw, PERK.tci]; }
+    else if(fee > 0){ perks = [PERK.ps, PERK.ew, PERK.cdw]; }
+    else { perks = [PERK.ps]; }
     var noFxCards = {scotiaPass:1,scotiaPlat:1,scotiaGold:1,wsCashCard:1,wsInfinite1:1,wsInfinitePlus:1,wsInfinitePrivilege:1,homeTrust:1,eqBank:1,brimStd:1,brimWE:1,amexPlatinum:1,amexBusinessPlat:1,amexAeroReserve:1,rogers:1,tdUsdVisa:1};
     if(noFxCards[cardKey]) perks.push(PERK.fx);
-
     if(cardKey === 'bonvoy' || cardKey === 'amexBonvoyBiz'){ perks.push(PERK.marS, PERK.marN); }
     if(cardKey === 'amexAeroReserve'){ perks.push(PERK.ml, PERK.acBag); }
     if(cardKey === 'amexAeroplan' || cardKey === 'tdAero' || cardKey === 'cibcAeroplan' || cardKey === 'amexAeroplanBiz'){ perks.push(PERK.acBag); }
     if(cardKey === 'rbcWestJet'){ perks.push(PERK.wjBag); }
     var petroCards = {rbcCashback:1,rbcION:1,rbcAvion:1,rbcAvionPlat:1,rbcAvionPrivilege:1,rbcRewardsPlus:1,rbcBAVisa:1,rbcSignature:1,rbcBizAvion:1,rbcWestJet:1};
     if(petroCards[cardKey]) perks.push(PERK.petro);
-
     var seen = {};
     return perks.filter(function(p){ if(!p) return false; var k = p.emoji+p.name; if(seen[k]) return false; seen[k]=true; return true; });
   }
-
   window.CARD_PERKS_LOOKUP = makePerks;
-
-  function boot(){
-    if(!extendCredits()){ setTimeout(boot, 200); return; }
-    window.__v145.ready = true;
-    installBuildListWrapper();
-    setTimeout(function(){ if(window.__v144 && window.__v144.rerender) window.__v144.rerender(); }, 30);
-  }
-
+  function boot(){ if(!extendCredits()){ setTimeout(boot, 200); return; } window.__v145.ready = true; installBuildListWrapper(); setTimeout(function(){ if(window.__v144 && window.__v144.rerender) window.__v144.rerender(); }, 30); }
   var _installed = false;
-  function installBuildListWrapper(){
-    if(_installed) return;
-    var v144 = window.__v144;
-    if(!v144 || typeof v144.rerender !== 'function'){ setTimeout(installBuildListWrapper, 200); return; }
-    _installed = true;
-    var origRerender = v144.rerender;
-    v144.rerender = function(){
-      origRerender.apply(this, arguments);
-      appendPerksSection();
-    };
-  }
-
+  function installBuildListWrapper(){ if(_installed) return; var v144 = window.__v144; if(!v144 || typeof v144.rerender !== 'function'){ setTimeout(installBuildListWrapper, 200); return; } _installed = true; var origRerender = v144.rerender; v144.rerender = function(){ origRerender.apply(this, arguments); appendPerksSection(); }; }
   function appendPerksSection(){
     try {
-      var el = document.getElementById('creditsList');
-      if(!el) return;
+      var el = document.getElementById('creditsList'); if(!el) return;
       if(typeof userWallet === 'undefined' || !userWallet) return;
-      var f = window._creditFilter || 'active';
-      if(f === 'urgent' || f === 'redeemed'){
-        var existing = document.getElementById('v145-perks-section');
-        if(existing) existing.remove();
-        return;
-      }
-      var wallet = userWallet;
-      var iter = (wallet && typeof wallet.forEach === 'function') ? wallet : [];
-      if(!iter || (iter.size !== undefined && iter.size === 0) || (iter.length !== undefined && iter.length === 0)) return;
-
-      var existing = document.getElementById('v145-perks-section');
+      var f = window._creditFilter || 'active'; var existing = document.getElementById('v145-perks-section');
+      if(f === 'urgent' || f === 'redeemed'){ if(existing) existing.remove(); return; }
+      var wallet = userWallet; var iter = (wallet && typeof wallet.forEach === 'function') ? wallet : [];
+      if((iter.size !== undefined && iter.size === 0) || (iter.length !== undefined && iter.length === 0)) return;
       if(existing) existing.remove();
-
       var html = '<div id="v145-perks-section" style="margin-top:18px">';
       html += '<div class="section" style="margin:8px 0 8px">\ud83d\udee1\ufe0f Included benefits (every card in your wallet)</div>';
       html += '<div class="v145-perks-note" style="margin-bottom:10px">These aren\'t claimable dollar credits \u2014 they\'re insurance and perks bundled with each card. Verify exact terms and coverage limits with your issuer.</div>';
-
       var any = false;
       iter.forEach(function(k){
-        var card = (window.CARDS_DB || {})[k];
-        if(!card) return;
-        var perks = makePerks(k, card);
-        if(!perks || perks.length === 0) return;
+        var card = (window.CARDS_DB || {})[k]; if(!card) return;
+        var perks = makePerks(k, card); if(!perks || perks.length === 0) return;
         var hasCredits = !!(window.CARD_CREDITS && window.CARD_CREDITS[k] && window.CARD_CREDITS[k].length > 0);
-        html += renderPerksCard(k, card, perks, hasCredits);
-        any = true;
+        html += renderPerksCard(k, card, perks, hasCredits); any = true;
       });
       html += '</div>';
       if(any) el.insertAdjacentHTML('beforeend', html);
     } catch(e){ console.warn('V145 perks err:', e); }
   }
-
   function renderPerksCard(cardKey, card, perks, hasCredits){
     var badge = hasCredits ? 'ALSO INCLUDES' : 'NO CLAIMABLE CREDITS';
-    var html = '<div class="v145-perks-card">'+
-      '<div class="v145-perks-head">'+
-        '<div style="font-size:20px;flex-shrink:0">'+card.e+'</div>'+
-        '<div style="flex:1;min-width:0">'+
-          '<div class="v145-perks-title">'+card.n+'</div>'+
-        '</div>'+
-        '<div class="v145-perks-badge">'+badge+'</div>'+
-      '</div>'+
-      '<div class="v145-perks-list">';
-    perks.forEach(function(p){
-      html += '<div class="v145-perk">'+
-        '<div class="v145-perk-ico">'+p.emoji+'</div>'+
-        '<div class="v145-perk-body">'+
-          '<div class="v145-perk-name">'+p.name+'</div>'+
-          '<div class="v145-perk-desc">'+p.desc+'</div>'+
-        '</div>'+
-      '</div>';
-    });
+    var html = '<div class="v145-perks-card"><div class="v145-perks-head"><div style="font-size:20px;flex-shrink:0">'+card.e+'</div><div style="flex:1;min-width:0"><div class="v145-perks-title">'+card.n+'</div></div><div class="v145-perks-badge">'+badge+'</div></div><div class="v145-perks-list">';
+    perks.forEach(function(p){ html += '<div class="v145-perk"><div class="v145-perk-ico">'+p.emoji+'</div><div class="v145-perk-body"><div class="v145-perk-name">'+p.name+'</div><div class="v145-perk-desc">'+p.desc+'</div></div></div>'; });
     html += '</div></div>';
     return html;
   }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+  setTimeout(boot, 500); setTimeout(boot, 1500); setTimeout(boot, 3000);
+})();
+</script>
 
-  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
-  else boot();
-  setTimeout(boot, 500);
-  setTimeout(boot, 1500);
+<!-- ================================================================== -->
+<!-- V146 Merchant Directory dedupe + BC merchant additions             -->
+<!-- ================================================================== -->
+<script id="v146-md-dedupe-and-bc">
+(function(){
+  'use strict';
+  if(window.__v146 && window.__v146.ready) return;
+  window.__v146 = window.__v146 || { ready:false };
+  function fixAmbiguousAliases(){
+    if(typeof ALIASES === 'undefined' || !ALIASES) return false;
+    if(ALIASES['steve nash']) delete ALIASES['steve nash'];
+    if(!ALIASES['steve nash fitness']) ALIASES['steve nash fitness'] = 'other';
+    else if(ALIASES['steve nash fitness'] === 'shopping') ALIASES['steve nash fitness'] = 'other';
+    return true;
+  }
+  var BC_ALIASES = {
+    'meat up':'dining','meat up burnaby':'dining','meatup':'dining',
+    'memory corner':'dining','memory corner coquitlam':'dining',
+    "l'abattoir":'dining','labattoir':'dining',
+    'ask for luigi':'dining','askforluigi':'dining',
+    'nightingale':'dining','nightingale restaurant':'dining',
+    'kissa tanto':'dining','kissatanto':'dining',
+    'st. lawrence':'dining','st lawrence restaurant':'dining',
+    'anh and chi':'dining','anh & chi':'dining','anhandchi':'dining',
+    'fable kitchen':'dining','fable diner':'dining',
+    'burdock and co':'dining','burdock & co':'dining',
+    'torafuku':'dining','dachi':'dining','dachi restaurant':'dining',
+    'bufala':'dining','bufala kits':'dining',
+    'say mercy':'dining','saymercy':'dining',
+    'torino coffee':'dining','torino':'dining',
+    'chambar':'dining','chambar restaurant':'dining',
+    "vij's":'dining','vijs':'dining','vij restaurant':'dining',
+    'my shanti':'dining','myshanti':'dining','rangoli':'dining',
+    'bao bei':'dining','baobei':'dining','bao bei chinese brasserie':'dining',
+    'miku':'dining','miku vancouver':'dining',
+    'minami':'dining','minami restaurant':'dining',
+    'kingyo':'dining','kingyo izakaya':'dining',
+    'hapa izakaya':'dining','hapa':'dining',
+    'guu':'dining','guu izakaya':'dining','guu original':'dining','guu garden':'dining',
+    'dinesty':'dining','dinesty dumpling':'dining','dinesty dumpling house':'dining',
+    'peaceful restaurant':'dining','peaceful':'dining',
+    'dynasty seafood':'dining','dynasty':'dining',
+    'chef tony':'dining','chef tony seafood':'dining',
+    'sun sui wah':'dining','sunsuiwah':'dining',
+    'kirin':'dining','kirin seafood':'dining',
+    'shanghai river':'dining','shanghai river restaurant':'dining',
+    'lin':'dining','lin chinese cuisine':'dining',
+    'pho':'dining','pho hoang':'dining','pho tam':'dining',
+    'the naam':'dining','naam':'dining',
+    'heirloom':'dining','heirloom vegetarian':'dining',
+    'meet on main':'dining','meet vegetarian':'dining',
+    'the mackenzie room':'dining','mackenzie room':'dining',
+    'medina cafe':'dining','medina':'dining',
+    'jam cafe':'dining','jamcafe':'dining',
+    'twisted fork':'dining','twistedfork':'dining',
+    'oeb breakfast':'dining','oeb':'dining',
+    'the templeton':'dining','templeton':'dining',
+    'red wagon':'dining','redwagon':'dining',
+    "sophie's cosmic cafe":'dining','sophies cosmic':'dining',
+    'ubuntu canteen':'dining','ubuntu':'dining',
+    'phnom penh':'dining','phnompenh':'dining',
+    "anton's pasta":'dining','antons pasta':'dining','antons':'dining',
+    'la taqueria':'dining','lataqueria':'dining',
+    'sal y limon':'dining','salylimon':'dining',
+    'downlow chicken':'dining','downlow':'dining','dl chicken':'dining',
+    'juke fried chicken':'dining','juke chicken':'dining','juke':'dining',
+    'sushi bar maumi':'dining','maumi':'dining',
+    "tojo's":'dining','tojos':'dining',
+    'zakkushi':'dining','zakkushi charcoal grill':'dining',
+    'suika':'dining','suika snackbar':'dining',
+    'la mezcaleria':'dining','lamezcaleria':'dining',
+    'campagnolo':'dining','campagnolo roma':'dining',
+    'savio volpe':'dining','saviovolpe':'dining',
+    'pepino':'dining','pepinos spaghetti house':'dining',
+    'osteria savio volpe':'dining','autostrada':'dining',
+    'the sandbar':'dining','sandbar':'dining','sandbar seafood':'dining',
+    'blue water cafe':'dining','bluewater cafe':'dining','blue water':'dining',
+    'coast':'dining','coast restaurant':'dining',
+    'joe fortes':'dining','joe fortes seafood':'dining',
+    'boulevard':'dining','boulevard kitchen':'dining','boulevard kitchen and oyster bar':'dining',
+    'hawksworth':'dining','hawksworth restaurant':'dining',
+    'the pear tree':'dining','pear tree':'dining',
+    'cafe medina':'dining','cafemedina':'dining',
+    'nero belgian waffle bar':'dining','nero belgian':'dining','nero waffle':'dining',
+    'thierry chocolates':'dining','thierry':'dining','thierry cafe':'dining',
+    'faubourg':'dining','faubourg paris':'dining',
+    'small victory bakery':'dining','small victory':'dining',
+    'purebread':'dining','purebread bakery':'dining',
+    'nero coffee':'dining','nero':'dining',
+    'revolver coffee':'dining','revolver':'dining',
+    'prototype coffee':'dining','prototype':'dining',
+    'timbertrain coffee':'dining','timbertrain':'dining',
+    'nemesis coffee':'dining','nemesis':'dining',
+    'matchstick coffee':'dining','matchstick':'dining',
+    "kafka's":'dining','kafkas coffee':'dining',
+    '49th parallel':'dining','49th parallel coffee':'dining',
+    'earnest ice cream':'dining','earnestice':'dining',
+    'la casa gelato':'dining','lacasagelato':'dining','casa gelato':'dining',
+    "mario's gelati":'dining','marios gelati':'dining',
+    'kokoro tokyo mazesoba':'dining','kokoro mazesoba':'dining','kokoro':'dining',
+    'ramen danbo':'dining','ramendanbo':'dining','danbo':'dining',
+    'marutama ramen':'dining','marutama':'dining',
+    'santouka':'dining','santouka ramen':'dining',
+    'jinya ramen bar':'dining','jinya':'dining',
+    'menya raizo':'dining','menyaraizo':'dining',
+    'the flying pig':'dining','flying pig':'dining',
+    'seasons in the park':'dining','seasons in the park restaurant':'dining',
+    'chewies':'dining','chewies steam and oyster':'dining',
+    'shipyards smokehouse':'dining','shipyards':'dining',
+    'wildebeest':'dining','wildebeest restaurant':'dining',
+    "mamie taylor's":'dining','mamie taylors':'dining',
+    'juniper':'dining','juniper restaurant':'dining',
+    "aphrodite's cafe":'dining','aphrodites cafe':'dining',
+    'wildlight bakery':'dining','wildlight':'dining',
+    'livia bakery':'dining','livia':'dining',
+    'beaucoup bakery':'dining','beaucoup':'dining',
+    'terra breads':'dining','terrabreads':'dining','terra breads bakery':'dining',
+    'la brasserie':'dining','labrasserie':'dining',
+    'zawa':'dining','zawa restaurant':'dining',
+    'como taperia':'dining','como':'dining',
+    'sula indian':'dining','sula':'dining',
+    'the acorn':'dining','acorn':'dining','acorn restaurant':'dining',
+    'the arbor':'dining','arbor':'dining',
+    'the parker':'dining','parker restaurant':'dining',
+    'prado cafe':'dining','prado':'dining',
+    'agro cafe':'dining','agro':'dining',
+    'buro coffee':'dining','buro':'dining',
+    "delany's coffee":'dining','delanys':'dining',
+    'trees organic coffee':'dining','trees organic':'dining','trees coffee':'dining',
+    'jj bean':'dining','jj bean coffee':'dining','jjbean':'dining'
+  };
+  function addBCAliases(){
+    if(typeof ALIASES === 'undefined' || !ALIASES) return 0;
+    var added = 0;
+    Object.keys(BC_ALIASES).forEach(function(k){ if(!ALIASES[k]){ ALIASES[k] = BC_ALIASES[k]; added++; } });
+    return added;
+  }
+  var STRIP_ARR = ['kitchen','kitchens','bar','bars','grill','grille','restaurant','restaurants','cafe','cafes','coffee','coffeehouse','coffeeroasters','roasters','roasted','pizza','pizzas','bakery','bakeries','steakhouse','steak','roadhouse','cookhouse','bistro','family','market','markets','mart','marts','foods','food','grocery','groceries','pharmacy','pharmacies','drug','wines','wine','beer','beers','shop','shoppe','shops','club','clubs','centre','center','store','stores','espresso','sushi','shawarma','gyros','burger','burgers','chicken','deli','delis','house','houses','place','places','joint','joints','spot','spots','company','co','corp','inc','ltd','of','greece','canada','usa','world','elite','signature','platinum','preferred','classic','expert','business','gourmet','fine','fresh','organic','socialhouse','social','local','locations','locale','warehouse','com','ca','net','org','io','app','wholesale','wearhouse','auto','automotive','online','llc','plc','pharma','plus','mobile','wireless','digital','express','retail','canadian','american','centres','discount','depot','plaza','mall','outlet','fitness','gym','yoga','workout','pilates','crossfit','training','trainer','trainers','studio','studios'];
+  var STRIP_SET = {}; STRIP_ARR.forEach(function(w){ STRIP_SET[w]=1; });
+  var FILLER_MID = {and:1, plus:1, the:1, a:1, an:1, of:1, de:1, du:1};
+  function canonKey(name){
+    var s = String(name||'').toLowerCase();
+    s = s.replace(/&/g,' and ').replace(/\+/g,' plus ');
+    s = s.replace(/[^a-z0-9\s]+/g,' ').replace(/\s+/g,' ').trim();
+    var words = s.split(' ').filter(function(w){ return w.length >= 2; });
+    words = words.filter(function(w){ return !FILLER_MID[w]; });
+    while(words.length > 1 && words[0] === 'the') words.shift();
+    while(words.length > 1 && STRIP_SET[words[words.length-1]]) words.pop();
+    var changed = true;
+    while(changed && words.length > 1){ changed = false;
+      if(STRIP_SET[words[words.length-1]]){ words.pop(); changed = true; continue; }
+      if(STRIP_SET[words[0]]){ words.shift(); changed = true; continue; }
+    }
+    words = words.map(function(w){ if(w.length > 3 && w.charAt(w.length-1) === 's' && w.charAt(w.length-2) !== 's') return w.slice(0,-1); return w; });
+    return words.join(' ') || s;
+  }
+  function cleanScore(name){ var s = String(name||''); var score = 0;
+    if(/\s/.test(s)) score += 3; if(/'/.test(s)) score += 1; if(/[A-Z]/.test(s)) score += 1;
+    if(/^[A-Z]/.test(s)) score += 1; if(s.length > 6 && !/\s/.test(s)) score -= 3;
+    if(/undefined/i.test(s)) score -= 10; return score;
+  }
+  function crossCategoryDedupe(){
+    if(typeof MERCHANT_DIRECTORY === 'undefined' || !Array.isArray(MERCHANT_DIRECTORY)) return {before:0, after:0};
+    var before = MERCHANT_DIRECTORY.length; var byKey = {};
+    MERCHANT_DIRECTORY.forEach(function(e){
+      if(!e) return; var name = e.name || e.n || ''; if(!name) return;
+      var ck = canonKey(name); if(!ck || ck.length < 2) return;
+      if(!byKey[ck]) byKey[ck] = []; byKey[ck].push(e);
+    });
+    var kept = [];
+    Object.keys(byKey).forEach(function(ck){
+      var arr = byKey[ck]; if(arr.length === 1){ kept.push(arr[0]); return; }
+      arr.sort(function(a,b){
+        var sa = cleanScore(a.name||a.n||''); var sb = cleanScore(b.name||b.n||'');
+        if(sa !== sb) return sb - sa;
+        return (String(b.name||b.n||'').length) - (String(a.name||a.n||'').length);
+      });
+      var winner = arr[0];
+      var CAT_PRIORITY = {dining:10, groceryAmex:9, groceryNo:9, loblaws:9, gas:8, transit:8, streaming:8, travel:7, marriott:7, cineplex:7, costco:7, walmart:7, rogers:6, usd:6, shoppingAmex:5, shopping:4, other:3};
+      var bestCat = winner.category || winner.cat || 'other'; var bestPri = CAT_PRIORITY[bestCat] || 0;
+      arr.forEach(function(e){ var c = e.category || e.cat || 'other'; var p = CAT_PRIORITY[c] || 0; if(p > bestPri){ bestCat = c; bestPri = p; } });
+      winner.category = bestCat; winner.cat = bestCat; kept.push(winner);
+    });
+    if(kept.length !== MERCHANT_DIRECTORY.length){ MERCHANT_DIRECTORY.length = 0; kept.forEach(function(e){ MERCHANT_DIRECTORY.push(e); }); }
+    var after = MERCHANT_DIRECTORY.length;
+    try { console.log('[V146] cross-cat dedupe: '+before+' -> '+after); } catch(e){}
+    return {before:before, after:after};
+  }
+  var _canonSeen = null;
+  function rebuildCanonSet(){ _canonSeen = {}; if(typeof MERCHANT_DIRECTORY === 'undefined' || !Array.isArray(MERCHANT_DIRECTORY)) return; MERCHANT_DIRECTORY.forEach(function(e){ if(!e) return; var ck = canonKey(e.name || e.n || ''); if(ck) _canonSeen[ck] = e; }); }
+  function installPushGuard(){
+    if(typeof MERCHANT_DIRECTORY === 'undefined' || !Array.isArray(MERCHANT_DIRECTORY)) return;
+    if(MERCHANT_DIRECTORY.__v146PushGuard) return;
+    MERCHANT_DIRECTORY.__v146PushGuard = true;
+    var origPush = MERCHANT_DIRECTORY.push;
+    MERCHANT_DIRECTORY.push = function(){
+      if(_canonSeen === null) rebuildCanonSet();
+      for(var i=0;i<arguments.length;i++){
+        var e = arguments[i];
+        if(!e || (!e.name && !e.n)){ origPush.call(this, e); continue; }
+        var ck = canonKey(e.name || e.n || '');
+        if(ck && _canonSeen[ck]) continue;
+        if(ck) _canonSeen[ck] = e;
+        origPush.call(this, e);
+      }
+      return this.length;
+    };
+    setInterval(function(){ if(_canonSeen === null){ rebuildCanonSet(); return; } if(MERCHANT_DIRECTORY.length > Object.keys(_canonSeen).length + 20){ rebuildCanonSet(); } }, 4000);
+  }
+  var _bootDone = false;
+  function boot(){
+    if(_bootDone) return;
+    if(typeof MERCHANT_DIRECTORY === 'undefined' || !Array.isArray(MERCHANT_DIRECTORY)){ setTimeout(boot, 200); return; }
+    fixAmbiguousAliases();
+    var added = addBCAliases();
+    setTimeout(function(){
+      MERCHANT_DIRECTORY.forEach(function(e){
+        if(!e) return;
+        var name = String(e.name || e.n || '').toLowerCase();
+        if(name === 'steve nash' || name === 'steve nash fitness'){ e.name = 'Steve Nash Fitness'; e.n = 'Steve Nash Fitness'; }
+      });
+      crossCategoryDedupe(); rebuildCanonSet(); installPushGuard();
+      window.__v146.ready = true;
+      try { console.log('[V146] BC aliases added: '+added+'. Dedupe complete.'); } catch(e){}
+    }, 800);
+    _bootDone = true;
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+  setTimeout(boot, 800); setTimeout(boot, 2500); setTimeout(boot, 5000);
+  setTimeout(function(){ if(window.__v146.ready) crossCategoryDedupe(); }, 8000);
+  setTimeout(function(){ if(window.__v146.ready) crossCategoryDedupe(); }, 15000);
+  window.__v146.crossCategoryDedupe = crossCategoryDedupe;
+  window.__v146.canonKey = canonKey;
+  window.__v146.rebuildCanonSet = rebuildCanonSet;
+})();
+</script>
+
+<!-- ================================================================== -->
+<!-- V147 BC gems: highly-rated Vancouver + Richmond authentic merchants -->
+<!-- ================================================================== -->
+<script id="v147-bc-gems">
+(function(){
+  'use strict';
+  if(window.__v147 && window.__v147.ready) return;
+  window.__v147 = window.__v147 || { ready:false };
+  var BC_GEMS = {
+    'barbara':'dining','barbara restaurant':'dining','barbara chinatown':'dining',
+    'sumibiyaki arashi':'dining','arashi yakitori':'dining','arashi':'dining',
+    'sushi hyun':'dining','hyun sushi':'dining','sushihyun':'dining',
+    'okeya kyujiro':'dining','okeya':'dining','kyujiro':'dining',
+    'sushi masuda':'dining','masuda sushi':'dining','sushimasuda':'dining',
+    'annalena':'dining','anna lena':'dining','annalena kits':'dining',
+    'published on main':'dining','published main':'dining',
+    'iden and quanjude':'dining','quanjude beijing duck':'dining','quan ju de':'dining','beijing duck house':'dining',
+    'kissatanto':'dining','kissa':'dining',
+    'botanist':'dining','botanist restaurant':'dining','botanist vancouver':'dining','botanist fairmont':'dining',
+    'le crocodile':'dining','lecrocodile':'dining','le croc':'dining',
+    "gary's":'dining','garys':'dining','garys vancouver':'dining',
+    "farmer's apprentice":'dining','farmers apprentice':'dining',
+    'maenam':'dining','maenam thai':'dining','mae nam':'dining',
+    "chef's choice":'dining','chefs choice':'dining','chefs choice chinese':'dining',
+    "chang'an":'dining','changan':'dining','chang an':'dining',
+    'octopus garden':'dining','octopus garden japanese':'dining',
+    'delara':'dining','delara restaurant':'dining','delara persian':'dining',
+    'seaport city':'dining','seaport city seafood':'dining',
+    'folke':'dining','folke vegan':'dining','folke restaurant':'dining',
+    'elisa':'dining','elisa steakhouse':'dining','elisa vancouver':'dining',
+    'moltaqa':'dining','moltaqa moroccan':'dining',
+    'sushi jin':'dining','sushijin':'dining',
+    'karma indian':'dining','karma indian bistro':'dining','karma bistro':'dining',
+    'yuwa':'dining','yuwa japanese':'dining','yuwa restaurant':'dining',
+    'per se social corner':'dining','perse social':'dining','perse':'dining','per se':'dining',
+    'homer st cafe':'dining','homer street cafe':'dining','homer cafe':'dining',
+    "ophelia":'dining','ophelia mexican':'dining',
+    'bacchus':'dining','bacchus lounge':'dining','bacchus restaurant':'dining',
+    'fanny bay':'dining','fanny bay oyster':'dining','fanny bay oyster bar':'dining',
+    'little bird':'dining','little bird dim sum':'dining','little bird craft beer':'dining',
+    'acquafarina':'dining','acqua farina':'dining',
+    'carlino':'dining','carlino italian':'dining','carlino restaurant':'dining',
+    'sushi hil':'dining','sushihil':'dining',
+    'good thief':'dining','good thief vietnamese':'dining','goodthief':'dining',
+    'song by kin kao':'dining','song kin kao':'dining','song thai':'dining','kinkao':'dining','kin kao':'dining',
+    'suyo':'dining','suyo peruvian':'dining','suyo restaurant':'dining',
+    'elem':'dining','elem vancouver':'dining','elem contemporary':'dining',
+    'nero tondo':'dining','nerotondo':'dining',
+    'hydra estiatorio':'dining','hydra':'dining','hydra mediterranean':'dining',
+    'parker rooftop':'dining','parker rooftop japanese':'dining',
+    'alouette bistro':'dining','alouette':'dining','alouette french':'dining',
+    "cardero's":'dining','carderos':'dining','carderos live bait':'dining',
+    'brix and mortar':'dining','brix mortar':'dining','brixmortar':'dining','brix':'dining',
+    'lupo':'dining','lupo restaurant':'dining','lupo italian':'dining',
+    'capo and the spritz':'dining','capo the spritz':'dining','capo spritz':'dining','capo':'dining',
+    'sula':'dining','sula indian restaurant':'dining','sula commercial drive':'dining','sula main street':'dining',
+    'momo sushi':'dining','momosushi':'dining','momo sushi robson':'dining',
+    'ramen danbo robson':'dining','danbo robson':'dining',
+    'fishermans terrace':'dining','fisherman terrace':'dining','fishermans terrace seafood':'dining','fishermans terrace seafood restaurant':'dining',
+    'chef tony seafood restaurant':'dining','cheftony':'dining',
+    'fortune terrace':'dining','fortune terrace chinese':'dining','fortune terrace chinese cuisine':'dining',
+    'empire seafood':'dining','empire seafood restaurant':'dining','empire seafood richmond':'dining',
+    'sea harbour':'dining','sea harbour seafood':'dining','sea harbour seafood restaurant':'dining','seaharbour':'dining',
+    'jade seafood':'dining','jade seafood restaurant':'dining','the jade seafood':'dining',
+    'golden paramount':'dining','golden paramount seafood':'dining','golden paramount seafood restaurant':'dining',
+    'yue':'dining','yue restaurant':'dining','yue richmond':'dining',
+    'continental seafood':'dining','continental seafood restaurant':'dining','continental richmond':'dining',
+    'tin tin':'dining','tin tin seafood':'dining','tin tin seafood harbour':'dining','tintin seafood':'dining',
+    'red star':'dining','red star restaurant':'dining','red star richmond':'dining',
+    'parkhill seafood':'dining','parkhill seafood restaurant':'dining','parkhill':'dining',
+    'sun sui wah chinese':'dining','sunsuiwah richmond':'dining','sun sui wah richmond':'dining',
+    'kirin seafood restaurant':'dining','kirin richmond':'dining',
+    'baan lao':'dining','baan lao thai':'dining','baan lao fine thai':'dining','baan lao fine thai cuisine':'dining',
+    'haidilao':'dining','haidilao hotpot':'dining','haidilao hot pot':'dining','haidilao richmond':'dining','hai di lao':'dining',
+    'yin ji chang fen':'dining','yin ji':'dining','yinji':'dining','yinjichangfen':'dining',
+    'deer garden':'dining','deer garden signatures':'dining','deer garden richmond':'dining',
+    'cha kee':'dining','cha kee cha chaan teng':'dining','chakee':'dining',
+    'tai er':'dining','tai er sichuan':'dining','tai er sichuan cuisine':'dining','taier':'dining',
+    'davie dosa':'dining','davie dosa company':'dining','daviedosa':'dining',
+    'mega sushi':'dining','mega sushi steveston':'dining','megasushi':'dining',
+    'ichiro':'dining','ichiro japanese':'dining','ichiro restaurant':'dining','ichiro sushi':'dining',
+    'yuu japanese tapas':'dining','yuu tapas':'dining','yuu japanese':'dining',
+    'yuans hotpot':'dining','yuan hotpot':'dining','yuans hot pot':'dining','yuans richmond':'dining',
+    'micha':'dining','micha taiwanese':'dining','micha richmond':'dining',
+    'silkway':'dining','silkway halal':'dining','silkway halal cuisine':'dining',
+    'nyonya house':'dining','nyonya house cuisine':'dining','nyonya malaysian':'dining',
+    'chopsticks noodle':'dining','chopsticks noodle house':'dining','chopsticks house':'dining',
+    'master rice roll':'dining','master rice roll richmond':'dining',
+    'grill king':'dining','grill king richmond':'dining',
+    'xiang chuan':'dining','xiang chuan mansion':'dining','xiangchuan':'dining',
+    'wing kee':'dining','wing kee restaurant':'dining','wingkee richmond':'dining',
+    'dinesty richmond':'dining','dinesty chinese':'dining','dinesty chinese restaurant':'dining',
+    'r and h chinese food':'dining','r h chinese food':'dining','r and h dumpling':'dining',
+    'the fish man':'dining','fish man richmond':'dining',
+    'yanbian':'dining','yanbian bbq':'dining','yanbian barbecue':'dining',
+    'avery cafe':'dining','avery':'dining','avery cafe restaurant':'dining',
+    'tacofino':'dining','tacofino ocho':'dining','tacofino gastown':'dining','tacofino cantina':'dining',
+    'the birds and the beets':'dining','birds and beets':'dining','birds beets':'dining',
+    'the pie hole':'dining','pie hole':'dining','pie hole main':'dining',
+    'legendary noodle':'dining','legendary noodle house':'dining','legendarynoodle':'dining',
+    'liuyishou':'dining','liuyishou hotpot':'dining','liu yi shou':'dining',
+    'raisu':'dining','raisu japanese':'dining','raisu vancouver':'dining',
+    'ugly dumpling':'dining','the ugly dumpling':'dining',
+    'nook':'dining','nook italian':'dining','nook restaurant':'dining','nook west end':'dining',
+    'cuchillo':'dining','cuchillo restaurant':'dining',
+    'pallet coffee':'dining','pallet':'dining'
+  };
+  function extendAliases(){
+    if(typeof ALIASES === 'undefined' || !ALIASES) return { ok:false, added:0 };
+    var added = 0;
+    Object.keys(BC_GEMS).forEach(function(k){ if(!ALIASES[k]){ ALIASES[k] = BC_GEMS[k]; added++; } });
+    return { ok:true, added:added };
+  }
+  var _bootDone = false;
+  function boot(){
+    if(_bootDone) return;
+    var r = extendAliases();
+    if(!r.ok){ setTimeout(boot, 200); return; }
+    _bootDone = true;
+    window.__v147.ready = true;
+    try { console.log('[V147] BC gems: '+r.added+' new authentic Vancouver+Richmond aliases added'); } catch(e){}
+    setTimeout(function(){ if(window.__v146 && typeof window.__v146.crossCategoryDedupe === 'function'){ window.__v146.crossCategoryDedupe(); if(typeof window.__v146.rebuildCanonSet === 'function') window.__v146.rebuildCanonSet(); } }, 1500);
+    setTimeout(function(){ if(window.__v146 && typeof window.__v146.crossCategoryDedupe === 'function'){ window.__v146.crossCategoryDedupe(); } }, 6000);
+    setTimeout(function(){ if(window.__v146 && typeof window.__v146.crossCategoryDedupe === 'function'){ window.__v146.crossCategoryDedupe(); } }, 12000);
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+  setTimeout(boot, 500); setTimeout(boot, 2000);
+})();
+</script>
+
+<!-- ================================================================== -->
+<!-- V149 Wise-style Wallet UI for My Cards tab                         -->
+<!-- Preserves 100% of existing .cardBig rendering & data — just wraps -->
+<!-- it in an animated stacked-wallet presentation.                     -->
+<!-- ================================================================== -->
+<style id="v149-wallet-styles">
+/* Root wrap for the wallet stack */
+.v149-wallet-wrap {
+  position: relative;
+  padding: 6px 2px 0;
+  margin-bottom: 12px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+.v149-wallet-hint {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  text-align: center;
+  padding: 6px 0 14px;
+  opacity: .7;
+}
+.v149-wallet-hint b { color: var(--brand); font-weight: 900; }
+
+/* The stack container itself */
+.v149-stack {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 24px;
+}
+
+/* Each card preview row */
+.v149-preview {
+  position: relative;
+  background: var(--surface);
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 14px rgba(20,20,40,.08);
+  padding: 12px 14px;
+  margin-top: -70px; /* Stack overlap: cards peek behind each other */
+  cursor: pointer;
+  transition: transform .38s cubic-bezier(.2,.9,.3,1.15),
+              margin-top .38s cubic-bezier(.2,.9,.3,1.15),
+              box-shadow .28s ease,
+              border-color .2s ease;
+  z-index: 1;
+  overflow: hidden;
+}
+.v149-preview:first-child {
+  margin-top: 0; /* First card sits at top with no overlap */
+}
+.v149-preview:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(20,20,40,.12);
+}
+.v149-preview:active {
+  transform: scale(.995);
+}
+
+/* Row layout: card art on left, meta in middle, chevron right */
+.v149-preview-row {
+  display: grid;
+  grid-template-columns: 78px 1fr 24px;
+  gap: 12px;
+  align-items: center;
+  min-height: 62px;
+}
+.v149-preview-art {
+  width: 78px;
+  height: 50px;
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 8px rgba(20,20,40,.15);
+  background: var(--surface-2);
+  flex-shrink: 0;
+}
+.v149-preview-art svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.v149-preview-meta {
+  min-width: 0;
+}
+.v149-preview-name {
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: -.02em;
+  color: var(--ink);
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.v149-preview-sub {
+  font-size: 11px;
+  font-weight: 750;
+  color: var(--muted);
+  margin-top: 2px;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.v149-preview-sub .dot {
+  display: inline-block;
+  margin: 0 5px;
+  opacity: .5;
+}
+.v149-preview-sub .rate {
+  color: var(--brand);
+  font-weight: 900;
+}
+.v149-preview-chev {
+  color: var(--muted);
+  font-size: 16px;
+  transition: transform .32s cubic-bezier(.2,.9,.3,1.15), color .2s ease;
+  text-align: center;
+}
+.v149-preview.open .v149-preview-chev {
+  transform: rotate(180deg);
+  color: var(--brand);
+}
+
+/* When a card is open, it stops overlapping the ones below it and gets a subtle highlight */
+.v149-preview.open {
+  border-color: var(--brand);
+  box-shadow: 0 12px 32px rgba(37,99,235,.18);
+  z-index: 3;
+}
+
+/* Every card AFTER an open card needs to give it breathing room */
+.v149-preview.push-down {
+  margin-top: 0 !important;
+}
+
+/* The detail slot inside each preview */
+.v149-detail-slot {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height .42s cubic-bezier(.2,.9,.3,1.15),
+              opacity .3s ease,
+              padding .3s ease;
+  padding: 0;
+}
+.v149-preview.open .v149-detail-slot {
+  max-height: 2400px;
+  opacity: 1;
+  padding: 14px 0 4px;
+  border-top: 1px dashed var(--border);
+  margin-top: 12px;
+}
+
+/* Neutralize the original .cardBig chrome once it's living inside our slot */
+.v149-detail-slot .cardBig {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: visible !important;
+}
+.v149-detail-slot .cardBig .cc-wrapper {
+  display: none !important; /* Card art already shown in preview */
+}
+
+/* Empty-state passthrough */
+#cardList .empty-state,
+#cardList .cardsEmpty,
+#cardsEmpty {
+  display: unset;
+}
+
+/* Dark mode polish */
+body.dark .v149-preview {
+  background: var(--surface);
+  border-color: var(--border);
+  box-shadow: 0 4px 14px rgba(0,0,0,.30);
+}
+body.dark .v149-preview.open {
+  border-color: var(--brand);
+  box-shadow: 0 12px 32px rgba(142,163,216,.24);
+}
+
+/* Small screens: shrink art slightly */
+@media (max-width: 375px) {
+  .v149-preview-row {
+    grid-template-columns: 68px 1fr 22px;
+    gap: 10px;
+  }
+  .v149-preview-art {
+    width: 68px;
+    height: 44px;
+  }
+  .v149-preview-name { font-size: 13.5px; }
+  .v149-preview-sub  { font-size: 10.5px; }
+  .v149-preview      { padding: 11px 12px; }
+}
+
+/* Toast when opening a card */
+.v149-toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-30px);
+  background: linear-gradient(135deg, var(--brand), var(--brand-2, var(--brand)));
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: 99px;
+  font-weight: 900;
+  font-size: 12.5px;
+  letter-spacing: -.01em;
+  box-shadow: 0 8px 24px rgba(37,99,235,.32);
+  z-index: 300;
+  opacity: 0;
+  transition: opacity .22s ease, transform .28s cubic-bezier(.2,.9,.3,1.2);
+  pointer-events: none;
+  max-width: 90vw;
+  text-align: center;
+  font-family: inherit;
+}
+.v149-toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+</style>
+
+<script id="v149-wallet-ui">
+(function(){
+  'use strict';
+  if(window.__v149 && window.__v149.ready) return;
+  window.__v149 = window.__v149 || { ready:false, openKey:null };
+
+  // Track whether we've bound our observer already so we don't stack listeners.
+  var _bound = false;
+  var _observer = null;
+  var _rebuilding = false;
+
+  function log(){
+    try { if(window.__v149Debug) console.log.apply(console, ['[V149]'].concat([].slice.call(arguments))); } catch(e){}
+  }
+
+  function getCardsDB(){ return (typeof CARDS_DB !== 'undefined' && CARDS_DB) ? CARDS_DB : (window.CARDS_DB || {}); }
+
+  // Build a compact preview subtitle from the card's realRates
+  function bestRateLine(card){
+    if(!card) return '';
+    var iss = card.iss || '';
+    var net = card.net || '';
+    var reward = card.r || '';
+    // If card.r is a nice compact string like "5x / 3x / 2x", use it. Otherwise fall back to feeRetail info.
+    var line = '';
+    if(iss) line += iss;
+    if(net && net !== iss) line += (line ? ' <span class="dot">·</span> ' : '') + net;
+    if(reward) line += (line ? ' <span class="dot">·</span> ' : '') + '<span class="rate">'+reward+'</span>';
+    return line;
+  }
+
+  // Extract SVG innerHTML from a .cardBig element (from its .cc-wrapper)
+  function extractCardArt(cardBigEl){
+    if(!cardBigEl) return '';
+    var wrap = cardBigEl.querySelector('.cc-wrapper');
+    if(!wrap) return '';
+    // Clone so the original stays untouched
+    var svg = wrap.querySelector('svg');
+    if(!svg) return wrap.innerHTML;
+    return svg.outerHTML;
+  }
+
+  // Build (or rebuild) the wallet UI on top of the current #cardList content
+  function build(){
+    if(_rebuilding) return;
+    _rebuilding = true;
+    try {
+      var cardList = document.getElementById('cardList');
+      if(!cardList){ _rebuilding = false; return; }
+
+      // Read all .cardBig elements that live directly under #cardList
+      // (these are what renderCards() outputs)
+      var bigs = Array.prototype.slice.call(cardList.querySelectorAll(':scope > .cardBig'));
+      // If none, either wallet is empty or we've already wrapped them. Detect existing wrap.
+      var existingWrap = cardList.querySelector(':scope > .v149-wallet-wrap');
+
+      if(bigs.length === 0){
+        // Nothing to wrap. If we had an old wallet wrap, leave it be — but if the userWallet is now empty, remove it.
+        if(existingWrap){
+          // Preserve open state through re-renders: only clear if no wallet cards remain in CARDS_DB
+          var hasAnyDetail = existingWrap.querySelector('.cardBig');
+          if(!hasAnyDetail){
+            existingWrap.remove();
+          }
+        }
+        _rebuilding = false;
+        return;
+      }
+
+      // If a wallet wrap already exists, we need to re-sync it with the new .cardBig set.
+      // Simplest: remove the old wrap, then rebuild.
+      if(existingWrap){
+        // Move any detail slot content back to root so we can pluck fresh .cardBig references cleanly
+        try { existingWrap.remove(); } catch(e){}
+      }
+
+      // Build wallet wrap
+      var wrap = document.createElement('div');
+      wrap.className = 'v149-wallet-wrap';
+
+      var hint = document.createElement('div');
+      hint.className = 'v149-wallet-hint';
+      hint.innerHTML = '\ud83d\udc8f Tap a card to <b>open</b> its details';
+      wrap.appendChild(hint);
+
+      var stack = document.createElement('div');
+      stack.className = 'v149-stack';
+      wrap.appendChild(stack);
+
+      var DB = getCardsDB();
+
+      bigs.forEach(function(bigEl, i){
+        var key = bigEl.getAttribute('data-card-key') || '';
+        var card = DB[key] || {};
+        var art = extractCardArt(bigEl);
+
+        // Build preview
+        var preview = document.createElement('div');
+        preview.className = 'v149-preview';
+        preview.setAttribute('data-v149-key', key);
+
+        var row = document.createElement('div');
+        row.className = 'v149-preview-row';
+
+        var artBox = document.createElement('div');
+        artBox.className = 'v149-preview-art';
+        artBox.innerHTML = art;
+
+        var meta = document.createElement('div');
+        meta.className = 'v149-preview-meta';
+        var nameEl = document.createElement('div');
+        nameEl.className = 'v149-preview-name';
+        // Prefer the DB name; fall back to whatever the card art label is; ultimate fallback = key
+        nameEl.textContent = (card.n || key || 'Card');
+        var subEl = document.createElement('div');
+        subEl.className = 'v149-preview-sub';
+        subEl.innerHTML = bestRateLine(card);
+
+        meta.appendChild(nameEl);
+        meta.appendChild(subEl);
+
+        var chev = document.createElement('div');
+        chev.className = 'v149-preview-chev';
+        chev.innerHTML = '\u25be'; // ▾
+
+        row.appendChild(artBox);
+        row.appendChild(meta);
+        row.appendChild(chev);
+        preview.appendChild(row);
+
+        // Detail slot receives the actual .cardBig
+        var slot = document.createElement('div');
+        slot.className = 'v149-detail-slot';
+        preview.appendChild(slot);
+
+        // Move the ORIGINAL .cardBig into the slot (physical move preserves any listeners/state)
+        slot.appendChild(bigEl);
+
+        // Handle clicks anywhere on the preview EXCEPT inside the detail slot's content
+        // (so buttons/links inside the detail don't accidentally toggle the card)
+        preview.addEventListener('click', function(ev){
+          if(ev.target && ev.target.closest && ev.target.closest('.v149-detail-slot')){
+            return; // click inside details — let it happen naturally
+          }
+          togglePreview(preview, key);
+        });
+
+        stack.appendChild(preview);
+      });
+
+      cardList.appendChild(wrap);
+
+      // Re-open whichever card was open before the rebuild (persistent state through re-renders)
+      var reopenKey = window.__v149.openKey;
+      if(reopenKey){
+        var target = wrap.querySelector('.v149-preview[data-v149-key="'+CSS.escape(reopenKey)+'"]');
+        if(target) togglePreview(target, reopenKey, true /*force open*/);
+      }
+
+    } catch(e){
+      try { console.warn('[V149] build error', e); } catch(_){}
+    } finally {
+      _rebuilding = false;
+    }
+  }
+
+  function togglePreview(preview, key, forceOpen){
+    var alreadyOpen = preview.classList.contains('open');
+    // Close all open previews first
+    var openOnes = document.querySelectorAll('.v149-preview.open');
+    for(var i=0;i<openOnes.length;i++){
+      if(openOnes[i] !== preview){
+        openOnes[i].classList.remove('open');
+      }
+    }
+    if(alreadyOpen && !forceOpen){
+      preview.classList.remove('open');
+      window.__v149.openKey = null;
+      toast('Closed \u00b7 stack view');
+      updatePushDown();
+      return;
+    }
+    preview.classList.add('open');
+    window.__v149.openKey = key;
+    toast('Opened \u00b7 details below');
+    updatePushDown();
+
+    // Smoothly scroll the opened preview into view once its details expand.
+    setTimeout(function(){
+      try {
+        preview.scrollIntoView({behavior:'smooth', block:'center'});
+      } catch(e){
+        // fallback: no scroll
+      }
+    }, 60);
+  }
+
+  // Any card AFTER an open card should not have negative overlap so the details are visible.
+  function updatePushDown(){
+    var stacks = document.querySelectorAll('.v149-stack');
+    stacks.forEach(function(stack){
+      var previews = stack.querySelectorAll('.v149-preview');
+      var seenOpen = false;
+      previews.forEach(function(p){
+        if(seenOpen){
+          p.classList.add('push-down');
+        } else {
+          p.classList.remove('push-down');
+        }
+        if(p.classList.contains('open')) seenOpen = true;
+      });
+    });
+  }
+
+  var _toastTimer = null;
+  function toast(msg){
+    try {
+      var el = document.getElementById('v149-toast');
+      if(!el){
+        el = document.createElement('div');
+        el.id = 'v149-toast';
+        el.className = 'v149-toast';
+        document.body.appendChild(el);
+      }
+      el.textContent = msg;
+      // Reflow, then show
+      void el.offsetWidth;
+      el.classList.add('show');
+      if(_toastTimer) clearTimeout(_toastTimer);
+      _toastTimer = setTimeout(function(){ el.classList.remove('show'); }, 1400);
+    } catch(e){}
+  }
+
+  // Observe #cardList so if renderCards() rebuilds (e.g. after editing wallet), we re-wrap.
+  function bindObserver(){
+    if(_bound) return;
+    var cardList = document.getElementById('cardList');
+    if(!cardList) return;
+    _observer = new MutationObserver(function(mutations){
+      // Only rebuild when actual .cardBig children get added/removed at the root of #cardList
+      var shouldRebuild = false;
+      for(var i=0;i<mutations.length;i++){
+        var m = mutations[i];
+        if(m.type !== 'childList') continue;
+        // Detect the "renderCards wiped and refilled" pattern:
+        // added nodes include .cardBig elements OR removed nodes include our wallet wrap.
+        if(m.addedNodes){
+          for(var j=0;j<m.addedNodes.length;j++){
+            var n = m.addedNodes[j];
+            if(n.nodeType === 1 && n.classList && n.classList.contains('cardBig')){
+              // The base renderCards() dumped a fresh .cardBig into #cardList
+              shouldRebuild = true; break;
+            }
+          }
+        }
+        if(shouldRebuild) break;
+      }
+      if(shouldRebuild){
+        // Give renderCards() a moment to finish appending all cards, then rewrap.
+        setTimeout(build, 30);
+      }
+    });
+    _observer.observe(cardList, {childList:true, subtree:false});
+    _bound = true;
+  }
+
+  // Hook switchTab: whenever the user opens My Cards, ensure the wallet UI is fresh.
+  function hookTabSwitch(){
+    if(typeof window.switchTab === 'function' && !window.switchTab.__v149Wrapped){
+      var origSwitchTab = window.switchTab;
+      window.switchTab = function(tab){
+        var r = origSwitchTab.apply(this, arguments);
+        if(tab === 'cardsTab'){
+          setTimeout(build, 40);
+        }
+        return r;
+      };
+      window.switchTab.__v149Wrapped = true;
+    }
+  }
+
+  // Try to boot. If dependencies aren't ready yet, retry.
+  function boot(){
+    var cardList = document.getElementById('cardList');
+    if(!cardList){
+      setTimeout(boot, 200);
+      return;
+    }
+    bindObserver();
+    hookTabSwitch();
+    // Attempt an immediate build in case cards are already rendered
+    build();
+    window.__v149.ready = true;
+    window.__v149.build = build;
+    log('boot done');
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+  // Extra safety triggers for slower load orderings
+  setTimeout(boot, 400);
+  setTimeout(boot, 1200);
   setTimeout(boot, 3000);
+  setTimeout(function(){ if(typeof build === 'function') build(); }, 5000);
 })();
 </script>
 </body>
