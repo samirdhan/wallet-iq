@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<!-- V156 (2026-07-13): Autocomplete engine REBUILT — not patched. Previous stack (V143 initSearch + V150 shim + V152 fresh engine + V153 chip wrapper + V155 injection observer) had accumulated event handler layers causing: (a) duplicate merchant rows (whole foods + wholefoods + Whole Foods Market), (b) dropdown vanishing on scroll-touch, (c) inconsistent chip appearance. V156 clones #q and #autocomplete to strip ALL prior listeners, kills V152/V153/V155 boot flags, then wires a single clean engine with: canonical brand-key dedup (source + DOM level), scroll-aware hide suppression, chips always present on empty state, and mobile keyboard dismiss on selection. Zero layered patches. -->
+
 <!-- V155 (2026-07-13): FIXED the V153 quick-chip inconsistency bug. Root cause: V153 wrapped window.__v152.runQuery (the public API) but V152's own internal focus/input/click handlers call the CLOSURE reference to runQuery, not the public wrapper. So chips only injected on lucky boot timing, requiring a page refresh to appear. Fix: MutationObserver on #autocomplete detects every actual dropdown render, plus capture-phase focus/click warmup on #q at 20ms + 100ms + 300ms so chips inject reliably on the FIRST tap of the search bar. No refresh needed. Zero lag. -->
 
 <!-- V154 (2026-07-13): Merchant database expansion — ~700 new authentic Canadian + North American aliases added on top of V153's 5,413 total. New coverage: gas station variants, all major Canadian pharmacies, additional coffee shops/bubble tea/sushi/dim sum/pho, retail chains (Winners, HomeSense, Simons, Reitmans, Old Navy, GAP, American Eagle), sports (Sport Chek, Golf Town, Foot Locker), home improvement (RONA, Lowe's, IKEA, Structube), tech (Best Buy, Source, Staples, Memory Express), bookstores (Indigo, Chapters), beauty (Sephora, Ulta, Lush, MAC), streaming/SaaS (Adobe, Microsoft 365, Google One, iCloud, Notion, Figma, ChatGPT+, Claude Pro), rideshare/delivery (Uber Eats, Skip, DoorDash, Instacart), airlines (Air Canada, WestJet, Porter, Flair, Delta, United), Marriott/Hilton/Hyatt/IHG hotel brands, utilities (BC Hydro, Enbridge, Hydro-Québec), insurance (ICBC, TD, RBC, Belairdirect), cannabis (BC Cannabis, OCS, SQDC), furniture (EQ3, CB2, Wayfair, Article), pets (PetSmart, Bosleys), fitness gyms, kids activities. Also updated V119 counter to show '6,000+'. -->
@@ -18,7 +20,7 @@
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>Wallet IQ V155</title>
+<title>Wallet IQ V156</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Wallet IQ">
@@ -22117,6 +22119,667 @@ body.dark .v153-chip.v153-fx.v153-fx-on { background: var(--brand, #8ea3d8) !imp
   window.__v155.isDropdownOpen = isDropdownOpen;
   window.__v155.isEmptyState = isEmptyState;
   window.__v155.hasChipsAlready = hasChipsAlready;
+})();
+</script>
+
+<!-- V156 Autocomplete engine REBUILD (not a patch) -->
+<style id="v156-styles">
+#autocomplete.v156-show {
+  display: block !important;
+  position: absolute !important;
+  top: 100% !important;
+  left: 0 !important;
+  right: 0 !important;
+  margin-top: 8px !important;
+  background: var(--surface, #ffffff) !important;
+  border-radius: 20px !important;
+  border: 1px solid var(--border, #e2e5eb) !important;
+  box-shadow: 0 20px 44px rgba(20,20,40,.20) !important;
+  z-index: 950 !important;
+  max-height: 62vh !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  -webkit-overflow-scrolling: touch !important;
+  overscroll-behavior: contain !important;
+  touch-action: pan-y !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+}
+@supports (max-height: 62dvh) { #autocomplete.v156-show { max-height: 62dvh !important; } }
+@media (max-width: 430px) { #autocomplete.v156-show { max-height: 58vh !important; } }
+
+.v156-chips-wrap {
+  padding: 12px 14px 10px !important;
+  background: var(--surface-2, #f0eee7) !important;
+  border-bottom: 1px solid var(--border, #e2e5eb) !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 5 !important;
+}
+.v156-chips-title {
+  font-size: 10px !important;
+  color: var(--muted, #6b7280) !important;
+  font-weight: 900 !important;
+  letter-spacing: .12em !important;
+  text-transform: uppercase !important;
+  margin-bottom: 8px !important;
+}
+.v156-chips { display: flex !important; gap: 6px !important; flex-wrap: wrap !important; }
+.v156-chip {
+  background: var(--surface, #ffffff) !important;
+  border: 1px solid var(--border, #e2e5eb) !important;
+  border-radius: 99px !important;
+  padding: 7px 12px !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+  color: var(--ink, #181814) !important;
+  cursor: pointer !important;
+  font-family: inherit !important;
+  white-space: nowrap !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  line-height: 1 !important;
+  transition: background .12s ease, border-color .12s ease, transform .1s ease !important;
+  -webkit-tap-highlight-color: transparent !important;
+  user-select: none !important;
+}
+.v156-chip:active { transform: scale(.94) !important; }
+.v156-chip.v156-fx-on {
+  background: var(--brand, #2563eb) !important;
+  color: #ffffff !important;
+  border-color: var(--brand, #2563eb) !important;
+}
+
+.v156-hint {
+  padding: 10px 14px 6px !important;
+  font-size: 10px !important;
+  color: var(--muted, #6b7280) !important;
+  font-weight: 900 !important;
+  letter-spacing: .1em !important;
+  text-transform: uppercase !important;
+  background: var(--surface-2, #f0eee7) !important;
+}
+
+.v156-item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 12px 14px !important;
+  cursor: pointer !important;
+  border-bottom: 1px solid var(--border, #e2e5eb) !important;
+  transition: background .12s ease !important;
+  min-height: 54px !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+.v156-item:last-child { border-bottom: none !important; }
+.v156-item:hover, .v156-item.v156-active { background: var(--surface-2, #f0eee7) !important; }
+.v156-item-emoji { font-size: 22px !important; flex-shrink: 0 !important; width: 26px !important; text-align: center !important; line-height: 1 !important; }
+.v156-item-main { flex: 1 !important; min-width: 0 !important; }
+.v156-item-name { font-size: 15px !important; font-weight: 900 !important; letter-spacing: -.01em !important; color: var(--ink, #181814) !important; line-height: 1.2 !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; }
+.v156-item-name b { color: var(--brand, #2563eb) !important; }
+.v156-item-cat { font-size: 11px !important; color: var(--muted, #6b7280) !important; font-weight: 750 !important; margin-top: 2px !important; text-transform: uppercase !important; letter-spacing: .05em !important; }
+.v156-item-badge { font-size: 9px !important; font-weight: 900 !important; padding: 3px 7px !important; border-radius: 7px !important; background: var(--surface-2, #f0eee7) !important; color: var(--muted, #6b7280) !important; flex-shrink: 0 !important; letter-spacing: .05em !important; text-transform: uppercase !important; }
+.v156-item-badge.v156-no-amex { background: rgba(196,49,74,.10) !important; color: #c4314a !important; }
+.v156-item-badge.v156-mc-only { background: rgba(224,112,29,.10) !important; color: #e0701d !important; }
+
+.v156-empty {
+  padding: 24px 16px !important;
+  text-align: center !important;
+  color: var(--muted, #6b7280) !important;
+  font-size: 13px !important;
+  font-weight: 800 !important;
+}
+.v156-empty .big { font-size: 34px !important; margin-bottom: 8px !important; display: block !important; }
+.v156-empty small { font-size: 11px !important; font-weight: 700 !important; display: block !important; margin-top: 6px !important; }
+
+body.dark #autocomplete.v156-show { background: var(--surface, #22201c) !important; border-color: var(--border, #2a2823) !important; box-shadow: 0 20px 44px rgba(0,0,0,.55) !important; }
+body.dark .v156-chips-wrap, body.dark .v156-hint { background: var(--surface-2, #2b2823) !important; border-bottom-color: var(--border, #2a2823) !important; }
+body.dark .v156-chip { background: var(--surface, #22201c) !important; color: var(--ink, #ede8dd) !important; border-color: var(--border, #2a2823) !important; }
+body.dark .v156-item { border-bottom-color: var(--border, #2a2823) !important; background: var(--surface, #22201c) !important; }
+body.dark .v156-item:hover, body.dark .v156-item.v156-active { background: var(--surface-2, #2b2823) !important; }
+body.dark .v156-item-name { color: var(--ink, #ede8dd) !important; }
+body.dark .v156-item-badge { background: var(--surface-2, #2b2823) !important; color: var(--muted, #8c8a82) !important; }
+
+/* Hide any old V152/V153 rendered items still on the page */
+#autocomplete.v156-show .v152-item, #autocomplete.v156-show .v153-chips-wrap, #autocomplete.v156-show .v152-empty { display: none !important; }
+input#q { font-size: 16px !important; }
+</style>
+
+<script id="v156-autocomplete-rebuild">
+(function(){
+  'use strict';
+  if(window.__v156 && window.__v156.ready) return;
+  window.__v156 = window.__v156 || { ready:false };
+
+  // ============================================================
+  // NEUTRALIZE prior engines (V152, V153, V155) so they don't
+  // fight with V156. We don't remove their scripts — just make
+  // their boot() functions no-op and remove their global hooks.
+  // ============================================================
+  function neutralizePrior(){
+    // V152: set ready + remove hide/show hooks
+    if(window.__v152){
+      window.__v152.ready = true;
+      window.__v152.hideAc = function(){};
+      window.__v152.showAc = function(){};
+      window.__v152.runQuery = function(){};
+      window.__v152.buildIndex = function(){};
+      window.__v152.getIndex = function(){ return []; };
+    }
+    // V153: no-op its injectChips
+    if(window.__v153){
+      window.__v153.ready = true;
+      window.__v153.injectChips = function(){};
+    }
+    // V155: no-op tryInject
+    if(window.__v155){
+      window.__v155.ready = true;
+      window.__v155.tryInject = function(){};
+    }
+    // Legacy V143
+    window.showAutocomplete = function(q){ runQuery(q || ''); };
+    window.hideAutocomplete = hideAc;
+    window.selectAutocompleteItem = function(k, n){ selectItem(k, n); };
+  }
+
+  // ============================================================
+  // Clone #q and #autocomplete to STRIP ALL prior event listeners
+  // ============================================================
+  function nukeElement(id){
+    var el = document.getElementById(id);
+    if(!el) return null;
+    if(el.__v156Nuked) return el;
+    var clone = el.cloneNode(false); // shallow — we'll rebuild content
+    // Preserve attributes + children where needed
+    if(id === 'q'){
+      // Input: copy value, and don't remove parent bindings (just its own)
+      clone = el.cloneNode(true);
+    } else {
+      // Autocomplete: empty is fine, we'll re-render
+      clone = el.cloneNode(false);
+    }
+    el.parentNode.replaceChild(clone, el);
+    clone.__v156Nuked = true;
+    return clone;
+  }
+
+  var inputEl = null;
+  var acEl = null;
+
+  // ============================================================
+  // Canonical brand key for dedup
+  // ============================================================
+  var STRIP = {};
+  ['vancouver','burnaby','coquitlam','richmond','surrey','delta','langley',
+   'northvan','northvancouver','westvan','westvancouver','portmoody','portcoquitlam',
+   'kitsilano','kits','gastown','chinatown','downtown','yaletown','mainstreet',
+   'robson','davie','granville','commercial','hastings','oakridge','cambie','robsonstreet',
+   'toronto','montreal','calgary','edmonton','ottawa','winnipeg','halifax','victoria',
+   'canada','canadian','usa','american','ca','com','net','org','online','www',
+   'restaurant','restaurants','cafe','cafes','bar','bars','grill','grille',
+   'bistro','kitchen','house','market','markets','mart','marts','shop','shoppe','shops',
+   'store','stores','company','co','inc','ltd','llc','plc','corp',
+   'foods','food','grocery','groceries','pharmacy','pharmacies',
+   'the','a','an','and','of','plus'
+  ].forEach(function(w){ STRIP[w] = 1; });
+
+  function canonKey(name){
+    var s = String(name || '').toLowerCase();
+    s = s.replace(/['"`\u2019]/g, '');
+    s = s.replace(/[^a-z0-9]+/g, ' ');
+    s = s.replace(/\s+/g, ' ').trim();
+    if(!s) return '';
+    var words = s.split(' ').filter(function(w){ return w && !STRIP[w]; });
+    if(words.length === 0) words = s.split(' ');
+    return words.join('');
+  }
+
+  function prettyName(key){
+    return String(key || '').replace(/[-_]+/g, ' ')
+      .split(' ')
+      .map(function(w){ return w ? w.charAt(0).toUpperCase() + w.slice(1) : ''; })
+      .join(' ').replace(/\s+/g, ' ').trim();
+  }
+
+  // ============================================================
+  // Build DEDUPED index from ALIASES + MERCHANT_DIRECTORY
+  // ============================================================
+  var CAT_EMOJI = { dining: '\ud83c\udf7d\ufe0f', groceryAmex: '\ud83d\uded2', groceryNo: '\ud83d\uded2', loblaws: '\ud83d\uded2', gas: '\u26fd', transit: '\ud83d\ude87', streaming: '\ud83d\udcfa', shopping: '\ud83d\udecd\ufe0f', shoppingAmex: '\ud83d\udecd\ufe0f', costco: '\ud83c\udfea', walmart: '\ud83d\uded2', travel: '\u2708\ufe0f', marriott: '\ud83c\udfe8', cineplex: '\ud83c\udfac', usd: '\ud83d\udcb5', rogers: '\ud83d\udcf1', other: '\ud83d\udcb3' };
+  var CAT_LABEL = { dining: 'Dining', groceryAmex: 'Groceries', groceryNo: 'Groceries', loblaws: 'Groceries', gas: 'Gas', transit: 'Transit', streaming: 'Streaming', shopping: 'Shopping', shoppingAmex: 'Shopping', costco: 'Costco', walmart: 'Walmart', travel: 'Travel', marriott: 'Marriott', cineplex: 'Cineplex', usd: 'USD / Foreign', rogers: 'Rogers / Fido', other: 'Other' };
+
+  var _index = null;
+  var _indexBuiltAt = 0;
+
+  function normalize(s){ return String(s || '').toLowerCase().trim(); }
+
+  function buildIndex(){
+    var out = [];
+    var byCanon = {}; // canonical brand key -> chosen entry
+    var byAliasKey = {}; // raw alias key -> 1 (for lookup fallback)
+
+    function push(entry){
+      var canon = canonKey(entry.name);
+      if(!canon || canon.length < 2) return;
+      if(byCanon[canon]) {
+        // Duplicate — prefer entries with (1) space in display name, (2) longer name
+        var existing = byCanon[canon];
+        var newHasSpace = /\s/.test(entry.name);
+        var oldHasSpace = /\s/.test(existing.name);
+        if((newHasSpace && !oldHasSpace) || (newHasSpace === oldHasSpace && entry.name.length > existing.name.length)){
+          // Replace but keep all alias keys pointing to this canon
+          existing.name = entry.name;
+          existing.emoji = existing.emoji || entry.emoji;
+        }
+        return;
+      }
+      entry.canon = canon;
+      byCanon[canon] = entry;
+      out.push(entry);
+    }
+
+    // From MERCHANT_DIRECTORY (preferred — has pretty display names)
+    try {
+      if(typeof MERCHANT_DIRECTORY !== 'undefined' && Array.isArray(MERCHANT_DIRECTORY)){
+        MERCHANT_DIRECTORY.forEach(function(m){
+          if(!m) return;
+          var name = m.name || m.n || '';
+          var key = m.key || normalize(name).replace(/[^a-z0-9]+/g, ' ').trim();
+          var cat = m.category || m.cat || 'other';
+          var emoji = m.emoji || m.e || m.icon || CAT_EMOJI[cat] || CAT_EMOJI.other;
+          if(!name || !key) return;
+          push({
+            name: String(name).trim(),
+            key: key,
+            cat: cat,
+            emoji: emoji,
+            searchable: normalize(name) + ' ' + normalize(key)
+          });
+        });
+      }
+    } catch(e){}
+
+    // From ALIASES
+    try {
+      if(typeof ALIASES !== 'undefined' && ALIASES){
+        Object.keys(ALIASES).forEach(function(k){
+          var cat = ALIASES[k] || 'other';
+          var displayName = prettyName(k);
+          push({
+            name: displayName,
+            key: k,
+            cat: cat,
+            emoji: CAT_EMOJI[cat] || CAT_EMOJI.other,
+            searchable: normalize(k) + ' ' + normalize(displayName)
+          });
+        });
+      }
+    } catch(e){}
+
+    _index = out;
+    _indexBuiltAt = Date.now();
+    return out;
+  }
+
+  function getIndex(){
+    if(!_index || _index.length === 0 || (Date.now() - _indexBuiltAt > 60000)){
+      buildIndex();
+    }
+    return _index || [];
+  }
+
+  // ============================================================
+  // Fuzzy match
+  // ============================================================
+  function scoreMatch(q, e){
+    if(!q) return 0;
+    var name = normalize(e.name);
+    var key = normalize(e.key);
+    var s = e.searchable || (name + ' ' + key);
+    if(name === q || key === q) return 1000;
+    if(name.indexOf(q) === 0) return 900;
+    if(key.indexOf(q) === 0) return 850;
+    if((' ' + s).indexOf(' ' + q) >= 0) return 700;
+    if(s.indexOf(q) >= 0) return 500;
+    var qi = 0;
+    for(var i = 0; i < s.length && qi < q.length; i++){
+      if(s.charAt(i) === q.charAt(qi)) qi++;
+    }
+    if(qi === q.length) return 200;
+    return 0;
+  }
+
+  function highlightMatch(text, q){
+    if(!q || !text) return text;
+    var lq = String(q).toLowerCase();
+    var t = String(text);
+    var idx = t.toLowerCase().indexOf(lq);
+    if(idx < 0) return t;
+    return t.substring(0, idx) + '<b>' + t.substring(idx, idx + lq.length) + '</b>' + t.substring(idx + lq.length);
+  }
+
+  function escapeHtml(s){
+    return String(s || '').replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; });
+  }
+
+  var POPULAR = ['starbucks', 'save on foods', 'costco', 'shell', 'mcdonalds', 'netflix', 'tim hortons', 'loblaws'];
+  function loadRecent(){ try { return JSON.parse(localStorage.getItem('walletIQ_v156_recent') || '[]'); } catch(e){ return []; } }
+  function saveRecent(k){ try { var r = loadRecent(); r = r.filter(function(x){ return x !== k; }); r.unshift(k); r = r.slice(0, 5); localStorage.setItem('walletIQ_v156_recent', JSON.stringify(r)); } catch(e){} }
+
+  function getAcceptance(k){
+    try { if(typeof ACCEPTANCE === 'undefined' || !ACCEPTANCE) return null;
+      var a = ACCEPTANCE[k]; if(!a) return null;
+      if(!a.amex && !a.visa && a.mc) return 'mc-only';
+      if(!a.amex) return 'no-amex';
+      return null;
+    } catch(e){ return null; }
+  }
+
+  var CHIPS = [
+    { emoji: '\ud83d\uded2',       label: 'Grocery', q: 'save-on-foods' },
+    { emoji: '\ud83c\udf7d\ufe0f', label: 'Dining',  q: 'dining' },
+    { emoji: '\ud83d\udecd\ufe0f', label: 'Shop',    q: 'amazon' },
+    { emoji: '\ud83c\udfea',       label: 'Costco',  q: 'costco' },
+    { emoji: '\u26fd',             label: 'Gas',     q: 'shell' },
+    { emoji: '\ud83c\udfac',       label: 'Movies',  q: 'cineplex' },
+    { emoji: '\ud83c\udfe8',       label: 'Hotel',   q: 'marriott' },
+    { emoji: '\ud83d\udcf1',       label: 'Rogers',  q: 'rogers' }
+  ];
+
+  function chipsHtml(){
+    var fx = !!window.foreignMode;
+    var chipsArr = CHIPS.map(function(c){
+      return '<button type="button" class="v156-chip" data-q="' + escapeHtml(c.q) + '" data-label="' + escapeHtml(c.label) + '">' + c.emoji + ' ' + c.label + '</button>';
+    });
+    var fxLabel = fx ? '\ud83c\udf0d FX' : '\ud83c\udde8\ud83c\udde6 CAD';
+    chipsArr.push('<button type="button" class="v156-chip' + (fx ? ' v156-fx-on' : '') + '" data-fx="1">' + fxLabel + '</button>');
+    return '<div class="v156-chips-wrap"><div class="v156-chips-title">Quick search</div><div class="v156-chips">' + chipsArr.join('') + '</div></div>';
+  }
+
+  // ============================================================
+  // Render + show/hide
+  // ============================================================
+  var _query = '';
+  var _activeIdx = -1;
+
+  function render(){
+    if(!acEl) return;
+    var q = _query;
+    var html = chipsHtml(); // chips ALWAYS shown
+
+    if(!q){
+      var idx = getIndex();
+      var byKey = {};
+      idx.forEach(function(e){ byKey[normalize(e.key)] = e; });
+      var items = [];
+      loadRecent().forEach(function(rk){ var m = byKey[normalize(rk)]; if(m && items.indexOf(m) < 0) items.push(m); });
+      POPULAR.forEach(function(pk){ if(items.length >= 6) return; var m = byKey[normalize(pk)]; if(m && items.indexOf(m) < 0) items.push(m); });
+      html += '<div class="v156-hint">' + (loadRecent().length ? 'Recent \u00b7 Popular' : 'Popular') + '</div>';
+      html += items.slice(0, 6).map(itemHtml).join('');
+    } else {
+      var idx2 = getIndex();
+      var scored = [];
+      for(var i = 0; i < idx2.length; i++){
+        var s = scoreMatch(q, idx2[i]);
+        if(s > 0) scored.push([s, idx2[i]]);
+      }
+      scored.sort(function(a, b){ return b[0] - a[0]; });
+      var top = scored.slice(0, 8).map(function(p){ return p[1]; });
+      if(top.length === 0){
+        html += '<div class="v156-empty"><span class="big">\ud83d\udd0d</span>No merchants match "' + escapeHtml(q) + '"<small>Try a different name</small></div>';
+      } else {
+        html += '<div class="v156-hint">Suggestions</div>';
+        html += top.map(itemHtml).join('');
+      }
+    }
+    acEl.innerHTML = html;
+    _activeIdx = -1;
+  }
+
+  function itemHtml(m){
+    var badge = '';
+    var acc = getAcceptance(m.key);
+    if(acc === 'mc-only') badge = '<span class="v156-item-badge v156-mc-only">MC ONLY</span>';
+    else if(acc === 'no-amex') badge = '<span class="v156-item-badge v156-no-amex">NO AMEX</span>';
+    var displayName = _query ? highlightMatch(m.name, _query) : m.name;
+    var catLabel = CAT_LABEL[m.cat] || 'Other';
+    return '<div class="v156-item" data-key="' + escapeHtml(m.key) + '" data-name="' + escapeHtml(m.name) + '">' +
+      '<div class="v156-item-emoji">' + (m.emoji || '\ud83d\udcb3') + '</div>' +
+      '<div class="v156-item-main">' +
+        '<div class="v156-item-name">' + displayName + '</div>' +
+        '<div class="v156-item-cat">' + catLabel + '</div>' +
+      '</div>' + badge +
+    '</div>';
+  }
+
+  function showAc(){
+    if(!acEl) return;
+    acEl.classList.add('v156-show');
+    acEl.classList.add('show'); // legacy CSS compat
+    acEl.style.display = 'block';
+  }
+
+  function hideAc(){
+    if(!acEl) return;
+    acEl.classList.remove('v156-show');
+    acEl.classList.remove('show');
+    acEl.style.display = '';
+  }
+
+  function isVisible(){ return acEl && acEl.classList.contains('v156-show'); }
+  function getPanel(){
+    try { if(typeof getActivePanelId === 'function') return getActivePanelId(); } catch(e){}
+    var p = document.querySelector('.panel.active');
+    return p ? p.id : null;
+  }
+
+  // ============================================================
+  // Selection + chip handling
+  // ============================================================
+  function selectItem(key, name){
+    if(inputEl) inputEl.value = name || prettyName(key);
+    hideAc();
+    saveRecent(key);
+    try { if(typeof renderRecommendation === 'function') renderRecommendation(key); } catch(e){}
+    try { if(typeof currentQuery !== 'undefined') currentQuery = key; } catch(e){}
+    try { if(inputEl && inputEl.blur) inputEl.blur(); if(document.activeElement && document.activeElement.blur) document.activeElement.blur(); } catch(e){}
+  }
+
+  function selectChip(q, label){
+    if(inputEl) inputEl.value = label;
+    hideAc();
+    saveRecent(q);
+    try { if(typeof currentQuery !== 'undefined') currentQuery = q; } catch(e){}
+    try { if(typeof renderRecommendation === 'function') renderRecommendation(q); } catch(e){}
+    try { if(inputEl && inputEl.blur) inputEl.blur(); if(document.activeElement && document.activeElement.blur) document.activeElement.blur(); } catch(e){}
+  }
+
+  function toggleFx(chipEl){
+    try {
+      var newFx = !window.foreignMode;
+      window.foreignMode = newFx;
+      chipEl.classList.toggle('v156-fx-on', newFx);
+      chipEl.textContent = newFx ? '\ud83c\udf0d FX' : '\ud83c\udde8\ud83c\udde6 CAD';
+      var lbl = document.getElementById('drawerFxLbl');
+      if(lbl) lbl.textContent = newFx ? 'Foreign / USD' : 'CAD mode';
+      if(typeof renderRecommendation === 'function'){
+        var q = (typeof currentQuery !== 'undefined' && currentQuery) ? currentQuery : 'other';
+        renderRecommendation(newFx ? 'usd' : q);
+      }
+    } catch(e){}
+  }
+
+  // ============================================================
+  // Event wiring — scroll-stable + reliable
+  // ============================================================
+  var _touchScrolling = false;
+  var _lastTouchTime = 0;
+
+  function runQuery(q){
+    _query = normalize(q);
+    render();
+    showAc();
+  }
+
+  function wireEvents(){
+    if(!inputEl || !acEl) return;
+
+    // Input events
+    var debounceT = null;
+    inputEl.addEventListener('input', function(){
+      if(getPanel() !== 'home'){ hideAc(); return; }
+      var val = inputEl.value || '';
+      if(debounceT) clearTimeout(debounceT);
+      debounceT = setTimeout(function(){
+        runQuery(val);
+        try {
+          if(typeof renderRecommendation === 'function'){
+            if(val.trim()) renderRecommendation(val);
+            else renderRecommendation('');
+          }
+        } catch(e){}
+      }, 40);
+    });
+
+    inputEl.addEventListener('focus', function(){
+      if(getPanel() !== 'home') return;
+      runQuery(inputEl.value || '');
+    });
+
+    inputEl.addEventListener('click', function(){
+      if(getPanel() !== 'home') return;
+      runQuery(inputEl.value || '');
+    });
+
+    // Blur — SCROLL-AWARE: don't hide if user was just scrolling the dropdown
+    inputEl.addEventListener('blur', function(){
+      setTimeout(function(){
+        if(_touchScrolling || (Date.now() - _lastTouchTime < 400)) return; // scroll interaction — don't hide
+        hideAc();
+      }, 220);
+    });
+
+    // Keyboard nav
+    inputEl.addEventListener('keydown', function(e){
+      if(!isVisible()) return;
+      var items = acEl.querySelectorAll('.v156-item');
+      if(!items.length) return;
+      if(e.key === 'ArrowDown'){ e.preventDefault(); _activeIdx = Math.min(_activeIdx + 1, items.length - 1); updateActive(items); }
+      else if(e.key === 'ArrowUp'){ e.preventDefault(); _activeIdx = Math.max(_activeIdx - 1, 0); updateActive(items); }
+      else if(e.key === 'Enter'){
+        e.preventDefault();
+        var i = _activeIdx >= 0 ? _activeIdx : 0;
+        if(items[i]) selectItem(items[i].getAttribute('data-key'), items[i].getAttribute('data-name'));
+      }
+      else if(e.key === 'Escape'){ hideAc(); inputEl.blur(); }
+    });
+
+    // Dropdown click delegation
+    acEl.addEventListener('mousedown', function(e){
+      var chip = e.target.closest('.v156-chip');
+      var item = e.target.closest('.v156-item');
+      if(chip){
+        e.preventDefault();
+        if(chip.dataset.fx === '1'){ toggleFx(chip); return; }
+        selectChip(chip.dataset.q, chip.dataset.label);
+        return;
+      }
+      if(item){
+        e.preventDefault();
+        selectItem(item.getAttribute('data-key'), item.getAttribute('data-name'));
+        return;
+      }
+      // Non-item area — prevent input blur while scrolling
+      e.preventDefault();
+    });
+
+    // Touch tracking for scroll stability
+    acEl.addEventListener('touchstart', function(e){
+      _touchScrolling = true;
+      _lastTouchTime = Date.now();
+    }, { passive: true });
+
+    acEl.addEventListener('touchmove', function(e){
+      _lastTouchTime = Date.now();
+    }, { passive: true });
+
+    acEl.addEventListener('touchend', function(e){
+      _lastTouchTime = Date.now();
+      var chip = e.target.closest('.v156-chip');
+      var item = e.target.closest('.v156-item');
+      if(chip){
+        // Item tap — clear flag immediately, mousedown handler already fired
+        _touchScrolling = false;
+        return;
+      }
+      if(item){
+        _touchScrolling = false;
+        return;
+      }
+      // Scroll release — keep flag for 300ms
+      setTimeout(function(){ _touchScrolling = false; }, 300);
+    }, { passive: true });
+
+    // Outside tap dismisses cleanly
+    document.addEventListener('mousedown', function(e){
+      if(!isVisible()) return;
+      if(acEl.contains(e.target) || inputEl === e.target || inputEl.contains(e.target)) return;
+      _touchScrolling = false;
+      hideAc();
+    }, true);
+
+    document.addEventListener('touchstart', function(e){
+      if(!isVisible()) return;
+      if(acEl.contains(e.target) || inputEl === e.target || inputEl.contains(e.target)) return;
+      _touchScrolling = false;
+      hideAc();
+    }, { passive: true, capture: true });
+  }
+
+  function updateActive(items){
+    for(var i = 0; i < items.length; i++) items[i].classList.toggle('v156-active', i === _activeIdx);
+    if(items[_activeIdx] && items[_activeIdx].scrollIntoView){
+      try { items[_activeIdx].scrollIntoView({ block: 'nearest' }); } catch(e){}
+    }
+  }
+
+  // ============================================================
+  // Boot
+  // ============================================================
+  function boot(){
+    if(!document.getElementById('q') || !document.getElementById('autocomplete')){
+      setTimeout(boot, 150);
+      return;
+    }
+    // Wait for data to be available
+    var hasData = (typeof MERCHANT_DIRECTORY !== 'undefined' && Array.isArray(MERCHANT_DIRECTORY) && MERCHANT_DIRECTORY.length > 0) ||
+                  (typeof ALIASES !== 'undefined' && ALIASES && Object.keys(ALIASES).length > 0);
+    if(!hasData){ setTimeout(boot, 200); return; }
+
+    neutralizePrior();
+    inputEl = nukeElement('q');
+    acEl = nukeElement('autocomplete');
+    if(!inputEl || !acEl){ setTimeout(boot, 200); return; }
+
+    buildIndex();
+    wireEvents();
+    window.__v156.ready = true;
+    // Expose for debug
+    window.__v156.buildIndex = buildIndex;
+    window.__v156.getIndex = getIndex;
+    window.__v156.runQuery = runQuery;
+    window.__v156.canonKey = canonKey;
+    window.__v156.hideAc = hideAc;
+    window.__v156.showAc = showAc;
+  }
+
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+  setTimeout(boot, 300);
+  setTimeout(boot, 1200);
+  setTimeout(boot, 3000);
+  // Rebuild index after V146/V147/V154 async additions settle
+  setTimeout(function(){ if(window.__v156.ready) buildIndex(); }, 5000);
+  setTimeout(function(){ if(window.__v156.ready) buildIndex(); }, 15000);
 })();
 </script>
 </body>
