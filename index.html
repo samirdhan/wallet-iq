@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<!-- V151 (2026-07-13): Redesigned the V149 My Cards wallet layout to look like an ACTUAL wallet with real credit-card-sized previews (not narrow rows). Cards now render at proper 1.58:1 credit-card aspect ratio, stacked with ~150px overlap so each peeks about 70px behind the next — feels like flipping through a real wallet. The card art fills the preview, name + rate sit as a small info strip below, and the chevron floats in the top-right corner. When tapped, the card lifts up 10px, glows, and the existing detail card expands inline below. Wallet wrap gets a subtle 'leather billfold' feel with rounded corners and a soft inset shadow. All V149 interactions (tap-to-expand, one-at-a-time, MutationObserver on wallet changes) preserved. -->
+
+<!-- V150 (2026-07-13): Restored the merchant autocomplete dropdown on home (a defensive input listener guarantees showAutocomplete() runs on every keystroke while the Home panel is active, even if any earlier patch dropped the wire). Also dismisses the mobile keyboard the moment a merchant, quick chip, or Enter-selected suggestion is chosen (blur() on #q). Dropdown is now capped at 60vh on mobile and scrolls smoothly so it never gets hidden behind the on-screen keyboard. -->
+
 <!-- V144 (2026-07-13): Homepage stats block removed. Drawer emojis replaced with clean SVG line-icons. Credit Rescue rebuilt from ground up with multi-use lounge pass support. -->
 <!-- V145 (2026-07-13): Every wallet card now gets a documented 'Included benefits' block. 10 cards received real statement credits. -->
 <!-- V146 (2026-07-13): FIXED Steve Nash triple-entry via cross-category MERCHANT_DIRECTORY dedupe + push-guard. +100 authentic BC/Metro Van aliases. -->
@@ -10,7 +14,7 @@
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>Wallet IQ V149</title>
+<title>Wallet IQ V151</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Wallet IQ">
@@ -21939,5 +21943,484 @@ body.dark .v149-preview.open {
   setTimeout(function(){ if(typeof build === 'function') build(); }, 5000);
 })();
 </script>
+
+<!-- ================================================================== -->
+<!-- V150 Restore autocomplete + mobile keyboard dismiss                -->
+<!-- ================================================================== -->
+<style id="v150-autocomplete-mobile">
+/* V150 — mobile-friendly autocomplete dropdown */
+#autocomplete.show {
+  max-height: 60vh !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  scroll-behavior: smooth;
+  z-index: 500 !important; /* above modals not open, below overlays */
+}
+/* Ensure dropdown stays inside safe area on iPhone with keyboard */
+@supports (max-height: 60dvh) {
+  #autocomplete.show { max-height: 60dvh !important; }
+}
+@media (max-width: 430px) {
+  #autocomplete.show {
+    max-height: 55vh !important;
+    box-shadow: 0 20px 48px rgba(20,20,40,.22) !important;
+  }
+}
+/* Prevent iOS from zooming when tapping the search input (font-size >= 16px already handled by V130) */
+input#q { font-size: 16px !important; }
+</style>
+
+<script id="v150-autocomplete-restore">
+(function(){
+  'use strict';
+  if(window.__v150 && window.__v150.ready) return;
+  window.__v150 = window.__v150 || { ready:false };
+
+  function getActivePanelIdSafe(){
+    try {
+      if(typeof getActivePanelId === 'function') return getActivePanelId();
+    } catch(e){}
+    // Fallback: find the .panel.active
+    var p = document.querySelector('.panel.active');
+    return p ? p.id : null;
+  }
+
+  // ==== FIX #1: Defensive autocomplete wiring on home ====
+  // If for any reason the primary initSearch input listener isn't firing showAutocomplete,
+  // this shim guarantees the dropdown appears while typing on the home panel.
+  var _debounceT = null;
+  function onInput(e){
+    try {
+      var input = e.target;
+      if(!input || input.id !== 'q') return;
+      var activePanel = getActivePanelIdSafe();
+      if(activePanel !== 'home') return; // only on home
+      if(_debounceT) clearTimeout(_debounceT);
+      _debounceT = setTimeout(function(){
+        try {
+          if(typeof showAutocomplete === 'function'){
+            showAutocomplete(input.value);
+          }
+        } catch(err){ /* silent */ }
+      }, 60);
+    } catch(err){}
+  }
+  function onFocus(e){
+    try {
+      var input = e.target;
+      if(!input || input.id !== 'q') return;
+      var activePanel = getActivePanelIdSafe();
+      if(activePanel !== 'home') return;
+      if(typeof showAutocomplete === 'function'){
+        // Immediate — no debounce on focus so users see the popular/recent list right away
+        showAutocomplete(input.value || '');
+      }
+    } catch(err){}
+  }
+
+  function wireInput(){
+    var input = document.getElementById('q');
+    if(!input){ setTimeout(wireInput, 200); return; }
+    if(input.__v150Wired) return;
+    input.__v150Wired = true;
+    // Use capture phase so we run BEFORE anything else that might swallow events
+    input.addEventListener('input', onInput, true);
+    input.addEventListener('focus', onFocus, true);
+    // Also run on 'click' when input already has content — helps mobile browsers where
+    // returning to the tab doesn't fire focus but user taps the input.
+    input.addEventListener('click', function(){
+      var activePanel = getActivePanelIdSafe();
+      if(activePanel === 'home' && typeof showAutocomplete === 'function'){
+        showAutocomplete(input.value || '');
+      }
+    }, true);
+  }
+
+  // ==== FIX #2: Blur input on merchant selection (mobile keyboard dismiss) ====
+  function blurQ(){
+    try {
+      var input = document.getElementById('q');
+      if(input && input.blur){ input.blur(); }
+      // Also drop active focus to prevent iOS lingering keyboard
+      if(document.activeElement && document.activeElement.blur){
+        document.activeElement.blur();
+      }
+    } catch(e){}
+  }
+
+  function wrapSelectAutocompleteItem(){
+    if(typeof selectAutocompleteItem !== 'function') return false;
+    if(window.selectAutocompleteItem.__v150Wrapped) return true;
+    var _orig = window.selectAutocompleteItem;
+    window.selectAutocompleteItem = function(key, name){
+      var r;
+      try { r = _orig.apply(this, arguments); } catch(e){}
+      // After the original runs, blur the input to dismiss keyboard
+      blurQ();
+      return r;
+    };
+    window.selectAutocompleteItem.__v150Wrapped = true;
+    return true;
+  }
+
+  function wrapSetQuickSearch(){
+    if(typeof setQuickSearch !== 'function') return false;
+    if(window.setQuickSearch.__v150Wrapped) return true;
+    var _orig = window.setQuickSearch;
+    window.setQuickSearch = function(key, label){
+      var r;
+      try { r = _orig.apply(this, arguments); } catch(e){}
+      blurQ();
+      return r;
+    };
+    window.setQuickSearch.__v150Wrapped = true;
+    return true;
+  }
+
+  // Also wrap acKeyboardNav so Enter-selection dismisses the keyboard too
+  function wrapAcKeyboardNav(){
+    if(typeof acKeyboardNav !== 'function') return false;
+    if(window.acKeyboardNav.__v150Wrapped) return true;
+    var _orig = window.acKeyboardNav;
+    window.acKeyboardNav = function(e){
+      var wasEnter = (e && e.key === 'Enter');
+      var r;
+      try { r = _orig.apply(this, arguments); } catch(err){}
+      if(wasEnter){ setTimeout(blurQ, 20); }
+      return r;
+    };
+    window.acKeyboardNav.__v150Wrapped = true;
+    return true;
+  }
+
+  // ==== FIX #3: Delegate mousedown on the autocomplete container to catch any missed rewire ====
+  // If the primary showAutocomplete wired mousedown but a later re-render dropped it, this
+  // capture-phase delegator picks up the click and calls selectAutocompleteItem manually.
+  function wireDelegatedAcClicks(){
+    var ac = document.getElementById('autocomplete');
+    if(!ac){ setTimeout(wireDelegatedAcClicks, 200); return; }
+    if(ac.__v150Delegated) return;
+    ac.__v150Delegated = true;
+    // Use mousedown (matches the original wiring) so blur happens before iOS keyboard dismissal
+    ac.addEventListener('mousedown', function(e){
+      var item = e.target && e.target.closest ? e.target.closest('.ac-item') : null;
+      if(!item) return;
+      e.preventDefault();
+      var key = item.dataset.key;
+      var name = item.dataset.name;
+      if(typeof selectAutocompleteItem === 'function'){
+        selectAutocompleteItem(key, name);
+      }
+    }, true);
+    // Also handle touchend for iOS reliability
+    ac.addEventListener('touchend', function(e){
+      var item = e.target && e.target.closest ? e.target.closest('.ac-item') : null;
+      if(!item) return;
+      // Don't preventDefault here — let mousedown handle the actual selection
+      // We just ensure blur happens after
+      setTimeout(blurQ, 30);
+    }, {passive: true});
+  }
+
+  // ==== Boot sequence ====
+  function boot(){
+    var okA = wrapSelectAutocompleteItem();
+    var okB = wrapSetQuickSearch();
+    var okC = wrapAcKeyboardNav();
+    wireInput();
+    wireDelegatedAcClicks();
+    if(okA && okB && okC){
+      window.__v150.ready = true;
+    } else {
+      setTimeout(boot, 250);
+    }
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+  setTimeout(boot, 300);
+  setTimeout(boot, 900);
+  setTimeout(boot, 2500);
+})();
+</script>
+
+<!-- ================================================================== -->
+<!-- V151 Redesigned wallet UI — real credit-card-sized stacked wallet   -->
+<!-- ================================================================== -->
+<style id="v151-wallet-redesign">
+/* V151 - Full credit-card wallet view (overrides V149 narrow layout) */
+
+/* The whole wallet gets a subtle leather-billfold container feel */
+.v149-wallet-wrap {
+  position: relative;
+  padding: 20px 12px 24px !important;
+  margin: 8px 0 20px !important;
+  background: linear-gradient(160deg, rgba(30,30,50,.04) 0%, rgba(30,30,50,.10) 100%);
+  border-radius: 22px;
+  border: 1px solid var(--border);
+  box-shadow: inset 0 2px 12px rgba(30,30,50,.06),
+              0 6px 20px rgba(30,30,50,.05);
+  overflow: visible;
+}
+body.dark .v149-wallet-wrap {
+  background: linear-gradient(160deg, rgba(255,255,255,.03) 0%, rgba(255,255,255,.06) 100%);
+  border-color: var(--border);
+  box-shadow: inset 0 2px 12px rgba(0,0,0,.35),
+              0 6px 20px rgba(0,0,0,.25);
+}
+
+.v149-wallet-hint {
+  font-size: 10.5px !important;
+  color: var(--muted) !important;
+  font-weight: 900 !important;
+  letter-spacing: .14em !important;
+  text-transform: uppercase !important;
+  text-align: center !important;
+  padding: 0 0 16px !important;
+  opacity: .65 !important;
+  font-family: inherit;
+}
+.v149-wallet-hint b {
+  color: var(--brand) !important;
+  font-weight: 900 !important;
+}
+
+.v149-stack {
+  padding: 6px 4px 32px !important;
+  perspective: 1200px;
+}
+
+/* Each preview is now a full credit-card-sized card */
+.v149-preview {
+  position: relative;
+  background: var(--surface);
+  border-radius: 18px !important;
+  border: 1.5px solid var(--border);
+  box-shadow: 0 8px 22px rgba(20,20,40,.18),
+              0 2px 6px rgba(20,20,40,.10);
+  padding: 14px 14px 12px !important;
+  margin-top: -152px !important;   /* Stack overlap: ~70px of previous card peeks */
+  cursor: pointer;
+  transition: transform .42s cubic-bezier(.2,.9,.3,1.15),
+              margin-top .42s cubic-bezier(.2,.9,.3,1.15),
+              margin-bottom .42s cubic-bezier(.2,.9,.3,1.15),
+              box-shadow .28s ease,
+              border-color .22s ease;
+  z-index: 1;
+  overflow: visible !important;
+  /* Slight tilt for tactile "wallet fan" feel — negligible on first card */
+  transform-origin: top center;
+}
+.v149-preview:first-child {
+  margin-top: 4px !important;
+}
+.v149-preview:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 32px rgba(20,20,40,.22),
+              0 3px 10px rgba(20,20,40,.12);
+}
+.v149-preview:active {
+  transform: scale(.99);
+}
+
+body.dark .v149-preview {
+  background: var(--surface);
+  box-shadow: 0 8px 22px rgba(0,0,0,.42),
+              0 2px 6px rgba(0,0,0,.25);
+}
+
+/* The row layout: now a vertical stack (art on top, meta below) */
+.v149-preview-row {
+  display: block !important;
+  grid-template-columns: none !important;
+  gap: 0 !important;
+  min-height: unset !important;
+  position: relative;
+}
+
+/* Full-size card art */
+.v149-preview-art {
+  width: 100% !important;
+  height: auto !important;
+  aspect-ratio: 1.586 / 1 !important;   /* Real credit-card ratio */
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  background: transparent !important;
+  box-shadow: 0 6px 16px rgba(20,20,40,.22) !important;
+  display: block !important;
+  padding: 0 !important;
+  margin-bottom: 10px !important;
+}
+.v149-preview-art svg {
+  width: 100% !important;
+  height: 100% !important;
+  display: block !important;
+}
+
+/* Fallback for browsers that don't support aspect-ratio */
+@supports not (aspect-ratio: 1.586 / 1) {
+  .v149-preview-art { min-height: 190px !important; }
+}
+
+/* Meta strip below the card art */
+.v149-preview-meta {
+  min-width: 0;
+  padding: 2px 4px 0 !important;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+.v149-preview-name {
+  font-size: 13.5px !important;
+  font-weight: 900 !important;
+  letter-spacing: -.02em !important;
+  color: var(--ink) !important;
+  line-height: 1.15 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+.v149-preview-sub {
+  font-size: 10.5px !important;
+  font-weight: 800 !important;
+  color: var(--muted) !important;
+  margin-top: 3px !important;
+  line-height: 1.3 !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.v149-preview-sub .dot {
+  display: inline-block;
+  margin: 0 5px;
+  opacity: .45;
+}
+.v149-preview-sub .rate {
+  color: var(--brand) !important;
+  font-weight: 900 !important;
+}
+
+/* Chevron — floats top-right as a small pill on the card art */
+.v149-preview-chev {
+  position: absolute !important;
+  top: 22px !important;
+  right: 22px !important;
+  z-index: 10 !important;
+  width: 30px !important;
+  height: 30px !important;
+  border-radius: 50% !important;
+  background: rgba(255,255,255,.94) !important;
+  color: var(--brand) !important;
+  font-size: 14px !important;
+  line-height: 30px !important;
+  text-align: center !important;
+  box-shadow: 0 3px 10px rgba(20,20,40,.28) !important;
+  transition: transform .32s cubic-bezier(.2,.9,.3,1.15),
+              background .2s ease,
+              color .2s ease;
+  pointer-events: none;
+  font-weight: 900;
+}
+body.dark .v149-preview-chev {
+  background: rgba(20,20,30,.94) !important;
+  color: var(--brand) !important;
+}
+
+/* Open state: full card lifted + accent glow */
+.v149-preview.open {
+  border-color: var(--brand) !important;
+  box-shadow: 0 20px 44px rgba(37,99,235,.22),
+              0 4px 14px rgba(37,99,235,.14) !important;
+  z-index: 3 !important;
+  transform: translateY(-6px);
+}
+.v149-preview.open .v149-preview-chev {
+  transform: rotate(180deg);
+  background: var(--brand) !important;
+  color: #fff !important;
+}
+body.dark .v149-preview.open {
+  box-shadow: 0 20px 44px rgba(142,163,216,.32),
+              0 4px 14px rgba(142,163,216,.18) !important;
+}
+
+/* Cards AFTER an open card get proper spacing (no overlap into details) */
+.v149-preview.push-down {
+  margin-top: 12px !important;
+}
+
+/* Detail slot expands to show the full existing .cardBig content */
+.v149-detail-slot {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height .48s cubic-bezier(.2,.9,.3,1.15),
+              opacity .32s ease,
+              padding .32s ease,
+              margin .32s ease;
+  padding: 0 !important;
+  margin-top: 0 !important;
+}
+.v149-preview.open .v149-detail-slot {
+  max-height: 3000px;
+  opacity: 1;
+  padding: 16px 2px 4px !important;
+  border-top: 1px dashed var(--border);
+  margin-top: 14px !important;
+}
+
+/* Neutralize .cardBig chrome inside the slot */
+.v149-detail-slot .cardBig {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: visible !important;
+}
+/* Hide the internal card art (already shown at top of preview) */
+.v149-detail-slot .cardBig .cc-wrapper {
+  display: none !important;
+}
+
+/* Mobile tuning */
+@media (max-width: 430px) {
+  .v149-wallet-wrap {
+    padding: 16px 10px 20px !important;
+    margin: 6px 0 16px !important;
+  }
+  .v149-preview {
+    padding: 12px 12px 10px !important;
+    margin-top: -140px !important;
+  }
+  .v149-preview:first-child {
+    margin-top: 2px !important;
+  }
+  .v149-preview-chev {
+    top: 20px !important;
+    right: 20px !important;
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 13px !important;
+    line-height: 28px !important;
+  }
+  .v149-preview-name { font-size: 13px !important; }
+  .v149-preview-sub  { font-size: 10px !important; }
+}
+@media (max-width: 375px) {
+  .v149-preview { margin-top: -130px !important; padding: 11px 11px 9px !important; }
+  .v149-preview-art { border-radius: 10px !important; }
+  .v149-preview-chev { top: 18px !important; right: 18px !important; }
+}
+
+/* Very tall screens: give more breathing room at the top of the stack so cards don't compress */
+@media (min-height: 900px) {
+  .v149-preview { margin-top: -140px !important; }
+}
+</style>
 </body>
 </html>
