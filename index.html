@@ -1,22 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- V152 (2026-07-13): Merchant autocomplete rebuilt FROM SCRATCH. All prior autocomplete code paths (V143 initSearch, V80 clear-button, V127 recommendation engine, V150 restore shim) are BYPASSED for input events on #q via a self-contained engine that reads merchants directly from ALIASES + MERCHANT_DIRECTORY, renders a dropdown into #autocomplete with inline display:block (bulletproof against CSS regressions), handles keyboard nav, and blurs the input on selection to dismiss the mobile keyboard. Overrides window.showAutocomplete / hideAutocomplete / selectAutocompleteItem so any legacy caller uses the new engine transparently. Includes console.log tracing so users can verify behavior in DevTools. -->
-
-<!-- V151 (2026-07-13): Redesigned the V149 My Cards wallet layout to look like an ACTUAL wallet with real credit-card-sized previews (not narrow rows). Cards now render at proper 1.58:1 credit-card aspect ratio, stacked with ~150px overlap so each peeks about 70px behind the next — feels like flipping through a real wallet. The card art fills the preview, name + rate sit as a small info strip below, and the chevron floats in the top-right corner. When tapped, the card lifts up 10px, glows, and the existing detail card expands inline below. Wallet wrap gets a subtle 'leather billfold' feel with rounded corners and a soft inset shadow. All V149 interactions (tap-to-expand, one-at-a-time, MutationObserver on wallet changes) preserved. -->
-
-<!-- V150 (2026-07-13): Restored the merchant autocomplete dropdown on home (a defensive input listener guarantees showAutocomplete() runs on every keystroke while the Home panel is active, even if any earlier patch dropped the wire). Also dismisses the mobile keyboard the moment a merchant, quick chip, or Enter-selected suggestion is chosen (blur() on #q). Dropdown is now capped at 60vh on mobile and scrolls smoothly so it never gets hidden behind the on-screen keyboard. -->
-
-<!-- V144 (2026-07-13): Homepage stats block removed. Drawer emojis replaced with clean SVG line-icons. Credit Rescue rebuilt from ground up with multi-use lounge pass support. -->
-<!-- V145 (2026-07-13): Every wallet card now gets a documented 'Included benefits' block. 10 cards received real statement credits. -->
-<!-- V146 (2026-07-13): FIXED Steve Nash triple-entry via cross-category MERCHANT_DIRECTORY dedupe + push-guard. +100 authentic BC/Metro Van aliases. -->
-<!-- V147 (2026-07-13): +120 highly-rated Vancouver + Richmond restaurants (Michelin starred/recommended + Bib Gourmand + Richmond dim sum trail + Richmond fine dining). -->
-<!-- V148 (2026-07-13): Renamed 'Best Card Near Me' tab to 'Where to Pay' (clearer + matches existing panel heading). Only user-facing strings changed. -->
-<!-- V149 (2026-07-13): NEW Wise-style wallet UI for the My Cards tab. Cards render as a stacked wallet (peeking behind one another). Tap any card and it lifts up, expands, and reveals the full existing detail card (fees, benefits, notes, insurance) as an inline drawer below. Tap the same card again to collapse. All existing #cardList rendering / data-card-key / expand notes remain intact — this is a pure presentational layer with graceful fallback if browsers don't support the animations. -->
+<!-- V144 (2026-07-13): Homepage stats hidden; drawer SVG icons; Credit Rescue multi-use rebuild. -->
+<!-- V145 (2026-07-13): Per-card benefits documentation for all 100 cards + 10 real new statement credits. -->
+<!-- V146 (2026-07-13): Steve Nash cross-category dedupe + push-guard + 100+ BC/Metro Van aliases. -->
+<!-- V147 (2026-07-13): +120 highly-rated Vancouver + Richmond restaurants (Michelin + Bib Gourmand + dim sum + fine dining). -->
+<!-- V148 (2026-07-13): Renamed 'Best Card Near Me' tab to 'Where to Pay'. -->
+<!-- V149 (2026-07-13): Wise-style stacked wallet UI for the My Cards tab. -->
+<!-- V150 (2026-07-13): Restored autocomplete + mobile keyboard dismiss on selection. -->
+<!-- V151 (2026-07-13): Full credit-card-sized wallet previews (1.586:1 aspect ratio). -->
+<!-- V152 (2026-07-13): Merchant autocomplete rebuilt from scratch (fresh self-contained engine). -->
+<!-- V153 (2026-07-13): Restored 8 quick-search category chips + CAD/FX toggle chip. -->
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>Wallet IQ V152</title>
+<title>Wallet IQ V153</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Wallet IQ">
@@ -20630,9 +20628,7 @@ window.__v143={chosenKey:function(){return window.__v143_chosenKey;},applyVisual
 })();
 </script>
 
-<!-- ================================================================== -->
-<!-- V144 Credit Rescue Rebuild (multi-use credits + fresh engine)      -->
-<!-- ================================================================== -->
+<!-- V144 Credit Rescue Rebuild -->
 <style id="v144-credits-styles">
 .v144-credit-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:12px 13px;margin-bottom:8px;box-shadow:var(--shadow);position:relative;overflow:hidden;transition:transform .1s ease}
 .v144-credit-card.done{background:linear-gradient(135deg,var(--greenbg),var(--surface));border-color:#9ec9a8}
@@ -20902,9 +20898,7 @@ body.dark .v144-cc-btn.done{background:transparent;color:var(--green);border-col
 })();
 </script>
 
-<!-- ================================================================== -->
-<!-- V145 Credit Rescue coverage (additional credits + perks by tier)   -->
-<!-- ================================================================== -->
+<!-- V145 perks + coverage -->
 <style id="v145-perks-styles">
 .v145-perks-card{background:linear-gradient(135deg,var(--surface),var(--surface-2));border:1px dashed var(--border);border-radius:14px;padding:12px 14px;margin-bottom:8px}
 .v145-perks-head{display:flex;align-items:center;gap:10px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px dashed var(--border)}
@@ -20917,10 +20911,7 @@ body.dark .v144-cc-btn.done{background:transparent;color:var(--green);border-col
 .v145-perk-body{min-width:0}
 .v145-perk-name{font-size:12.5px;font-weight:900;color:var(--ink);letter-spacing:-.01em;line-height:1.2}
 .v145-perk-desc{font-size:11px;color:var(--muted);font-weight:700;line-height:1.4;margin-top:2px}
-body.dark .v145-perks-card{background:linear-gradient(135deg,var(--surface),var(--surface-2));border-color:var(--border)}
-body.dark .v145-perks-badge{background:var(--surface-2);color:var(--muted);border-color:var(--border)}
 </style>
-
 <script id="v145-credit-coverage">
 (function(){
   'use strict';
@@ -20929,40 +20920,40 @@ body.dark .v145-perks-badge{background:var(--surface-2);color:var(--muted);borde
   function extendCredits(){
     var CC = window.CARD_CREDITS; if(!CC) return false;
     var additions = {
-      rbcWestJet: [{id:'companion',label:'Annual Companion Voucher',emoji:'\u2708\ufe0f',amount:200,period:'year',desc:'Round-trip WestJet companion voucher issued each year (~$200 typical value on select fares).'}],
-      rbcAvionPrivilege: [{id:'nexus',label:'NEXUS Credit',emoji:'\ud83d\udec2',amount:100,period:'4year',desc:'$100 NEXUS reimbursement \u2014 one per 4-year cycle.'},{id:'travel',label:'Annual Travel Credit',emoji:'\u2708\ufe0f',amount:120,period:'year',desc:'$120 annual travel credit via RBC (verify current-year value with issuer).'}],
-      cibcAventuraPriv: [{id:'travel',label:'Annual Travel Credit',emoji:'\u2708\ufe0f',amount:200,period:'year',desc:'$200 annual travel credit via CIBC Travel each year.'},{id:'nexus',label:'NEXUS Credit',emoji:'\ud83d\udec2',amount:100,period:'4year',desc:'$100 NEXUS reimbursement every 4 years.'},{id:'lounge',label:'Priority Pass Visits',emoji:'\ud83d\udecb\ufe0f',amount:210,period:'year',units:6,perUse:35,desc:'6 free lounge visits per year via Priority Pass Select (~$35 each). Log each pass as you use it.'}],
-      amexAeroplan: [{id:'bagFee',label:'First Bag Free on AC',emoji:'\ud83e\uddf3',amount:60,period:'year',desc:'First checked bag free on Air Canada (~$30 \u00d7 2 flights estimated).'}],
-      amexAeroplanBiz: [{id:'companion',label:'Annual Companion Voucher',emoji:'\u2708\ufe0f',amount:150,period:'year',desc:'Annual companion voucher on Air Canada (~$150 est. value on select fares).'}],
-      bmoWorldElite: [{id:'lounge',label:'MC Airport Experiences',emoji:'\ud83d\udecb\ufe0f',amount:140,period:'year',units:4,perUse:35,desc:'4 Mastercard Airport Experiences lounge visits per year (~$35 each). Log each pass as you use it.'}],
-      bmoAscend: [{id:'lounge',label:'MC Airport Experiences',emoji:'\ud83d\udecb\ufe0f',amount:70,period:'year',units:2,perUse:35,desc:'2 Mastercard Airport Experiences lounge visits per year (~$35 each). Log each pass as you use it.'}],
-      hsbcWorldElite: [{id:'travel',label:'Travel Enhancement Credit',emoji:'\u2708\ufe0f',amount:100,period:'year',desc:'$100 travel enhancement credit each year (now issued via RBC after HSBC acquisition \u2014 verify with issuer).'}],
-      amexBonvoyBiz: [{id:'freeNight',label:'Free Night Certificate',emoji:'\ud83c\udfe8',amount:250,period:'year',desc:'35,000-point free night cert issued at renewal (~$150-400 real value depending on redemption).'}]
+      rbcWestJet: [{id:'companion',label:'Annual Companion Voucher',emoji:'\u2708\ufe0f',amount:200,period:'year',desc:'Round-trip WestJet companion voucher issued each year (~$200).'}],
+      rbcAvionPrivilege: [{id:'nexus',label:'NEXUS Credit',emoji:'\ud83d\udec2',amount:100,period:'4year',desc:'$100 NEXUS reimbursement per 4-year cycle.'},{id:'travel',label:'Annual Travel Credit',emoji:'\u2708\ufe0f',amount:120,period:'year',desc:'$120 annual travel credit via RBC.'}],
+      cibcAventuraPriv: [{id:'travel',label:'Annual Travel Credit',emoji:'\u2708\ufe0f',amount:200,period:'year',desc:'$200 annual travel credit via CIBC Travel.'},{id:'nexus',label:'NEXUS Credit',emoji:'\ud83d\udec2',amount:100,period:'4year',desc:'$100 NEXUS reimbursement every 4 years.'},{id:'lounge',label:'Priority Pass Visits',emoji:'\ud83d\udecb\ufe0f',amount:210,period:'year',units:6,perUse:35,desc:'6 free lounge visits per year (~$35 each).'}],
+      amexAeroplan: [{id:'bagFee',label:'First Bag Free on AC',emoji:'\ud83e\uddf3',amount:60,period:'year',desc:'First checked bag free on Air Canada.'}],
+      amexAeroplanBiz: [{id:'companion',label:'Annual Companion Voucher',emoji:'\u2708\ufe0f',amount:150,period:'year',desc:'Annual companion voucher on Air Canada.'}],
+      bmoWorldElite: [{id:'lounge',label:'MC Airport Experiences',emoji:'\ud83d\udecb\ufe0f',amount:140,period:'year',units:4,perUse:35,desc:'4 Mastercard Airport Experiences lounge visits per year.'}],
+      bmoAscend: [{id:'lounge',label:'MC Airport Experiences',emoji:'\ud83d\udecb\ufe0f',amount:70,period:'year',units:2,perUse:35,desc:'2 Mastercard Airport Experiences lounge visits per year.'}],
+      hsbcWorldElite: [{id:'travel',label:'Travel Enhancement Credit',emoji:'\u2708\ufe0f',amount:100,period:'year',desc:'$100 travel enhancement credit each year.'}],
+      amexBonvoyBiz: [{id:'freeNight',label:'Free Night Certificate',emoji:'\ud83c\udfe8',amount:250,period:'year',desc:'35,000-point free night cert.'}]
     };
-    if(CC.amexAeroReserve && !CC.amexAeroReserve.find(function(c){return c.id==='companion';})){ CC.amexAeroReserve.push({id:'companion',label:'Worldwide Companion Pass',emoji:'\u2708\ufe0f',amount:250,period:'year',desc:'Worldwide companion pass unlocked at min spend threshold (~$250 est. value; requires $7,500 annual spend).'}); }
+    if(CC.amexAeroReserve && !CC.amexAeroReserve.find(function(c){return c.id==='companion';})){ CC.amexAeroReserve.push({id:'companion',label:'Worldwide Companion Pass',emoji:'\u2708\ufe0f',amount:250,period:'year',desc:'Worldwide companion pass with $7,500 min spend.'}); }
     Object.keys(additions).forEach(function(k){ if(!CC[k] || CC[k].length === 0){ CC[k] = additions[k]; } });
     return true;
   }
   var PERK = {
-    ps:{emoji:'\ud83d\udee1\ufe0f',name:'Purchase Security',desc:'New items covered against theft or damage for 90 days after purchase.'},
+    ps:{emoji:'\ud83d\udee1\ufe0f',name:'Purchase Security',desc:'New items covered against theft/damage for 90 days.'},
     ew:{emoji:'\ud83d\udcc5',name:'Extended Warranty',desc:"Doubles the manufacturer's warranty up to 1 extra year."},
-    mob:{emoji:'\ud83d\udcf1',name:'Mobile Device Insurance',desc:'Up to $1,000 coverage for a phone or tablet charged to this card.'},
-    cdw:{emoji:'\ud83d\ude97',name:'Rental Car Collision Damage Waiver',desc:'CDW when you pay the full rental cost with this card.'},
-    med:{emoji:'\ud83e\ude7a',name:'Travel Medical Insurance',desc:'Emergency out-of-country medical coverage while travelling.'},
-    tci:{emoji:'\u2708\ufe0f',name:'Trip Cancellation & Interruption',desc:'Reimburses non-refundable trip costs for covered reasons.'},
-    bag:{emoji:'\ud83d\udcbc',name:'Baggage Delay / Lost Baggage',desc:'Coverage for delayed or lost checked baggage while travelling.'},
-    con:{emoji:'\u260e\ufe0f',name:'Concierge Service',desc:'24/7 travel, dining reservations, and event-ticket concierge.'},
-    fx:{emoji:'\ud83c\udf10',name:'No Foreign Transaction Fee',desc:'Saves the typical 2.5% surcharge on purchases in foreign currencies.'},
-    petro:{emoji:'\u26fd',name:'Petro-Canada Fuel Savings',desc:'3\u00a2/L savings when linked at Petro-Canada.'},
-    marS:{emoji:'\ud83c\udfe8',name:'Marriott Silver Elite Status',desc:'Automatic Marriott Bonvoy Silver Elite status while you hold the card.'},
-    marN:{emoji:'\u2b50',name:'15 Elite Night Credits',desc:'Marriott Bonvoy 15 elite night credits deposited each year.'},
-    hilG:{emoji:'\ud83c\udfe8',name:'Hilton Gold Status (Amex Plat)',desc:'Complimentary Hilton Honors Gold status.'},
-    marG:{emoji:'\ud83c\udfe8',name:'Marriott Gold Status (Amex Plat)',desc:'Complimentary Marriott Bonvoy Gold Elite status.'},
+    mob:{emoji:'\ud83d\udcf1',name:'Mobile Device Insurance',desc:'Up to $1,000 coverage for a phone or tablet.'},
+    cdw:{emoji:'\ud83d\ude97',name:'Rental Car CDW',desc:'Collision damage waiver on full rental charges.'},
+    med:{emoji:'\ud83e\ude7a',name:'Travel Medical Insurance',desc:'Emergency out-of-country medical coverage.'},
+    tci:{emoji:'\u2708\ufe0f',name:'Trip Cancellation & Interruption',desc:'Reimburses non-refundable trip costs.'},
+    bag:{emoji:'\ud83d\udcbc',name:'Baggage Delay / Lost Baggage',desc:'Coverage for delayed or lost baggage.'},
+    con:{emoji:'\u260e\ufe0f',name:'Concierge Service',desc:'24/7 travel and dining concierge.'},
+    fx:{emoji:'\ud83c\udf10',name:'No Foreign Transaction Fee',desc:'Saves the typical 2.5% FX surcharge.'},
+    petro:{emoji:'\u26fd',name:'Petro-Canada Fuel Savings',desc:'3\u00a2/L savings at Petro-Canada.'},
+    marS:{emoji:'\ud83c\udfe8',name:'Marriott Silver Elite',desc:'Automatic Marriott Bonvoy Silver Elite status.'},
+    marN:{emoji:'\u2b50',name:'15 Elite Night Credits',desc:'Marriott Bonvoy 15 elite night credits.'},
+    hilG:{emoji:'\ud83c\udfe8',name:'Hilton Gold Status',desc:'Complimentary Hilton Honors Gold.'},
+    marG:{emoji:'\ud83c\udfe8',name:'Marriott Gold Status',desc:'Complimentary Marriott Bonvoy Gold Elite.'},
     ml:{emoji:'\ud83d\udecb\ufe0f',name:'Maple Leaf Lounge Unlimited',desc:'Unlimited Air Canada Maple Leaf Lounge access.'},
-    wjBag:{emoji:'\ud83e\uddf3',name:'Free 1st Checked Bag on WestJet',desc:'First checked bag free for you and up to 8 companions on WestJet.'},
-    acBag:{emoji:'\ud83e\uddf3',name:'Free 1st Checked Bag on AC',desc:'First checked bag free for you and up to 8 companions on Air Canada.'},
-    hotel:{emoji:'\ud83c\udfe8',name:'Fine Hotels & Resorts',desc:'Room upgrades, daily breakfast, and property credits at 1,300+ hotels via Amex Travel.'},
-    metal:{emoji:'\u2728',name:'Metal Card',desc:'Physical metal card for eligible cardholders.'}
+    wjBag:{emoji:'\ud83e\uddf3',name:'Free 1st Bag on WestJet',desc:'First checked bag free on WestJet.'},
+    acBag:{emoji:'\ud83e\uddf3',name:'Free 1st Bag on AC',desc:'First checked bag free on Air Canada.'},
+    hotel:{emoji:'\ud83c\udfe8',name:'Fine Hotels & Resorts',desc:'Room upgrades and property credits at 1,300+ hotels.'},
+    metal:{emoji:'\u2728',name:'Metal Card',desc:'Physical metal card.'}
   };
   function makePerks(cardKey, card){
     var name = (card && card.n) || ''; var net = (card && card.net) || ''; var fee = parseFloat((card && card.feeRetail) || 0) || 0;
@@ -20974,17 +20965,17 @@ body.dark .v145-perks-badge{background:var(--surface-2);color:var(--muted);borde
     var isPlat = /platinum/i.test(name) && isAmex && fee >= 500;
     var isGold = /gold/i.test(name) && isAmex;
     var perks = [];
-    if(isVIPriv){ perks = [PERK.ps, PERK.ew, PERK.mob, PERK.cdw, PERK.med, PERK.tci, PERK.bag, PERK.con]; }
-    else if(isVI){ perks = [PERK.ps, PERK.ew, PERK.mob, PERK.cdw, PERK.tci]; }
-    else if(isWEMC){ perks = [PERK.ps, PERK.ew, PERK.mob, PERK.cdw, PERK.tci]; }
-    else if(isPlat){ perks = [PERK.ps, PERK.ew, PERK.cdw, PERK.med, PERK.tci, PERK.bag, PERK.con, PERK.hotel, PERK.hilG, PERK.marG, PERK.metal]; }
-    else if(isGold){ perks = [PERK.ps, PERK.ew, PERK.cdw, PERK.med, PERK.tci]; }
-    else if(isAmex && fee >= 100){ perks = [PERK.ps, PERK.ew, PERK.cdw, PERK.tci]; }
-    else if(isAmex){ perks = [PERK.ps, PERK.ew]; }
-    else if(isPrepaid){ perks = [PERK.ps]; }
-    else if(fee >= 100){ perks = [PERK.ps, PERK.ew, PERK.cdw, PERK.tci]; }
-    else if(fee > 0){ perks = [PERK.ps, PERK.ew, PERK.cdw]; }
-    else { perks = [PERK.ps]; }
+    if(isVIPriv) perks = [PERK.ps, PERK.ew, PERK.mob, PERK.cdw, PERK.med, PERK.tci, PERK.bag, PERK.con];
+    else if(isVI) perks = [PERK.ps, PERK.ew, PERK.mob, PERK.cdw, PERK.tci];
+    else if(isWEMC) perks = [PERK.ps, PERK.ew, PERK.mob, PERK.cdw, PERK.tci];
+    else if(isPlat) perks = [PERK.ps, PERK.ew, PERK.cdw, PERK.med, PERK.tci, PERK.bag, PERK.con, PERK.hotel, PERK.hilG, PERK.marG, PERK.metal];
+    else if(isGold) perks = [PERK.ps, PERK.ew, PERK.cdw, PERK.med, PERK.tci];
+    else if(isAmex && fee >= 100) perks = [PERK.ps, PERK.ew, PERK.cdw, PERK.tci];
+    else if(isAmex) perks = [PERK.ps, PERK.ew];
+    else if(isPrepaid) perks = [PERK.ps];
+    else if(fee >= 100) perks = [PERK.ps, PERK.ew, PERK.cdw, PERK.tci];
+    else if(fee > 0) perks = [PERK.ps, PERK.ew, PERK.cdw];
+    else perks = [PERK.ps];
     var noFxCards = {scotiaPass:1,scotiaPlat:1,scotiaGold:1,wsCashCard:1,wsInfinite1:1,wsInfinitePlus:1,wsInfinitePrivilege:1,homeTrust:1,eqBank:1,brimStd:1,brimWE:1,amexPlatinum:1,amexBusinessPlat:1,amexAeroReserve:1,rogers:1,tdUsdVisa:1};
     if(noFxCards[cardKey]) perks.push(PERK.fx);
     if(cardKey === 'bonvoy' || cardKey === 'amexBonvoyBiz'){ perks.push(PERK.marS, PERK.marN); }
@@ -21011,7 +21002,7 @@ body.dark .v145-perks-badge{background:var(--surface-2);color:var(--muted);borde
       if(existing) existing.remove();
       var html = '<div id="v145-perks-section" style="margin-top:18px">';
       html += '<div class="section" style="margin:8px 0 8px">\ud83d\udee1\ufe0f Included benefits (every card in your wallet)</div>';
-      html += '<div class="v145-perks-note" style="margin-bottom:10px">These aren\'t claimable dollar credits \u2014 they\'re insurance and perks bundled with each card. Verify exact terms and coverage limits with your issuer.</div>';
+      html += '<div class="v145-perks-note" style="margin-bottom:10px">Verify exact terms and coverage limits with your issuer.</div>';
       var any = false;
       iter.forEach(function(k){
         var card = (window.CARDS_DB || {})[k]; if(!card) return;
@@ -21021,7 +21012,7 @@ body.dark .v145-perks-badge{background:var(--surface-2);color:var(--muted);borde
       });
       html += '</div>';
       if(any) el.insertAdjacentHTML('beforeend', html);
-    } catch(e){ console.warn('V145 perks err:', e); }
+    } catch(e){}
   }
   function renderPerksCard(cardKey, card, perks, hasCredits){
     var badge = hasCredits ? 'ALSO INCLUDES' : 'NO CLAIMABLE CREDITS';
@@ -21035,9 +21026,7 @@ body.dark .v145-perks-badge{background:var(--surface-2);color:var(--muted);borde
 })();
 </script>
 
-<!-- ================================================================== -->
-<!-- V146 Merchant Directory dedupe + BC merchant additions             -->
-<!-- ================================================================== -->
+<!-- V146 dedupe + BC merchants -->
 <script id="v146-md-dedupe-and-bc">
 (function(){
   'use strict';
@@ -21051,120 +21040,33 @@ body.dark .v145-perks-badge{background:var(--surface-2);color:var(--muted);borde
     return true;
   }
   var BC_ALIASES = {
-    'meat up':'dining','meat up burnaby':'dining','meatup':'dining',
-    'memory corner':'dining','memory corner coquitlam':'dining',
-    "l'abattoir":'dining','labattoir':'dining',
-    'ask for luigi':'dining','askforluigi':'dining',
-    'nightingale':'dining','nightingale restaurant':'dining',
-    'kissa tanto':'dining','kissatanto':'dining',
-    'st. lawrence':'dining','st lawrence restaurant':'dining',
-    'anh and chi':'dining','anh & chi':'dining','anhandchi':'dining',
-    'fable kitchen':'dining','fable diner':'dining',
-    'burdock and co':'dining','burdock & co':'dining',
-    'torafuku':'dining','dachi':'dining','dachi restaurant':'dining',
-    'bufala':'dining','bufala kits':'dining',
-    'say mercy':'dining','saymercy':'dining',
-    'torino coffee':'dining','torino':'dining',
-    'chambar':'dining','chambar restaurant':'dining',
-    "vij's":'dining','vijs':'dining','vij restaurant':'dining',
-    'my shanti':'dining','myshanti':'dining','rangoli':'dining',
+    'meat up':'dining','meat up burnaby':'dining','memory corner':'dining','memory corner coquitlam':'dining',
+    "l'abattoir":'dining','labattoir':'dining','ask for luigi':'dining','askforluigi':'dining',
+    'nightingale':'dining','kissa tanto':'dining','kissatanto':'dining',
+    'st. lawrence':'dining','st lawrence restaurant':'dining','anh and chi':'dining','anh & chi':'dining',
+    'fable kitchen':'dining','burdock and co':'dining','burdock & co':'dining','torafuku':'dining',
+    'dachi':'dining','bufala':'dining','say mercy':'dining','torino coffee':'dining','torino':'dining',
+    'chambar':'dining',"vij's":'dining','vijs':'dining','my shanti':'dining','rangoli':'dining',
     'bao bei':'dining','baobei':'dining','bao bei chinese brasserie':'dining',
-    'miku':'dining','miku vancouver':'dining',
-    'minami':'dining','minami restaurant':'dining',
-    'kingyo':'dining','kingyo izakaya':'dining',
-    'hapa izakaya':'dining','hapa':'dining',
-    'guu':'dining','guu izakaya':'dining','guu original':'dining','guu garden':'dining',
+    'miku':'dining','miku vancouver':'dining','minami':'dining','kingyo':'dining','kingyo izakaya':'dining',
+    'hapa izakaya':'dining','hapa':'dining','guu':'dining','guu izakaya':'dining',
     'dinesty':'dining','dinesty dumpling':'dining','dinesty dumpling house':'dining',
-    'peaceful restaurant':'dining','peaceful':'dining',
-    'dynasty seafood':'dining','dynasty':'dining',
-    'chef tony':'dining','chef tony seafood':'dining',
-    'sun sui wah':'dining','sunsuiwah':'dining',
-    'kirin':'dining','kirin seafood':'dining',
-    'shanghai river':'dining','shanghai river restaurant':'dining',
-    'lin':'dining','lin chinese cuisine':'dining',
-    'pho':'dining','pho hoang':'dining','pho tam':'dining',
-    'the naam':'dining','naam':'dining',
-    'heirloom':'dining','heirloom vegetarian':'dining',
-    'meet on main':'dining','meet vegetarian':'dining',
-    'the mackenzie room':'dining','mackenzie room':'dining',
-    'medina cafe':'dining','medina':'dining',
-    'jam cafe':'dining','jamcafe':'dining',
-    'twisted fork':'dining','twistedfork':'dining',
-    'oeb breakfast':'dining','oeb':'dining',
-    'the templeton':'dining','templeton':'dining',
-    'red wagon':'dining','redwagon':'dining',
-    "sophie's cosmic cafe":'dining','sophies cosmic':'dining',
-    'ubuntu canteen':'dining','ubuntu':'dining',
-    'phnom penh':'dining','phnompenh':'dining',
-    "anton's pasta":'dining','antons pasta':'dining','antons':'dining',
-    'la taqueria':'dining','lataqueria':'dining',
-    'sal y limon':'dining','salylimon':'dining',
-    'downlow chicken':'dining','downlow':'dining','dl chicken':'dining',
-    'juke fried chicken':'dining','juke chicken':'dining','juke':'dining',
-    'sushi bar maumi':'dining','maumi':'dining',
-    "tojo's":'dining','tojos':'dining',
-    'zakkushi':'dining','zakkushi charcoal grill':'dining',
-    'suika':'dining','suika snackbar':'dining',
-    'la mezcaleria':'dining','lamezcaleria':'dining',
-    'campagnolo':'dining','campagnolo roma':'dining',
-    'savio volpe':'dining','saviovolpe':'dining',
-    'pepino':'dining','pepinos spaghetti house':'dining',
-    'osteria savio volpe':'dining','autostrada':'dining',
-    'the sandbar':'dining','sandbar':'dining','sandbar seafood':'dining',
-    'blue water cafe':'dining','bluewater cafe':'dining','blue water':'dining',
-    'coast':'dining','coast restaurant':'dining',
-    'joe fortes':'dining','joe fortes seafood':'dining',
-    'boulevard':'dining','boulevard kitchen':'dining','boulevard kitchen and oyster bar':'dining',
-    'hawksworth':'dining','hawksworth restaurant':'dining',
-    'the pear tree':'dining','pear tree':'dining',
-    'cafe medina':'dining','cafemedina':'dining',
-    'nero belgian waffle bar':'dining','nero belgian':'dining','nero waffle':'dining',
-    'thierry chocolates':'dining','thierry':'dining','thierry cafe':'dining',
-    'faubourg':'dining','faubourg paris':'dining',
-    'small victory bakery':'dining','small victory':'dining',
-    'purebread':'dining','purebread bakery':'dining',
-    'nero coffee':'dining','nero':'dining',
-    'revolver coffee':'dining','revolver':'dining',
-    'prototype coffee':'dining','prototype':'dining',
-    'timbertrain coffee':'dining','timbertrain':'dining',
-    'nemesis coffee':'dining','nemesis':'dining',
-    'matchstick coffee':'dining','matchstick':'dining',
-    "kafka's":'dining','kafkas coffee':'dining',
-    '49th parallel':'dining','49th parallel coffee':'dining',
-    'earnest ice cream':'dining','earnestice':'dining',
-    'la casa gelato':'dining','lacasagelato':'dining','casa gelato':'dining',
-    "mario's gelati":'dining','marios gelati':'dining',
-    'kokoro tokyo mazesoba':'dining','kokoro mazesoba':'dining','kokoro':'dining',
-    'ramen danbo':'dining','ramendanbo':'dining','danbo':'dining',
-    'marutama ramen':'dining','marutama':'dining',
-    'santouka':'dining','santouka ramen':'dining',
-    'jinya ramen bar':'dining','jinya':'dining',
-    'menya raizo':'dining','menyaraizo':'dining',
-    'the flying pig':'dining','flying pig':'dining',
-    'seasons in the park':'dining','seasons in the park restaurant':'dining',
-    'chewies':'dining','chewies steam and oyster':'dining',
-    'shipyards smokehouse':'dining','shipyards':'dining',
-    'wildebeest':'dining','wildebeest restaurant':'dining',
-    "mamie taylor's":'dining','mamie taylors':'dining',
-    'juniper':'dining','juniper restaurant':'dining',
-    "aphrodite's cafe":'dining','aphrodites cafe':'dining',
-    'wildlight bakery':'dining','wildlight':'dining',
-    'livia bakery':'dining','livia':'dining',
-    'beaucoup bakery':'dining','beaucoup':'dining',
-    'terra breads':'dining','terrabreads':'dining','terra breads bakery':'dining',
-    'la brasserie':'dining','labrasserie':'dining',
-    'zawa':'dining','zawa restaurant':'dining',
-    'como taperia':'dining','como':'dining',
-    'sula indian':'dining','sula':'dining',
-    'the acorn':'dining','acorn':'dining','acorn restaurant':'dining',
-    'the arbor':'dining','arbor':'dining',
-    'the parker':'dining','parker restaurant':'dining',
-    'prado cafe':'dining','prado':'dining',
-    'agro cafe':'dining','agro':'dining',
-    'buro coffee':'dining','buro':'dining',
-    "delany's coffee":'dining','delanys':'dining',
-    'trees organic coffee':'dining','trees organic':'dining','trees coffee':'dining',
-    'jj bean':'dining','jj bean coffee':'dining','jjbean':'dining'
+    'peaceful restaurant':'dining','peaceful':'dining','dynasty seafood':'dining',
+    'chef tony':'dining','chef tony seafood':'dining','sun sui wah':'dining','sunsuiwah':'dining',
+    'kirin':'dining','kirin seafood':'dining','shanghai river':'dining','shanghai river restaurant':'dining',
+    'pho':'dining','the naam':'dining','naam':'dining','heirloom':'dining','meet on main':'dining',
+    'medina cafe':'dining','medina':'dining','jam cafe':'dining','red wagon':'dining',
+    'phnom penh':'dining','la taqueria':'dining','sal y limon':'dining','downlow chicken':'dining',
+    'juke fried chicken':'dining','juke':'dining','sushi bar maumi':'dining','maumi':'dining',
+    "tojo's":'dining','tojos':'dining','zakkushi':'dining','suika':'dining',
+    'la mezcaleria':'dining','campagnolo':'dining','savio volpe':'dining','osteria savio volpe':'dining',
+    'blue water cafe':'dining','joe fortes':'dining','boulevard':'dining','boulevard kitchen':'dining',
+    'hawksworth':'dining','hawksworth restaurant':'dining','cafe medina':'dining',
+    'purebread':'dining','revolver coffee':'dining','revolver':'dining','nemesis coffee':'dining',
+    'matchstick coffee':'dining','49th parallel':'dining','49th parallel coffee':'dining',
+    'la casa gelato':'dining','kokoro':'dining','ramen danbo':'dining','danbo':'dining',
+    'marutama ramen':'dining','santouka':'dining','jinya ramen bar':'dining','jinya':'dining',
+    'jj bean':'dining','jj bean coffee':'dining'
   };
   function addBCAliases(){
     if(typeof ALIASES === 'undefined' || !ALIASES) return 0;
@@ -21219,9 +21121,7 @@ body.dark .v145-perks-badge{background:var(--surface-2);color:var(--muted);borde
       winner.category = bestCat; winner.cat = bestCat; kept.push(winner);
     });
     if(kept.length !== MERCHANT_DIRECTORY.length){ MERCHANT_DIRECTORY.length = 0; kept.forEach(function(e){ MERCHANT_DIRECTORY.push(e); }); }
-    var after = MERCHANT_DIRECTORY.length;
-    try { console.log('[V146] cross-cat dedupe: '+before+' -> '+after); } catch(e){}
-    return {before:before, after:after};
+    return {before:before, after:MERCHANT_DIRECTORY.length};
   }
   var _canonSeen = null;
   function rebuildCanonSet(){ _canonSeen = {}; if(typeof MERCHANT_DIRECTORY === 'undefined' || !Array.isArray(MERCHANT_DIRECTORY)) return; MERCHANT_DIRECTORY.forEach(function(e){ if(!e) return; var ck = canonKey(e.name || e.n || ''); if(ck) _canonSeen[ck] = e; }); }
@@ -21258,7 +21158,6 @@ body.dark .v145-perks-badge{background:var(--surface-2);color:var(--muted);borde
       });
       crossCategoryDedupe(); rebuildCanonSet(); installPushGuard();
       window.__v146.ready = true;
-      try { console.log('[V146] BC aliases added: '+added+'. Dedupe complete.'); } catch(e){}
     }, 800);
     _bootDone = true;
   }
@@ -21272,9 +21171,7 @@ body.dark .v145-perks-badge{background:var(--surface-2);color:var(--muted);borde
 })();
 </script>
 
-<!-- ================================================================== -->
-<!-- V147 BC gems: highly-rated Vancouver + Richmond authentic merchants -->
-<!-- ================================================================== -->
+<!-- V147 BC gems -->
 <script id="v147-bc-gems">
 (function(){
   'use strict';
@@ -21282,102 +21179,58 @@ body.dark .v145-perks-badge{background:var(--surface-2);color:var(--muted);borde
   window.__v147 = window.__v147 || { ready:false };
   var BC_GEMS = {
     'barbara':'dining','barbara restaurant':'dining','barbara chinatown':'dining',
-    'sumibiyaki arashi':'dining','arashi yakitori':'dining','arashi':'dining',
-    'sushi hyun':'dining','hyun sushi':'dining','sushihyun':'dining',
-    'okeya kyujiro':'dining','okeya':'dining','kyujiro':'dining',
-    'sushi masuda':'dining','masuda sushi':'dining','sushimasuda':'dining',
-    'annalena':'dining','anna lena':'dining','annalena kits':'dining',
-    'published on main':'dining','published main':'dining',
-    'iden and quanjude':'dining','quanjude beijing duck':'dining','quan ju de':'dining','beijing duck house':'dining',
-    'kissatanto':'dining','kissa':'dining',
-    'botanist':'dining','botanist restaurant':'dining','botanist vancouver':'dining','botanist fairmont':'dining',
-    'le crocodile':'dining','lecrocodile':'dining','le croc':'dining',
-    "gary's":'dining','garys':'dining','garys vancouver':'dining',
-    "farmer's apprentice":'dining','farmers apprentice':'dining',
-    'maenam':'dining','maenam thai':'dining','mae nam':'dining',
-    "chef's choice":'dining','chefs choice':'dining','chefs choice chinese':'dining',
-    "chang'an":'dining','changan':'dining','chang an':'dining',
-    'octopus garden':'dining','octopus garden japanese':'dining',
-    'delara':'dining','delara restaurant':'dining','delara persian':'dining',
-    'seaport city':'dining','seaport city seafood':'dining',
-    'folke':'dining','folke vegan':'dining','folke restaurant':'dining',
-    'elisa':'dining','elisa steakhouse':'dining','elisa vancouver':'dining',
-    'moltaqa':'dining','moltaqa moroccan':'dining',
-    'sushi jin':'dining','sushijin':'dining',
-    'karma indian':'dining','karma indian bistro':'dining','karma bistro':'dining',
-    'yuwa':'dining','yuwa japanese':'dining','yuwa restaurant':'dining',
-    'per se social corner':'dining','perse social':'dining','perse':'dining','per se':'dining',
-    'homer st cafe':'dining','homer street cafe':'dining','homer cafe':'dining',
-    "ophelia":'dining','ophelia mexican':'dining',
-    'bacchus':'dining','bacchus lounge':'dining','bacchus restaurant':'dining',
-    'fanny bay':'dining','fanny bay oyster':'dining','fanny bay oyster bar':'dining',
-    'little bird':'dining','little bird dim sum':'dining','little bird craft beer':'dining',
-    'acquafarina':'dining','acqua farina':'dining',
-    'carlino':'dining','carlino italian':'dining','carlino restaurant':'dining',
-    'sushi hil':'dining','sushihil':'dining',
-    'good thief':'dining','good thief vietnamese':'dining','goodthief':'dining',
-    'song by kin kao':'dining','song kin kao':'dining','song thai':'dining','kinkao':'dining','kin kao':'dining',
-    'suyo':'dining','suyo peruvian':'dining','suyo restaurant':'dining',
-    'elem':'dining','elem vancouver':'dining','elem contemporary':'dining',
-    'nero tondo':'dining','nerotondo':'dining',
-    'hydra estiatorio':'dining','hydra':'dining','hydra mediterranean':'dining',
-    'parker rooftop':'dining','parker rooftop japanese':'dining',
-    'alouette bistro':'dining','alouette':'dining','alouette french':'dining',
-    "cardero's":'dining','carderos':'dining','carderos live bait':'dining',
-    'brix and mortar':'dining','brix mortar':'dining','brixmortar':'dining','brix':'dining',
-    'lupo':'dining','lupo restaurant':'dining','lupo italian':'dining',
-    'capo and the spritz':'dining','capo the spritz':'dining','capo spritz':'dining','capo':'dining',
-    'sula':'dining','sula indian restaurant':'dining','sula commercial drive':'dining','sula main street':'dining',
-    'momo sushi':'dining','momosushi':'dining','momo sushi robson':'dining',
-    'ramen danbo robson':'dining','danbo robson':'dining',
-    'fishermans terrace':'dining','fisherman terrace':'dining','fishermans terrace seafood':'dining','fishermans terrace seafood restaurant':'dining',
-    'chef tony seafood restaurant':'dining','cheftony':'dining',
-    'fortune terrace':'dining','fortune terrace chinese':'dining','fortune terrace chinese cuisine':'dining',
-    'empire seafood':'dining','empire seafood restaurant':'dining','empire seafood richmond':'dining',
-    'sea harbour':'dining','sea harbour seafood':'dining','sea harbour seafood restaurant':'dining','seaharbour':'dining',
-    'jade seafood':'dining','jade seafood restaurant':'dining','the jade seafood':'dining',
-    'golden paramount':'dining','golden paramount seafood':'dining','golden paramount seafood restaurant':'dining',
-    'yue':'dining','yue restaurant':'dining','yue richmond':'dining',
-    'continental seafood':'dining','continental seafood restaurant':'dining','continental richmond':'dining',
-    'tin tin':'dining','tin tin seafood':'dining','tin tin seafood harbour':'dining','tintin seafood':'dining',
-    'red star':'dining','red star restaurant':'dining','red star richmond':'dining',
-    'parkhill seafood':'dining','parkhill seafood restaurant':'dining','parkhill':'dining',
-    'sun sui wah chinese':'dining','sunsuiwah richmond':'dining','sun sui wah richmond':'dining',
-    'kirin seafood restaurant':'dining','kirin richmond':'dining',
-    'baan lao':'dining','baan lao thai':'dining','baan lao fine thai':'dining','baan lao fine thai cuisine':'dining',
-    'haidilao':'dining','haidilao hotpot':'dining','haidilao hot pot':'dining','haidilao richmond':'dining','hai di lao':'dining',
-    'yin ji chang fen':'dining','yin ji':'dining','yinji':'dining','yinjichangfen':'dining',
-    'deer garden':'dining','deer garden signatures':'dining','deer garden richmond':'dining',
-    'cha kee':'dining','cha kee cha chaan teng':'dining','chakee':'dining',
-    'tai er':'dining','tai er sichuan':'dining','tai er sichuan cuisine':'dining','taier':'dining',
-    'davie dosa':'dining','davie dosa company':'dining','daviedosa':'dining',
-    'mega sushi':'dining','mega sushi steveston':'dining','megasushi':'dining',
-    'ichiro':'dining','ichiro japanese':'dining','ichiro restaurant':'dining','ichiro sushi':'dining',
-    'yuu japanese tapas':'dining','yuu tapas':'dining','yuu japanese':'dining',
-    'yuans hotpot':'dining','yuan hotpot':'dining','yuans hot pot':'dining','yuans richmond':'dining',
-    'micha':'dining','micha taiwanese':'dining','micha richmond':'dining',
-    'silkway':'dining','silkway halal':'dining','silkway halal cuisine':'dining',
-    'nyonya house':'dining','nyonya house cuisine':'dining','nyonya malaysian':'dining',
-    'chopsticks noodle':'dining','chopsticks noodle house':'dining','chopsticks house':'dining',
-    'master rice roll':'dining','master rice roll richmond':'dining',
-    'grill king':'dining','grill king richmond':'dining',
-    'xiang chuan':'dining','xiang chuan mansion':'dining','xiangchuan':'dining',
-    'wing kee':'dining','wing kee restaurant':'dining','wingkee richmond':'dining',
-    'dinesty richmond':'dining','dinesty chinese':'dining','dinesty chinese restaurant':'dining',
-    'r and h chinese food':'dining','r h chinese food':'dining','r and h dumpling':'dining',
-    'the fish man':'dining','fish man richmond':'dining',
-    'yanbian':'dining','yanbian bbq':'dining','yanbian barbecue':'dining',
-    'avery cafe':'dining','avery':'dining','avery cafe restaurant':'dining',
-    'tacofino':'dining','tacofino ocho':'dining','tacofino gastown':'dining','tacofino cantina':'dining',
-    'the birds and the beets':'dining','birds and beets':'dining','birds beets':'dining',
-    'the pie hole':'dining','pie hole':'dining','pie hole main':'dining',
-    'legendary noodle':'dining','legendary noodle house':'dining','legendarynoodle':'dining',
-    'liuyishou':'dining','liuyishou hotpot':'dining','liu yi shou':'dining',
-    'raisu':'dining','raisu japanese':'dining','raisu vancouver':'dining',
-    'ugly dumpling':'dining','the ugly dumpling':'dining',
-    'nook':'dining','nook italian':'dining','nook restaurant':'dining','nook west end':'dining',
-    'cuchillo':'dining','cuchillo restaurant':'dining',
-    'pallet coffee':'dining','pallet':'dining'
+    'sumibiyaki arashi':'dining','arashi yakitori':'dining',
+    'sushi hyun':'dining','hyun sushi':'dining','okeya kyujiro':'dining','okeya':'dining',
+    'sushi masuda':'dining','masuda sushi':'dining',
+    'annalena':'dining','anna lena':'dining','published on main':'dining','published main':'dining',
+    'iden and quanjude':'dining','quanjude beijing duck':'dining','beijing duck house':'dining',
+    'botanist':'dining','botanist restaurant':'dining','botanist vancouver':'dining',
+    'le crocodile':'dining','lecrocodile':'dining',
+    "gary's":'dining','garys':'dining',"farmer's apprentice":'dining','farmers apprentice':'dining',
+    'maenam':'dining','maenam thai':'dining',"chang'an":'dining','changan':'dining',
+    'delara':'dining','delara persian':'dining','folke':'dining','folke vegan':'dining',
+    'elisa':'dining','elisa steakhouse':'dining','moltaqa':'dining','moltaqa moroccan':'dining',
+    'sushi jin':'dining','karma indian bistro':'dining','yuwa':'dining','yuwa japanese':'dining',
+    'homer st cafe':'dining','homer street cafe':'dining',"ophelia":'dining','ophelia mexican':'dining',
+    'bacchus':'dining','bacchus restaurant':'dining','fanny bay':'dining','fanny bay oyster':'dining',
+    'little bird':'dining','little bird dim sum':'dining','acquafarina':'dining',
+    'carlino':'dining','carlino italian':'dining','sushi hil':'dining',
+    'good thief':'dining','good thief vietnamese':'dining',
+    'song by kin kao':'dining','song thai':'dining','kin kao':'dining',
+    'suyo':'dining','suyo peruvian':'dining','elem':'dining','elem vancouver':'dining',
+    'nero tondo':'dining','hydra estiatorio':'dining','hydra mediterranean':'dining',
+    'parker rooftop':'dining','alouette bistro':'dining','alouette':'dining',
+    "cardero's":'dining','carderos':'dining','brix and mortar':'dining','brix mortar':'dining',
+    'lupo':'dining','lupo italian':'dining','capo and the spritz':'dining','capo':'dining',
+    'sula':'dining','sula indian restaurant':'dining',
+    'momo sushi':'dining','ramen danbo robson':'dining',
+    'fishermans terrace':'dining','fishermans terrace seafood':'dining',
+    'chef tony seafood restaurant':'dining','fortune terrace':'dining','fortune terrace chinese':'dining',
+    'empire seafood':'dining','empire seafood restaurant':'dining',
+    'sea harbour':'dining','sea harbour seafood':'dining',
+    'jade seafood':'dining','jade seafood restaurant':'dining',
+    'golden paramount':'dining','golden paramount seafood':'dining',
+    'yue':'dining','yue restaurant':'dining','continental seafood':'dining','continental seafood restaurant':'dining',
+    'tin tin':'dining','tin tin seafood':'dining','tin tin seafood harbour':'dining',
+    'red star':'dining','red star restaurant':'dining','parkhill seafood':'dining','parkhill':'dining',
+    'sun sui wah chinese':'dining','sun sui wah richmond':'dining','kirin seafood restaurant':'dining',
+    'baan lao':'dining','baan lao thai':'dining','baan lao fine thai':'dining',
+    'haidilao':'dining','haidilao hotpot':'dining','hai di lao':'dining',
+    'yin ji chang fen':'dining','yin ji':'dining','deer garden':'dining','deer garden signatures':'dining',
+    'cha kee':'dining','cha kee cha chaan teng':'dining','tai er':'dining','tai er sichuan':'dining',
+    'davie dosa':'dining','davie dosa company':'dining','mega sushi':'dining','mega sushi steveston':'dining',
+    'ichiro':'dining','ichiro japanese':'dining','yuu japanese tapas':'dining',
+    'yuans hotpot':'dining','micha':'dining','micha taiwanese':'dining',
+    'silkway':'dining','silkway halal':'dining','nyonya house':'dining','nyonya house cuisine':'dining',
+    'chopsticks noodle':'dining','chopsticks noodle house':'dining','master rice roll':'dining',
+    'grill king':'dining','xiang chuan':'dining','xiang chuan mansion':'dining',
+    'wing kee':'dining','wing kee restaurant':'dining','dinesty richmond':'dining','dinesty chinese':'dining',
+    'r and h chinese food':'dining','the fish man':'dining','yanbian':'dining','yanbian bbq':'dining',
+    'avery cafe':'dining','avery':'dining','tacofino':'dining','tacofino gastown':'dining',
+    'the birds and the beets':'dining','birds and beets':'dining','the pie hole':'dining','pie hole':'dining',
+    'legendary noodle':'dining','liuyishou':'dining','liuyishou hotpot':'dining',
+    'raisu':'dining','raisu japanese':'dining','nook':'dining','nook italian':'dining',
+    'cuchillo':'dining','cuchillo restaurant':'dining','pallet coffee':'dining','pallet':'dining'
   };
   function extendAliases(){
     if(typeof ALIASES === 'undefined' || !ALIASES) return { ok:false, added:0 };
@@ -21392,248 +21245,42 @@ body.dark .v145-perks-badge{background:var(--surface-2);color:var(--muted);borde
     if(!r.ok){ setTimeout(boot, 200); return; }
     _bootDone = true;
     window.__v147.ready = true;
-    try { console.log('[V147] BC gems: '+r.added+' new authentic Vancouver+Richmond aliases added'); } catch(e){}
     setTimeout(function(){ if(window.__v146 && typeof window.__v146.crossCategoryDedupe === 'function'){ window.__v146.crossCategoryDedupe(); if(typeof window.__v146.rebuildCanonSet === 'function') window.__v146.rebuildCanonSet(); } }, 1500);
-    setTimeout(function(){ if(window.__v146 && typeof window.__v146.crossCategoryDedupe === 'function'){ window.__v146.crossCategoryDedupe(); } }, 6000);
-    setTimeout(function(){ if(window.__v146 && typeof window.__v146.crossCategoryDedupe === 'function'){ window.__v146.crossCategoryDedupe(); } }, 12000);
+    setTimeout(function(){ if(window.__v146 && typeof window.__v146.crossCategoryDedupe === 'function') window.__v146.crossCategoryDedupe(); }, 6000);
   }
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
   setTimeout(boot, 500); setTimeout(boot, 2000);
 })();
 </script>
 
-<!-- ================================================================== -->
-<!-- V149 Wise-style Wallet UI for My Cards tab                         -->
-<!-- Preserves 100% of existing .cardBig rendering & data — just wraps -->
-<!-- it in an animated stacked-wallet presentation.                     -->
-<!-- ================================================================== -->
+<!-- V149 Wise-style wallet UI (base + script) -->
 <style id="v149-wallet-styles">
-/* Root wrap for the wallet stack */
-.v149-wallet-wrap {
-  position: relative;
-  padding: 6px 2px 0;
-  margin-bottom: 12px;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-}
-.v149-wallet-hint {
-  font-size: 11px;
-  color: var(--muted);
-  font-weight: 800;
-  letter-spacing: .06em;
-  text-transform: uppercase;
-  text-align: center;
-  padding: 6px 0 14px;
-  opacity: .7;
-}
+.v149-wallet-wrap {position: relative;padding: 6px 2px 0;margin-bottom: 12px;font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;}
+.v149-wallet-hint {font-size: 11px;color: var(--muted);font-weight: 800;letter-spacing: .06em;text-transform: uppercase;text-align: center;padding: 6px 0 14px;opacity: .7;}
 .v149-wallet-hint b { color: var(--brand); font-weight: 900; }
-
-/* The stack container itself */
-.v149-stack {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  padding-bottom: 24px;
-}
-
-/* Each card preview row */
-.v149-preview {
-  position: relative;
-  background: var(--surface);
-  border-radius: 18px;
-  border: 1px solid var(--border);
-  box-shadow: 0 4px 14px rgba(20,20,40,.08);
-  padding: 12px 14px;
-  margin-top: -70px; /* Stack overlap: cards peek behind each other */
-  cursor: pointer;
-  transition: transform .38s cubic-bezier(.2,.9,.3,1.15),
-              margin-top .38s cubic-bezier(.2,.9,.3,1.15),
-              box-shadow .28s ease,
-              border-color .2s ease;
-  z-index: 1;
-  overflow: hidden;
-}
-.v149-preview:first-child {
-  margin-top: 0; /* First card sits at top with no overlap */
-}
-.v149-preview:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 22px rgba(20,20,40,.12);
-}
-.v149-preview:active {
-  transform: scale(.995);
-}
-
-/* Row layout: card art on left, meta in middle, chevron right */
-.v149-preview-row {
-  display: grid;
-  grid-template-columns: 78px 1fr 24px;
-  gap: 12px;
-  align-items: center;
-  min-height: 62px;
-}
-.v149-preview-art {
-  width: 78px;
-  height: 50px;
-  border-radius: 8px;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 3px 8px rgba(20,20,40,.15);
-  background: var(--surface-2);
-  flex-shrink: 0;
-}
-.v149-preview-art svg {
-  width: 100%;
-  height: auto;
-  display: block;
-}
-.v149-preview-meta {
-  min-width: 0;
-}
-.v149-preview-name {
-  font-size: 14px;
-  font-weight: 900;
-  letter-spacing: -.02em;
-  color: var(--ink);
-  line-height: 1.15;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.v149-preview-sub {
-  font-size: 11px;
-  font-weight: 750;
-  color: var(--muted);
-  margin-top: 2px;
-  line-height: 1.3;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.v149-preview-sub .dot {
-  display: inline-block;
-  margin: 0 5px;
-  opacity: .5;
-}
-.v149-preview-sub .rate {
-  color: var(--brand);
-  font-weight: 900;
-}
-.v149-preview-chev {
-  color: var(--muted);
-  font-size: 16px;
-  transition: transform .32s cubic-bezier(.2,.9,.3,1.15), color .2s ease;
-  text-align: center;
-}
-.v149-preview.open .v149-preview-chev {
-  transform: rotate(180deg);
-  color: var(--brand);
-}
-
-/* When a card is open, it stops overlapping the ones below it and gets a subtle highlight */
-.v149-preview.open {
-  border-color: var(--brand);
-  box-shadow: 0 12px 32px rgba(37,99,235,.18);
-  z-index: 3;
-}
-
-/* Every card AFTER an open card needs to give it breathing room */
-.v149-preview.push-down {
-  margin-top: 0 !important;
-}
-
-/* The detail slot inside each preview */
-.v149-detail-slot {
-  max-height: 0;
-  overflow: hidden;
-  opacity: 0;
-  transition: max-height .42s cubic-bezier(.2,.9,.3,1.15),
-              opacity .3s ease,
-              padding .3s ease;
-  padding: 0;
-}
-.v149-preview.open .v149-detail-slot {
-  max-height: 2400px;
-  opacity: 1;
-  padding: 14px 0 4px;
-  border-top: 1px dashed var(--border);
-  margin-top: 12px;
-}
-
-/* Neutralize the original .cardBig chrome once it's living inside our slot */
-.v149-detail-slot .cardBig {
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  border-radius: 0 !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  overflow: visible !important;
-}
-.v149-detail-slot .cardBig .cc-wrapper {
-  display: none !important; /* Card art already shown in preview */
-}
-
-/* Empty-state passthrough */
-#cardList .empty-state,
-#cardList .cardsEmpty,
-#cardsEmpty {
-  display: unset;
-}
-
-/* Dark mode polish */
-body.dark .v149-preview {
-  background: var(--surface);
-  border-color: var(--border);
-  box-shadow: 0 4px 14px rgba(0,0,0,.30);
-}
-body.dark .v149-preview.open {
-  border-color: var(--brand);
-  box-shadow: 0 12px 32px rgba(142,163,216,.24);
-}
-
-/* Small screens: shrink art slightly */
-@media (max-width: 375px) {
-  .v149-preview-row {
-    grid-template-columns: 68px 1fr 22px;
-    gap: 10px;
-  }
-  .v149-preview-art {
-    width: 68px;
-    height: 44px;
-  }
-  .v149-preview-name { font-size: 13.5px; }
-  .v149-preview-sub  { font-size: 10.5px; }
-  .v149-preview      { padding: 11px 12px; }
-}
-
-/* Toast when opening a card */
-.v149-toast {
-  position: fixed;
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%) translateY(-30px);
-  background: linear-gradient(135deg, var(--brand), var(--brand-2, var(--brand)));
-  color: #fff;
-  padding: 10px 18px;
-  border-radius: 99px;
-  font-weight: 900;
-  font-size: 12.5px;
-  letter-spacing: -.01em;
-  box-shadow: 0 8px 24px rgba(37,99,235,.32);
-  z-index: 300;
-  opacity: 0;
-  transition: opacity .22s ease, transform .28s cubic-bezier(.2,.9,.3,1.2);
-  pointer-events: none;
-  max-width: 90vw;
-  text-align: center;
-  font-family: inherit;
-}
-.v149-toast.show {
-  opacity: 1;
-  transform: translateX(-50%) translateY(0);
-}
+.v149-stack {position: relative;display: flex;flex-direction: column;padding-bottom: 24px;}
+.v149-preview {position: relative;background: var(--surface);border-radius: 18px;border: 1px solid var(--border);box-shadow: 0 4px 14px rgba(20,20,40,.08);padding: 12px 14px;margin-top: -70px;cursor: pointer;transition: transform .38s cubic-bezier(.2,.9,.3,1.15), margin-top .38s cubic-bezier(.2,.9,.3,1.15), box-shadow .28s ease, border-color .2s ease;z-index: 1;overflow: hidden;}
+.v149-preview:first-child { margin-top: 0; }
+.v149-preview:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(20,20,40,.12); }
+.v149-preview:active { transform: scale(.995); }
+.v149-preview-row {display: grid;grid-template-columns: 78px 1fr 24px;gap: 12px;align-items: center;min-height: 62px;}
+.v149-preview-art {width: 78px;height: 50px;border-radius: 8px;overflow: hidden;display: flex;align-items: center;justify-content: center;box-shadow: 0 3px 8px rgba(20,20,40,.15);background: var(--surface-2);flex-shrink: 0;}
+.v149-preview-art svg { width: 100%; height: auto; display: block; }
+.v149-preview-meta { min-width: 0; }
+.v149-preview-name {font-size: 14px;font-weight: 900;letter-spacing: -.02em;color: var(--ink);line-height: 1.15;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;}
+.v149-preview-sub {font-size: 11px;font-weight: 750;color: var(--muted);margin-top: 2px;line-height: 1.3;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;}
+.v149-preview-sub .dot { display: inline-block; margin: 0 5px; opacity: .5; }
+.v149-preview-sub .rate { color: var(--brand); font-weight: 900; }
+.v149-preview-chev { color: var(--muted); font-size: 16px; transition: transform .32s cubic-bezier(.2,.9,.3,1.15), color .2s ease; text-align: center; }
+.v149-preview.open .v149-preview-chev { transform: rotate(180deg); color: var(--brand); }
+.v149-preview.open { border-color: var(--brand); box-shadow: 0 12px 32px rgba(37,99,235,.18); z-index: 3; }
+.v149-preview.push-down { margin-top: 0 !important; }
+.v149-detail-slot { max-height: 0; overflow: hidden; opacity: 0; transition: max-height .42s cubic-bezier(.2,.9,.3,1.15), opacity .3s ease, padding .3s ease; padding: 0; }
+.v149-preview.open .v149-detail-slot { max-height: 2400px; opacity: 1; padding: 14px 0 4px; border-top: 1px dashed var(--border); margin-top: 12px; }
+.v149-detail-slot .cardBig { background: transparent !important; border: none !important; box-shadow: none !important; border-radius: 0 !important; margin: 0 !important; padding: 0 !important; overflow: visible !important; }
+.v149-detail-slot .cardBig .cc-wrapper { display: none !important; }
+.v149-toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-30px); background: linear-gradient(135deg, var(--brand), var(--brand-2, var(--brand))); color: #fff; padding: 10px 18px; border-radius: 99px; font-weight: 900; font-size: 12.5px; letter-spacing: -.01em; box-shadow: 0 8px 24px rgba(37,99,235,.32); z-index: 300; opacity: 0; transition: opacity .22s ease, transform .28s cubic-bezier(.2,.9,.3,1.2); pointer-events: none; max-width: 90vw; text-align: center; font-family: inherit; }
+.v149-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 </style>
 
 <script id="v149-wallet-ui">
@@ -21641,176 +21288,101 @@ body.dark .v149-preview.open {
   'use strict';
   if(window.__v149 && window.__v149.ready) return;
   window.__v149 = window.__v149 || { ready:false, openKey:null };
-
-  // Track whether we've bound our observer already so we don't stack listeners.
-  var _bound = false;
-  var _observer = null;
-  var _rebuilding = false;
-
-  function log(){
-    try { if(window.__v149Debug) console.log.apply(console, ['[V149]'].concat([].slice.call(arguments))); } catch(e){}
-  }
-
+  var _bound = false, _observer = null, _rebuilding = false;
   function getCardsDB(){ return (typeof CARDS_DB !== 'undefined' && CARDS_DB) ? CARDS_DB : (window.CARDS_DB || {}); }
-
-  // Build a compact preview subtitle from the card's realRates
   function bestRateLine(card){
     if(!card) return '';
-    var iss = card.iss || '';
-    var net = card.net || '';
-    var reward = card.r || '';
-    // If card.r is a nice compact string like "5x / 3x / 2x", use it. Otherwise fall back to feeRetail info.
+    var iss = card.iss || ''; var net = card.net || ''; var reward = card.r || '';
     var line = '';
     if(iss) line += iss;
     if(net && net !== iss) line += (line ? ' <span class="dot">·</span> ' : '') + net;
     if(reward) line += (line ? ' <span class="dot">·</span> ' : '') + '<span class="rate">'+reward+'</span>';
     return line;
   }
-
-  // Extract SVG innerHTML from a .cardBig element (from its .cc-wrapper)
   function extractCardArt(cardBigEl){
     if(!cardBigEl) return '';
     var wrap = cardBigEl.querySelector('.cc-wrapper');
     if(!wrap) return '';
-    // Clone so the original stays untouched
     var svg = wrap.querySelector('svg');
     if(!svg) return wrap.innerHTML;
     return svg.outerHTML;
   }
-
-  // Build (or rebuild) the wallet UI on top of the current #cardList content
   function build(){
     if(_rebuilding) return;
     _rebuilding = true;
     try {
       var cardList = document.getElementById('cardList');
       if(!cardList){ _rebuilding = false; return; }
-
-      // Read all .cardBig elements that live directly under #cardList
-      // (these are what renderCards() outputs)
       var bigs = Array.prototype.slice.call(cardList.querySelectorAll(':scope > .cardBig'));
-      // If none, either wallet is empty or we've already wrapped them. Detect existing wrap.
       var existingWrap = cardList.querySelector(':scope > .v149-wallet-wrap');
-
       if(bigs.length === 0){
-        // Nothing to wrap. If we had an old wallet wrap, leave it be — but if the userWallet is now empty, remove it.
         if(existingWrap){
-          // Preserve open state through re-renders: only clear if no wallet cards remain in CARDS_DB
           var hasAnyDetail = existingWrap.querySelector('.cardBig');
-          if(!hasAnyDetail){
-            existingWrap.remove();
-          }
+          if(!hasAnyDetail) existingWrap.remove();
         }
-        _rebuilding = false;
-        return;
+        _rebuilding = false; return;
       }
-
-      // If a wallet wrap already exists, we need to re-sync it with the new .cardBig set.
-      // Simplest: remove the old wrap, then rebuild.
-      if(existingWrap){
-        // Move any detail slot content back to root so we can pluck fresh .cardBig references cleanly
-        try { existingWrap.remove(); } catch(e){}
-      }
-
-      // Build wallet wrap
+      if(existingWrap){ try { existingWrap.remove(); } catch(e){} }
       var wrap = document.createElement('div');
       wrap.className = 'v149-wallet-wrap';
-
       var hint = document.createElement('div');
       hint.className = 'v149-wallet-hint';
       hint.innerHTML = '\ud83d\udc8f Tap a card to <b>open</b> its details';
       wrap.appendChild(hint);
-
       var stack = document.createElement('div');
       stack.className = 'v149-stack';
       wrap.appendChild(stack);
-
       var DB = getCardsDB();
-
-      bigs.forEach(function(bigEl, i){
+      bigs.forEach(function(bigEl){
         var key = bigEl.getAttribute('data-card-key') || '';
         var card = DB[key] || {};
         var art = extractCardArt(bigEl);
-
-        // Build preview
         var preview = document.createElement('div');
         preview.className = 'v149-preview';
         preview.setAttribute('data-v149-key', key);
-
         var row = document.createElement('div');
         row.className = 'v149-preview-row';
-
         var artBox = document.createElement('div');
         artBox.className = 'v149-preview-art';
         artBox.innerHTML = art;
-
         var meta = document.createElement('div');
         meta.className = 'v149-preview-meta';
         var nameEl = document.createElement('div');
         nameEl.className = 'v149-preview-name';
-        // Prefer the DB name; fall back to whatever the card art label is; ultimate fallback = key
         nameEl.textContent = (card.n || key || 'Card');
         var subEl = document.createElement('div');
         subEl.className = 'v149-preview-sub';
         subEl.innerHTML = bestRateLine(card);
-
         meta.appendChild(nameEl);
         meta.appendChild(subEl);
-
         var chev = document.createElement('div');
         chev.className = 'v149-preview-chev';
-        chev.innerHTML = '\u25be'; // ▾
-
-        row.appendChild(artBox);
-        row.appendChild(meta);
-        row.appendChild(chev);
+        chev.innerHTML = '\u25be';
+        row.appendChild(artBox); row.appendChild(meta); row.appendChild(chev);
         preview.appendChild(row);
-
-        // Detail slot receives the actual .cardBig
         var slot = document.createElement('div');
         slot.className = 'v149-detail-slot';
         preview.appendChild(slot);
-
-        // Move the ORIGINAL .cardBig into the slot (physical move preserves any listeners/state)
         slot.appendChild(bigEl);
-
-        // Handle clicks anywhere on the preview EXCEPT inside the detail slot's content
-        // (so buttons/links inside the detail don't accidentally toggle the card)
         preview.addEventListener('click', function(ev){
-          if(ev.target && ev.target.closest && ev.target.closest('.v149-detail-slot')){
-            return; // click inside details — let it happen naturally
-          }
+          if(ev.target && ev.target.closest && ev.target.closest('.v149-detail-slot')) return;
           togglePreview(preview, key);
         });
-
         stack.appendChild(preview);
       });
-
       cardList.appendChild(wrap);
-
-      // Re-open whichever card was open before the rebuild (persistent state through re-renders)
       var reopenKey = window.__v149.openKey;
       if(reopenKey){
         var target = wrap.querySelector('.v149-preview[data-v149-key="'+CSS.escape(reopenKey)+'"]');
-        if(target) togglePreview(target, reopenKey, true /*force open*/);
+        if(target) togglePreview(target, reopenKey, true);
       }
-
-    } catch(e){
-      try { console.warn('[V149] build error', e); } catch(_){}
-    } finally {
-      _rebuilding = false;
-    }
+    } catch(e){ console.warn('[V149]', e); }
+    finally { _rebuilding = false; }
   }
-
   function togglePreview(preview, key, forceOpen){
     var alreadyOpen = preview.classList.contains('open');
-    // Close all open previews first
     var openOnes = document.querySelectorAll('.v149-preview.open');
-    for(var i=0;i<openOnes.length;i++){
-      if(openOnes[i] !== preview){
-        openOnes[i].classList.remove('open');
-      }
-    }
+    for(var i=0;i<openOnes.length;i++){ if(openOnes[i] !== preview) openOnes[i].classList.remove('open'); }
     if(alreadyOpen && !forceOpen){
       preview.classList.remove('open');
       window.__v149.openKey = null;
@@ -21822,594 +21394,116 @@ body.dark .v149-preview.open {
     window.__v149.openKey = key;
     toast('Opened \u00b7 details below');
     updatePushDown();
-
-    // Smoothly scroll the opened preview into view once its details expand.
-    setTimeout(function(){
-      try {
-        preview.scrollIntoView({behavior:'smooth', block:'center'});
-      } catch(e){
-        // fallback: no scroll
-      }
-    }, 60);
+    setTimeout(function(){ try { preview.scrollIntoView({behavior:'smooth', block:'center'}); } catch(e){} }, 60);
   }
-
-  // Any card AFTER an open card should not have negative overlap so the details are visible.
   function updatePushDown(){
     var stacks = document.querySelectorAll('.v149-stack');
     stacks.forEach(function(stack){
       var previews = stack.querySelectorAll('.v149-preview');
       var seenOpen = false;
       previews.forEach(function(p){
-        if(seenOpen){
-          p.classList.add('push-down');
-        } else {
-          p.classList.remove('push-down');
-        }
+        if(seenOpen) p.classList.add('push-down'); else p.classList.remove('push-down');
         if(p.classList.contains('open')) seenOpen = true;
       });
     });
   }
-
   var _toastTimer = null;
   function toast(msg){
     try {
       var el = document.getElementById('v149-toast');
-      if(!el){
-        el = document.createElement('div');
-        el.id = 'v149-toast';
-        el.className = 'v149-toast';
-        document.body.appendChild(el);
-      }
+      if(!el){ el = document.createElement('div'); el.id = 'v149-toast'; el.className = 'v149-toast'; document.body.appendChild(el); }
       el.textContent = msg;
-      // Reflow, then show
       void el.offsetWidth;
       el.classList.add('show');
       if(_toastTimer) clearTimeout(_toastTimer);
       _toastTimer = setTimeout(function(){ el.classList.remove('show'); }, 1400);
     } catch(e){}
   }
-
-  // Observe #cardList so if renderCards() rebuilds (e.g. after editing wallet), we re-wrap.
   function bindObserver(){
     if(_bound) return;
     var cardList = document.getElementById('cardList');
     if(!cardList) return;
     _observer = new MutationObserver(function(mutations){
-      // Only rebuild when actual .cardBig children get added/removed at the root of #cardList
       var shouldRebuild = false;
       for(var i=0;i<mutations.length;i++){
         var m = mutations[i];
         if(m.type !== 'childList') continue;
-        // Detect the "renderCards wiped and refilled" pattern:
-        // added nodes include .cardBig elements OR removed nodes include our wallet wrap.
         if(m.addedNodes){
           for(var j=0;j<m.addedNodes.length;j++){
             var n = m.addedNodes[j];
-            if(n.nodeType === 1 && n.classList && n.classList.contains('cardBig')){
-              // The base renderCards() dumped a fresh .cardBig into #cardList
-              shouldRebuild = true; break;
-            }
+            if(n.nodeType === 1 && n.classList && n.classList.contains('cardBig')){ shouldRebuild = true; break; }
           }
         }
         if(shouldRebuild) break;
       }
-      if(shouldRebuild){
-        // Give renderCards() a moment to finish appending all cards, then rewrap.
-        setTimeout(build, 30);
-      }
+      if(shouldRebuild) setTimeout(build, 30);
     });
     _observer.observe(cardList, {childList:true, subtree:false});
     _bound = true;
   }
-
-  // Hook switchTab: whenever the user opens My Cards, ensure the wallet UI is fresh.
   function hookTabSwitch(){
     if(typeof window.switchTab === 'function' && !window.switchTab.__v149Wrapped){
       var origSwitchTab = window.switchTab;
       window.switchTab = function(tab){
         var r = origSwitchTab.apply(this, arguments);
-        if(tab === 'cardsTab'){
-          setTimeout(build, 40);
-        }
+        if(tab === 'cardsTab') setTimeout(build, 40);
         return r;
       };
       window.switchTab.__v149Wrapped = true;
     }
   }
-
-  // Try to boot. If dependencies aren't ready yet, retry.
   function boot(){
     var cardList = document.getElementById('cardList');
-    if(!cardList){
-      setTimeout(boot, 200);
-      return;
-    }
+    if(!cardList){ setTimeout(boot, 200); return; }
     bindObserver();
     hookTabSwitch();
-    // Attempt an immediate build in case cards are already rendered
     build();
     window.__v149.ready = true;
     window.__v149.build = build;
-    log('boot done');
   }
-
-  if(document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', boot);
-  } else {
-    boot();
-  }
-  // Extra safety triggers for slower load orderings
-  setTimeout(boot, 400);
-  setTimeout(boot, 1200);
-  setTimeout(boot, 3000);
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+  setTimeout(boot, 400); setTimeout(boot, 1200); setTimeout(boot, 3000);
   setTimeout(function(){ if(typeof build === 'function') build(); }, 5000);
 })();
 </script>
 
-<!-- ================================================================== -->
-<!-- V150 Restore autocomplete + mobile keyboard dismiss                -->
-<!-- ================================================================== -->
-<style id="v150-autocomplete-mobile">
-/* V150 — mobile-friendly autocomplete dropdown */
-#autocomplete.show {
-  max-height: 60vh !important;
-  overflow-y: auto !important;
-  -webkit-overflow-scrolling: touch !important;
-  scroll-behavior: smooth;
-  z-index: 500 !important; /* above modals not open, below overlays */
-}
-/* Ensure dropdown stays inside safe area on iPhone with keyboard */
-@supports (max-height: 60dvh) {
-  #autocomplete.show { max-height: 60dvh !important; }
-}
-@media (max-width: 430px) {
-  #autocomplete.show {
-    max-height: 55vh !important;
-    box-shadow: 0 20px 48px rgba(20,20,40,.22) !important;
-  }
-}
-/* Prevent iOS from zooming when tapping the search input (font-size >= 16px already handled by V130) */
-input#q { font-size: 16px !important; }
-</style>
-
-<script id="v150-autocomplete-restore">
-(function(){
-  'use strict';
-  if(window.__v150 && window.__v150.ready) return;
-  window.__v150 = window.__v150 || { ready:false };
-
-  function getActivePanelIdSafe(){
-    try {
-      if(typeof getActivePanelId === 'function') return getActivePanelId();
-    } catch(e){}
-    // Fallback: find the .panel.active
-    var p = document.querySelector('.panel.active');
-    return p ? p.id : null;
-  }
-
-  // ==== FIX #1: Defensive autocomplete wiring on home ====
-  // If for any reason the primary initSearch input listener isn't firing showAutocomplete,
-  // this shim guarantees the dropdown appears while typing on the home panel.
-  var _debounceT = null;
-  function onInput(e){
-    try {
-      var input = e.target;
-      if(!input || input.id !== 'q') return;
-      var activePanel = getActivePanelIdSafe();
-      if(activePanel !== 'home') return; // only on home
-      if(_debounceT) clearTimeout(_debounceT);
-      _debounceT = setTimeout(function(){
-        try {
-          if(typeof showAutocomplete === 'function'){
-            showAutocomplete(input.value);
-          }
-        } catch(err){ /* silent */ }
-      }, 60);
-    } catch(err){}
-  }
-  function onFocus(e){
-    try {
-      var input = e.target;
-      if(!input || input.id !== 'q') return;
-      var activePanel = getActivePanelIdSafe();
-      if(activePanel !== 'home') return;
-      if(typeof showAutocomplete === 'function'){
-        // Immediate — no debounce on focus so users see the popular/recent list right away
-        showAutocomplete(input.value || '');
-      }
-    } catch(err){}
-  }
-
-  function wireInput(){
-    var input = document.getElementById('q');
-    if(!input){ setTimeout(wireInput, 200); return; }
-    if(input.__v150Wired) return;
-    input.__v150Wired = true;
-    // Use capture phase so we run BEFORE anything else that might swallow events
-    input.addEventListener('input', onInput, true);
-    input.addEventListener('focus', onFocus, true);
-    // Also run on 'click' when input already has content — helps mobile browsers where
-    // returning to the tab doesn't fire focus but user taps the input.
-    input.addEventListener('click', function(){
-      var activePanel = getActivePanelIdSafe();
-      if(activePanel === 'home' && typeof showAutocomplete === 'function'){
-        showAutocomplete(input.value || '');
-      }
-    }, true);
-  }
-
-  // ==== FIX #2: Blur input on merchant selection (mobile keyboard dismiss) ====
-  function blurQ(){
-    try {
-      var input = document.getElementById('q');
-      if(input && input.blur){ input.blur(); }
-      // Also drop active focus to prevent iOS lingering keyboard
-      if(document.activeElement && document.activeElement.blur){
-        document.activeElement.blur();
-      }
-    } catch(e){}
-  }
-
-  function wrapSelectAutocompleteItem(){
-    if(typeof selectAutocompleteItem !== 'function') return false;
-    if(window.selectAutocompleteItem.__v150Wrapped) return true;
-    var _orig = window.selectAutocompleteItem;
-    window.selectAutocompleteItem = function(key, name){
-      var r;
-      try { r = _orig.apply(this, arguments); } catch(e){}
-      // After the original runs, blur the input to dismiss keyboard
-      blurQ();
-      return r;
-    };
-    window.selectAutocompleteItem.__v150Wrapped = true;
-    return true;
-  }
-
-  function wrapSetQuickSearch(){
-    if(typeof setQuickSearch !== 'function') return false;
-    if(window.setQuickSearch.__v150Wrapped) return true;
-    var _orig = window.setQuickSearch;
-    window.setQuickSearch = function(key, label){
-      var r;
-      try { r = _orig.apply(this, arguments); } catch(e){}
-      blurQ();
-      return r;
-    };
-    window.setQuickSearch.__v150Wrapped = true;
-    return true;
-  }
-
-  // Also wrap acKeyboardNav so Enter-selection dismisses the keyboard too
-  function wrapAcKeyboardNav(){
-    if(typeof acKeyboardNav !== 'function') return false;
-    if(window.acKeyboardNav.__v150Wrapped) return true;
-    var _orig = window.acKeyboardNav;
-    window.acKeyboardNav = function(e){
-      var wasEnter = (e && e.key === 'Enter');
-      var r;
-      try { r = _orig.apply(this, arguments); } catch(err){}
-      if(wasEnter){ setTimeout(blurQ, 20); }
-      return r;
-    };
-    window.acKeyboardNav.__v150Wrapped = true;
-    return true;
-  }
-
-  // ==== FIX #3: Delegate mousedown on the autocomplete container to catch any missed rewire ====
-  // If the primary showAutocomplete wired mousedown but a later re-render dropped it, this
-  // capture-phase delegator picks up the click and calls selectAutocompleteItem manually.
-  function wireDelegatedAcClicks(){
-    var ac = document.getElementById('autocomplete');
-    if(!ac){ setTimeout(wireDelegatedAcClicks, 200); return; }
-    if(ac.__v150Delegated) return;
-    ac.__v150Delegated = true;
-    // Use mousedown (matches the original wiring) so blur happens before iOS keyboard dismissal
-    ac.addEventListener('mousedown', function(e){
-      var item = e.target && e.target.closest ? e.target.closest('.ac-item') : null;
-      if(!item) return;
-      e.preventDefault();
-      var key = item.dataset.key;
-      var name = item.dataset.name;
-      if(typeof selectAutocompleteItem === 'function'){
-        selectAutocompleteItem(key, name);
-      }
-    }, true);
-    // Also handle touchend for iOS reliability
-    ac.addEventListener('touchend', function(e){
-      var item = e.target && e.target.closest ? e.target.closest('.ac-item') : null;
-      if(!item) return;
-      // Don't preventDefault here — let mousedown handle the actual selection
-      // We just ensure blur happens after
-      setTimeout(blurQ, 30);
-    }, {passive: true});
-  }
-
-  // ==== Boot sequence ====
-  function boot(){
-    var okA = wrapSelectAutocompleteItem();
-    var okB = wrapSetQuickSearch();
-    var okC = wrapAcKeyboardNav();
-    wireInput();
-    wireDelegatedAcClicks();
-    if(okA && okB && okC){
-      window.__v150.ready = true;
-    } else {
-      setTimeout(boot, 250);
-    }
-  }
-  if(document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', boot);
-  } else {
-    boot();
-  }
-  setTimeout(boot, 300);
-  setTimeout(boot, 900);
-  setTimeout(boot, 2500);
-})();
-</script>
-
-<!-- ================================================================== -->
-<!-- V151 Redesigned wallet UI — real credit-card-sized stacked wallet   -->
-<!-- ================================================================== -->
+<!-- V151 Wallet redesign - full credit-card previews -->
 <style id="v151-wallet-redesign">
-/* V151 - Full credit-card wallet view (overrides V149 narrow layout) */
-
-/* The whole wallet gets a subtle leather-billfold container feel */
-.v149-wallet-wrap {
-  position: relative;
-  padding: 20px 12px 24px !important;
-  margin: 8px 0 20px !important;
-  background: linear-gradient(160deg, rgba(30,30,50,.04) 0%, rgba(30,30,50,.10) 100%);
-  border-radius: 22px;
-  border: 1px solid var(--border);
-  box-shadow: inset 0 2px 12px rgba(30,30,50,.06),
-              0 6px 20px rgba(30,30,50,.05);
-  overflow: visible;
-}
-body.dark .v149-wallet-wrap {
-  background: linear-gradient(160deg, rgba(255,255,255,.03) 0%, rgba(255,255,255,.06) 100%);
-  border-color: var(--border);
-  box-shadow: inset 0 2px 12px rgba(0,0,0,.35),
-              0 6px 20px rgba(0,0,0,.25);
-}
-
-.v149-wallet-hint {
-  font-size: 10.5px !important;
-  color: var(--muted) !important;
-  font-weight: 900 !important;
-  letter-spacing: .14em !important;
-  text-transform: uppercase !important;
-  text-align: center !important;
-  padding: 0 0 16px !important;
-  opacity: .65 !important;
-  font-family: inherit;
-}
-.v149-wallet-hint b {
-  color: var(--brand) !important;
-  font-weight: 900 !important;
-}
-
-.v149-stack {
-  padding: 6px 4px 32px !important;
-  perspective: 1200px;
-}
-
-/* Each preview is now a full credit-card-sized card */
-.v149-preview {
-  position: relative;
-  background: var(--surface);
-  border-radius: 18px !important;
-  border: 1.5px solid var(--border);
-  box-shadow: 0 8px 22px rgba(20,20,40,.18),
-              0 2px 6px rgba(20,20,40,.10);
-  padding: 14px 14px 12px !important;
-  margin-top: -152px !important;   /* Stack overlap: ~70px of previous card peeks */
-  cursor: pointer;
-  transition: transform .42s cubic-bezier(.2,.9,.3,1.15),
-              margin-top .42s cubic-bezier(.2,.9,.3,1.15),
-              margin-bottom .42s cubic-bezier(.2,.9,.3,1.15),
-              box-shadow .28s ease,
-              border-color .22s ease;
-  z-index: 1;
-  overflow: visible !important;
-  /* Slight tilt for tactile "wallet fan" feel — negligible on first card */
-  transform-origin: top center;
-}
-.v149-preview:first-child {
-  margin-top: 4px !important;
-}
-.v149-preview:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 14px 32px rgba(20,20,40,.22),
-              0 3px 10px rgba(20,20,40,.12);
-}
-.v149-preview:active {
-  transform: scale(.99);
-}
-
-body.dark .v149-preview {
-  background: var(--surface);
-  box-shadow: 0 8px 22px rgba(0,0,0,.42),
-              0 2px 6px rgba(0,0,0,.25);
-}
-
-/* The row layout: now a vertical stack (art on top, meta below) */
-.v149-preview-row {
-  display: block !important;
-  grid-template-columns: none !important;
-  gap: 0 !important;
-  min-height: unset !important;
-  position: relative;
-}
-
-/* Full-size card art */
-.v149-preview-art {
-  width: 100% !important;
-  height: auto !important;
-  aspect-ratio: 1.586 / 1 !important;   /* Real credit-card ratio */
-  border-radius: 12px !important;
-  overflow: hidden !important;
-  background: transparent !important;
-  box-shadow: 0 6px 16px rgba(20,20,40,.22) !important;
-  display: block !important;
-  padding: 0 !important;
-  margin-bottom: 10px !important;
-}
-.v149-preview-art svg {
-  width: 100% !important;
-  height: 100% !important;
-  display: block !important;
-}
-
-/* Fallback for browsers that don't support aspect-ratio */
-@supports not (aspect-ratio: 1.586 / 1) {
-  .v149-preview-art { min-height: 190px !important; }
-}
-
-/* Meta strip below the card art */
-.v149-preview-meta {
-  min-width: 0;
-  padding: 2px 4px 0 !important;
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 10px;
-  align-items: center;
-}
-.v149-preview-name {
-  font-size: 13.5px !important;
-  font-weight: 900 !important;
-  letter-spacing: -.02em !important;
-  color: var(--ink) !important;
-  line-height: 1.15 !important;
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-}
-.v149-preview-sub {
-  font-size: 10.5px !important;
-  font-weight: 800 !important;
-  color: var(--muted) !important;
-  margin-top: 3px !important;
-  line-height: 1.3 !important;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.v149-preview-sub .dot {
-  display: inline-block;
-  margin: 0 5px;
-  opacity: .45;
-}
-.v149-preview-sub .rate {
-  color: var(--brand) !important;
-  font-weight: 900 !important;
-}
-
-/* Chevron — floats top-right as a small pill on the card art */
-.v149-preview-chev {
-  position: absolute !important;
-  top: 22px !important;
-  right: 22px !important;
-  z-index: 10 !important;
-  width: 30px !important;
-  height: 30px !important;
-  border-radius: 50% !important;
-  background: rgba(255,255,255,.94) !important;
-  color: var(--brand) !important;
-  font-size: 14px !important;
-  line-height: 30px !important;
-  text-align: center !important;
-  box-shadow: 0 3px 10px rgba(20,20,40,.28) !important;
-  transition: transform .32s cubic-bezier(.2,.9,.3,1.15),
-              background .2s ease,
-              color .2s ease;
-  pointer-events: none;
-  font-weight: 900;
-}
-body.dark .v149-preview-chev {
-  background: rgba(20,20,30,.94) !important;
-  color: var(--brand) !important;
-}
-
-/* Open state: full card lifted + accent glow */
-.v149-preview.open {
-  border-color: var(--brand) !important;
-  box-shadow: 0 20px 44px rgba(37,99,235,.22),
-              0 4px 14px rgba(37,99,235,.14) !important;
-  z-index: 3 !important;
-  transform: translateY(-6px);
-}
-.v149-preview.open .v149-preview-chev {
-  transform: rotate(180deg);
-  background: var(--brand) !important;
-  color: #fff !important;
-}
-body.dark .v149-preview.open {
-  box-shadow: 0 20px 44px rgba(142,163,216,.32),
-              0 4px 14px rgba(142,163,216,.18) !important;
-}
-
-/* Cards AFTER an open card get proper spacing (no overlap into details) */
-.v149-preview.push-down {
-  margin-top: 12px !important;
-}
-
-/* Detail slot expands to show the full existing .cardBig content */
-.v149-detail-slot {
-  max-height: 0;
-  overflow: hidden;
-  opacity: 0;
-  transition: max-height .48s cubic-bezier(.2,.9,.3,1.15),
-              opacity .32s ease,
-              padding .32s ease,
-              margin .32s ease;
-  padding: 0 !important;
-  margin-top: 0 !important;
-}
-.v149-preview.open .v149-detail-slot {
-  max-height: 3000px;
-  opacity: 1;
-  padding: 16px 2px 4px !important;
-  border-top: 1px dashed var(--border);
-  margin-top: 14px !important;
-}
-
-/* Neutralize .cardBig chrome inside the slot */
-.v149-detail-slot .cardBig {
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  border-radius: 0 !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  overflow: visible !important;
-}
-/* Hide the internal card art (already shown at top of preview) */
-.v149-detail-slot .cardBig .cc-wrapper {
-  display: none !important;
-}
-
-/* Mobile tuning */
+.v149-wallet-wrap { position: relative; padding: 20px 12px 24px !important; margin: 8px 0 20px !important; background: linear-gradient(160deg, rgba(30,30,50,.04) 0%, rgba(30,30,50,.10) 100%); border-radius: 22px; border: 1px solid var(--border); box-shadow: inset 0 2px 12px rgba(30,30,50,.06), 0 6px 20px rgba(30,30,50,.05); overflow: visible; }
+body.dark .v149-wallet-wrap { background: linear-gradient(160deg, rgba(255,255,255,.03) 0%, rgba(255,255,255,.06) 100%); border-color: var(--border); box-shadow: inset 0 2px 12px rgba(0,0,0,.35), 0 6px 20px rgba(0,0,0,.25); }
+.v149-wallet-hint { font-size: 10.5px !important; color: var(--muted) !important; font-weight: 900 !important; letter-spacing: .14em !important; text-transform: uppercase !important; text-align: center !important; padding: 0 0 16px !important; opacity: .65 !important; font-family: inherit; }
+.v149-wallet-hint b { color: var(--brand) !important; font-weight: 900 !important; }
+.v149-stack { padding: 6px 4px 32px !important; perspective: 1200px; }
+.v149-preview { position: relative; background: var(--surface); border-radius: 18px !important; border: 1.5px solid var(--border); box-shadow: 0 8px 22px rgba(20,20,40,.18), 0 2px 6px rgba(20,20,40,.10); padding: 14px 14px 12px !important; margin-top: -152px !important; cursor: pointer; transition: transform .42s cubic-bezier(.2,.9,.3,1.15), margin-top .42s cubic-bezier(.2,.9,.3,1.15), margin-bottom .42s cubic-bezier(.2,.9,.3,1.15), box-shadow .28s ease, border-color .22s ease; z-index: 1; overflow: visible !important; transform-origin: top center; }
+.v149-preview:first-child { margin-top: 4px !important; }
+.v149-preview:hover { transform: translateY(-3px); box-shadow: 0 14px 32px rgba(20,20,40,.22), 0 3px 10px rgba(20,20,40,.12); }
+.v149-preview:active { transform: scale(.99); }
+body.dark .v149-preview { background: var(--surface); box-shadow: 0 8px 22px rgba(0,0,0,.42), 0 2px 6px rgba(0,0,0,.25); }
+.v149-preview-row { display: block !important; grid-template-columns: none !important; gap: 0 !important; min-height: unset !important; position: relative; }
+.v149-preview-art { width: 100% !important; height: auto !important; aspect-ratio: 1.586 / 1 !important; border-radius: 12px !important; overflow: hidden !important; background: transparent !important; box-shadow: 0 6px 16px rgba(20,20,40,.22) !important; display: block !important; padding: 0 !important; margin-bottom: 10px !important; }
+.v149-preview-art svg { width: 100% !important; height: 100% !important; display: block !important; }
+@supports not (aspect-ratio: 1.586 / 1) { .v149-preview-art { min-height: 190px !important; } }
+.v149-preview-meta { min-width: 0; padding: 2px 4px 0 !important; display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; }
+.v149-preview-name { font-size: 13.5px !important; font-weight: 900 !important; letter-spacing: -.02em !important; color: var(--ink) !important; line-height: 1.15 !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; }
+.v149-preview-sub { font-size: 10.5px !important; font-weight: 800 !important; color: var(--muted) !important; margin-top: 3px !important; line-height: 1.3 !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.v149-preview-sub .dot { display: inline-block; margin: 0 5px; opacity: .45; }
+.v149-preview-sub .rate { color: var(--brand) !important; font-weight: 900 !important; }
+.v149-preview-chev { position: absolute !important; top: 22px !important; right: 22px !important; z-index: 10 !important; width: 30px !important; height: 30px !important; border-radius: 50% !important; background: rgba(255,255,255,.94) !important; color: var(--brand) !important; font-size: 14px !important; line-height: 30px !important; text-align: center !important; box-shadow: 0 3px 10px rgba(20,20,40,.28) !important; transition: transform .32s cubic-bezier(.2,.9,.3,1.15), background .2s ease, color .2s ease; pointer-events: none; font-weight: 900; }
+body.dark .v149-preview-chev { background: rgba(20,20,30,.94) !important; color: var(--brand) !important; }
+.v149-preview.open { border-color: var(--brand) !important; box-shadow: 0 20px 44px rgba(37,99,235,.22), 0 4px 14px rgba(37,99,235,.14) !important; z-index: 3 !important; transform: translateY(-6px); }
+.v149-preview.open .v149-preview-chev { transform: rotate(180deg); background: var(--brand) !important; color: #fff !important; }
+body.dark .v149-preview.open { box-shadow: 0 20px 44px rgba(142,163,216,.32), 0 4px 14px rgba(142,163,216,.18) !important; }
+.v149-preview.push-down { margin-top: 12px !important; }
+.v149-detail-slot { max-height: 0; overflow: hidden; opacity: 0; transition: max-height .48s cubic-bezier(.2,.9,.3,1.15), opacity .32s ease, padding .32s ease, margin .32s ease; padding: 0 !important; margin-top: 0 !important; }
+.v149-preview.open .v149-detail-slot { max-height: 3000px; opacity: 1; padding: 16px 2px 4px !important; border-top: 1px dashed var(--border); margin-top: 14px !important; }
+.v149-detail-slot .cardBig { background: transparent !important; border: none !important; box-shadow: none !important; border-radius: 0 !important; margin: 0 !important; padding: 0 !important; overflow: visible !important; }
+.v149-detail-slot .cardBig .cc-wrapper { display: none !important; }
 @media (max-width: 430px) {
-  .v149-wallet-wrap {
-    padding: 16px 10px 20px !important;
-    margin: 6px 0 16px !important;
-  }
-  .v149-preview {
-    padding: 12px 12px 10px !important;
-    margin-top: -140px !important;
-  }
-  .v149-preview:first-child {
-    margin-top: 2px !important;
-  }
-  .v149-preview-chev {
-    top: 20px !important;
-    right: 20px !important;
-    width: 28px !important;
-    height: 28px !important;
-    font-size: 13px !important;
-    line-height: 28px !important;
-  }
+  .v149-wallet-wrap { padding: 16px 10px 20px !important; margin: 6px 0 16px !important; }
+  .v149-preview { padding: 12px 12px 10px !important; margin-top: -140px !important; }
+  .v149-preview:first-child { margin-top: 2px !important; }
+  .v149-preview-chev { top: 20px !important; right: 20px !important; width: 28px !important; height: 28px !important; font-size: 13px !important; line-height: 28px !important; }
   .v149-preview-name { font-size: 13px !important; }
   .v149-preview-sub  { font-size: 10px !important; }
 }
@@ -22418,18 +21512,11 @@ body.dark .v149-preview.open {
   .v149-preview-art { border-radius: 10px !important; }
   .v149-preview-chev { top: 18px !important; right: 18px !important; }
 }
-
-/* Very tall screens: give more breathing room at the top of the stack so cards don't compress */
-@media (min-height: 900px) {
-  .v149-preview { margin-top: -140px !important; }
-}
+@media (min-height: 900px) { .v149-preview { margin-top: -140px !important; } }
 </style>
 
-<!-- ================================================================== -->
-<!-- V152 Merchant Autocomplete — FRESH ENGINE (no reliance on legacy)   -->
-<!-- ================================================================== -->
+<!-- V152 Merchant Autocomplete — FRESH ENGINE -->
 <style id="v152-ac-styles">
-/* Force-visible + mobile-friendly dropdown */
 #autocomplete.v152-show {
   display: block !important;
   position: absolute !important;
@@ -22445,126 +21532,30 @@ body.dark .v149-preview.open {
   max-height: 60vh !important;
   overflow-y: auto !important;
   -webkit-overflow-scrolling: touch !important;
-  scroll-behavior: smooth;
 }
-@supports (max-height: 60dvh) {
-  #autocomplete.v152-show { max-height: 60dvh !important; }
-}
-@media (max-width: 430px) {
-  #autocomplete.v152-show {
-    max-height: 55vh !important;
-    box-shadow: 0 20px 48px rgba(20,20,40,.22) !important;
-  }
-}
-.v152-hint {
-  padding: 10px 14px 6px !important;
-  font-size: 10px !important;
-  color: var(--muted, #6b7280) !important;
-  font-weight: 900 !important;
-  letter-spacing: .1em !important;
-  text-transform: uppercase !important;
-  background: var(--surface-2, #f0eee7) !important;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-}
-.v152-item {
-  display: flex !important;
-  align-items: center !important;
-  gap: 12px !important;
-  padding: 12px 14px !important;
-  cursor: pointer !important;
-  border-bottom: 1px solid var(--border, #e2e5eb) !important;
-  transition: background .12s ease !important;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-  min-height: 52px !important;
-}
+@supports (max-height: 60dvh) { #autocomplete.v152-show { max-height: 60dvh !important; } }
+@media (max-width: 430px) { #autocomplete.v152-show { max-height: 55vh !important; box-shadow: 0 20px 48px rgba(20,20,40,.22) !important; } }
+.v152-hint { padding: 10px 14px 6px !important; font-size: 10px !important; color: var(--muted, #6b7280) !important; font-weight: 900 !important; letter-spacing: .1em !important; text-transform: uppercase !important; background: var(--surface-2, #f0eee7) !important; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important; }
+.v152-item { display: flex !important; align-items: center !important; gap: 12px !important; padding: 12px 14px !important; cursor: pointer !important; border-bottom: 1px solid var(--border, #e2e5eb) !important; transition: background .12s ease !important; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important; min-height: 52px !important; }
 .v152-item:last-child { border-bottom: none !important; }
-.v152-item:hover,
-.v152-item.v152-active {
-  background: var(--surface-2, #f0eee7) !important;
-}
-.v152-item-emoji {
-  font-size: 22px !important;
-  flex-shrink: 0 !important;
-  width: 26px !important;
-  text-align: center !important;
-  line-height: 1 !important;
-}
-.v152-item-main {
-  flex: 1 !important;
-  min-width: 0 !important;
-}
-.v152-item-name {
-  font-size: 15px !important;
-  font-weight: 900 !important;
-  letter-spacing: -.01em !important;
-  color: var(--ink, #181814) !important;
-  line-height: 1.2 !important;
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-}
-.v152-item-name b {
-  color: var(--brand, #2563eb) !important;
-}
-.v152-item-cat {
-  font-size: 11px !important;
-  color: var(--muted, #6b7280) !important;
-  font-weight: 750 !important;
-  margin-top: 2px !important;
-  text-transform: uppercase !important;
-  letter-spacing: .05em !important;
-}
-.v152-item-badge {
-  font-size: 9px !important;
-  font-weight: 900 !important;
-  padding: 3px 7px !important;
-  border-radius: 7px !important;
-  background: var(--surface-2, #f0eee7) !important;
-  color: var(--muted, #6b7280) !important;
-  flex-shrink: 0 !important;
-  letter-spacing: .05em !important;
-  text-transform: uppercase !important;
-}
-.v152-item-badge.v152-no-amex {
-  background: rgba(196,49,74,.10) !important;
-  color: #c4314a !important;
-}
-.v152-item-badge.v152-mc-only {
-  background: rgba(224,112,29,.10) !important;
-  color: #e0701d !important;
-}
-.v152-empty {
-  padding: 24px 16px !important;
-  text-align: center !important;
-  color: var(--muted, #6b7280) !important;
-  font-size: 13px !important;
-  font-weight: 800 !important;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-}
+.v152-item:hover, .v152-item.v152-active { background: var(--surface-2, #f0eee7) !important; }
+.v152-item-emoji { font-size: 22px !important; flex-shrink: 0 !important; width: 26px !important; text-align: center !important; line-height: 1 !important; }
+.v152-item-main { flex: 1 !important; min-width: 0 !important; }
+.v152-item-name { font-size: 15px !important; font-weight: 900 !important; letter-spacing: -.01em !important; color: var(--ink, #181814) !important; line-height: 1.2 !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; }
+.v152-item-name b { color: var(--brand, #2563eb) !important; }
+.v152-item-cat { font-size: 11px !important; color: var(--muted, #6b7280) !important; font-weight: 750 !important; margin-top: 2px !important; text-transform: uppercase !important; letter-spacing: .05em !important; }
+.v152-item-badge { font-size: 9px !important; font-weight: 900 !important; padding: 3px 7px !important; border-radius: 7px !important; background: var(--surface-2, #f0eee7) !important; color: var(--muted, #6b7280) !important; flex-shrink: 0 !important; letter-spacing: .05em !important; text-transform: uppercase !important; }
+.v152-item-badge.v152-no-amex { background: rgba(196,49,74,.10) !important; color: #c4314a !important; }
+.v152-item-badge.v152-mc-only { background: rgba(224,112,29,.10) !important; color: #e0701d !important; }
+.v152-empty { padding: 24px 16px !important; text-align: center !important; color: var(--muted, #6b7280) !important; font-size: 13px !important; font-weight: 800 !important; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important; }
 .v152-empty .big { font-size: 34px !important; margin-bottom: 8px !important; display: block !important; }
 .v152-empty small { font-size: 11px !important; font-weight: 700 !important; display: block !important; margin-top: 6px !important; }
-body.dark #autocomplete.v152-show {
-  background: var(--surface, #22201c) !important;
-  border-color: var(--border, #2a2823) !important;
-  box-shadow: 0 16px 40px rgba(0,0,0,.45) !important;
-}
-body.dark .v152-hint {
-  background: var(--surface-2, #2b2823) !important;
-  color: var(--muted, #8c8a82) !important;
-}
-body.dark .v152-item {
-  border-bottom-color: var(--border, #2a2823) !important;
-  background: var(--surface, #22201c) !important;
-}
-body.dark .v152-item:hover,
-body.dark .v152-item.v152-active {
-  background: var(--surface-2, #2b2823) !important;
-}
+body.dark #autocomplete.v152-show { background: var(--surface, #22201c) !important; border-color: var(--border, #2a2823) !important; box-shadow: 0 16px 40px rgba(0,0,0,.45) !important; }
+body.dark .v152-hint { background: var(--surface-2, #2b2823) !important; color: var(--muted, #8c8a82) !important; }
+body.dark .v152-item { border-bottom-color: var(--border, #2a2823) !important; background: var(--surface, #22201c) !important; }
+body.dark .v152-item:hover, body.dark .v152-item.v152-active { background: var(--surface-2, #2b2823) !important; }
 body.dark .v152-item-name { color: var(--ink, #ede8dd) !important; }
-body.dark .v152-item-badge {
-  background: var(--surface-2, #2b2823) !important;
-  color: var(--muted, #8c8a82) !important;
-}
+body.dark .v152-item-badge { background: var(--surface-2, #2b2823) !important; color: var(--muted, #8c8a82) !important; }
 input#q { font-size: 16px !important; }
 </style>
 
@@ -22573,61 +21564,17 @@ input#q { font-size: 16px !important; }
   'use strict';
   if(window.__v152 && window.__v152.ready) return;
   window.__v152 = window.__v152 || { ready:false, activeIndex:-1, lastQuery:'' };
-
-  function log(){
-    try {
-      if(window.__v152Debug){
-        console.log.apply(console, ['[V152]'].concat([].slice.call(arguments)));
-      }
-    } catch(e){}
-  }
-
+  function log(){ try { if(window.__v152Debug) console.log.apply(console, ['[V152]'].concat([].slice.call(arguments))); } catch(e){} }
   function normalizeStr(s){ return String(s||'').toLowerCase().trim(); }
   function getInputEl(){ return document.getElementById('q'); }
   function getAcEl(){ return document.getElementById('autocomplete'); }
-  function getActivePanelIdSafe(){
-    try {
-      if(typeof getActivePanelId === 'function') return getActivePanelId();
-    } catch(e){}
-    var p = document.querySelector('.panel.active');
-    return p ? p.id : null;
-  }
-
-  var CAT_EMOJI = {
-    dining: '\ud83c\udf7d\ufe0f',
-    groceryAmex: '\ud83d\uded2', groceryNo: '\ud83d\uded2', loblaws: '\ud83d\uded2',
-    gas: '\u26fd', transit: '\ud83d\ude87', streaming: '\ud83d\udcfa',
-    shopping: '\ud83d\udecd\ufe0f', shoppingAmex: '\ud83d\udecd\ufe0f',
-    costco: '\ud83c\udfea', walmart: '\ud83d\uded2',
-    travel: '\u2708\ufe0f', marriott: '\ud83c\udfe8', cineplex: '\ud83c\udfac',
-    usd: '\ud83d\udcb5', rogers: '\ud83d\udcf1', other: '\ud83d\udcb3'
-  };
-  var CAT_LABEL = {
-    dining: 'Dining',
-    groceryAmex: 'Groceries', groceryNo: 'Groceries', loblaws: 'Groceries',
-    gas: 'Gas', transit: 'Transit', streaming: 'Streaming',
-    shopping: 'Shopping', shoppingAmex: 'Shopping',
-    costco: 'Costco', walmart: 'Walmart',
-    travel: 'Travel', marriott: 'Marriott', cineplex: 'Cineplex',
-    usd: 'USD / Foreign', rogers: 'Rogers / Fido', other: 'Other'
-  };
-
-  function prettyName(key){
-    return String(key||'').replace(/[-_]+/g,' ')
-      .split(' ')
-      .map(function(w){
-        if(!w) return '';
-        return w.charAt(0).toUpperCase() + w.slice(1);
-      })
-      .join(' ').replace(/\s+/g,' ').trim();
-  }
-
-  var _index = null;
-  var _indexBuiltAt = 0;
-
+  function getActivePanelIdSafe(){ try { if(typeof getActivePanelId === 'function') return getActivePanelId(); } catch(e){} var p = document.querySelector('.panel.active'); return p ? p.id : null; }
+  var CAT_EMOJI = { dining: '\ud83c\udf7d\ufe0f', groceryAmex: '\ud83d\uded2', groceryNo: '\ud83d\uded2', loblaws: '\ud83d\uded2', gas: '\u26fd', transit: '\ud83d\ude87', streaming: '\ud83d\udcfa', shopping: '\ud83d\udecd\ufe0f', shoppingAmex: '\ud83d\udecd\ufe0f', costco: '\ud83c\udfea', walmart: '\ud83d\uded2', travel: '\u2708\ufe0f', marriott: '\ud83c\udfe8', cineplex: '\ud83c\udfac', usd: '\ud83d\udcb5', rogers: '\ud83d\udcf1', other: '\ud83d\udcb3' };
+  var CAT_LABEL = { dining: 'Dining', groceryAmex: 'Groceries', groceryNo: 'Groceries', loblaws: 'Groceries', gas: 'Gas', transit: 'Transit', streaming: 'Streaming', shopping: 'Shopping', shoppingAmex: 'Shopping', costco: 'Costco', walmart: 'Walmart', travel: 'Travel', marriott: 'Marriott', cineplex: 'Cineplex', usd: 'USD / Foreign', rogers: 'Rogers / Fido', other: 'Other' };
+  function prettyName(key){ return String(key||'').replace(/[-_]+/g,' ').split(' ').map(function(w){ if(!w) return ''; return w.charAt(0).toUpperCase() + w.slice(1); }).join(' ').replace(/\s+/g,' ').trim(); }
+  var _index = null; var _indexBuiltAt = 0;
   function buildIndex(){
-    var out = [];
-    var seenKeys = {};
+    var out = []; var seenKeys = {};
     try {
       if(typeof MERCHANT_DIRECTORY !== 'undefined' && Array.isArray(MERCHANT_DIRECTORY)){
         MERCHANT_DIRECTORY.forEach(function(m){
@@ -22640,16 +21587,10 @@ input#q { font-size: 16px !important; }
           var ukey = normalizeStr(key);
           if(seenKeys[ukey]) return;
           seenKeys[ukey] = 1;
-          out.push({
-            name: String(name).trim(),
-            key: key,
-            cat: cat,
-            emoji: emoji,
-            searchable: normalizeStr(name)+' '+normalizeStr(key)
-          });
+          out.push({ name: String(name).trim(), key: key, cat: cat, emoji: emoji, searchable: normalizeStr(name)+' '+normalizeStr(key) });
         });
       }
-    } catch(e){ log('MD err', e); }
+    } catch(e){}
     try {
       if(typeof ALIASES !== 'undefined' && ALIASES){
         Object.keys(ALIASES).forEach(function(k){
@@ -22657,34 +21598,18 @@ input#q { font-size: 16px !important; }
           if(seenKeys[ukey]) return;
           seenKeys[ukey] = 1;
           var cat = ALIASES[k] || 'other';
-          out.push({
-            name: prettyName(k),
-            key: k,
-            cat: cat,
-            emoji: CAT_EMOJI[cat] || CAT_EMOJI.other,
-            searchable: ukey
-          });
+          out.push({ name: prettyName(k), key: k, cat: cat, emoji: CAT_EMOJI[cat] || CAT_EMOJI.other, searchable: ukey });
         });
       }
-    } catch(e){ log('ALIASES err', e); }
-    _index = out;
-    _indexBuiltAt = Date.now();
-    log('index built:', out.length, 'entries');
+    } catch(e){}
+    _index = out; _indexBuiltAt = Date.now();
+    log('index built:', out.length);
     return out;
   }
-
-  function getIndex(){
-    if(!_index || _index.length === 0 || (Date.now() - _indexBuiltAt > 30000)){
-      buildIndex();
-    }
-    return _index || [];
-  }
-
+  function getIndex(){ if(!_index || _index.length === 0 || (Date.now() - _indexBuiltAt > 30000)) buildIndex(); return _index || []; }
   function scoreMatch(query, entry){
     if(!query) return 0;
-    var q = query;
-    var name = normalizeStr(entry.name);
-    var key = normalizeStr(entry.key);
+    var q = query; var name = normalizeStr(entry.name); var key = normalizeStr(entry.key);
     var searchable = entry.searchable || (name+' '+key);
     if(name === q || key === q) return 1000;
     if(name.indexOf(q) === 0) return 900;
@@ -22692,67 +21617,29 @@ input#q { font-size: 16px !important; }
     if((' '+searchable).indexOf(' '+q) >= 0) return 700;
     if(searchable.indexOf(q) >= 0) return 500;
     var qi = 0;
-    for(var i=0;i<searchable.length && qi<q.length;i++){
-      if(searchable.charAt(i) === q.charAt(qi)) qi++;
-    }
+    for(var i=0;i<searchable.length && qi<q.length;i++){ if(searchable.charAt(i) === q.charAt(qi)) qi++; }
     if(qi === q.length) return 200;
     return 0;
   }
-
   function highlightMatch(text, query){
     if(!query || !text) return text;
-    var q = String(query).toLowerCase();
-    var t = String(text);
+    var q = String(query).toLowerCase(); var t = String(text);
     var idx = t.toLowerCase().indexOf(q);
     if(idx < 0) return t;
     return t.substring(0,idx) + '<b>' + t.substring(idx, idx+q.length) + '</b>' + t.substring(idx+q.length);
   }
-
   var POPULAR = ['starbucks','save on foods','costco','shell','mcdonalds','netflix','tim hortons','loblaws'];
-
-  function loadRecent(){
-    try { return JSON.parse(localStorage.getItem('walletIQ_v152_recent')||'[]'); }
-    catch(e){ return []; }
-  }
-  function saveRecent(key){
-    try {
-      var r = loadRecent();
-      r = r.filter(function(k){ return k !== key; });
-      r.unshift(key);
-      r = r.slice(0,5);
-      localStorage.setItem('walletIQ_v152_recent', JSON.stringify(r));
-    } catch(e){}
-  }
-
-  function getAcceptanceInfo(key){
-    try {
-      if(typeof ACCEPTANCE === 'undefined' || !ACCEPTANCE) return null;
-      var acc = ACCEPTANCE[key];
-      if(!acc) return null;
-      if(!acc.amex && !acc.visa && acc.mc) return 'mc-only';
-      if(!acc.amex) return 'no-amex';
-      return null;
-    } catch(e){ return null; }
-  }
-
-  function escapeHtml(s){
-    return String(s||'').replace(/[&<>"']/g, function(c){
-      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
-    });
-  }
-
+  function loadRecent(){ try { return JSON.parse(localStorage.getItem('walletIQ_v152_recent')||'[]'); } catch(e){ return []; } }
+  function saveRecent(key){ try { var r = loadRecent(); r = r.filter(function(k){ return k !== key; }); r.unshift(key); r = r.slice(0,5); localStorage.setItem('walletIQ_v152_recent', JSON.stringify(r)); } catch(e){} }
+  function getAcceptanceInfo(key){ try { if(typeof ACCEPTANCE === 'undefined' || !ACCEPTANCE) return null; var acc = ACCEPTANCE[key]; if(!acc) return null; if(!acc.amex && !acc.visa && acc.mc) return 'mc-only'; if(!acc.amex) return 'no-amex'; return null; } catch(e){ return null; } }
+  function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
   function renderDropdown(items, query){
     var ac = getAcEl();
     if(!ac) return;
     ac.innerHTML = '';
     if(items.length === 0){
-      ac.innerHTML = '<div class="v152-empty">' +
-        '<span class="big">\ud83d\udd0d</span>' +
-        'No merchants match "' + escapeHtml(query) + '"' +
-        '<small>Try a different name or a category (e.g. "grocery", "coffee")</small>' +
-        '</div>';
-      showAc();
-      return;
+      ac.innerHTML = '<div class="v152-empty"><span class="big">\ud83d\udd0d</span>No merchants match "' + escapeHtml(query) + '"<small>Try a different name or a category (e.g. "grocery", "coffee")</small></div>';
+      showAc(); return;
     }
     var hintText = query ? 'Suggestions' : 'Popular \u00b7 Recent';
     var hintHtml = '<div class="v152-hint">'+hintText+'</div>';
@@ -22763,135 +21650,64 @@ input#q { font-size: 16px !important; }
       else if(acc === 'no-amex') badge = '<span class="v152-item-badge v152-no-amex">NO AMEX</span>';
       var displayName = query ? highlightMatch(m.name, query) : m.name;
       var catLabel = CAT_LABEL[m.cat] || (m.cat ? String(m.cat).charAt(0).toUpperCase()+String(m.cat).slice(1) : 'Other');
-      return '<div class="v152-item" data-key="' + escapeHtml(m.key) + '" data-name="' + escapeHtml(m.name) + '" data-idx="' + i + '">' +
-        '<div class="v152-item-emoji">' + (m.emoji || '\ud83d\udcb3') + '</div>' +
-        '<div class="v152-item-main">' +
-          '<div class="v152-item-name">' + displayName + '</div>' +
-          '<div class="v152-item-cat">' + catLabel + '</div>' +
-        '</div>' +
-        badge +
-        '</div>';
+      return '<div class="v152-item" data-key="' + escapeHtml(m.key) + '" data-name="' + escapeHtml(m.name) + '" data-idx="' + i + '"><div class="v152-item-emoji">' + (m.emoji || '\ud83d\udcb3') + '</div><div class="v152-item-main"><div class="v152-item-name">' + displayName + '</div><div class="v152-item-cat">' + catLabel + '</div></div>' + badge + '</div>';
     }).join('');
     ac.innerHTML = hintHtml + itemsHtml;
     showAc();
     window.__v152.activeIndex = -1;
   }
-
-  function showAc(){
-    var ac = getAcEl();
-    if(!ac) return;
-    ac.classList.add('v152-show');
-    ac.classList.add('show');
-    ac.style.display = 'block';
-    log('shown');
-  }
-  function hideAc(){
-    var ac = getAcEl();
-    if(!ac) return;
-    ac.classList.remove('v152-show');
-    ac.classList.remove('show');
-    ac.style.display = '';
-    log('hidden');
-  }
-
+  function showAc(){ var ac = getAcEl(); if(!ac) return; ac.classList.add('v152-show'); ac.classList.add('show'); ac.style.display = 'block'; log('shown'); }
+  function hideAc(){ var ac = getAcEl(); if(!ac) return; ac.classList.remove('v152-show'); ac.classList.remove('show'); ac.style.display = ''; log('hidden'); }
   function runQuery(query){
-    var q = normalizeStr(query);
-    window.__v152.lastQuery = q;
+    var q = normalizeStr(query); window.__v152.lastQuery = q;
     if(!q){
-      var idx = getIndex();
-      var byKey = {};
+      var idx = getIndex(); var byKey = {};
       idx.forEach(function(e){ byKey[normalizeStr(e.key)] = e; });
-      var items = [];
-      var recent = loadRecent();
-      recent.forEach(function(rk){
-        var m = byKey[normalizeStr(rk)];
-        if(m) items.push(m);
-      });
-      POPULAR.forEach(function(pk){
-        if(items.length >= 6) return;
-        var m = byKey[normalizeStr(pk)];
-        if(m && items.indexOf(m) < 0) items.push(m);
-      });
+      var items = []; var recent = loadRecent();
+      recent.forEach(function(rk){ var m = byKey[normalizeStr(rk)]; if(m) items.push(m); });
+      POPULAR.forEach(function(pk){ if(items.length >= 6) return; var m = byKey[normalizeStr(pk)]; if(m && items.indexOf(m) < 0) items.push(m); });
       renderDropdown(items.slice(0,6), '');
       return;
     }
-    var idx2 = getIndex();
-    var scored = [];
-    for(var i=0;i<idx2.length;i++){
-      var s = scoreMatch(q, idx2[i]);
-      if(s > 0){ scored.push([s, idx2[i]]); }
-    }
+    var idx2 = getIndex(); var scored = [];
+    for(var i=0;i<idx2.length;i++){ var s = scoreMatch(q, idx2[i]); if(s > 0){ scored.push([s, idx2[i]]); } }
     scored.sort(function(a,b){ return b[0] - a[0]; });
     var top = scored.slice(0,8).map(function(pair){ return pair[1]; });
     renderDropdown(top, q);
   }
-
   function selectItem(key, name){
     log('selectItem', key, name);
     var input = getInputEl();
     if(input){ input.value = name || prettyName(key); }
     hideAc();
     saveRecent(key);
-    try {
-      if(typeof renderRecommendation === 'function'){
-        renderRecommendation(key);
-      }
-    } catch(e){ log('renderRecommendation err', e); }
+    try { if(typeof renderRecommendation === 'function') renderRecommendation(key); } catch(e){}
     try { if(typeof currentQuery !== 'undefined'){ currentQuery = key; } } catch(e){}
-    try {
-      if(input && input.blur) input.blur();
-      if(document.activeElement && document.activeElement.blur){
-        document.activeElement.blur();
-      }
-    } catch(e){}
+    try { if(input && input.blur) input.blur(); if(document.activeElement && document.activeElement.blur) document.activeElement.blur(); } catch(e){}
   }
-
   function onKeyDown(e){
     var ac = getAcEl();
     if(!ac || !ac.classList.contains('v152-show')) return;
     var items = ac.querySelectorAll('.v152-item');
     if(items.length === 0) return;
-    if(e.key === 'ArrowDown'){
-      e.preventDefault();
-      window.__v152.activeIndex = Math.min(window.__v152.activeIndex + 1, items.length - 1);
-      updateActive(items);
-    } else if(e.key === 'ArrowUp'){
-      e.preventDefault();
-      window.__v152.activeIndex = Math.max(window.__v152.activeIndex - 1, 0);
-      updateActive(items);
-    } else if(e.key === 'Enter'){
-      e.preventDefault();
-      var idx = window.__v152.activeIndex >= 0 ? window.__v152.activeIndex : 0;
-      if(items[idx]){
-        selectItem(items[idx].getAttribute('data-key'), items[idx].getAttribute('data-name'));
-      }
-    } else if(e.key === 'Escape'){
-      hideAc();
-      var input = getInputEl();
-      if(input && input.blur) input.blur();
-    }
+    if(e.key === 'ArrowDown'){ e.preventDefault(); window.__v152.activeIndex = Math.min(window.__v152.activeIndex + 1, items.length - 1); updateActive(items); }
+    else if(e.key === 'ArrowUp'){ e.preventDefault(); window.__v152.activeIndex = Math.max(window.__v152.activeIndex - 1, 0); updateActive(items); }
+    else if(e.key === 'Enter'){ e.preventDefault(); var idx = window.__v152.activeIndex >= 0 ? window.__v152.activeIndex : 0; if(items[idx]){ selectItem(items[idx].getAttribute('data-key'), items[idx].getAttribute('data-name')); } }
+    else if(e.key === 'Escape'){ hideAc(); var input = getInputEl(); if(input && input.blur) input.blur(); }
   }
-
   function updateActive(items){
-    for(var i=0;i<items.length;i++){
-      items[i].classList.toggle('v152-active', i === window.__v152.activeIndex);
-    }
+    for(var i=0;i<items.length;i++){ items[i].classList.toggle('v152-active', i === window.__v152.activeIndex); }
     var activeEl = items[window.__v152.activeIndex];
-    if(activeEl && activeEl.scrollIntoView){
-      try { activeEl.scrollIntoView({block:'nearest'}); } catch(e){}
-    }
+    if(activeEl && activeEl.scrollIntoView){ try { activeEl.scrollIntoView({block:'nearest'}); } catch(e){} }
   }
-
   function onAcClick(e){
     var item = e.target && e.target.closest ? e.target.closest('.v152-item') : null;
     if(!item) return;
     if(e.preventDefault) e.preventDefault();
     if(e.stopPropagation) e.stopPropagation();
-    var key = item.getAttribute('data-key');
-    var name = item.getAttribute('data-name');
+    var key = item.getAttribute('data-key'); var name = item.getAttribute('data-name');
     selectItem(key, name);
   }
-
   var _debounceTimer = null;
   function onInput(e){
     var input = e && e.target;
@@ -22902,16 +21718,9 @@ input#q { font-size: 16px !important; }
     if(_debounceTimer) clearTimeout(_debounceTimer);
     _debounceTimer = setTimeout(function(){
       runQuery(val);
-      try {
-        if(typeof renderRecommendation === 'function' && val.trim()){
-          renderRecommendation(val);
-        } else if(typeof renderRecommendation === 'function' && !val.trim()){
-          renderRecommendation('');
-        }
-      } catch(e){}
+      try { if(typeof renderRecommendation === 'function' && val.trim()) renderRecommendation(val); else if(typeof renderRecommendation === 'function' && !val.trim()) renderRecommendation(''); } catch(e){}
     }, 40);
   }
-
   function onFocus(e){
     var input = e && e.target;
     if(!input || input.id !== 'q') return;
@@ -22919,91 +21728,211 @@ input#q { font-size: 16px !important; }
     if(panel !== 'home') return;
     runQuery(input.value || '');
   }
-
   function onBlur(){
     setTimeout(function(){
-      var ae = document.activeElement;
-      var ac = getAcEl();
+      var ae = document.activeElement; var ac = getAcEl();
       if(ac && ae && ac.contains(ae)) return;
       hideAc();
     }, 220);
   }
-
   function bindAll(){
-    var input = getInputEl();
-    var ac = getAcEl();
+    var input = getInputEl(); var ac = getAcEl();
     if(!input || !ac){ setTimeout(bindAll, 200); return; }
     if(input.__v152Bound && ac.__v152Bound) return;
-
     if(!input.__v152Bound){
       input.addEventListener('input', onInput, true);
       input.addEventListener('focus', onFocus, true);
       input.addEventListener('blur', onBlur, true);
       input.addEventListener('keydown', onKeyDown, true);
-      input.addEventListener('click', function(e){
-        var panel = getActivePanelIdSafe();
-        if(panel !== 'home') return;
-        runQuery(input.value || '');
-      }, true);
+      input.addEventListener('click', function(){ var panel = getActivePanelIdSafe(); if(panel !== 'home') return; runQuery(input.value || ''); }, true);
       input.__v152Bound = true;
     }
-
     if(!ac.__v152Bound){
       ac.addEventListener('mousedown', onAcClick, true);
       ac.addEventListener('touchstart', onAcClick, {capture:true, passive:false});
-      ac.addEventListener('mousedown', function(e){
-        if(!e.target.closest('.v152-item')){
-          e.preventDefault();
-        }
-      }, false);
+      ac.addEventListener('mousedown', function(e){ if(!e.target.closest('.v152-item')){ e.preventDefault(); } }, false);
       ac.__v152Bound = true;
     }
-
-    window.showAutocomplete = function(q){
-      var panel = getActivePanelIdSafe();
-      if(panel !== 'home'){ hideAc(); return; }
-      runQuery(q||'');
-    };
+    window.showAutocomplete = function(q){ var panel = getActivePanelIdSafe(); if(panel !== 'home'){ hideAc(); return; } runQuery(q||''); };
     window.hideAutocomplete = hideAc;
     window.selectAutocompleteItem = selectItem;
-
-    log('V152 engine bound');
   }
-
   function boot(){
-    if(!document.getElementById('q') || !document.getElementById('autocomplete')){
-      setTimeout(boot, 150);
-      return;
-    }
-    var hasSources = (typeof MERCHANT_DIRECTORY !== 'undefined' && Array.isArray(MERCHANT_DIRECTORY) && MERCHANT_DIRECTORY.length > 0) ||
-                     (typeof ALIASES !== 'undefined' && ALIASES && Object.keys(ALIASES).length > 0);
-    if(!hasSources){
-      setTimeout(boot, 200);
-      return;
-    }
+    if(!document.getElementById('q') || !document.getElementById('autocomplete')){ setTimeout(boot, 150); return; }
+    var hasSources = (typeof MERCHANT_DIRECTORY !== 'undefined' && Array.isArray(MERCHANT_DIRECTORY) && MERCHANT_DIRECTORY.length > 0) || (typeof ALIASES !== 'undefined' && ALIASES && Object.keys(ALIASES).length > 0);
+    if(!hasSources){ setTimeout(boot, 200); return; }
     buildIndex();
     bindAll();
     window.__v152.ready = true;
-    log('boot complete, index size =', (_index||[]).length);
   }
-
-  if(document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', boot);
-  } else {
-    boot();
-  }
-  setTimeout(boot, 300);
-  setTimeout(boot, 900);
-  setTimeout(boot, 2500);
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+  setTimeout(boot, 300); setTimeout(boot, 900); setTimeout(boot, 2500);
   setTimeout(function(){ if(window.__v152.ready) buildIndex(); }, 4000);
   setTimeout(function(){ if(window.__v152.ready) buildIndex(); }, 10000);
-
   window.__v152.runQuery = runQuery;
   window.__v152.buildIndex = buildIndex;
   window.__v152.getIndex = getIndex;
   window.__v152.selectItem = selectItem;
   window.__v152.showAc = showAc;
   window.__v152.hideAc = hideAc;
+})();
+</script>
+
+<!-- V153 Quick-search chips -->
+<style id="v153-chip-styles">
+.v153-chips-wrap { padding: 12px 12px 10px !important; background: var(--surface-2, #f0eee7) !important; border-bottom: 1px solid var(--border, #e2e5eb) !important; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important; }
+.v153-chips-title { font-size: 10px !important; color: var(--muted, #6b7280) !important; font-weight: 900 !important; letter-spacing: .12em !important; text-transform: uppercase !important; margin-bottom: 8px !important; }
+.v153-chips { display: flex !important; gap: 6px !important; flex-wrap: wrap !important; }
+.v153-chip { background: var(--surface, #ffffff) !important; border: 1px solid var(--border, #e2e5eb) !important; border-radius: 99px !important; padding: 7px 12px !important; font-size: 12px !important; font-weight: 900 !important; color: var(--ink, #181814) !important; cursor: pointer !important; font-family: inherit !important; white-space: nowrap !important; display: inline-flex !important; align-items: center !important; gap: 5px !important; line-height: 1 !important; transition: background .12s ease, border-color .12s ease, transform .1s ease !important; -webkit-tap-highlight-color: transparent !important; user-select: none !important; }
+.v153-chip:hover { background: var(--surface-2, #f0eee7) !important; border-color: var(--brand, #2563eb) !important; }
+.v153-chip:active { transform: scale(.94) !important; }
+.v153-chip.v153-fx { background: var(--accent-soft, #e0e9ff) !important; color: var(--brand, #2563eb) !important; border-color: rgba(37, 99, 235, .25) !important; }
+.v153-chip.v153-fx.v153-fx-on { background: var(--brand, #2563eb) !important; color: #ffffff !important; border-color: var(--brand, #2563eb) !important; }
+body.dark .v153-chips-wrap { background: var(--surface-2, #2b2823) !important; border-bottom-color: var(--border, #2a2823) !important; }
+body.dark .v153-chip { background: var(--surface, #22201c) !important; color: var(--ink, #ede8dd) !important; border-color: var(--border, #2a2823) !important; }
+body.dark .v153-chip:hover { background: var(--surface-2, #2b2823) !important; }
+body.dark .v153-chip.v153-fx { background: rgba(142, 163, 216, .12) !important; color: var(--brand, #8ea3d8) !important; border-color: rgba(142, 163, 216, .30) !important; }
+body.dark .v153-chip.v153-fx.v153-fx-on { background: var(--brand, #8ea3d8) !important; color: #0f0d1a !important; }
+</style>
+
+<script id="v153-quick-chips">
+(function(){
+  'use strict';
+  if(window.__v153 && window.__v153.ready) return;
+  window.__v153 = window.__v153 || { ready:false };
+  function log(){ try { if(window.__v153Debug) console.log.apply(console, ['[V153]'].concat([].slice.call(arguments))); } catch(e){} }
+
+  var CHIPS = [
+    { emoji: '\ud83d\uded2',        label: 'Grocery', q: 'save-on-foods' },
+    { emoji: '\ud83c\udf7d\ufe0f',  label: 'Dining',  q: 'dining' },
+    { emoji: '\ud83d\udecd\ufe0f',  label: 'Shop',    q: 'amazon' },
+    { emoji: '\ud83c\udfea',        label: 'Costco',  q: 'costco' },
+    { emoji: '\u26fd',              label: 'Gas',     q: 'shell' },
+    { emoji: '\ud83c\udfac',        label: 'Movies',  q: 'cineplex' },
+    { emoji: '\ud83c\udfe8',        label: 'Hotel',   q: 'marriott' },
+    { emoji: '\ud83d\udcf1',        label: 'Rogers',  q: 'rogers' }
+  ];
+
+  function getAc(){ return document.getElementById('autocomplete'); }
+  function getInput(){ return document.getElementById('q'); }
+  function currentFx(){ try { return !!window.foreignMode; } catch(e){ return false; } }
+  function escapeAttr(s){ return String(s||'').replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+
+  function buildChipsHtml(){
+    var chipsHtml = CHIPS.map(function(c){
+      return '<button type="button" class="v153-chip" data-q="' + escapeAttr(c.q) + '" data-label="' + escapeAttr(c.label) + '">'
+        + c.emoji + ' ' + c.label + '</button>';
+    }).join('');
+    var fx = currentFx();
+    var fxLabel = fx ? ('\ud83c\udf0d FX') : ('\ud83c\udde8\ud83c\udde6 CAD');
+    var fxHtml = '<button type="button" class="v153-chip v153-fx' + (fx ? ' v153-fx-on' : '') + '" data-fx="1">' + fxLabel + '</button>';
+    return '<div class="v153-chips-wrap">'
+      + '<div class="v153-chips-title">Quick search</div>'
+      + '<div class="v153-chips">' + chipsHtml + fxHtml + '</div>'
+      + '</div>';
+  }
+
+  function injectChips(){
+    var ac = getAc();
+    if(!ac) return;
+    if(!ac.classList.contains('v152-show') && !ac.classList.contains('show')) return;
+    var lastQ = (window.__v152 && window.__v152.lastQuery) || '';
+    if(lastQ && lastQ.trim().length > 0) return;
+    if(ac.querySelector('.v153-chips-wrap')) return;
+    ac.insertAdjacentHTML('afterbegin', buildChipsHtml());
+    log('chips injected');
+  }
+
+  function wrapV152(){
+    var v152 = window.__v152;
+    if(!v152 || typeof v152.runQuery !== 'function'){ setTimeout(wrapV152, 200); return; }
+    if(v152.runQuery.__v153Wrapped) return;
+    var _orig = v152.runQuery;
+    v152.runQuery = function(query){
+      var r;
+      try { r = _orig.apply(this, arguments); } catch(e){}
+      var q = String(query||'').trim();
+      if(!q){ setTimeout(injectChips, 5); }
+      return r;
+    };
+    v152.runQuery.__v153Wrapped = true;
+    log('V152 runQuery wrapped');
+  }
+
+  function onChipClick(e){
+    var chip = e.target && e.target.closest ? e.target.closest('.v153-chip') : null;
+    if(!chip) return;
+    if(e.preventDefault) e.preventDefault();
+    if(e.stopPropagation) e.stopPropagation();
+    if(chip.dataset && chip.dataset.fx === '1'){ toggleFxInline(chip); return; }
+    var q = chip.dataset.q;
+    var label = chip.dataset.label;
+    if(!q) return;
+    var input = getInput();
+    if(input) input.value = label;
+    try {
+      if(window.__v152 && typeof window.__v152.hideAc === 'function') window.__v152.hideAc();
+      else if(typeof window.hideAutocomplete === 'function') window.hideAutocomplete();
+    } catch(err){}
+    try { if(typeof currentQuery !== 'undefined'){ currentQuery = q; } } catch(err){}
+    try { if(typeof renderRecommendation === 'function') renderRecommendation(q); } catch(err){}
+    try {
+      var recent = JSON.parse(localStorage.getItem('walletIQ_v152_recent') || '[]');
+      recent = recent.filter(function(k){ return k !== q; });
+      recent.unshift(q);
+      recent = recent.slice(0, 5);
+      localStorage.setItem('walletIQ_v152_recent', JSON.stringify(recent));
+    } catch(err){}
+    try {
+      if(input && input.blur) input.blur();
+      if(document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    } catch(err){}
+    log('chip selected:', q);
+  }
+
+  function toggleFxInline(chip){
+    try {
+      var newFx = !currentFx();
+      window.foreignMode = newFx;
+      chip.classList.toggle('v153-fx-on', newFx);
+      chip.textContent = newFx ? '\ud83c\udf0d FX' : '\ud83c\udde8\ud83c\udde6 CAD';
+      var lbl = document.getElementById('drawerFxLbl');
+      if(lbl){ lbl.textContent = newFx ? 'Foreign / USD' : 'CAD mode'; }
+      try {
+        if(typeof renderRecommendation === 'function'){
+          var q = (typeof currentQuery !== 'undefined' && currentQuery) ? currentQuery : 'other';
+          renderRecommendation(newFx ? 'usd' : q);
+        }
+      } catch(e){}
+      log('FX toggled to', newFx);
+    } catch(err){}
+  }
+
+  function bindChipListeners(){
+    var ac = getAc();
+    if(!ac){ setTimeout(bindChipListeners, 200); return; }
+    if(ac.__v153ChipBound) return;
+    ac.__v153ChipBound = true;
+    ac.addEventListener('mousedown', onChipClick, true);
+    ac.addEventListener('touchstart', onChipClick, {capture:true, passive:false});
+    log('chip listeners bound');
+  }
+
+  function boot(){
+    wrapV152();
+    bindChipListeners();
+    var ac = getAc();
+    if(ac && (ac.classList.contains('v152-show') || ac.classList.contains('show'))){
+      var lastQ = (window.__v152 && window.__v152.lastQuery) || '';
+      if(!lastQ.trim()) injectChips();
+    }
+    window.__v153.ready = true;
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+  setTimeout(boot, 300); setTimeout(boot, 900); setTimeout(boot, 2500);
+  window.__v153.injectChips = injectChips;
+  window.__v153.CHIPS = CHIPS;
 })();
 </script>
 </body>
