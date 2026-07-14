@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<!-- V158 (2026-07-14): GROUND-UP rebuild of two things V157 could not deliver. (1) The X clear-button is now driven by DOCUMENT-LEVEL event delegation so V156's input cloning cannot break it. Click/touchend delegate on document -> resolves live #q at click time -> clears value, fires input+change, calls window.__v156.runQuery(''), hides autocomplete and inlineResults, refocuses input. A MutationObserver keeps exactly one .v158-x-clear inside .search-wrap. (2) A brandCore MERCHANT_DIRECTORY sweeper that collapses spaced/unspaced variants like 'Whole Foods Market' vs 'Wholefoods' by stripping chain-suffix tokens from a compact-normalized key. Runs on boot, on interval, and via push-guard. Hardcoded canonical map covers Whole Foods, Costco, Mark's, Best Buy, Nike, Apple as safety net. -->
 <!-- V157 (2026-07-14): TWO surgical UX fixes on top of V156. (1) The V80 X-clear button (lines ~1077 CSS + ~14589 JS) never actually cleared #q on mobile because V156's autocomplete engine clones/replaces the #q input at boot — V80's listener bound to the pre-clone element became a dangling reference. V157 KILLS V80's clear button entirely (CSS hidden + DOM stripped on every mutation) and rebuilds a fresh .v157-clear-btn wired at capture phase against the LIVE #q element, with a MutationObserver that re-attaches it whenever V156 (or any later engine) swaps the input. (2) On mobile the on-screen keyboard was covering the autocomplete dropdown. V157 wires a touchmove listener on #autocomplete that calls #q.blur() once the user drags >8px, dismissing the keyboard so the full result list becomes visible. Re-tapping #q re-focuses it and the keyboard returns naturally. Both fixes are pure additions — no V156 engine code is touched. -->
 <!-- V156 (2026-07-13): Autocomplete engine REBUILT — not patched. Previous stack (V143 initSearch + V150 shim + V152 fresh engine + V153 chip wrapper + V155 injection observer) had accumulated event handler layers causing: (a) duplicate merchant rows (whole foods + wholefoods + Whole Foods Market), (b) dropdown vanishing on scroll-touch, (c) inconsistent chip appearance. V156 clones #q and #autocomplete to strip ALL prior listeners, kills V152/V153/V155 boot flags, then wires a single clean engine with: canonical brand-key dedup (source + DOM level), scroll-aware hide suppression, chips always present on empty state, and mobile keyboard dismiss on selection. Zero layered patches. -->
 
@@ -21,7 +22,7 @@
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>Wallet IQ V157</title>
+<title>Wallet IQ V158</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Wallet IQ">
@@ -23039,6 +23040,495 @@ body.dark .v157-clear-btn:hover { background: var(--ink, #ede8dd) !important; }
   window.__v157.reinit = init;
 })();
 </script>
+
+
+<!-- ============================================================ -->
+<!-- V158 (2026-07-14): Ground-up clear-button + brandCore dedupe   -->
+<!-- ============================================================ -->
+<style id="v158-styles">
+/* Nuke all prior clear-button implementations - they are permanently retired. */
+.v80-clear-btn, .v80-clear-btn.show,
+.v157-clear-btn, .v157-clear-btn.show {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  opacity: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+}
+
+/* V158 clear button - single source of truth */
+.search-wrap { position: relative !important; }
+input#q { padding-right: 46px !important; }
+
+.v158-x-clear {
+  position: absolute !important;
+  right: 12px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  width: 26px !important;
+  height: 26px !important;
+  border-radius: 50% !important;
+  background: var(--muted, #6b7280) !important;
+  color: #ffffff !important;
+  border: none !important;
+  cursor: pointer !important;
+  display: none !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 16px !important;
+  font-weight: 900 !important;
+  padding: 0 !important;
+  line-height: 1 !important;
+  z-index: 15 !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,.12) !important;
+  transition: background .12s ease, transform .1s ease !important;
+  -webkit-tap-highlight-color: transparent !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  touch-action: manipulation !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+}
+.v158-x-clear.show { display: flex !important; }
+.v158-x-clear:hover  { background: var(--ink, #181814) !important; }
+.v158-x-clear:active { transform: translateY(-50%) scale(.9) !important; }
+body.dark .v158-x-clear         { background: var(--muted, #8c8a82) !important; color: #22201c !important; }
+body.dark .v158-x-clear:hover   { background: var(--ink,   #ede8dd) !important; }
+</style>
+
+<script id="v158-clear-btn-delegated">
+(function(){
+  'use strict';
+  if (window.__v158 && window.__v158.clearReady) return;
+  window.__v158 = window.__v158 || {};
+
+  function $q(){ return document.getElementById('q'); }
+  function $ac(){ return document.getElementById('autocomplete'); }
+  function $wrap(){
+    var input = $q(); if (!input) return null;
+    var w = input.closest ? input.closest('.search-wrap') : null;
+    return w || input.parentNode || null;
+  }
+
+  // Physically remove ALL prior clear buttons (V80 + V157) every time we run.
+  function nukeLegacy(){
+    try {
+      var nodes = document.querySelectorAll('.v80-clear-btn, .v157-clear-btn');
+      for (var i = 0; i < nodes.length; i++){
+        if (nodes[i].parentNode) nodes[i].parentNode.removeChild(nodes[i]);
+      }
+    } catch(e){}
+  }
+
+  // Ensure exactly one .v158-x-clear exists inside the current .search-wrap.
+  function ensureBtn(){
+    nukeLegacy();
+    var wrap = $wrap();
+    if (!wrap) return;
+    var existing = wrap.querySelectorAll('.v158-x-clear');
+    // Deduplicate any accidental clones.
+    for (var i = 1; i < existing.length; i++){
+      if (existing[i].parentNode) existing[i].parentNode.removeChild(existing[i]);
+    }
+    var btn = existing[0];
+    if (!btn){
+      btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'v158-x-clear';
+      btn.setAttribute('aria-label', 'Clear search');
+      btn.setAttribute('tabindex', '-1');
+      btn.setAttribute('data-v158', '1');
+      btn.innerHTML = '\u00D7';
+      wrap.appendChild(btn);
+    }
+    syncVisibility(btn);
+  }
+
+  function syncVisibility(btn){
+    if (!btn) btn = document.querySelector('.v158-x-clear');
+    if (!btn) return;
+    var input = $q();
+    if (input && input.value && input.value.length > 0) btn.classList.add('show');
+    else btn.classList.remove('show');
+  }
+
+  // The one and only clear action.
+  function doClear(e){
+    try { if (e) { e.preventDefault(); e.stopPropagation(); } } catch(_){}
+    var input = $q();
+    if (!input) return;
+    input.value = '';
+    // Fire input + change to notify every engine (V156, V152 legacy, native, etc.)
+    try {
+      var ev1;
+      if (typeof InputEvent === 'function'){
+        ev1 = new InputEvent('input', { bubbles: true, cancelable: true, inputType: 'deleteContentBackward' });
+      } else {
+        ev1 = document.createEvent('HTMLEvents');
+        ev1.initEvent('input', true, true);
+      }
+      input.dispatchEvent(ev1);
+    } catch(_){
+      try {
+        var ev = document.createEvent('HTMLEvents'); ev.initEvent('input', true, true); input.dispatchEvent(ev);
+      } catch(__){}
+    }
+    try { input.dispatchEvent(new Event('change', { bubbles: true })); } catch(_){}
+
+    // Explicitly kick the V156 engine if present so the dropdown state is fully reset.
+    try {
+      if (window.__v156 && typeof window.__v156.runQuery === 'function'){
+        window.__v156.runQuery('');
+      }
+    } catch(_){}
+
+    // Hide dropdown + inline results.
+    var ac = $ac();
+    if (ac) {
+      try { ac.classList.remove('show'); } catch(_){}
+      try { ac.classList.remove('v156-show'); } catch(_){}
+      try { ac.style.display = 'none'; } catch(_){}
+    }
+    var ir = document.getElementById('inlineResults');
+    if (ir) { try { ir.style.display = 'none'; } catch(_){} }
+
+    // Hide clear button and refocus.
+    var btn = document.querySelector('.v158-x-clear');
+    if (btn) btn.classList.remove('show');
+    try { input.focus({ preventScroll: true }); } catch(_){ try { input.focus(); } catch(__){} }
+  }
+  window.__v158.doClear = doClear;
+
+  // ---------- DOCUMENT-LEVEL DELEGATED HANDLERS ----------
+  // pointerdown/mousedown/touchstart: prevent focus loss on the input.
+  function swallowFocus(e){
+    var t = e.target;
+    if (t && t.closest && t.closest('.v158-x-clear')){
+      try { e.preventDefault(); } catch(_){}
+    }
+  }
+  document.addEventListener('pointerdown', swallowFocus, true);
+  document.addEventListener('mousedown',   swallowFocus, true);
+  document.addEventListener('touchstart',  swallowFocus, { capture: true, passive: false });
+
+  // click: the primary trigger.
+  document.addEventListener('click', function(e){
+    var t = e.target;
+    if (!t || !t.closest) return;
+    if (t.closest('.v158-x-clear')) doClear(e);
+  }, true);
+
+  // touchend fallback for iOS Safari edge cases where click is swallowed.
+  document.addEventListener('touchend', function(e){
+    var t = e.target;
+    if (!t || !t.closest) return;
+    if (t.closest('.v158-x-clear')) doClear(e);
+  }, { capture: true, passive: false });
+
+  // Delegated input/keyup/focus/change on document -> keep visibility in sync
+  // regardless of whether V156 has cloned the #q node.
+  function delegatedSync(e){
+    var t = e.target;
+    if (t && t.id === 'q') syncVisibility();
+  }
+  document.addEventListener('input',  delegatedSync, true);
+  document.addEventListener('change', delegatedSync, true);
+  document.addEventListener('keyup',  delegatedSync, true);
+  document.addEventListener('focus',  delegatedSync, true);
+
+  // ---------- BOOT + RESILIENCE ----------
+  function init(){
+    nukeLegacy();
+    ensureBtn();
+  }
+
+  if (document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+  setTimeout(init, 100);
+  setTimeout(init, 500);
+  setTimeout(init, 1500);
+  setTimeout(init, 4000);
+  setTimeout(init, 8000);
+
+  // rAF-debounced observer so V156's node cloning cannot leave us button-less.
+  var pending = false;
+  try {
+    new MutationObserver(function(){
+      if (pending) return;
+      pending = true;
+      (window.requestAnimationFrame || function(cb){ setTimeout(cb, 16); })(function(){
+        pending = false;
+        // Only rebuild if the wrap has zero v158 buttons or a stale v80/v157 sibling.
+        var wrap = $wrap();
+        if (!wrap) return;
+        var hasV158 = wrap.querySelector('.v158-x-clear');
+        var hasLegacy = document.querySelector('.v80-clear-btn, .v157-clear-btn');
+        if (!hasV158 || hasLegacy){
+          ensureBtn();
+        } else {
+          syncVisibility(hasV158);
+        }
+      });
+    }).observe(document.body, { childList: true, subtree: true });
+  } catch(_){}
+
+  window.__v158.clearReady = true;
+  window.__v158.reinitClear = init;
+  try { console.log('[V158] clear button ready'); } catch(_){}
+})();
+</script>
+
+<script id="v158-brandcore-dedupe">
+(function(){
+  'use strict';
+  if (window.__v158 && window.__v158.dedupeReady) return;
+  window.__v158 = window.__v158 || {};
+
+  // Suffix tokens repeatedly stripped from the compact key end.
+  var SUFFIX_TOKENS = [
+    'wholesale','wearhouse','warehouse',
+    'foods','food','market','markets','mart','marts','grocery','groceries',
+    'restaurant','restaurants','cafe','cafes','coffee','coffeehouse','roasters',
+    'kitchen','kitchens','bakery','bakeries','pharmacy','pharmacies',
+    'store','stores','shop','shoppe','shops','plaza','mall','outlet','depot',
+    'canada','ca','com','online','plus','express','retail','wholesalers',
+    'world','elite','signature','platinum','preferred','classic',
+    'company','corp','inc','ltd','llc','automotive','auto','wireless','mobile','digital'
+  ].sort(function(a,b){ return b.length - a.length; });
+
+  // Hardcoded canonical brand map (safety net for the ones the user has flagged).
+  // Key = compact-normalized brand string; Value = { name, cat }
+  var HARD_CANON = {
+    'wholefoodsmarket': { name: 'Whole Foods Market', hint: 'grocery' },
+    'wholefoods':       { name: 'Whole Foods Market', hint: 'grocery' },
+    'costco':           { name: 'Costco',             hint: 'costco'  },
+    'costcowholesale':  { name: 'Costco',             hint: 'costco'  },
+    'nike':             { name: 'Nike',               hint: 'shopping'},
+    'bestbuy':          { name: 'Best Buy',           hint: 'shopping'},
+    'apple':            { name: 'Apple',              hint: 'shopping'},
+    'applestore':       { name: 'Apple',              hint: 'shopping'},
+    'marks':            { name: "Mark's",             hint: 'shopping'},
+    'marksworkwearhouse':{name: "Mark's",             hint: 'shopping'},
+    'marksworkwarehouse':{name: "Mark's",             hint: 'shopping'}
+  };
+
+  function brandCore(name){
+    var s = String(name || '').toLowerCase();
+    // & -> "and", + -> "plus" then strip non-alphanumeric entirely
+    s = s.replace(/&/g, 'and').replace(/\+/g, 'plus');
+    s = s.replace(/[^a-z0-9]+/g, '');
+    if (!s) return '';
+    // singularize trailing plain 's' once
+    if (s.length > 3 && s.charAt(s.length-1) === 's' && s.charAt(s.length-2) !== 's'){
+      s = s.substring(0, s.length-1);
+    }
+    // repeatedly strip suffix tokens
+    var changed = true, guard = 0;
+    while (changed && s.length > 3 && guard < 12){
+      changed = false; guard++;
+      for (var i = 0; i < SUFFIX_TOKENS.length; i++){
+        var sw = SUFFIX_TOKENS[i];
+        if (s.length - sw.length >= 3 && s.substring(s.length - sw.length) === sw){
+          s = s.substring(0, s.length - sw.length);
+          // also strip a trailing 's' if new suffix appeared
+          if (s.length > 3 && s.charAt(s.length-1) === 's' && s.charAt(s.length-2) !== 's'){
+            s = s.substring(0, s.length-1);
+          }
+          changed = true;
+          break;
+        }
+      }
+    }
+    return s;
+  }
+  window.__v158.brandCore = brandCore;
+
+  function nameScore(name){
+    var s = String(name || '');
+    var length = s.length;
+    var specials = (s.match(/[\s'&+\-\.]/g) || []).length;
+    var isMashed = length > 6 && /^[A-Za-z0-9]+$/.test(s);
+    if (isMashed) return -20 - length;
+    if (length < 2) return -10;
+    // Cap length bonus so "Whole Foods Market" is preferred over "Whole Foods and Something Extra"
+    var lenBonus = Math.min(length, 22) * 0.15;
+    return specials * 5 + lenBonus;
+  }
+
+  function sweep(){
+    if (typeof MERCHANT_DIRECTORY === 'undefined' || !Array.isArray(MERCHANT_DIRECTORY)) return null;
+    var before = MERCHANT_DIRECTORY.length;
+
+    // Group by (brandCore | category) so we don't collapse different categories
+    // (e.g. "Apple" the fruit vendor vs "Apple" the tech store, if such a case ever existed).
+    var groups = {};
+    var order  = [];
+    for (var i = 0; i < MERCHANT_DIRECTORY.length; i++){
+      var e = MERCHANT_DIRECTORY[i];
+      if (!e) continue;
+      var nm = e.name || e.n || '';
+      if (!nm) continue;
+      var core = brandCore(nm);
+      if (!core || core.length < 2){
+        core = String(nm).toLowerCase().replace(/[^a-z0-9]/g, '');
+        if (!core) continue;
+      }
+      var cat = e.category || e.cat || 'other';
+      var gid = core + '|' + cat;
+      if (!groups[gid]){ groups[gid] = []; order.push(gid); }
+      groups[gid].push(e);
+    }
+
+    // Also collapse across categories when brandCore matches AND both categories share a family.
+    // We'll do a second pass keyed by brandCore only, picking the highest-priority category.
+    var CAT_PRIORITY = {
+      dining:10, groceryAmex:9, groceryNo:9, loblaws:9, gas:8, transit:8, streaming:8,
+      travel:7, marriott:7, cineplex:7, costco:7, walmart:7, rogers:6, usd:6,
+      shoppingAmex:5, shopping:4, other:3, Grocery:9
+    };
+
+    var kept = [];
+    Object.keys(groups).forEach(function(gid){
+      var arr = groups[gid];
+      if (arr.length === 1){ kept.push(arr[0]); return; }
+      arr.sort(function(a, b){
+        var sa = nameScore(a.name || a.n || '');
+        var sb = nameScore(b.name || b.n || '');
+        if (sa !== sb) return sb - sa;
+        return String(b.name || b.n || '').length - String(a.name || a.n || '').length;
+      });
+      kept.push(arr[0]);
+    });
+
+    // Second pass: cross-category dedupe by brandCore alone.
+    var byCore = {};
+    kept.forEach(function(e){
+      var core = brandCore(e.name || e.n || '');
+      if (!core) return;
+      if (!byCore[core]) byCore[core] = [];
+      byCore[core].push(e);
+    });
+
+    var finalKept = [];
+    var seenCores = {};
+    kept.forEach(function(e){
+      var core = brandCore(e.name || e.n || '');
+      if (!core){ finalKept.push(e); return; }
+      if (seenCores[core]) return;
+      var arr = byCore[core] || [e];
+      // Apply hardcoded canonical override.
+      var hard = HARD_CANON[core];
+      if (hard){
+        // pick the entry whose category best matches the hint, else the highest scored
+        arr.sort(function(a, b){
+          var pa = CAT_PRIORITY[a.category || a.cat] || 0;
+          var pb = CAT_PRIORITY[b.category || b.cat] || 0;
+          if (pa !== pb) return pb - pa;
+          return nameScore(b.name || b.n || '') - nameScore(a.name || a.n || '');
+        });
+        var winner = arr[0];
+        winner.name = hard.name;
+        winner.n    = hard.name;
+        finalKept.push(winner);
+      } else {
+        arr.sort(function(a, b){
+          var sa = nameScore(a.name || a.n || '');
+          var sb = nameScore(b.name || b.n || '');
+          if (sa !== sb) return sb - sa;
+          var pa = CAT_PRIORITY[a.category || a.cat] || 0;
+          var pb = CAT_PRIORITY[b.category || b.cat] || 0;
+          if (pa !== pb) return pb - pa;
+          return String(b.name || b.n || '').length - String(a.name || a.n || '').length;
+        });
+        finalKept.push(arr[0]);
+      }
+      seenCores[core] = true;
+    });
+
+    if (finalKept.length !== MERCHANT_DIRECTORY.length){
+      MERCHANT_DIRECTORY.length = 0;
+      finalKept.forEach(function(e){ MERCHANT_DIRECTORY.push(e); });
+    }
+
+    // Ask the V156 engine to rebuild its search index if it exposes one.
+    try {
+      if (window.__v156 && typeof window.__v156.buildIndex === 'function') window.__v156.buildIndex();
+      if (window.__v156 && typeof window.__v156.rebuildIndex === 'function') window.__v156.rebuildIndex();
+    } catch(_){}
+
+    try { console.log('[V158] MERCHANT_DIRECTORY dedupe: ' + before + ' -> ' + MERCHANT_DIRECTORY.length); } catch(_){}
+    return { before: before, after: MERCHANT_DIRECTORY.length };
+  }
+  window.__v158.sweep = sweep;
+
+  // brandCore-aware push guard so future async merchant additions cannot re-introduce dupes.
+  function installPushGuard(){
+    if (typeof MERCHANT_DIRECTORY === 'undefined' || !Array.isArray(MERCHANT_DIRECTORY)) return;
+    if (MERCHANT_DIRECTORY.__v158PushGuard) return;
+    MERCHANT_DIRECTORY.__v158PushGuard = true;
+    var seen = {};
+    MERCHANT_DIRECTORY.forEach(function(e){
+      if (!e) return;
+      var c = brandCore(e.name || e.n || '');
+      if (c) seen[c] = e;
+    });
+    var origPush = MERCHANT_DIRECTORY.push;
+    MERCHANT_DIRECTORY.push = function(){
+      for (var i = 0; i < arguments.length; i++){
+        var e = arguments[i];
+        if (!e || (!e.name && !e.n)){ origPush.call(this, e); continue; }
+        var c = brandCore(e.name || e.n || '');
+        if (c && seen[c]) continue;
+        if (c) seen[c] = e;
+        origPush.call(this, e);
+      }
+      return this.length;
+    };
+    // Periodic rebuild of the seen set in case the directory was rewritten in place.
+    setInterval(function(){
+      var freshSeen = {};
+      MERCHANT_DIRECTORY.forEach(function(e){
+        if (!e) return;
+        var c = brandCore(e.name || e.n || '');
+        if (c) freshSeen[c] = e;
+      });
+      seen = freshSeen;
+    }, 5000);
+  }
+
+  function boot(){
+    if (typeof MERCHANT_DIRECTORY === 'undefined' || !Array.isArray(MERCHANT_DIRECTORY)){
+      setTimeout(boot, 300);
+      return;
+    }
+    sweep();
+    installPushGuard();
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+
+  // Re-sweep after other engines settle (V146 runs at 800/2500/5000/8000/15000ms).
+  setTimeout(boot, 1200);
+  setTimeout(boot, 3500);
+  setTimeout(boot, 6500);
+  setTimeout(boot, 12000);
+  setInterval(function(){
+    try { if (window.__v158 && typeof window.__v158.sweep === 'function') window.__v158.sweep(); } catch(_){}
+  }, 6000);
+
+  window.__v158.dedupeReady = true;
+})();
+</script>
+<!-- ============================================================ -->
+<!-- End of V158                                                   -->
+<!-- ============================================================ -->
 
 </body>
 </html>
