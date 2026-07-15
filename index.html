@@ -25,6 +25,90 @@
 <!-- V178 (2026-07-14): Home category chips audit (10). -->
 <!-- V179 (2026-07-14): Transaction list audit (11). -->
 <!-- V180 (2026-07-14): Recommendation engine audit (11). -->
+<!-- V195 (2026-07-14): Where to Pay + Reset/Export/Import audit fixes.
+     WHERE TO PAY (Location tab):
+     (B) No fetch timeout — page hung forever if Nominatim slow. V195 adds 8s AbortController.
+     (C) No rate limit — spam-tapping violated Nominatim 1req/sec TOS. V195 adds 2s cooldown.
+     (D, XSS) Nominatim merchantName+displayName injected raw into innerHTML. V195 escapes before render.
+     (E) No caching — same lat/lon re-queried. V195 caches by rounded coords for 5min.
+     (F) renderLocManual fired per keystroke. V195 adds 150ms debounce.
+     (G) No fetch cancellation on tab switch. V195 aborts on leave.
+     (H) Hardcoded 'cobalt' fallback for locCardKey when name lookup fails. V195 uses first wallet key.
+     RESET + EXPORT/IMPORT:
+     (I, CRITICAL) resetWalletIQ only cleared 5 of ~20 keys — left tx, memberships, credits, applied, historical, dismissed lists, auto-earnings, employer bank, theme, V48 vault. V195 wraps to clear ALL walletiq_* keys.
+     (J) NO data export function existed. V195 adds exportWalletIQData() → downloadable JSON backup.
+     (K) NO data import function existed. V195 adds importWalletIQData(file) with validation + confirm.
+     (L) Reset didn't invalidate V127 caches. V195 hooks V191.invalidate.
+     (M) Confirm dialog gave no detail about what's being deleted. V195 lists counts before wipe.
+     (O) No tx CSV export. V195 adds exportTransactionsCSV() union across both storage keys.
+     Injects 3 new drawer items (Export data / Import data / Download transactions) BEFORE the Reset item.
+     Debug: window.__v195.audit() prints location cache + storage key inventory. -->
+<!-- V194 (2026-07-14): CSV upload + parse flow audit fixes.
+     (A, CRITICAL) CSV imports wrote to walletIQ_v40_tx but V128/V188/V190 only read walletiq_transactions → CSV-imported tx never accrued to Points Vault + missed V188 category backfill + missed V190 historical filter. V194 mirror-writes to both keys.
+     (B) CSV rows weren't auto-flagged historical:true — inflated This-Month/YTD tiles until user manually marked them.
+     (C) Duplicate detection missing — same CSV uploaded twice caused doubles. V194 dedups via date|merchant|amount fingerprint.
+     (D) Date parse hard-coded MM/DD/YYYY. Most Canadian banks use DD/MM/YYYY. V194 smart-parses: uses field-value heuristics (day > 12) + Canadian bank default DD/MM.
+     (E) No category precomputed → V128 fell back to base rate. V194 runs resolveCategory per row before save.
+     (F) Card field defaulted to 'other' for all bank formats. V194 auto-assigns when user has exactly 1 matching-issuer card in wallet.
+     (G) Quoted-comma parser missed escaped quotes. V194 handles "" as escape sequence.
+     (H) One bad row killed entire import. V194 per-row try/catch.
+     (I) No progress indicator for large CSVs. V194 shows in-place status pill.
+     (J) cleanMerchant only stripped BC cities. V194 adds Toronto/Calgary/Edmonton/Ottawa/Montreal/Winnipeg/Halifax + province codes.
+     Debug: window.__v194.audit() prints CSV + tx storage diagnostic. -->
+<!-- V193 (2026-07-14): Onboarding + Custom Card flow audit fixes.
+     (A) Fee input had no bounds — negative or absurd values (-100, 99999) passed through parseFloat unchecked. V193 clamps to [0, 5000] with user-visible correction.
+     (B) Rate input had no bounds — user could set 999x reward rate breaking the recommendation engine. V193 clamps to [0, 20].
+     (C) No duplicate-name check — user could create 3x "My Custom Visa". V193 warns with a confirm() prompt.
+     (D) Custom card key = 'custom_'+Date.now() — fast double-click created same key, silently overwriting previous card. V193 uses crypto.randomUUID or a random suffix.
+     (E) XSS: user-entered name + issuer were rendered directly into HTML in renderOnboardCards. V193 HTML-escapes at save time and via MutationObserver sanitizer.
+     (F) deleteCustomCard didn't call renderCards() → stale My Cards tab. V193 wraps to refresh.
+     (G) Zombie keys: onboardSelections could contain keys for deleted cards. V193 filters before persisting.
+     (H) Missing autofocus on #onboardSearch on desktop. V193 focuses after modal animation.
+     (I) No maxlength on ccName/ccIss inputs. V193 sets 60/40 chars.
+     Debug: window.__v193.audit() prints onboarding + custom card diagnostic. -->
+<!-- V192 (2026-07-14): Autocomplete engine (V156) audit + shims fix.
+     (A) V156's boot() runs 4 times (DOMReady + 300ms + 1200ms + 3000ms) with no idempotency guard on wireEvents, so every keystroke fires runQuery + renderRecommendation up to 4 times. V192 wraps runQuery with a 40ms coalesce window (query-value dedup) so duplicate fires collapse into one.
+     (B) V157's touch-scroll keyboard-dismiss uses a data-attribute flag on #autocomplete that survives V156's cloneNode but the actual listeners are lost. V192 watches for #autocomplete replacement and resets the flag so V157 re-wires cleanly.
+     (C) V191's ALIASES/ACCEPTANCE size poller now also triggers V156.buildIndex() so newly-injected merchants become searchable immediately (previously took 5s or 15s).
+     (D) runQuery(empty) → renderRecommendation('') fired on every backspace-to-empty; V192 dedups consecutive-empty calls.
+     (E) On boot, force a V156 buildIndex kick so first-500ms searches don't return empty.
+     (F) window.__v192.audit() prints engine diagnostic + dedup counters. -->
+<!-- V191 (2026-07-14): V127 Recommendation Engine cache-consistency audit fixes.
+     (A) saveCustomCard didn't invalidate V127 caches → newly added Amex custom cards stayed as 'no compatible card' from a stale recCache.
+     (B) deleteCustomCard didn't invalidate either → deleted card kept showing as best.
+     (C) V141's alias injection refreshed aliasKeysDesc but NOT catCache → newly-added merchants stayed uncategorizable to already-typed queries.
+     (D) recCache had no size cap — accumulated indefinitely during long sessions.
+     (E) FX toggle didn't clear caches (recCache key had fx but catCache/acceptCache didn't, and lastHeroSignature stayed).
+     (F) walletHash didn't include custom-card fingerprint → editing a custom card's realRates left stale cached recs.
+     (H) Added hit/miss counters + invalidation tracking for observability.
+     Debug: window.__v191.audit() prints full V127 cache diagnostic. -->
+<!-- V190 (2026-07-14): Insights / Missed-Rewards tile audit fixes.
+     (A, CRITICAL) renderRewardsHero iterated raw loadTx() with NO historical filter, so #rhThisMonth, #rhYTD, and initial #rhMissed included historical CSV imports. V85/V86 only patched #rhMissed via a delayed tick. V190 wraps renderRewardsHero to recompute all three tiles from a properly-filtered tx list.
+     (D) computeMissedByCategory also had no historical filter → historical bill payments showed up as "top leaks" on Insights. V190 wraps it to filter historical + leak-dismissed + bill-pay merchants + honor pre-set t.category.
+     (F) detectSubscriptions had the same blind spots, so historical CSV grocery buys were flagged as fake subscriptions. V190 filters + relaxes the variance check so real subs with price hikes still detect.
+     (I) calculateTxReward computed 'missed' vs current wallet even when the tx's card was removed from the wallet after logging → retroactive missed-reward inflation. V190 skips that tx from the missed calc entirely.
+     (L) Hero tiles didn't refresh on tx save (only on tab switch). V190 chains a rAF-debounced setItem listener so tiles update immediately when new logs land.
+     Debug: window.__v190.audit() prints full Insights diagnostic. -->
+<!-- V189 (2026-07-14): Welcome Offers + Statement Credits audit fixes.
+     (T, MAJOR) computeCreditsSummary summed claimed credits across ALL YEARS in walletiq_credits_v46 while ytdPotential only annualized current-period → every year, hero ring inflated. V189 filters claimed to current-period only.
+     (U) ytdClaimed/ytdPotential basis mismatch → wrong % on hero ring. Fixed alongside T.
+     (V) Redeemed filter tab count was (total - activeCount) which mixed all-time state. Now uses current-period claimed count.
+     (L) Applied-card progress calc didn't filter t.historical → CSV imports inflated spend.
+     (M) Progress only checked t.card, missed logged tx that used t.cardKey (from legacy path). Now checks all field variants.
+     (N) When spent >= minSpend on a pending applied card, V189 auto-promotes status to 'earned' + toasts "🎉 Welcome bonus earned!".
+     (R+W) Applied list + credits list now re-render on tx/wallet/membership changes via chained setItem listener (rAF-debounced).
+     Debug: window.__v189.audit() prints diagnostics. -->
+<!-- V188 (2026-07-14): DEEP AUDIT FIXES — Points Vault + Log Purchase.
+     (K, CRITICAL) tx.category was never persisted when logging via hero, add-tx modal, or __v126SaveLog. V128's reconcile therefore always fell back to the base rate — logging $10 dining at Cobalt awarded 1.5 pts instead of 7.5 pts. V188 patches every save path to compute category via resolveCategory(merchant) BEFORE persisting, and back-fills category on load for any tx missing it.
+     (A, E) Legacy V48-era renderVault() + updateVaultBalance() still ran and wrote to non-existent #vaultTotal/#vaultPrograms IDs. V188 neuters both to delegate to V122's renderVaultV122() (no-op if absent).
+     (C) memberValue() blindly did balance*cpp/100 for all programs — cashback programs (Rogers Cash, WS 2%, PC Optimum $ view) were under-counted 100×. V188 wraps memberValue to detect mem.cashback / mem.__cashback / mem.unit==='dollars' / mem.unit==='$' and return the balance as-is for those.
+     (H) #heroLogAmount + #txAmount missing inputmode='decimal' → wrong keypad on mobile. V188 sets it on load + on every form-show mutation.
+     Debug: window.__v188.audit() prints full diagnostics. -->
+<!-- V187 (2026-07-14): AUDIT RESTORATION PATCH.
+     (1) Wallet-style My Cards UI restored: V185's simplified stack renderer was overriding V149's full .cardBig content (fees comparison, benefit rows, breakeven analyzer, extra spending info). V187 neutralizes v185-wallet-stack and rebuilds a proper Wise-style stacked wallet where the expanded state contains the FULL .cardBig with ALL spending info per card.
+     (2) X clear button bulletproof-fix: V80/V157 kept losing their listener because V156's autocomplete engine clones #q. V187 uses a MutationObserver on .search-wrap and a capture-phase click handler that survives node replacement. Also kills the legacy .v80-clear-btn on every mutation to prevent duplicate ghost buttons.
+     (3) CARDS_DB audit: on load, every card is scanned for benefits[]/realRates and any missing fields are console-warned so future audits catch regressions.
+     (4) V186 real bank logos + drag-to-reorder preserved. -->
 <!-- V181 (2026-07-14): Welcome-offers filter tabs audit (11). -->
 <!-- V182 (2026-07-14): Onboarding wallet setup follow-up audit (11). -->
 <!-- V183 (2026-07-14): Reset drawer + Data export/import audit (11). -->
@@ -48,7 +132,7 @@
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>Wallet IQ V186</title>
+<title>Wallet IQ V195</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Wallet IQ">
@@ -24633,6 +24717,3554 @@ try{console.log('[V186] bank logos + drag reorder + home fan ready');}catch(_){}
 </script>
 
 <!-- End of V186 -->
+
+
+<!-- ================== V187 RESTORATION PATCH ================== -->
+<style id="v187-styles">
+/* Kill the legacy V80 clear button once and for all */
+.v80-clear-btn { display: none !important; }
+
+/* V187 wallet stack: Wise-style stacked wallet preserving FULL .cardBig details */
+#cardList.v187-mounted { display: flex; flex-direction: column; gap: 0; padding: 4px 2px 20px; }
+#cardList.v187-mounted .cardBig {
+  position: relative;
+  margin-top: -78px !important;
+  cursor: pointer;
+  transition: transform .22s cubic-bezier(.2,.9,.3,1.15), box-shadow .22s ease, margin-top .35s cubic-bezier(.2,.9,.3,1.15);
+  box-shadow: 0 6px 20px rgba(20,20,40,.09), 0 1px 3px rgba(20,20,40,.05);
+  border-radius: 18px !important;
+  background: var(--surface, #fff) !important;
+  border: 1px solid var(--border, rgba(15,20,25,.08)) !important;
+  overflow: hidden;
+}
+#cardList.v187-mounted .cardBig:first-child { margin-top: 0 !important; }
+#cardList.v187-mounted .cardBig.v187-collapsed { max-height: 92px; }
+#cardList.v187-mounted .cardBig.v187-collapsed .fees,
+#cardList.v187-mounted .cardBig.v187-collapsed .benefits,
+#cardList.v187-mounted .cardBig.v187-collapsed .expand,
+#cardList.v187-mounted .cardBig.v187-collapsed .breakeven-analyzer { display: none !important; }
+#cardList.v187-mounted .cardBig.v187-collapsed .cc-wrapper {
+  padding: 10px 14px !important;
+  display: grid;
+  grid-template-columns: 92px 1fr 22px;
+  gap: 12px;
+  align-items: center;
+}
+#cardList.v187-mounted .cardBig.v187-collapsed .cc-wrapper .cc-svg {
+  width: 92px !important; height: auto !important; max-width: 92px !important;
+  box-shadow: 0 3px 8px rgba(20,20,40,.15);
+}
+#cardList.v187-mounted .cardBig.v187-collapsed::before {
+  content: attr(data-v187-name);
+  position: absolute; left: 118px; top: 22px;
+  font-size: 14px; font-weight: 900; letter-spacing: -.02em; color: var(--ink);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: calc(100% - 160px);
+}
+#cardList.v187-mounted .cardBig.v187-collapsed::after {
+  content: attr(data-v187-rate);
+  position: absolute; left: 118px; top: 44px;
+  font-size: 11px; font-weight: 750; color: var(--muted);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: calc(100% - 160px);
+}
+#cardList.v187-mounted .cardBig .v187-chev {
+  position: absolute; right: 14px; top: 32px; font-size: 15px; color: var(--muted);
+  transition: transform .3s cubic-bezier(.2,.9,.3,1.15), color .2s ease;
+  pointer-events: none; user-select: none;
+}
+#cardList.v187-mounted .cardBig.v187-open .v187-chev { transform: rotate(180deg); color: var(--brand, #2563eb); }
+#cardList.v187-mounted .cardBig.v187-open {
+  margin-top: 12px !important;
+  box-shadow: 0 14px 34px rgba(37,99,235,.18), 0 4px 8px rgba(20,20,40,.06);
+  border-color: var(--brand, #2563eb) !important;
+  z-index: 3;
+}
+#cardList.v187-mounted .cardBig.v187-open .cc-wrapper { padding: 14px 14px 4px !important; display: block; grid-template-columns: none; }
+#cardList.v187-mounted .cardBig.v187-open .cc-wrapper .cc-svg { max-width: 340px !important; width: 100% !important; }
+#cardList.v187-mounted .cardBig.v187-open::before,
+#cardList.v187-mounted .cardBig.v187-open::after { display: none; }
+
+/* V187 clear button */
+.search-wrap { position: relative !important; }
+.v187-clear-btn {
+  position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+  width: 26px; height: 26px; border-radius: 50%;
+  background: var(--muted, #6b7280); color: #fff; border: none; cursor: pointer;
+  display: none; align-items: center; justify-content: center;
+  font-size: 15px; font-weight: 700; padding: 0; line-height: 1;
+  z-index: 10; transition: background .12s ease, transform .1s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,.1);
+}
+.v187-clear-btn.show { display: flex !important; }
+.v187-clear-btn:hover { background: var(--ink, #111); }
+.v187-clear-btn:active { transform: translateY(-50%) scale(.9); }
+input#q { padding-right: 46px !important; }
+</style>
+
+<script id="v187-patch">
+(function(){
+  'use strict';
+  var TAG = '[V187]';
+  console.log(TAG, 'restoration patch loading...');
+
+  // ================================================================
+  // PART A: NEUTRALIZE V185's simplified wallet stack renderer
+  // ================================================================
+  function killV185Stack(){
+    try {
+      // Remove any v185-wallet-stack that got injected before us
+      document.querySelectorAll('.v185-wallet-stack').forEach(function(el){ el.remove(); });
+      // Neutralize any V185 render functions if they exist on window
+      ['renderV185Wallet','mountV185WalletStack','v185RenderWallet'].forEach(function(fn){
+        if (typeof window[fn] === 'function') {
+          window[fn] = function(){ return false; };
+        }
+      });
+    } catch(e){ console.warn(TAG, 'killV185Stack:', e); }
+  }
+  killV185Stack();
+
+  // ================================================================
+  // PART B: WALLET-STYLE UI — wrap the full .cardBig from renderCards
+  // ================================================================
+  function mountWalletUi(){
+    var list = document.getElementById('cardList');
+    if (!list) return;
+    var cards = list.querySelectorAll('.cardBig');
+    if (!cards.length) { list.classList.remove('v187-mounted'); return; }
+    list.classList.add('v187-mounted');
+
+    cards.forEach(function(cardEl){
+      // Enrich preview strip from card data
+      var key = cardEl.getAttribute('data-card-key');
+      var db = (typeof CARDS_DB !== 'undefined') ? CARDS_DB : {};
+      var card = db[key] || (typeof customCards !== 'undefined' ? customCards[key] : null);
+      if (card) {
+        cardEl.setAttribute('data-v187-name', card.n || key);
+        var subParts = [];
+        if (card.iss) subParts.push(card.iss);
+        if (card.r) subParts.push(card.r);
+        cardEl.setAttribute('data-v187-rate', subParts.join(' · '));
+      }
+
+      // Add chevron if missing
+      if (!cardEl.querySelector('.v187-chev')) {
+        var chev = document.createElement('div');
+        chev.className = 'v187-chev';
+        chev.textContent = '▾';
+        cardEl.appendChild(chev);
+      }
+
+      // Start collapsed unless already open
+      if (!cardEl.classList.contains('v187-open')) {
+        cardEl.classList.add('v187-collapsed');
+      }
+
+      // Wire tap-to-expand (idempotent)
+      if (!cardEl.hasAttribute('data-v187-wired')) {
+        cardEl.setAttribute('data-v187-wired', '1');
+        cardEl.addEventListener('click', function(ev){
+          // Ignore clicks on interactive children (buttons, inputs, links inside expand)
+          var t = ev.target;
+          if (t.closest('button, a, input, select, textarea, .breakeven-analyzer input, .breakeven-analyzer button')) {
+            return;
+          }
+          var open = cardEl.classList.contains('v187-open');
+          // Close others (accordion)
+          list.querySelectorAll('.cardBig.v187-open').forEach(function(o){
+            if (o !== cardEl) {
+              o.classList.remove('v187-open');
+              o.classList.add('v187-collapsed');
+            }
+          });
+          if (open) {
+            cardEl.classList.remove('v187-open');
+            cardEl.classList.add('v187-collapsed');
+          } else {
+            cardEl.classList.remove('v187-collapsed');
+            cardEl.classList.add('v187-open');
+            // Scroll into view smoothly
+            setTimeout(function(){
+              cardEl.scrollIntoView({behavior:'smooth', block:'nearest'});
+            }, 260);
+          }
+        });
+      }
+    });
+  }
+
+  // Hook into renderCards so wallet UI re-mounts after every render
+  function hookRenderCards(){
+    if (typeof window.renderCards !== 'function') return false;
+    if (window.renderCards.__v187Wrapped) return true;
+    var orig = window.renderCards;
+    window.renderCards = function(){
+      var r = orig.apply(this, arguments);
+      // Let V185 die then mount ours
+      setTimeout(function(){
+        killV185Stack();
+        mountWalletUi();
+      }, 40);
+      // Second pass after breakeven analyzer injects
+      setTimeout(mountWalletUi, 180);
+      return r;
+    };
+    window.renderCards.__v187Wrapped = true;
+    return true;
+  }
+
+  // ================================================================
+  // PART C: X CLEAR BUTTON — bulletproof against #q cloning
+  // ================================================================
+  function ensureClearButton(){
+    var wrap = document.querySelector('.search-wrap');
+    var q = document.getElementById('q');
+    if (!wrap || !q) return;
+
+    // Remove ALL v80-clear-btn instances (legacy)
+    wrap.querySelectorAll('.v80-clear-btn').forEach(function(b){ b.remove(); });
+
+    // Ensure exactly one v187-clear-btn
+    var btns = wrap.querySelectorAll('.v187-clear-btn');
+    var btn;
+    if (btns.length === 0) {
+      btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'v187-clear-btn';
+      btn.setAttribute('aria-label', 'Clear search');
+      btn.innerHTML = '✕';
+      wrap.appendChild(btn);
+    } else {
+      btn = btns[0];
+      // Remove any extras
+      for (var i=1; i<btns.length; i++) btns[i].remove();
+    }
+
+    // Wire the button (use pointerdown to fire BEFORE #q blur/clone)
+    if (!btn.__v187Wired) {
+      btn.__v187Wired = true;
+      var doClear = function(ev){
+        ev.preventDefault();
+        ev.stopPropagation();
+        var live = document.getElementById('q');
+        if (live) {
+          live.value = '';
+          try { live.dispatchEvent(new Event('input', {bubbles:true})); } catch(e){}
+          try { live.dispatchEvent(new Event('change', {bubbles:true})); } catch(e){}
+          // Close autocomplete if V152/V156 engine exposes it
+          try {
+            if (window.__v152 && typeof window.__v152.close === 'function') window.__v152.close();
+          } catch(e){}
+          // Close any dropdown/panel
+          document.querySelectorAll('.ac-panel, .autocomplete-panel, .search-suggest').forEach(function(p){
+            p.style.display = 'none';
+            p.classList.remove('open','show','visible');
+          });
+          // Reset filter for card list
+          if (typeof window.filterCardsList === 'function') {
+            try { window.filterCardsList(''); } catch(e){}
+          }
+          // Refresh offers if applicable
+          if (typeof window.clearOfferSearch === 'function') {
+            try { window.clearOfferSearch(); } catch(e){}
+          }
+          live.focus();
+        }
+        btn.classList.remove('show');
+      };
+      btn.addEventListener('pointerdown', doClear, true);
+      btn.addEventListener('click', doClear, true);
+      btn.addEventListener('touchstart', doClear, {capture:true, passive:false});
+    }
+
+    // Wire the input to toggle button visibility (delegated at wrap level so surviving clones)
+    if (!wrap.__v187InputDelegated) {
+      wrap.__v187InputDelegated = true;
+      var updateVis = function(){
+        var live = document.getElementById('q');
+        if (!live) return;
+        if (live.value && live.value.length > 0) btn.classList.add('show');
+        else btn.classList.remove('show');
+      };
+      wrap.addEventListener('input', function(ev){
+        if (ev.target && ev.target.id === 'q') updateVis();
+      }, true);
+      wrap.addEventListener('focus', function(ev){
+        if (ev.target && ev.target.id === 'q') updateVis();
+      }, true);
+      // Initial state
+      updateVis();
+    }
+  }
+
+  // MutationObserver on search-wrap catches #q clones by V156 engine
+  function watchSearchWrap(){
+    var wrap = document.querySelector('.search-wrap');
+    if (!wrap) return;
+    ensureClearButton();
+    var mo = new MutationObserver(function(muts){
+      // Any structural change → re-verify our button is present + no v80 ghosts
+      ensureClearButton();
+    });
+    mo.observe(wrap, {childList:true, subtree:true});
+  }
+
+  // ================================================================
+  // PART D: CARDS_DB AUDIT — warn about missing per-card fields
+  // ================================================================
+  function auditCardsDb(){
+    if (typeof CARDS_DB === 'undefined') { console.warn(TAG, 'CARDS_DB not defined at audit time'); return; }
+    var missing = { benefits: [], realRates: [], extra: [] };
+    Object.keys(CARDS_DB).forEach(function(k){
+      var c = CARDS_DB[k];
+      if (!c) return;
+      if (!c.benefits || !Array.isArray(c.benefits) || c.benefits.length === 0) missing.benefits.push(k);
+      if (!c.realRates) missing.realRates.push(k);
+      if (!c.extra) missing.extra.push(k);
+    });
+    var total = Object.keys(CARDS_DB).length;
+    console.log(TAG, 'CARDS_DB audit: ' + total + ' cards. Missing benefits: ' + missing.benefits.length + ', missing realRates: ' + missing.realRates.length + ', missing extra: ' + missing.extra.length);
+    if (missing.benefits.length) console.warn(TAG, 'cards missing benefits[]:', missing.benefits);
+    if (missing.realRates.length) console.warn(TAG, 'cards missing realRates:', missing.realRates);
+    if (missing.extra.length) console.warn(TAG, 'cards missing extra:', missing.extra);
+    window.__v187Audit = { total: total, missing: missing };
+  }
+
+  // ================================================================
+  // BOOT
+  // ================================================================
+  function boot(){
+    killV185Stack();
+    auditCardsDb();
+    watchSearchWrap();
+    // Try to hook renderCards; retry until it exists
+    var tries = 0;
+    var iv = setInterval(function(){
+      tries++;
+      if (hookRenderCards() || tries > 40) {
+        clearInterval(iv);
+        // Force initial mount if we're already on cards tab
+        if (typeof window.renderCards === 'function') {
+          try { window.renderCards(); } catch(e){}
+        } else {
+          mountWalletUi();
+        }
+      }
+    }, 100);
+
+    // Also re-mount on tab switch to cardsTab
+    if (typeof window.switchTab === 'function' && !window.switchTab.__v187Wrapped) {
+      var origSwitch = window.switchTab;
+      window.switchTab = function(tab){
+        var r = origSwitch.apply(this, arguments);
+        if (tab === 'cardsTab') {
+          setTimeout(function(){ killV185Stack(); mountWalletUi(); }, 120);
+          setTimeout(mountWalletUi, 300);
+        }
+        return r;
+      };
+      window.switchTab.__v187Wrapped = true;
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+
+  // Expose for debugging
+  window.__v187 = {
+    remount: mountWalletUi,
+    killV185: killV185Stack,
+    audit: auditCardsDb,
+    ensureClearBtn: ensureClearButton
+  };
+  console.log(TAG, 'patch installed. Use window.__v187 to debug.');
+})();
+</script>
+<!-- ================== /V187 RESTORATION PATCH ================== -->
+
+
+<!-- ================== V188 DEEP AUDIT FIX PATCH ================== -->
+<style id="v188-styles">
+/* Highlight amount field when preview is active for better feedback */
+#heroLogAmount:focus, #txAmount:focus { outline: 2px solid var(--brand, #2563eb); outline-offset: 1px; }
+.v188-cat-badge {
+  display: inline-block; margin-left: 6px; padding: 2px 7px; border-radius: 999px;
+  background: var(--accent-soft, #e0e9ff); color: var(--brand, #2563eb);
+  font-size: 9.5px; font-weight: 900; letter-spacing: .04em; text-transform: uppercase;
+  vertical-align: middle;
+}
+</style>
+<script id="v188-patch">
+(function(){
+  'use strict';
+  var TAG = '[V188]';
+  console.log(TAG, 'deep audit patch loading...');
+
+  var TX_KEYS = ['walletiq_transactions','walletiq_v82_tx','walletiq_tx','transactions'];
+
+  function readJSON(k, fb){
+    try{ var s=localStorage.getItem(k); if(!s) return fb; var p=JSON.parse(s); return p==null?fb:p; }
+    catch(e){ return fb; }
+  }
+  function writeJSON(k, v){
+    try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){}
+  }
+
+  // ---------- Category resolver with graceful fallback ----------
+  function resolveCategoryFor(merchant){
+    if (!merchant) return 'base';
+    // Try every possible resolver the app might have
+    var candidates = ['resolveCategory','lookupCategory','getCategory','categoryFor'];
+    for (var i=0; i<candidates.length; i++){
+      var fn = window[candidates[i]];
+      if (typeof fn === 'function') {
+        try { var c = fn(merchant); if (c) return c; } catch(e){}
+      }
+    }
+    // Fall back to MERCHANT_DIRECTORY / MERCHANT_TO_CATEGORY lookup
+    try {
+      var m = String(merchant).toLowerCase().trim();
+      if (window.MERCHANT_TO_CATEGORY && window.MERCHANT_TO_CATEGORY[m]) return window.MERCHANT_TO_CATEGORY[m];
+      if (window.ALIASES && window.ALIASES[m]) return window.ALIASES[m];
+    } catch(e){}
+    return 'base';
+  }
+  window.__v188ResolveCategory = resolveCategoryFor;
+
+  // ==============================================================
+  // FIX K + J: Back-fill category on every tx write
+  // ==============================================================
+  function backfillCategoryOnArray(arr){
+    if (!Array.isArray(arr)) return false;
+    var touched = 0;
+    arr.forEach(function(tx){
+      if (!tx || typeof tx !== 'object') return;
+      if (!tx.category && !tx.cat) {
+        var merchant = tx.merchant || tx.m || '';
+        tx.category = resolveCategoryFor(merchant);
+        touched++;
+      }
+      // Also normalize field names so V128 finds them
+      if (tx.cardKey && !tx.card) tx.card = tx.cardKey;
+      if (tx.amt != null && tx.amount == null) tx.amount = tx.amt;
+    });
+    return touched > 0;
+  }
+
+  function installTxWriteIntercept(){
+    if (localStorage.setItem.__v188Intercepted) return;
+    var orig = localStorage.setItem.bind(localStorage);
+    localStorage.setItem = function(key, val){
+      try {
+        if (TX_KEYS.indexOf(key) >= 0 && typeof val === 'string') {
+          try {
+            var parsed = JSON.parse(val);
+            if (Array.isArray(parsed)) {
+              if (backfillCategoryOnArray(parsed)) {
+                val = JSON.stringify(parsed);
+              }
+            }
+          } catch(e){}
+        }
+      } catch(e){}
+      var r = orig(key, val);
+      // Kick V128 reconcile after tx writes so category-corrected accruals hit vault immediately
+      if (TX_KEYS.indexOf(key) >= 0) {
+        try {
+          if (window.__v128 && window.__v128.ready) {
+            // V128 already schedules itself via its own intercept — but this is idempotent
+            setTimeout(function(){
+              try { if (typeof window.renderVaultV122 === 'function') window.renderVaultV122(); } catch(e){}
+            }, 60);
+          }
+        } catch(e){}
+      }
+      return r;
+    };
+    // Preserve V128's intercept flag if present
+    if (orig.__v128Intercepted) localStorage.setItem.__v128Intercepted = true;
+    localStorage.setItem.__v188Intercepted = true;
+  }
+
+  // One-time back-fill on load for any pre-V188 tx already stored
+  function backfillExistingTxOnce(){
+    var didAny = false;
+    TX_KEYS.forEach(function(k){
+      var arr = readJSON(k, null);
+      if (!Array.isArray(arr) || arr.length === 0) return;
+      if (backfillCategoryOnArray(arr)) {
+        writeJSON(k, arr);
+        didAny = true;
+        console.log(TAG, 'back-filled category on', arr.length, 'tx in', k);
+      }
+    });
+    if (didAny) {
+      try { if (window.__v128 && typeof window.__v128.reconcile === 'function') window.__v128.reconcile(); } catch(e){}
+      try { if (typeof window.renderVaultV122 === 'function') window.renderVaultV122(); } catch(e){}
+    }
+  }
+
+  // ==============================================================
+  // FIX A + E: Neuter legacy renderVault + updateVaultBalance
+  // ==============================================================
+  function neuterLegacyVault(){
+    try {
+      var origRender = window.renderVault;
+      if (typeof origRender === 'function' && !origRender.__v188Neutered) {
+        window.renderVault = function(){
+          // If V122 exists, delegate to it; otherwise no-op silently
+          try { if (typeof window.renderVaultV122 === 'function') return window.renderVaultV122(); } catch(e){}
+          return null;
+        };
+        window.renderVault.__v188Neutered = true;
+      }
+      var origUpdate = window.updateVaultBalance;
+      if (typeof origUpdate === 'function' && !origUpdate.__v188Neutered) {
+        // Only neuter if it targets the legacy VAULT_KEY (walletIQ_v48_vault)
+        // Modern updates should go through the V122 Edit Balance modal
+        window.updateVaultBalance = function(){
+          console.log(TAG, 'legacy updateVaultBalance() call blocked — use V122 Edit Balance');
+          try { if (typeof window.renderVaultV122 === 'function') window.renderVaultV122(); } catch(e){}
+          return null;
+        };
+        window.updateVaultBalance.__v188Neutered = true;
+      }
+    } catch(e){ console.warn(TAG, 'neuterLegacyVault:', e); }
+  }
+
+  // ==============================================================
+  // FIX C: memberValue cashback detection
+  // ==============================================================
+  function isCashbackMember(mem){
+    if (!mem) return false;
+    if (mem.cashback === true || mem.__cashback === true) return true;
+    var unit = String(mem.unit || '').toLowerCase();
+    if (unit === 'dollars' || unit === '$' || unit === 'cad' || unit === 'usd') return true;
+    // Known cashback program keys
+    var k = String(mem.key || '').toLowerCase();
+    if (k === 'rogerscash' || k === 'rogers_cash' || k === 'wscash' || k === 'wsdollars') return true;
+    return false;
+  }
+
+  function patchMemberValue(){
+    if (typeof window.memberValue !== 'function') return false;
+    if (window.memberValue.__v188Wrapped) return true;
+    var orig = window.memberValue;
+    window.memberValue = function(mem){
+      if (isCashbackMember(mem)) {
+        var bal = Number(mem && mem.balance) || 0;
+        return bal > 0 ? bal : 0;
+      }
+      return orig.apply(this, arguments);
+    };
+    window.memberValue.__v188Wrapped = true;
+    return true;
+  }
+
+  function patchMemberValueAtCpp(){
+    if (typeof window.memberValueAtCpp !== 'function') return false;
+    if (window.memberValueAtCpp.__v188Wrapped) return true;
+    // Leave this one alone — it's called with explicit cpp for redemption ladders.
+    // But guard against cpp==1 sentinel for cashback
+    window.memberValueAtCpp.__v188Wrapped = true;
+    return true;
+  }
+
+  // Also mark V128 auto-created cashback mems on read
+  function flagCashbackAutoMems(){
+    try {
+      var mems = readJSON('walletiq_memberships', []);
+      if (!Array.isArray(mems)) return;
+      var touched = false;
+      mems.forEach(function(m){
+        if (!m) return;
+        // Detect cashback programs by V128 flag
+        if (m.__v128Auto && m.cashback === true && m.__cashback !== true) {
+          m.__cashback = true; touched = true;
+        }
+      });
+      if (touched) writeJSON('walletiq_memberships', mems);
+    } catch(e){}
+  }
+
+  // ==============================================================
+  // FIX H: inputmode="decimal" on amount inputs
+  // ==============================================================
+  function fixAmountInputs(){
+    ['heroLogAmount','txAmount'].forEach(function(id){
+      var el = document.getElementById(id);
+      if (!el) return;
+      if (el.getAttribute('inputmode') !== 'decimal') el.setAttribute('inputmode','decimal');
+      if (!el.getAttribute('pattern')) el.setAttribute('pattern','[0-9]*\\.?[0-9]*');
+      if (!el.getAttribute('step')) el.setAttribute('step','0.01');
+      if (!el.getAttribute('type')) el.setAttribute('type','number');
+    });
+  }
+
+  // ==============================================================
+  // AUDIT DEBUG COMMAND
+  // ==============================================================
+  function runAudit(){
+    console.group(TAG, 'AUDIT REPORT');
+    var report = { txs:{}, categoryMissing:0, cardMissing:0, totalTx:0 };
+
+    // TX audit
+    var activeSource = null, activeArr = [];
+    TX_KEYS.forEach(function(k){
+      var a = readJSON(k, null);
+      var cnt = Array.isArray(a) ? a.length : 0;
+      report.txs[k] = cnt;
+      if (Array.isArray(a) && a.length > 0 && !activeSource) { activeSource = k; activeArr = a; }
+    });
+    console.log('TX storage counts:', report.txs);
+    console.log('Active TX source:', activeSource);
+
+    activeArr.forEach(function(tx){
+      report.totalTx++;
+      if (!tx.category && !tx.cat) report.categoryMissing++;
+      if (!tx.card && !tx.cardKey && !tx.c) report.cardMissing++;
+    });
+    console.log('Total tx:', report.totalTx, '| missing category:', report.categoryMissing, '| missing card:', report.cardMissing);
+
+    // V128 state
+    if (window.__v128) {
+      console.log('V128 ready:', window.__v128.ready, '| version:', window.__v128.version);
+    } else {
+      console.warn('V128 not initialized');
+    }
+
+    // Portfolio
+    if (typeof window.computePortfolioTotal === 'function') {
+      try { console.log('Portfolio total: $' + window.computePortfolioTotal().toFixed(2)); } catch(e){}
+    }
+
+    // CARDS_DB
+    if (window.__v187Audit) {
+      console.log('CARDS_DB scan (from V187):', window.__v187Audit);
+    }
+
+    // memberships breakdown
+    var mems = readJSON('walletiq_memberships', []);
+    if (Array.isArray(mems)) {
+      console.log('Memberships:', mems.length, '| auto (V128):', mems.filter(function(m){return m.__v128Auto;}).length, '| cashback:', mems.filter(function(m){return isCashbackMember(m);}).length);
+      mems.forEach(function(m){
+        if (!m) return;
+        try {
+          var v = window.memberValue ? window.memberValue(m) : 0;
+          console.log('  ·', m.name||m.key, '→ bal:', m.balance||0, m.unit||'pts', '≈ $' + (v||0).toFixed(2), isCashbackMember(m)?'[cashback]':'', m.__v128Auto?'[auto]':'[manual]');
+        } catch(e){}
+      });
+    }
+    console.groupEnd();
+    return report;
+  }
+
+  // ==============================================================
+  // BOOT
+  // ==============================================================
+  function boot(){
+    // Order matters: intercept BEFORE anything can write
+    installTxWriteIntercept();
+    // Then back-fill
+    backfillExistingTxOnce();
+    // Neuter legacy vault
+    neuterLegacyVault();
+    // Flag cashback mems
+    flagCashbackAutoMems();
+    // Patch memberValue (needs V122 loaded first — retry loop)
+    var tries = 0;
+    var iv = setInterval(function(){
+      tries++;
+      var ok = patchMemberValue() && patchMemberValueAtCpp();
+      if (ok || tries > 40) {
+        clearInterval(iv);
+        // Re-render vault with cashback fix applied
+        try { if (typeof window.renderVaultV122 === 'function') window.renderVaultV122(); } catch(e){}
+      }
+    }, 100);
+    // Fix input keypads
+    fixAmountInputs();
+    // Re-fix on modal opens
+    var mo = new MutationObserver(function(){ fixAmountInputs(); });
+    mo.observe(document.body, {childList:true, subtree:true, attributes:true, attributeFilter:['class','style']});
+
+    console.log(TAG, 'patch installed. Run window.__v188.audit() to diagnose.');
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+
+  window.__v188 = {
+    audit: runAudit,
+    backfillNow: backfillExistingTxOnce,
+    resolveCategory: resolveCategoryFor,
+    fixInputs: fixAmountInputs,
+    isCashback: isCashbackMember
+  };
+})();
+</script>
+<!-- ================== /V188 DEEP AUDIT FIX PATCH ================== -->
+
+
+<!-- ================== V189 OFFERS + CREDITS AUDIT PATCH ================== -->
+<style id="v189-styles">
+.v189-toast {
+  position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-20px);
+  background: linear-gradient(135deg, #1f8a3d, #2ba149); color: #fff;
+  padding: 12px 22px; border-radius: 99px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-weight: 900; font-size: 13.5px; letter-spacing: -.01em;
+  box-shadow: 0 8px 24px rgba(31,138,61,.42);
+  z-index: 320; opacity: 0; transition: opacity .24s ease, transform .3s cubic-bezier(.2,.9,.3,1.2);
+  pointer-events: none; max-width: 90vw; text-align: center;
+  display: flex; align-items: center; gap: 8px;
+}
+.v189-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.v189-toast .emo { font-size: 18px; }
+body.dark .v189-toast { background: linear-gradient(135deg, #7ed892, #5ea87a); color: #0f0d1a; }
+</style>
+<script id="v189-patch">
+(function(){
+  'use strict';
+  var TAG = '[V189]';
+  console.log(TAG, 'offers + credits audit patch loading...');
+
+  // ==============================================================
+  // Helpers
+  // ==============================================================
+  function readJSON(k, fb){ try{ var s=localStorage.getItem(k); if(!s) return fb; var p=JSON.parse(s); return p==null?fb:p; }catch(e){ return fb; } }
+  function writeJSON(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+
+  function toast(msg, emoji){
+    var el = document.querySelector('.v189-toast');
+    if (el) el.remove();
+    el = document.createElement('div');
+    el.className = 'v189-toast';
+    el.innerHTML = '<span class="emo">'+(emoji||'\u2728')+'</span><span>'+msg+'</span>';
+    document.body.appendChild(el);
+    requestAnimationFrame(function(){ el.classList.add('show'); });
+    setTimeout(function(){ el.classList.remove('show'); }, 2500);
+    setTimeout(function(){ if (el.parentNode) el.remove(); }, 2900);
+  }
+
+  // Get current period key using the app's own helper if present
+  function currentPeriodKey(period){
+    try {
+      if (typeof window.getCreditPeriodKey === 'function') return window.getCreditPeriodKey(period);
+    } catch(e){}
+    var now = new Date();
+    if (period === 'month') return now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+    if (period === 'year') return String(now.getFullYear());
+    if (period === '4year') return String(Math.floor(now.getFullYear()/4)*4);
+    return String(now.getFullYear());
+  }
+
+  // Find credit definition from a stored key like "cobalt-travel-2026"
+  function findCreditDef(cardKey, creditId){
+    try {
+      var CC = window.CARD_CREDITS || {};
+      var arr = CC[cardKey];
+      if (!Array.isArray(arr)) return null;
+      for (var i=0; i<arr.length; i++) if (arr[i] && arr[i].id === creditId) return arr[i];
+    } catch(e){}
+    return null;
+  }
+
+  // ==============================================================
+  // FIX T + U: Rewrite computeCreditsSummary — current-period only
+  // ==============================================================
+  function patchCreditsSummary(){
+    if (typeof window.computeCreditsSummary !== 'function') return false;
+    if (window.computeCreditsSummary.__v189Wrapped) return true;
+    var orig = window.computeCreditsSummary;
+
+    window.computeCreditsSummary = function(){
+      try {
+        // We reimplement the current-period-scoped version. If anything fails, fall back to original.
+        if (typeof window.getUserCredits !== 'function') return orig.apply(this, arguments);
+        var list = window.getUserCredits();
+        var data = readJSON('walletiq_credits_v46', {});
+        var ytdClaimed = 0;
+        var ytdPotential = 0;
+        var urgentCount = 0, urgentValue = 0, activeCount = 0;
+        var redeemedThisPeriod = 0;
+
+        // Compute claimed amount for current period only, per credit-in-scope
+        list.forEach(function(item){
+          var cd = item.credit;
+          var period = cd.period || 'year';
+          var expectedKey = item.cardKey + '-' + cd.id + '-' + currentPeriodKey(period);
+          var claimedNow = !!(data[expectedKey] && data[expectedKey].redeemed);
+
+          // Annualize potential to the calendar year for a consistent hero ring
+          var annualized = (period === 'month') ? cd.amount * 12
+                          : (period === '4year') ? cd.amount / 4
+                          : cd.amount;
+          ytdPotential += annualized;
+
+          if (claimedNow) {
+            // For the % display, credit the annualized value so ring % is comparable
+            ytdClaimed += annualized;
+            redeemedThisPeriod++;
+          } else {
+            activeCount++;
+            if (item.ring && item.ring.left <= 30 && cd.amount > 0) {
+              urgentCount++;
+              urgentValue += cd.amount;
+            }
+          }
+        });
+
+        var pct = ytdPotential > 0 ? Math.round((ytdClaimed / ytdPotential) * 100) : 0;
+        // Clamp to 0-100 to be safe
+        if (pct < 0) pct = 0;
+        if (pct > 100) pct = 100;
+
+        return {
+          ytdClaimed: ytdClaimed,
+          ytdPotential: ytdPotential,
+          pct: pct,
+          urgentCount: urgentCount,
+          urgentValue: urgentValue,
+          activeCount: activeCount,
+          redeemedCount: redeemedThisPeriod,
+          total: list.length
+        };
+      } catch(e) {
+        console.warn(TAG, 'computeCreditsSummary fallback:', e);
+        return orig.apply(this, arguments);
+      }
+    };
+    window.computeCreditsSummary.__v189Wrapped = true;
+    return true;
+  }
+
+  // ==============================================================
+  // FIX V: renderCreditFilters — use redeemedCount from new summary
+  // ==============================================================
+  function patchCreditFilters(){
+    if (typeof window.renderCreditFilters !== 'function') return false;
+    if (window.renderCreditFilters.__v189Wrapped) return true;
+    var orig = window.renderCreditFilters;
+    window.renderCreditFilters = function(){
+      // Run original, then correct the "Claimed" tab count if summary now provides redeemedCount
+      var r = orig.apply(this, arguments);
+      try {
+        if (typeof window.computeCreditsSummary !== 'function') return r;
+        var s = window.computeCreditsSummary();
+        if (s.redeemedCount == null) return r;
+        var el = document.getElementById('creditFilters');
+        if (!el) return r;
+        // Find the "redeemed" button badge and rewrite its count
+        var btns = el.querySelectorAll('button');
+        btns.forEach(function(b){
+          var oc = b.getAttribute('onclick') || '';
+          if (oc.indexOf("'redeemed'") >= 0) {
+            var badge = b.querySelector('.cf-badge');
+            if (badge) badge.textContent = String(s.redeemedCount);
+          }
+        });
+      } catch(e){}
+      return r;
+    };
+    window.renderCreditFilters.__v189Wrapped = true;
+    return true;
+  }
+
+  // ==============================================================
+  // FIX L, M, N: Wrap renderAppliedList with better progress calc
+  //              + auto-promote to 'earned' when threshold hit
+  // ==============================================================
+  function normalizedTxSpend(txs, cardKey, sinceDate){
+    if (!Array.isArray(txs)) return 0;
+    var total = 0;
+    txs.forEach(function(t){
+      if (!t || typeof t !== 'object') return;
+      // Exclude historical / refund / dismissed
+      if (t.historical === true || t.__historical === true || t.dismissed === true) return;
+      var amt = Number(t.amount != null ? t.amount : t.amt) || 0;
+      if (amt <= 0) return;
+      var card = t.card || t.cardKey || t.c;
+      if (card !== cardKey) return;
+      var d = t.date || t.d;
+      if (!d) return;
+      if (sinceDate && d < sinceDate) return;
+      total += amt;
+    });
+    return total;
+  }
+
+  function autoPromotePending(){
+    try {
+      if (typeof window.loadApplied !== 'function' || typeof window.saveApplied !== 'function') return false;
+      var arr = window.loadApplied();
+      if (!Array.isArray(arr) || arr.length === 0) return false;
+      var txs = [];
+      try { if (typeof loadTx === 'function') txs = loadTx(); } catch(e){}
+      // If loadTx unavailable, read from V128 keys directly
+      if (!Array.isArray(txs) || txs.length === 0) {
+        var TX_KEYS = ['walletiq_transactions','walletiq_v82_tx','walletiq_tx','transactions','walletIQ_v40_tx'];
+        for (var i=0; i<TX_KEYS.length; i++) {
+          var a = readJSON(TX_KEYS[i], null);
+          if (Array.isArray(a) && a.length > 0) { txs = a; break; }
+        }
+      }
+      var promoted = 0;
+      arr.forEach(function(a){
+        if (!a || a.status !== 'pending' || !a.minSpend || a.minSpend <= 0) return;
+        var spent = normalizedTxSpend(txs, a.cardKey, a.dateApplied);
+        if (spent >= a.minSpend) {
+          a.status = 'earned';
+          a.earnedDate = new Date().toISOString().slice(0,10);
+          promoted++;
+        }
+      });
+      if (promoted > 0) {
+        window.saveApplied(arr);
+        var msg = promoted === 1 ? 'Welcome bonus earned!' : (promoted + ' bonuses earned!');
+        toast(msg, '\uD83C\uDF89');
+        return true;
+      }
+    } catch(e){ console.warn(TAG, 'autoPromotePending:', e); }
+    return false;
+  }
+
+  function patchAppliedListRender(){
+    if (typeof window.renderAppliedList !== 'function') return false;
+    if (window.renderAppliedList.__v189Wrapped) return true;
+    var orig = window.renderAppliedList;
+    window.renderAppliedList = function(){
+      // Try auto-promote FIRST so the render reflects new status
+      autoPromotePending();
+      // Now delegate to original renderer. It uses t.card === a.cardKey + no historical filter,
+      // so we monkey-patch loadTx temporarily to return a normalized/filtered array.
+      var origLoadTx = window.loadTx;
+      var didPatch = false;
+      try {
+        if (typeof origLoadTx === 'function') {
+          window.loadTx = function(){
+            var raw = origLoadTx.apply(this, arguments);
+            if (!Array.isArray(raw)) return raw;
+            return raw.filter(function(t){
+              return t && t.historical !== true && t.__historical !== true;
+            }).map(function(t){
+              // Normalize field names so orig code's `t.card === a.cardKey` matches everywhere
+              if (t.cardKey && !t.card) return Object.assign({}, t, {card: t.cardKey});
+              if (t.c && !t.card) return Object.assign({}, t, {card: t.c});
+              return t;
+            });
+          };
+          didPatch = true;
+        }
+      } catch(e){}
+      var r;
+      try { r = orig.apply(this, arguments); }
+      finally {
+        if (didPatch) window.loadTx = origLoadTx;
+      }
+      return r;
+    };
+    window.renderAppliedList.__v189Wrapped = true;
+    return true;
+  }
+
+  // ==============================================================
+  // FIX R + W: Re-render applied + credits on data change
+  // ==============================================================
+  var _rafPending = false;
+  function scheduleRefresh(){
+    if (_rafPending) return;
+    _rafPending = true;
+    requestAnimationFrame(function(){
+      _rafPending = false;
+      try { if (typeof window.renderAppliedList === 'function') window.renderAppliedList(); } catch(e){}
+      try { if (typeof window.renderCredits === 'function') window.renderCredits(); } catch(e){}
+      try { if (typeof window.renderHomeCreditAlert === 'function') window.renderHomeCreditAlert(); } catch(e){}
+    });
+  }
+
+  function installRefreshIntercept(){
+    if (localStorage.setItem.__v189Intercepted) return;
+    var orig = localStorage.setItem.bind(localStorage);
+    var TRIGGERS = [
+      'walletiq_transactions','walletiq_v82_tx','walletiq_tx','transactions',
+      'walletIQ_v40_wallet','walletiq_wallet',
+      'walletiq_memberships',
+      'walletIQ_v40_applied',
+      'walletiq_credits_v46'
+    ];
+    localStorage.setItem = function(k, v){
+      var r = orig(k, v);
+      if (TRIGGERS.indexOf(k) >= 0) scheduleRefresh();
+      return r;
+    };
+    // Preserve prior intercept flags
+    if (orig.__v128Intercepted) localStorage.setItem.__v128Intercepted = true;
+    if (orig.__v188Intercepted) localStorage.setItem.__v188Intercepted = true;
+    localStorage.setItem.__v189Intercepted = true;
+
+    window.addEventListener('storage', function(e){
+      if (e && e.key && TRIGGERS.indexOf(e.key) >= 0) scheduleRefresh();
+    });
+  }
+
+  // ==============================================================
+  // AUDIT
+  // ==============================================================
+  function runAudit(){
+    console.group(TAG, 'AUDIT REPORT');
+    // Applied cards
+    var applied = readJSON('walletIQ_v40_applied', []);
+    console.log('Applied cards tracked:', applied.length);
+    var txs = [];
+    try { if (typeof loadTx === 'function') txs = loadTx(); } catch(e){}
+    applied.forEach(function(a){
+      var spent = normalizedTxSpend(txs, a.cardKey, a.dateApplied);
+      var pct = a.minSpend > 0 ? Math.min(100, Math.round((spent / a.minSpend) * 100)) : 0;
+      console.log('  ·', a.cardKey, '| status:', a.status, '| spent: $' + Math.round(spent), '/ $' + a.minSpend, '(' + pct + '%)', '| deadline:', a.deadline);
+    });
+
+    // Credits
+    if (typeof window.computeCreditsSummary === 'function') {
+      var s = window.computeCreditsSummary();
+      console.log('Credits summary (V189):', s);
+      var allTimeData = readJSON('walletiq_credits_v46', {});
+      var allTimeClaimed = 0;
+      Object.keys(allTimeData).forEach(function(k){
+        if (!allTimeData[k].redeemed) return;
+        var parts = k.split('-');
+        if (parts.length < 3) return;
+        var cd = findCreditDef(parts[0], parts[1]);
+        if (cd) allTimeClaimed += cd.amount;
+      });
+      console.log('All-time raw claimed (not current period):', '$' + allTimeClaimed);
+      console.log('Current period claimed:', '$' + Math.round(s.ytdClaimed), '| potential:', '$' + Math.round(s.ytdPotential), '| pct:', s.pct + '%');
+    }
+    console.groupEnd();
+  }
+
+  // ==============================================================
+  // BOOT
+  // ==============================================================
+  function tryPatchAll(){
+    var ok = patchCreditsSummary();
+    ok = patchCreditFilters() && ok;
+    ok = patchAppliedListRender() && ok;
+    return ok;
+  }
+
+  function boot(){
+    installRefreshIntercept();
+    var tries = 0;
+    var iv = setInterval(function(){
+      tries++;
+      if (tryPatchAll() || tries > 50) {
+        clearInterval(iv);
+        // Force a refresh so new logic applies immediately
+        scheduleRefresh();
+      }
+    }, 100);
+    console.log(TAG, 'patch installed. Run window.__v189.audit() to diagnose.');
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+
+  window.__v189 = {
+    audit: runAudit,
+    autoPromote: autoPromotePending,
+    normalizedSpend: normalizedTxSpend,
+    refresh: scheduleRefresh
+  };
+})();
+</script>
+<!-- ================== /V189 OFFERS + CREDITS AUDIT PATCH ================== -->
+
+
+<!-- ================== V190 INSIGHTS TILE AUDIT PATCH ================== -->
+<script id="v190-patch">
+(function(){
+  'use strict';
+  var TAG = '[V190]';
+  console.log(TAG, 'insights audit patch loading...');
+
+  var TX_KEYS = ['walletiq_transactions','walletiq_v82_tx','walletiq_tx','transactions','walletIQ_v40_tx'];
+  var HIST_KEY = 'walletiq_v82_historical_ids';
+  var LEAK_DIS_KEY = 'walletiq_v82_leak_dismissed';
+  var SUB_DIS_KEY  = 'walletiq_v82_sub_dismissed';
+  var BILL_PATTERNS = ['mortgage','rent','strata','insurance','hydro','property tax','utility','utilities','bc hydro','fortisbc','enmax','atco','water bill','gas bill','condo fee','maintenance fee'];
+
+  function readJSON(k, fb){ try{ var s=localStorage.getItem(k); if(!s) return fb; var p=JSON.parse(s); return p==null?fb:p; }catch(e){ return fb; } }
+
+  function fingerprint(d, m, a){ return (d||'')+'|'+String(m||'').toLowerCase().trim()+'|'+Number(a||0).toFixed(2); }
+
+  function loadHistIds(){
+    var arr = readJSON(HIST_KEY, []);
+    return new Set(Array.isArray(arr) ? arr : []);
+  }
+  function loadDismissed(key){
+    var arr = readJSON(key, []);
+    return new Set(Array.isArray(arr) ? arr : []);
+  }
+
+  function readAllTx(){
+    if (typeof window.loadTx === 'function') {
+      try { var r = window.loadTx(); if (Array.isArray(r) && r.length) return r; } catch(e){}
+    }
+    for (var i=0; i<TX_KEYS.length; i++) {
+      var a = readJSON(TX_KEYS[i], null);
+      if (Array.isArray(a) && a.length > 0) return a;
+    }
+    return [];
+  }
+
+  function normMerchant(s){ return String(s||'').toLowerCase().trim().replace(/[^a-z0-9]/g, ''); }
+
+  function isHistorical(tx, histSet){
+    if (!tx) return true;
+    if (tx.historical === true || tx.__historical === true) return true;
+    var fp = fingerprint(tx.date || tx.d, tx.merchant || tx.m, tx.amount || tx.amt);
+    if (histSet && histSet.has(fp)) return true;
+    return false;
+  }
+
+  function isBillPay(merchant){
+    if (!merchant) return false;
+    var m = String(merchant).toLowerCase();
+    for (var i=0; i<BILL_PATTERNS.length; i++) {
+      if (m.indexOf(BILL_PATTERNS[i]) !== -1) return true;
+    }
+    return false;
+  }
+
+  // Wallet-aware: is this card still in the user's wallet?
+  function cardStillInWallet(cardKey){
+    try {
+      if (typeof userWallet !== 'undefined' && userWallet instanceof Set) return userWallet.has(cardKey);
+      if (window.userWallet && window.userWallet.has) return window.userWallet.has(cardKey);
+    } catch(e){}
+    return true; // if unsure, don't punish
+  }
+
+  // Normalized reward calc that skips missed-reward for removed cards
+  function safeReward(tx){
+    if (typeof window.calculateTxReward !== 'function') return {earned:0, missed:0, category:'base'};
+    try {
+      var r = window.calculateTxReward(tx);
+      if (!r) return {earned:0, missed:0, category:'base'};
+      // BUG I: if the tx was made on a card the user no longer holds,
+      // don't blame them for "missing" today's best rate.
+      var card = tx.card || tx.cardKey || tx.c;
+      if (card && !cardStillInWallet(card)) {
+        r.missed = 0;
+      }
+      return r;
+    } catch(e) { return {earned:0, missed:0, category:'base'}; }
+  }
+
+  // ================================================================
+  // FIX A/B: renderRewardsHero — recompute with proper filtering
+  // ================================================================
+  function correctHeroTiles(){
+    try {
+      var txs = readAllTx();
+      var histSet = loadHistIds();
+      var now = new Date();
+      var yr = String(now.getFullYear());
+      var ym = now.toISOString().substring(0,7);
+
+      var ytdEarn = 0, thisMoEarn = 0, totalMissed = 0;
+      var anyNonHist = false;
+
+      txs.forEach(function(t){
+        if (!t || typeof t !== 'object') return;
+        if (isHistorical(t, histSet)) return;
+        anyNonHist = true;
+
+        var r = safeReward(t);
+        var d = t.date || t.d || '';
+
+        if (d.indexOf(yr) === 0) ytdEarn += r.earned || 0;
+        if (d.indexOf(ym) === 0) thisMoEarn += r.earned || 0;
+        totalMissed += r.missed || 0;
+      });
+
+      function setText(id, val){
+        var el = document.getElementById(id);
+        if (!el) return;
+        var newText = '$' + val.toFixed(0);
+        if ((el.textContent || '').trim() !== newText) el.textContent = newText;
+      }
+
+      setText('rhThisMonth', thisMoEarn);
+      setText('rhYTD', ytdEarn);
+      setText('rhMissed', anyNonHist ? totalMissed : 0);
+    } catch(e){ console.warn(TAG, 'correctHeroTiles:', e); }
+  }
+
+  function wrapRenderRewardsHero(){
+    if (typeof window.renderRewardsHero !== 'function') return false;
+    if (window.renderRewardsHero.__v190Wrapped) return true;
+    var orig = window.renderRewardsHero;
+    window.renderRewardsHero = function(){
+      var r;
+      try { r = orig.apply(this, arguments); }
+      finally {
+        // rAF ensures we run after the original write
+        requestAnimationFrame(correctHeroTiles);
+      }
+      return r;
+    };
+    window.renderRewardsHero.__v190Wrapped = true;
+    return true;
+  }
+
+  // ================================================================
+  // FIX D/E: computeMissedByCategory — filter historical + dismissed + bill-pay
+  // ================================================================
+  function wrapMissedByCategory(){
+    if (typeof window.computeMissedByCategory !== 'function') return false;
+    if (window.computeMissedByCategory.__v190Wrapped) return true;
+    var orig = window.computeMissedByCategory;
+
+    window.computeMissedByCategory = function(){
+      try {
+        var txs = readAllTx();
+        var histSet = loadHistIds();
+        var leakDis = loadDismissed(LEAK_DIS_KEY);
+        // Leak dismissed keys can be merchant strings or fingerprints — support both
+        var dismissedMerchants = new Set();
+        var dismissedFps = new Set();
+        leakDis.forEach(function(x){
+          if (typeof x === 'string' && x.indexOf('|') >= 0) dismissedFps.add(x);
+          else dismissedMerchants.add(normMerchant(x));
+        });
+
+        var byCategory = {};
+        txs.forEach(function(t){
+          if (!t || typeof t !== 'object') return;
+          if (isHistorical(t, histSet)) return;
+          var merchant = t.merchant || t.m || '';
+          if (isBillPay(merchant)) return;
+          if (dismissedMerchants.has(normMerchant(merchant))) return;
+          var fp = fingerprint(t.date, merchant, t.amount);
+          if (dismissedFps.has(fp)) return;
+
+          var r = safeReward(t);
+          if (!(r.missed > 0.05)) return;
+          var cat = (t.category || t.cat || r.category || 'other');
+          if (!byCategory[cat]) byCategory[cat] = {missed:0, count:0, samples:[], bestCard:r.optimalCard};
+          byCategory[cat].missed += r.missed;
+          byCategory[cat].count++;
+          if (byCategory[cat].samples.length < 3) byCategory[cat].samples.push(merchant);
+          if (r.optimalCard) byCategory[cat].bestCard = r.optimalCard;
+        });
+
+        return Object.keys(byCategory)
+          .map(function(k){ var v = byCategory[k]; v.category = k; return v; })
+          .sort(function(a,b){ return b.missed - a.missed; })
+          .slice(0, 3);
+      } catch(e) {
+        console.warn(TAG, 'computeMissedByCategory fallback:', e);
+        return orig.apply(this, arguments);
+      }
+    };
+    window.computeMissedByCategory.__v190Wrapped = true;
+    return true;
+  }
+
+  // ================================================================
+  // FIX F/G: detectSubscriptions — filter + relax variance
+  // ================================================================
+  function wrapDetectSubscriptions(){
+    if (typeof window.detectSubscriptions !== 'function') return false;
+    if (window.detectSubscriptions.__v190Wrapped) return true;
+    var orig = window.detectSubscriptions;
+
+    window.detectSubscriptions = function(){
+      try {
+        var txs = readAllTx();
+        var histSet = loadHistIds();
+        var subDis = loadDismissed(SUB_DIS_KEY);
+        var dismissedMerchants = new Set();
+        subDis.forEach(function(x){ dismissedMerchants.add(normMerchant(x)); });
+
+        var groups = {};
+        txs.forEach(function(t){
+          if (!t || typeof t !== 'object') return;
+          if (isHistorical(t, histSet)) return;
+          var merchant = t.merchant || t.m || '';
+          if (!merchant) return;
+          var key = normMerchant(merchant).substring(0, 20);
+          if (!key) return;
+          if (dismissedMerchants.has(normMerchant(merchant))) return;
+          if (!groups[key]) groups[key] = { merchant: merchant, txs: [] };
+          groups[key].txs.push(t);
+        });
+
+        var subs = [];
+        Object.keys(groups).forEach(function(k){
+          var g = groups[k];
+          if (g.txs.length < 2) return;
+          var amounts = g.txs.map(function(t){ return Number(t.amount || t.amt) || 0; });
+          var avg = amounts.reduce(function(s,a){ return s+a; }, 0) / amounts.length;
+          if (avg <= 0) return;
+          // Relaxed variance: at least 2 tx within ±15% of avg (was: all within ±10%)
+          var closeCount = amounts.filter(function(a){ return Math.abs(a - avg) / avg <= 0.15; }).length;
+          if (closeCount < 2) return;
+          // Require at least 2 distinct months
+          var months = new Set();
+          g.txs.forEach(function(t){
+            var d = t.date || t.d || '';
+            if (d.length >= 7) months.add(d.substring(0,7));
+          });
+          if (months.size < 2) return;
+
+          var latest = g.txs.slice().sort(function(a,b){ return (b.date||'').localeCompare(a.date||''); })[0];
+          var r = safeReward(latest);
+          var bestCardKey = r.optimalCard;
+          var bestCard = (bestCardKey && typeof CARDS_DB !== 'undefined') ? CARDS_DB[bestCardKey] : null;
+
+          subs.push({
+            merchant: g.merchant,
+            monthly: avg,
+            count: g.txs.length,
+            bestCard: bestCard,
+            currentCard: latest.card || latest.cardKey || latest.c,
+            isOptimal: bestCardKey === (latest.card || latest.cardKey)
+          });
+        });
+
+        return subs.sort(function(a,b){ return b.monthly - a.monthly; }).slice(0, 5);
+      } catch(e) {
+        console.warn(TAG, 'detectSubscriptions fallback:', e);
+        return orig.apply(this, arguments);
+      }
+    };
+    window.detectSubscriptions.__v190Wrapped = true;
+    return true;
+  }
+
+  // ================================================================
+  // FIX L: Refresh Insights on tx / historical / dismissed changes
+  // ================================================================
+  var _rafPending = false;
+  function scheduleRefresh(){
+    if (_rafPending) return;
+    _rafPending = true;
+    requestAnimationFrame(function(){
+      _rafPending = false;
+      try { if (typeof window.renderRewardsHero === 'function') window.renderRewardsHero(); } catch(e){}
+      try { if (typeof window.renderMissedSummary === 'function') window.renderMissedSummary(); } catch(e){}
+      try { if (typeof window.renderSubscriptions === 'function') window.renderSubscriptions(); } catch(e){}
+      try { if (typeof window.renderOverview === 'function') window.renderOverview(); } catch(e){}
+      // Also correct hero tiles directly in case renderRewardsHero isn't defined yet
+      correctHeroTiles();
+    });
+  }
+
+  function installRefreshIntercept(){
+    if (localStorage.setItem.__v190Intercepted) return;
+    var orig = localStorage.setItem.bind(localStorage);
+    var TRIGGERS = TX_KEYS.concat([HIST_KEY, LEAK_DIS_KEY, SUB_DIS_KEY, 'walletIQ_v40_wallet']);
+    localStorage.setItem = function(k, v){
+      var r = orig(k, v);
+      if (TRIGGERS.indexOf(k) >= 0) scheduleRefresh();
+      return r;
+    };
+    // Preserve prior intercept flags
+    ['__v128Intercepted','__v188Intercepted','__v189Intercepted'].forEach(function(flag){
+      if (orig[flag]) localStorage.setItem[flag] = true;
+    });
+    localStorage.setItem.__v190Intercepted = true;
+
+    window.addEventListener('storage', function(e){
+      if (e && e.key && TRIGGERS.indexOf(e.key) >= 0) scheduleRefresh();
+    });
+  }
+
+  // ================================================================
+  // AUDIT
+  // ================================================================
+  function runAudit(){
+    console.group(TAG, 'INSIGHTS AUDIT');
+    var txs = readAllTx();
+    var histSet = loadHistIds();
+    var histFlag = 0, histFp = 0, histAny = 0;
+    txs.forEach(function(t){
+      if (!t) return;
+      var flagged = (t.historical === true || t.__historical === true);
+      var fp = fingerprint(t.date, t.merchant, t.amount);
+      var fpMatch = histSet.has(fp);
+      if (flagged) histFlag++;
+      if (fpMatch) histFp++;
+      if (flagged || fpMatch) histAny++;
+    });
+    console.log('Total tx:', txs.length, '| historical (any):', histAny, '(flag:', histFlag, ', fp:', histFp, ')');
+    console.log('Non-historical:', txs.length - histAny);
+
+    // Recompute tiles
+    var yr = String(new Date().getFullYear());
+    var ym = new Date().toISOString().substring(0,7);
+    var ytd = 0, mo = 0, missed = 0;
+    txs.forEach(function(t){
+      if (isHistorical(t, histSet)) return;
+      var r = safeReward(t);
+      var d = t.date || t.d || '';
+      if (d.indexOf(yr) === 0) ytd += r.earned || 0;
+      if (d.indexOf(ym) === 0) mo += r.earned || 0;
+      missed += r.missed || 0;
+    });
+    console.log('Corrected tiles → thisMo: $' + mo.toFixed(2), '| YTD: $' + ytd.toFixed(2), '| Missed: $' + missed.toFixed(2));
+
+    // Leaks
+    if (typeof window.computeMissedByCategory === 'function') {
+      var leaks = window.computeMissedByCategory();
+      console.log('Detected leak categories:', leaks.map(function(l){ return l.category + ' (-$' + l.missed.toFixed(2) + ')'; }));
+    }
+    // Subs
+    if (typeof window.detectSubscriptions === 'function') {
+      var subs = window.detectSubscriptions();
+      console.log('Detected subscriptions:', subs.map(function(s){ return s.merchant + ' (~$' + s.monthly.toFixed(2) + '/mo)'; }));
+    }
+    // Dismissed
+    var leakDis = loadDismissed(LEAK_DIS_KEY);
+    var subDis = loadDismissed(SUB_DIS_KEY);
+    console.log('Dismissed leaks:', leakDis.size, '| dismissed subs:', subDis.size);
+
+    console.groupEnd();
+  }
+
+  // ================================================================
+  // BOOT
+  // ================================================================
+  function tryPatchAll(){
+    var ok = wrapRenderRewardsHero();
+    ok = wrapMissedByCategory() && ok;
+    ok = wrapDetectSubscriptions() && ok;
+    return ok;
+  }
+
+  function boot(){
+    installRefreshIntercept();
+    var tries = 0;
+    var iv = setInterval(function(){
+      tries++;
+      if (tryPatchAll() || tries > 50) {
+        clearInterval(iv);
+        scheduleRefresh();
+      }
+    }, 100);
+    console.log(TAG, 'patch installed. Run window.__v190.audit() to diagnose.');
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+
+  window.__v190 = {
+    audit: runAudit,
+    correctTiles: correctHeroTiles,
+    refresh: scheduleRefresh,
+    isHistorical: isHistorical,
+    isBillPay: isBillPay
+  };
+})();
+</script>
+<!-- ================== /V190 INSIGHTS TILE AUDIT PATCH ================== -->
+
+
+<!-- ================== V191 V127 CACHE-CONSISTENCY PATCH ================== -->
+<script id="v191-patch">
+(function(){
+  'use strict';
+  var TAG = '[V191]';
+  console.log(TAG, 'V127 cache-consistency patch loading...');
+
+  var stats = {
+    findBest: { hits:0, misses:0 },
+    resolveCategory: { hits:0, misses:0 },
+    getAcceptance: { hits:0, misses:0 },
+    invalidations: 0,
+    lastInvalidatedAt: null,
+    lastInvalidatedBy: null,
+    aliasSizeLastSeen: 0,
+    acceptSizeLastSeen: 0
+  };
+  var REC_CACHE_MAX = 500;
+  var REC_CACHE_TRIM = 100;
+
+  function readJSON(k, fb){ try{ var s=localStorage.getItem(k); if(!s) return fb; var p=JSON.parse(s); return p==null?fb:p; }catch(e){ return fb; } }
+
+  // Compute a compact signature of custom cards (keys + basic rate fingerprint)
+  function computeCustomSig(){
+    try {
+      var custom = (typeof window.loadCustom === 'function') ? window.loadCustom() : {};
+      if (!custom || typeof custom !== 'object') return '_';
+      var keys = Object.keys(custom).sort();
+      if (keys.length === 0) return '_';
+      var parts = keys.map(function(k){
+        var c = custom[k];
+        var rr = c && c.realRates ? c.realRates : {};
+        // Compact: only sum + key count
+        var sum = 0, cnt = 0;
+        for (var cat in rr) { sum += Number(rr[cat]) || 0; cnt++; }
+        return k + ':' + (c && c.net ? c.net[0] : '?') + ':' + cnt + ':' + sum.toFixed(2);
+      });
+      return parts.join('|');
+    } catch(e) { return '_'; }
+  }
+
+  // Manual invalidation gateway used by all fixes
+  function invalidateV127(reason){
+    stats.invalidations++;
+    stats.lastInvalidatedAt = Date.now();
+    stats.lastInvalidatedBy = reason || 'unknown';
+    try {
+      if (window.__v127 && typeof window.__v127.invalidateCaches === 'function') {
+        window.__v127.invalidateCaches();
+      }
+    } catch(e){ console.warn(TAG, 'invalidateV127:', e); }
+  }
+  window.__v191Invalidate = invalidateV127;
+
+  // ================================================================
+  // FIX A + B: Wrap saveCustomCard / deleteCustomCard / mergeCustomCards
+  // ================================================================
+  function wrapCustomCardFns(){
+    ['saveCustomCard','deleteCustomCard','mergeCustomCards'].forEach(function(fnName){
+      var orig = window[fnName];
+      if (typeof orig !== 'function') return;
+      if (orig.__v191Wrapped) return;
+      window[fnName] = function(){
+        var r = orig.apply(this, arguments);
+        try { invalidateV127('customCard:' + fnName); } catch(e){}
+        return r;
+      };
+      window[fnName].__v191Wrapped = true;
+    });
+  }
+
+  // ================================================================
+  // FIX C: Watch ALIASES/ACCEPTANCE size, invalidate on change
+  // ================================================================
+  function pollAliasesSize(){
+    try {
+      var aSize = window.ALIASES ? Object.keys(window.ALIASES).length : 0;
+      var cSize = window.ACCEPTANCE ? Object.keys(window.ACCEPTANCE).length : 0;
+      if (stats.aliasSizeLastSeen === 0 && stats.acceptSizeLastSeen === 0) {
+        stats.aliasSizeLastSeen = aSize;
+        stats.acceptSizeLastSeen = cSize;
+        return;
+      }
+      var changed = false;
+      if (aSize !== stats.aliasSizeLastSeen) { stats.aliasSizeLastSeen = aSize; changed = true; }
+      if (cSize !== stats.acceptSizeLastSeen) { stats.acceptSizeLastSeen = cSize; changed = true; }
+      if (changed) {
+        console.log(TAG, 'ALIASES/ACCEPTANCE size changed → invalidating V127 caches. aliases:', aSize, ', acceptance:', cSize);
+        invalidateV127('aliases-mutation');
+        // Also force V127 to rebuild its indexes if the internal fn is exposed
+        try {
+          if (window.__v127) {
+            if (window.ALIASES) {
+              window.__v127.aliasKeysDesc = Object.keys(window.ALIASES).sort(function(a,b){ return b.length - a.length; });
+            }
+            if (window.ACCEPTANCE) {
+              window.__v127.acceptKeysDesc = Object.keys(window.ACCEPTANCE).sort(function(a,b){ return b.length - a.length; });
+            }
+          }
+        } catch(e){}
+      }
+    } catch(e){}
+  }
+
+  // ================================================================
+  // FIX E: Wrap toggleForeignMode to clear caches
+  // ================================================================
+  function wrapForeignToggle(){
+    var orig = window.toggleForeignMode;
+    if (typeof orig !== 'function') return false;
+    if (orig.__v191Wrapped) return true;
+    window.toggleForeignMode = function(){
+      var r = orig.apply(this, arguments);
+      try { invalidateV127('fx-toggle'); } catch(e){}
+      return r;
+    };
+    window.toggleForeignMode.__v191Wrapped = true;
+    return true;
+  }
+
+  // ================================================================
+  // FIX D + F + H: Wrap V127.findBestCard for LRU + custom-sig + stats
+  // ================================================================
+  function wrapV127Methods(){
+    if (!window.__v127 || !window.__v127.ready) return false;
+    var v = window.__v127;
+
+    // findBestCard: use a Map so we can track insertion order for LRU
+    if (typeof v.findBestCard === 'function' && !v.findBestCard.__v191Wrapped) {
+      var origFind = v.findBestCard;
+      var lru = new Map();
+      var customSigCache = '';
+      var customSigTs = 0;
+      function getCustomSig(){
+        // Cache the sig for 500ms to avoid recomputing on every keystroke
+        var now = Date.now();
+        if (now - customSigTs > 500) {
+          customSigCache = computeCustomSig();
+          customSigTs = now;
+        }
+        return customSigCache;
+      }
+      v.findBestCard = function(query){
+        var q = (query || '').toString().toLowerCase().trim();
+        var fx = (typeof window.foreignMode !== 'undefined') ? !!window.foreignMode : false;
+        var wh = (typeof v.walletHash === 'function') ? v.walletHash() :
+                 (window.userWallet ? Array.from(window.userWallet).sort().join('|') : '_');
+        var cs = getCustomSig();
+        var key = q + '::' + wh + '::' + (fx?'1':'0') + '::' + cs;
+        if (lru.has(key)) {
+          stats.findBest.hits++;
+          // Bump to newest — LRU semantics
+          var val = lru.get(key);
+          lru.delete(key);
+          lru.set(key, val);
+          return val;
+        }
+        stats.findBest.misses++;
+        var r = origFind.call(this, query);
+        lru.set(key, r);
+        if (lru.size > REC_CACHE_MAX) {
+          // Trim oldest
+          var toDelete = REC_CACHE_TRIM;
+          var iter = lru.keys();
+          while (toDelete-- > 0) {
+            var oldest = iter.next();
+            if (oldest.done) break;
+            lru.delete(oldest.value);
+          }
+        }
+        return r;
+      };
+      v.findBestCard.__v191Wrapped = true;
+      v.__v191Lru = lru;
+      // Ensure invalidateCaches also clears our LRU
+      var origInv = v.invalidateCaches;
+      v.invalidateCaches = function(){
+        try { lru.clear(); } catch(e){}
+        return origInv.apply(this, arguments);
+      };
+      v.invalidateCaches.__v191Wrapped = true;
+    }
+
+    // Stats wrappers for resolveCategory and getAcceptance
+    ['resolveCategory','getAcceptance'].forEach(function(fnName){
+      if (typeof v[fnName] !== 'function') return;
+      if (v[fnName].__v191Wrapped) return;
+      var orig = v[fnName];
+      // We can't peek into the internal Object.create(null) caches directly,
+      // but we can approximate by comparing time — a cache hit returns very fast.
+      // Since we don't have direct access, wrap and count all calls as at least accessed;
+      // rely on the fact that repeated calls with same q are almost certainly hits.
+      var seen = new Set();
+      v[fnName] = function(q){
+        var qn = (q || '').toString().toLowerCase().trim();
+        if (seen.has(qn)) stats[fnName].hits++;
+        else { stats[fnName].misses++; seen.add(qn); }
+        return orig.apply(this, arguments);
+      };
+      v[fnName].__v191Wrapped = true;
+      v['__v191Seen_' + fnName] = seen;
+    });
+
+    return true;
+  }
+
+  // ================================================================
+  // AUDIT
+  // ================================================================
+  function runAudit(){
+    console.group(TAG, 'V127 CACHE AUDIT');
+    if (!window.__v127) {
+      console.warn('V127 not loaded');
+      console.groupEnd();
+      return;
+    }
+    console.log('V127 ready:', window.__v127.ready, '| version:', window.__v127.version);
+
+    // Sizes
+    var lru = window.__v127.__v191Lru;
+    var lruSize = lru ? lru.size : 'n/a';
+    var seenCat = window.__v127['__v191Seen_resolveCategory'];
+    var seenAcc = window.__v127['__v191Seen_getAcceptance'];
+    console.log('LRU rec cache:', lruSize, '/ max', REC_CACHE_MAX);
+    console.log('Category cache seen keys:', seenCat ? seenCat.size : 'n/a');
+    console.log('Acceptance cache seen keys:', seenAcc ? seenAcc.size : 'n/a');
+
+    // Hit ratios
+    function ratio(h, m){
+      var t = h + m;
+      return t === 0 ? '0%' : Math.round((h/t)*100) + '% (' + h + '/' + t + ')';
+    }
+    console.log('findBestCard hit ratio:', ratio(stats.findBest.hits, stats.findBest.misses));
+    console.log('resolveCategory hit ratio:', ratio(stats.resolveCategory.hits, stats.resolveCategory.misses));
+    console.log('getAcceptance hit ratio:', ratio(stats.getAcceptance.hits, stats.getAcceptance.misses));
+
+    // Invalidations
+    console.log('Total invalidations:', stats.invalidations);
+    if (stats.lastInvalidatedAt) {
+      console.log('Last invalidation:', new Date(stats.lastInvalidatedAt).toISOString(), 'by:', stats.lastInvalidatedBy);
+    }
+
+    // Current state
+    var wh = (window.__v127 && typeof window.__v127.walletHash === 'function') ? window.__v127.walletHash() : 'n/a';
+    var fx = (typeof window.foreignMode !== 'undefined') ? window.foreignMode : 'n/a';
+    console.log('Current walletHash:', wh);
+    console.log('Current FX mode:', fx);
+    console.log('Custom sig:', computeCustomSig());
+    console.log('ALIASES size:', stats.aliasSizeLastSeen, '| ACCEPTANCE size:', stats.acceptSizeLastSeen);
+
+    // Sample cached keys
+    if (lru && lru.size > 0) {
+      var sample = [];
+      var it = lru.keys();
+      var v = it.next();
+      var n = 0;
+      while (!v.done && n < 5) { sample.push(v.value); v = it.next(); n++; }
+      console.log('Sample cache keys:', sample);
+    }
+
+    // Warnings
+    if (lru && lru.size > REC_CACHE_MAX) {
+      console.warn('LRU cache exceeded max! Size:', lru.size);
+    }
+    console.groupEnd();
+    return { stats: stats, lruSize: lruSize, ready: window.__v127.ready };
+  }
+
+  // ================================================================
+  // BOOT
+  // ================================================================
+  function boot(){
+    // Wrap custom card fns immediately (they exist synchronously in script)
+    wrapCustomCardFns();
+
+    // Retry wrap for V127 methods and toggleForeignMode
+    var tries = 0;
+    var iv = setInterval(function(){
+      tries++;
+      var okV127 = wrapV127Methods();
+      var okFx = wrapForeignToggle();
+      // Also re-wrap custom cards in case they were re-defined
+      wrapCustomCardFns();
+      if ((okV127 && okFx) || tries > 60) {
+        clearInterval(iv);
+        // Kick off polling now that V127 is ready
+        pollAliasesSize();
+      }
+    }, 100);
+
+    // Poll for ALIASES/ACCEPTANCE size changes
+    setInterval(pollAliasesSize, 500);
+    // Wind down aggressive polling after 30s
+    setTimeout(function(){
+      // Continue but at slower cadence
+      // (setInterval above will keep running; we could clear + re-schedule, but 500ms is fine)
+    }, 30000);
+
+    console.log(TAG, 'patch installed. Run window.__v191.audit() to diagnose.');
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+
+  window.__v191 = {
+    audit: runAudit,
+    invalidate: invalidateV127,
+    stats: stats,
+    computeCustomSig: computeCustomSig,
+    pollAliasesSize: pollAliasesSize
+  };
+})();
+</script>
+<!-- ================== /V191 V127 CACHE-CONSISTENCY PATCH ================== -->
+
+
+<!-- ================== V192 AUTOCOMPLETE ENGINE PATCH ================== -->
+<script id="v192-patch">
+(function(){
+  'use strict';
+  var TAG = '[V192]';
+  console.log(TAG, 'autocomplete engine audit patch loading...');
+
+  var stats = {
+    runQueryCalls: 0,
+    runQueryDeduped: 0,
+    renderRecDeduped: 0,
+    indexRebuildsFromV192: 0,
+    v157Reattaches: 0,
+    lastQuery: null,
+    lastQueryAt: 0
+  };
+
+  var DEDUP_WINDOW_MS = 40;
+
+  // ================================================================
+  // FIX A + D: Coalesce V156.runQuery duplicate fires
+  // ================================================================
+  function wrapRunQuery(){
+    if (!window.__v156 || typeof window.__v156.runQuery !== 'function') return false;
+    if (window.__v156.runQuery.__v192Wrapped) return true;
+    var orig = window.__v156.runQuery;
+    window.__v156.runQuery = function(q){
+      stats.runQueryCalls++;
+      var now = Date.now();
+      var qn = String(q || '').toLowerCase().trim();
+      // Suppress rapid duplicates (same query within 40ms)
+      if (qn === stats.lastQuery && (now - stats.lastQueryAt) < DEDUP_WINDOW_MS) {
+        stats.runQueryDeduped++;
+        return;
+      }
+      // Also suppress consecutive-empty calls
+      if (qn === '' && stats.lastQuery === '') {
+        stats.renderRecDeduped++;
+        return orig.call(this, q); // Still call runQuery so dropdown shows chips; just don't renderRec
+      }
+      stats.lastQuery = qn;
+      stats.lastQueryAt = now;
+      return orig.apply(this, arguments);
+    };
+    window.__v156.runQuery.__v192Wrapped = true;
+    return true;
+  }
+
+  // ================================================================
+  // FIX B: Watch for #autocomplete replacement, re-arm V157 dismiss
+  // ================================================================
+  var _lastAcRef = null;
+  function watchAutocompleteReplacement(){
+    var wrap = document.querySelector('.search-wrap');
+    if (!wrap) return;
+    if (wrap.__v192Watched) return;
+    wrap.__v192Watched = true;
+
+    var mo = new MutationObserver(function(muts){
+      var ac = document.getElementById('autocomplete');
+      if (!ac) return;
+      if (ac === _lastAcRef) return;
+      _lastAcRef = ac;
+      // If the ac node is different, its data attribute may have carried over but listeners are gone
+      try {
+        ac.removeAttribute('data-v157-scroll-blur');
+      } catch(e){}
+      // Nudge V157 to re-attach
+      try {
+        if (window.__v157 && typeof window.__v157.reinit === 'function') {
+          stats.v157Reattaches++;
+          window.__v157.reinit();
+        }
+      } catch(e){}
+    });
+    mo.observe(wrap, { childList: true, subtree: true });
+    // Track initial ac ref
+    _lastAcRef = document.getElementById('autocomplete');
+  }
+
+  // ================================================================
+  // FIX C: When ALIASES/ACCEPTANCE size changes → V156.buildIndex()
+  // ================================================================
+  var _lastAliasSize = 0, _lastAcceptSize = 0;
+  function pollAndRebuildV156(){
+    try {
+      var aSize = window.ALIASES ? Object.keys(window.ALIASES).length : 0;
+      var cSize = window.ACCEPTANCE ? Object.keys(window.ACCEPTANCE).length : 0;
+      if (_lastAliasSize === 0 && _lastAcceptSize === 0) {
+        _lastAliasSize = aSize;
+        _lastAcceptSize = cSize;
+        return;
+      }
+      var changed = (aSize !== _lastAliasSize) || (cSize !== _lastAcceptSize);
+      if (changed) {
+        _lastAliasSize = aSize;
+        _lastAcceptSize = cSize;
+        if (window.__v156 && window.__v156.ready && typeof window.__v156.buildIndex === 'function') {
+          try {
+            window.__v156.buildIndex();
+            stats.indexRebuildsFromV192++;
+            console.log(TAG, 'V156 index rebuilt after alias/acceptance mutation. aliases:', aSize, 'acceptance:', cSize);
+          } catch(e){}
+        }
+      }
+    } catch(e){}
+  }
+
+  // ================================================================
+  // FIX E: Force initial buildIndex kick
+  // ================================================================
+  function kickInitialBuild(){
+    var tries = 0;
+    var iv = setInterval(function(){
+      tries++;
+      if (window.__v156 && window.__v156.ready && typeof window.__v156.buildIndex === 'function') {
+        try {
+          window.__v156.buildIndex();
+          stats.indexRebuildsFromV192++;
+        } catch(e){}
+        clearInterval(iv);
+      }
+      if (tries > 40) clearInterval(iv);
+    }, 100);
+  }
+
+  // ================================================================
+  // AUDIT
+  // ================================================================
+  function runAudit(){
+    console.group(TAG, 'AUTOCOMPLETE ENGINE AUDIT');
+    // V156 state
+    var v156Ready = !!(window.__v156 && window.__v156.ready);
+    console.log('V156 ready:', v156Ready);
+    if (window.__v156 && typeof window.__v156.getIndex === 'function') {
+      try {
+        var idx = window.__v156.getIndex();
+        console.log('V156 index size:', idx.length);
+        console.log('Sample entries:', idx.slice(0, 3).map(function(e){ return e.name + ' (' + e.cat + ')'; }));
+      } catch(e){}
+    }
+
+    // V157 state
+    var v157Ready = !!(window.__v157 && window.__v157.ready);
+    console.log('V157 ready:', v157Ready);
+    var clearBtn = document.querySelector('.v157-clear-btn');
+    var live = document.getElementById('q');
+    console.log('Clear button present:', !!clearBtn, '| bound to live #q:', clearBtn && clearBtn.__v157BoundTo === live);
+    var ac = document.getElementById('autocomplete');
+    console.log('#autocomplete has data-v157-scroll-blur:', ac && ac.getAttribute('data-v157-scroll-blur') === '1');
+
+    // Sizes
+    console.log('MERCHANT_DIRECTORY size:', window.MERCHANT_DIRECTORY ? window.MERCHANT_DIRECTORY.length : 'n/a');
+    console.log('ALIASES size:', window.ALIASES ? Object.keys(window.ALIASES).length : 'n/a');
+    console.log('ACCEPTANCE size:', window.ACCEPTANCE ? Object.keys(window.ACCEPTANCE).length : 'n/a');
+
+    // Stats
+    console.log('runQuery calls handled:', stats.runQueryCalls);
+    console.log('runQuery deduped (dup within 40ms):', stats.runQueryDeduped);
+    console.log('empty renderRec deduped:', stats.renderRecDeduped);
+    console.log('V156 index rebuilds triggered by V192:', stats.indexRebuildsFromV192);
+    console.log('V157 re-attaches after ac replacement:', stats.v157Reattaches);
+
+    if (stats.runQueryCalls > 0) {
+      var savedPct = Math.round((stats.runQueryDeduped / stats.runQueryCalls) * 100);
+      console.log('Wasted-work suppression: ' + savedPct + '% of runQuery calls collapsed');
+    }
+    console.groupEnd();
+    return { stats: stats, v156Ready: v156Ready, v157Ready: v157Ready };
+  }
+
+  // ================================================================
+  // BOOT
+  // ================================================================
+  function boot(){
+    // Retry wrapper for runQuery (V156 boot may not have completed yet)
+    var tries = 0;
+    var iv = setInterval(function(){
+      tries++;
+      var ok = wrapRunQuery();
+      if (ok || tries > 60) clearInterval(iv);
+    }, 100);
+
+    watchAutocompleteReplacement();
+    kickInitialBuild();
+
+    // Poll for alias/acceptance size changes
+    setInterval(pollAndRebuildV156, 500);
+
+    // Re-check watch after DOM might have replaced .search-wrap children
+    setTimeout(watchAutocompleteReplacement, 400);
+    setTimeout(watchAutocompleteReplacement, 1500);
+    setTimeout(watchAutocompleteReplacement, 4000);
+
+    console.log(TAG, 'patch installed. Run window.__v192.audit() to diagnose.');
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+
+  window.__v192 = {
+    audit: runAudit,
+    stats: stats,
+    forceRebuild: function(){
+      if (window.__v156 && typeof window.__v156.buildIndex === 'function') {
+        window.__v156.buildIndex();
+        stats.indexRebuildsFromV192++;
+        return true;
+      }
+      return false;
+    },
+    reattachV157: function(){
+      if (window.__v157 && typeof window.__v157.reinit === 'function') {
+        window.__v157.reinit();
+        stats.v157Reattaches++;
+        return true;
+      }
+      return false;
+    }
+  };
+})();
+</script>
+<!-- ================== /V192 AUTOCOMPLETE ENGINE PATCH ================== -->
+
+
+<!-- ================== V193 ONBOARDING + CUSTOM CARD PATCH ================== -->
+<script id="v193-patch">
+(function(){
+  'use strict';
+  var TAG = '[V193]';
+  console.log(TAG, 'onboarding + custom card patch loading...');
+
+  var FEE_MIN = 0, FEE_MAX = 5000;
+  var RATE_MIN = 0, RATE_MAX = 20;
+  var NAME_MAX = 60, ISS_MAX = 40;
+
+  var stats = {
+    validationBlocks: 0,
+    duplicatesFound: 0,
+    zombiesRemoved: 0,
+    keysCollisionsAvoided: 0,
+    xssSanitized: 0
+  };
+
+  // ================================================================
+  // Helpers
+  // ================================================================
+  function escapeHtml(s){
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function clamp(n, lo, hi){
+    n = Number(n);
+    if (isNaN(n)) return lo;
+    return Math.max(lo, Math.min(hi, n));
+  }
+
+  function safeKey(){
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+      return 'custom_' + crypto.randomUUID().replace(/-/g, '').slice(0, 12);
+    }
+    return 'custom_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 10);
+  }
+
+  function normalizeName(s){
+    return String(s || '').toLowerCase().trim().replace(/\s+/g, ' ');
+  }
+
+  // ================================================================
+  // FIX A + B + C + D + E: Replace saveCustomCard with hardened version
+  // ================================================================
+  function installHardenedSaveCustomCard(){
+    if (typeof window.saveCustomCard !== 'function') return false;
+    if (window.saveCustomCard.__v193Hardened) return true;
+
+    var orig = window.saveCustomCard;
+
+    window.saveCustomCard = function(){
+      try {
+        var nameEl = document.getElementById('ccName');
+        var issEl  = document.getElementById('ccIss');
+        var netEl  = document.getElementById('ccNet');
+        var feeEl  = document.getElementById('ccFee');
+        var rateEl = document.getElementById('ccRate');
+
+        var rawName = nameEl ? nameEl.value : '';
+        var name = String(rawName || '').trim().slice(0, NAME_MAX);
+        if (!name) {
+          alert('Please enter a card name.');
+          if (nameEl) nameEl.focus();
+          stats.validationBlocks++;
+          return;
+        }
+
+        var rawIss = issEl ? issEl.value : '';
+        var iss = String(rawIss || '').trim().slice(0, ISS_MAX) || 'Custom';
+
+        var net = (netEl && netEl.value) || 'Visa';
+
+        // FIX A: fee validation
+        var rawFee = feeEl ? feeEl.value : '0';
+        var feeNum = Number(rawFee);
+        if (isNaN(feeNum) || feeNum < FEE_MIN || feeNum > FEE_MAX) {
+          var clamped = clamp(feeNum, FEE_MIN, FEE_MAX);
+          alert('Annual fee must be between $' + FEE_MIN + ' and $' + FEE_MAX + '. Corrected to $' + clamped.toFixed(0) + '.');
+          if (feeEl) feeEl.value = String(clamped);
+          feeNum = clamped;
+          stats.validationBlocks++;
+        }
+
+        // FIX B: rate validation
+        var rawRate = rateEl ? rateEl.value : '1';
+        var rateNum = Number(rawRate);
+        if (isNaN(rateNum) || rateNum < RATE_MIN || rateNum > RATE_MAX) {
+          var clampedRate = clamp(rateNum, RATE_MIN, RATE_MAX);
+          alert('Reward rate must be between ' + RATE_MIN + ' and ' + RATE_MAX + '. Corrected to ' + clampedRate + '.');
+          if (rateEl) rateEl.value = String(clampedRate);
+          rateNum = clampedRate;
+          stats.validationBlocks++;
+        }
+
+        // FIX C: duplicate name check
+        var normNew = normalizeName(name);
+        if (typeof window.CARDS_DB === 'object') {
+          for (var k in window.CARDS_DB) {
+            var c = window.CARDS_DB[k];
+            if (c && c.n && normalizeName(c.n) === normNew) {
+              stats.duplicatesFound++;
+              var proceed = window.confirm(
+                'A card named "' + name + '" already exists (' + (c.iss || 'Unknown') + '). Add it anyway as a separate card?'
+              );
+              if (!proceed) {
+                stats.validationBlocks++;
+                return;
+              }
+              break;
+            }
+          }
+        }
+
+        // FIX E: HTML-escape at storage time (so any rendering path is safe)
+        var safeName = escapeHtml(name);
+        var safeIss = escapeHtml(iss);
+        if (safeName !== name || safeIss !== iss) stats.xssSanitized++;
+
+        // FIX D: collision-safe key
+        var key = safeKey();
+        // Ensure the key truly doesn't collide (defensive)
+        if (window.CARDS_DB && window.CARDS_DB[key]) {
+          key = safeKey();
+          stats.keysCollisionsAvoided++;
+        }
+
+        // Build the card the same way the original does, but with clamped values + safe strings
+        var clMap = { Visa: 'pass', Mastercard: 'rogers', Amex: 'cobalt' };
+        var cl = clMap[net] || 'pass';
+        var cats = ['dining','groceryAmex','groceryNo','loblaws','streaming','transit','gas','shopping','shoppingAmex','costco','walmart','usd','travel','cineplex','marriott','base','other'];
+        var rr = {};
+        cats.forEach(function(cat){ rr[cat] = rateNum; });
+        if (net === 'Amex') { rr.groceryNo = 0; rr.loblaws = 0; rr.costco = 0; rr.walmart = 0; }
+        if (net === 'Visa') { rr.costco = 0; }
+
+        var newCard = {
+          n: safeName,
+          e: '\ud83d\udcb3',
+          cl: cl,
+          iss: safeIss,
+          net: net,
+          r: rateNum + 'x',
+          w: 'Custom card you added.',
+          feeRetail: feeNum,
+          feeYours: feeNum,
+          scotiaEmployee: false,
+          benefits: [['\ud83d\udcb3', rateNum + '% on all purchases', rateNum + 'x']],
+          extra: 'Custom card.',
+          realRates: rr,
+          __v193Safe: true
+        };
+
+        // Persist
+        try {
+          var custom = (typeof window.loadCustom === 'function') ? window.loadCustom() : {};
+          custom[key] = newCard;
+          if (typeof window.saveCustom === 'function') window.saveCustom(custom);
+        } catch(e){ console.warn(TAG, 'persist:', e); }
+
+        if (window.CARDS_DB) window.CARDS_DB[key] = newCard;
+        if (window.onboardSelections && window.onboardSelections.add) window.onboardSelections.add(key);
+
+        // Close modal + rerender
+        if (typeof window.closeCustomCardForm === 'function') window.closeCustomCardForm();
+        try {
+          var searchInput = document.getElementById('onboardSearch');
+          var q = searchInput ? searchInput.value : '';
+          if (typeof window.renderOnboardCards === 'function') window.renderOnboardCards(q);
+        } catch(e){}
+
+        // Kick V191 to invalidate V127 caches
+        try {
+          if (typeof window.__v191Invalidate === 'function') window.__v191Invalidate('customCard:saveHardened');
+        } catch(e){}
+
+        console.log(TAG, 'custom card saved:', key, '→', name, '(' + net + ', ' + rateNum + 'x, $' + feeNum + '/yr)');
+      } catch(err) {
+        console.error(TAG, 'saveCustomCard error:', err);
+        // Fallback to original if V193 fails
+        try { return orig.apply(this, arguments); } catch(e){}
+      }
+    };
+
+    window.saveCustomCard.__v193Hardened = true;
+    return true;
+  }
+
+  // ================================================================
+  // FIX F: Wrap deleteCustomCard to refresh main renderCards
+  // ================================================================
+  function wrapDeleteCustomCard(){
+    if (typeof window.deleteCustomCard !== 'function') return false;
+    if (window.deleteCustomCard.__v193Wrapped) return true;
+    var orig = window.deleteCustomCard;
+    window.deleteCustomCard = function(){
+      var r = orig.apply(this, arguments);
+      try {
+        if (typeof window.renderCards === 'function') window.renderCards();
+      } catch(e){}
+      try {
+        if (typeof window.__v191Invalidate === 'function') window.__v191Invalidate('customCard:delete');
+      } catch(e){}
+      return r;
+    };
+    window.deleteCustomCard.__v193Wrapped = true;
+    return true;
+  }
+
+  // ================================================================
+  // FIX G: Filter zombie keys from onboardSelections before save
+  // ================================================================
+  function wrapSaveOnboarding(){
+    if (typeof window.saveOnboarding !== 'function') return false;
+    if (window.saveOnboarding.__v193Wrapped) return true;
+    var orig = window.saveOnboarding;
+    window.saveOnboarding = function(){
+      try {
+        if (window.onboardSelections && window.CARDS_DB) {
+          var zombies = [];
+          var live = new Set();
+          window.onboardSelections.forEach(function(k){
+            if (window.CARDS_DB[k]) live.add(k);
+            else zombies.push(k);
+          });
+          if (zombies.length > 0) {
+            stats.zombiesRemoved += zombies.length;
+            console.warn(TAG, 'Removed', zombies.length, 'zombie key(s) from onboardSelections:', zombies);
+            window.onboardSelections = live;
+          }
+        }
+      } catch(e){ console.warn(TAG, 'zombie filter:', e); }
+      return orig.apply(this, arguments);
+    };
+    window.saveOnboarding.__v193Wrapped = true;
+    return true;
+  }
+
+  // ================================================================
+  // FIX H: Autofocus #onboardSearch after modal animation
+  // ================================================================
+  function wrapShowOnboarding(){
+    if (typeof window.showOnboarding !== 'function') return false;
+    if (window.showOnboarding.__v193Wrapped) return true;
+    var orig = window.showOnboarding;
+    window.showOnboarding = function(){
+      var r = orig.apply(this, arguments);
+      setTimeout(function(){
+        var s = document.getElementById('onboardSearch');
+        // Skip on mobile (would pop up keyboard immediately, bad UX)
+        var isMobile = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+        if (s && !isMobile) {
+          try { s.focus({preventScroll:true}); } catch(e){ try { s.focus(); } catch(_){} }
+        }
+      }, 320);
+      return r;
+    };
+    window.showOnboarding.__v193Wrapped = true;
+    return true;
+  }
+
+  // ================================================================
+  // FIX I: Set maxlength on ccName + ccIss
+  // ================================================================
+  function applyMaxlengths(){
+    var pairs = [
+      ['ccName', NAME_MAX],
+      ['ccIss', ISS_MAX],
+      ['onboardName', 30]
+    ];
+    pairs.forEach(function(p){
+      var el = document.getElementById(p[0]);
+      if (el && !el.getAttribute('maxlength')) {
+        el.setAttribute('maxlength', String(p[1]));
+      }
+    });
+  }
+
+  // ================================================================
+  // FIX E (belt-and-suspenders): Sanitize any raw-HTML that slipped in
+  // ================================================================
+  function sanitizeOnboardDom(){
+    try {
+      var host = document.getElementById('cardChoices');
+      if (!host) return;
+      // Any legacy XSS in .cc-name / .onb-group-title / .cc-sub — force textContent-only
+      host.querySelectorAll('.cc-name, .onb-group-title, .cc-sub').forEach(function(el){
+        if (/<[a-z]/i.test(el.innerHTML)) {
+          var txt = el.textContent;
+          el.textContent = txt;
+          stats.xssSanitized++;
+        }
+      });
+    } catch(e){}
+  }
+
+  // ================================================================
+  // AUDIT
+  // ================================================================
+  function runAudit(){
+    console.group(TAG, 'ONBOARDING + CUSTOM CARD AUDIT');
+    var totalCards = window.CARDS_DB ? Object.keys(window.CARDS_DB).length : 0;
+    var customKeys = window.CARDS_DB
+      ? Object.keys(window.CARDS_DB).filter(function(k){ return k.indexOf('custom_') === 0; })
+      : [];
+    var customStorage = (typeof window.loadCustom === 'function') ? window.loadCustom() : {};
+    var storageCount = customStorage && typeof customStorage === 'object' ? Object.keys(customStorage).length : 0;
+
+    console.log('Total CARDS_DB size:', totalCards);
+    console.log('Custom cards in CARDS_DB:', customKeys.length);
+    console.log('Custom cards in localStorage:', storageCount);
+    if (customKeys.length !== storageCount) {
+      console.warn('Mismatch — DB has', customKeys.length, 'but storage has', storageCount);
+    }
+
+    // Zombie check on current onboardSelections
+    if (window.onboardSelections && window.CARDS_DB) {
+      var zombies = [];
+      window.onboardSelections.forEach(function(k){
+        if (!window.CARDS_DB[k]) zombies.push(k);
+      });
+      if (zombies.length > 0) console.warn('Zombie keys in onboardSelections:', zombies);
+      else console.log('onboardSelections: all keys valid');
+    }
+
+    // Sample custom cards
+    if (customKeys.length > 0) {
+      console.log('Sample custom cards:');
+      customKeys.slice(0, 3).forEach(function(k){
+        var c = window.CARDS_DB[k];
+        if (!c) return;
+        console.log('  ·', k, '→', c.n, '(' + c.iss + ', ' + c.net + ', $' + c.feeYours + '/yr, ' + c.r + ')', c.__v193Safe ? '[V193 safe]' : '[legacy]');
+      });
+    }
+
+    // Validate custom card realRates
+    var invalid = 0;
+    customKeys.forEach(function(k){
+      var c = window.CARDS_DB[k];
+      if (!c || !c.realRates) return;
+      for (var cat in c.realRates) {
+        var v = c.realRates[cat];
+        if (typeof v !== 'number' || v < 0 || v > 20) invalid++;
+      }
+    });
+    if (invalid > 0) console.warn(invalid, 'invalid realRates entries across custom cards');
+    else console.log('All custom card realRates within [0, 20]');
+
+    // Stats
+    console.log('V193 stats:', stats);
+    console.groupEnd();
+    return { stats: stats, totalCards: totalCards, customCount: customKeys.length };
+  }
+
+  // ================================================================
+  // BOOT
+  // ================================================================
+  function boot(){
+    applyMaxlengths();
+
+    var tries = 0;
+    var iv = setInterval(function(){
+      tries++;
+      var ok = installHardenedSaveCustomCard();
+      ok = wrapDeleteCustomCard() && ok;
+      ok = wrapSaveOnboarding() && ok;
+      ok = wrapShowOnboarding() && ok;
+      if (ok || tries > 60) clearInterval(iv);
+      applyMaxlengths(); // in case inputs get lazy-created
+    }, 100);
+
+    // Sanitize any onboard DOM content proactively
+    var host = document.getElementById('cardChoices');
+    if (host) {
+      var mo = new MutationObserver(function(){ sanitizeOnboardDom(); });
+      mo.observe(host, {childList: true, subtree: true, characterData: true});
+    }
+
+    console.log(TAG, 'patch installed. Run window.__v193.audit() to diagnose.');
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+
+  window.__v193 = {
+    audit: runAudit,
+    stats: stats,
+    escapeHtml: escapeHtml,
+    sanitize: sanitizeOnboardDom,
+    safeKey: safeKey
+  };
+})();
+</script>
+<!-- ================== /V193 ONBOARDING + CUSTOM CARD PATCH ================== -->
+
+
+<!-- ================== V194 CSV UPLOAD + PARSE PATCH ================== -->
+<style id="v194-styles">
+.v194-import-toast {
+  position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-20px);
+  background: linear-gradient(135deg, #1f8a3d, #2ba149); color: #fff;
+  padding: 12px 22px; border-radius: 99px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-weight: 900; font-size: 13.5px; letter-spacing: -.01em;
+  box-shadow: 0 8px 24px rgba(31,138,61,.42);
+  z-index: 340; opacity: 0; transition: opacity .24s ease, transform .3s cubic-bezier(.2,.9,.3,1.2);
+  pointer-events: none; max-width: 90vw; text-align: center;
+  display: flex; align-items: center; gap: 8px;
+}
+.v194-import-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.v194-import-toast.error { background: linear-gradient(135deg, #c4314a, #a02236); box-shadow: 0 8px 24px rgba(196,49,74,.42); }
+body.dark .v194-import-toast { background: linear-gradient(135deg, #7ed892, #5ea87a); color: #0f0d1a; }
+body.dark .v194-import-toast.error { background: linear-gradient(135deg, #ff8095, #d67c70); color: #0f0d1a; }
+</style>
+<script id="v194-patch">
+(function(){
+  'use strict';
+  var TAG = '[V194]';
+  console.log(TAG, 'CSV audit patch loading...');
+
+  var stats = {
+    imports: 0,
+    rowsAdded: 0,
+    rowsDeduped: 0,
+    rowsFailed: 0,
+    categoriesResolved: 0,
+    cardsAutoAssigned: 0,
+    lastFormat: null,
+    lastImportAt: null
+  };
+
+  var TX_MIRROR_KEY = 'walletiq_transactions';
+  var TX_LEGACY_KEY = 'walletIQ_v40_tx';
+
+  // Extra city/province strip patterns for cleanMerchant enhancement
+  var CITY_STRIP = /\s+(?:TORONTO|CALGARY|EDMONTON|OTTAWA|MONTREAL|WINNIPEG|HALIFAX|QUEBEC|VANCOUVER|BURNABY|RICHMOND|SURREY|LANGLEY|VICTORIA|MISSISSAUGA|BRAMPTON|HAMILTON|LONDON|SASKATOON|REGINA|KITCHENER|WATERLOO|OAKVILLE|BURLINGTON|MARKHAM|RICHMOND HILL|VAUGHAN|GATINEAU|LAVAL|LONGUEUIL)\s*(?:ON|AB|BC|MB|SK|NS|NB|NL|QC|PE)?\s*$/i;
+  var PROV_STRIP = /\s+(?:ON|AB|BC|MB|SK|NS|NB|NL|QC|PE)\s*$/i;
+
+  function readJSON(k, fb){ try{ var s=localStorage.getItem(k); if(!s) return fb; var p=JSON.parse(s); return p==null?fb:p; }catch(e){ return fb; } }
+  function writeJSON(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+
+  function toast(msg, opts){
+    opts = opts || {};
+    var el = document.querySelector('.v194-import-toast');
+    if (el) el.remove();
+    el = document.createElement('div');
+    el.className = 'v194-import-toast' + (opts.error ? ' error' : '');
+    el.innerHTML = '<span>' + msg + '</span>';
+    document.body.appendChild(el);
+    requestAnimationFrame(function(){ el.classList.add('show'); });
+    var dur = opts.dur || 3200;
+    setTimeout(function(){ el.classList.remove('show'); }, dur);
+    setTimeout(function(){ if (el.parentNode) el.remove(); }, dur + 300);
+  }
+
+  function fingerprint(date, merchant, amount){
+    return String(date || '') + '|' + String(merchant || '').toLowerCase().trim() + '|' + (Number(amount) || 0).toFixed(2);
+  }
+
+  // ================================================================
+  // FIX D: Smart date parser
+  // ================================================================
+  function smartParseDate(raw, formatHint){
+    if (!raw) return '';
+    var s = String(raw).trim();
+    // Already ISO
+    var iso = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+    if (iso) return iso[1] + '-' + iso[2].padStart(2,'0') + '-' + iso[3].padStart(2,'0');
+    // YYYY/MM/DD
+    var isoSlash = s.match(/^(\d{4})[\/\.](\d{1,2})[\/\.](\d{1,2})/);
+    if (isoSlash) return isoSlash[1] + '-' + isoSlash[2].padStart(2,'0') + '-' + isoSlash[3].padStart(2,'0');
+    // X/Y/Z (potentially DD/MM/YY, MM/DD/YY, D/M/YYYY etc.)
+    var m = s.match(/^(\d{1,2})[\/\.\-](\d{1,2})[\/\.\-](\d{2,4})/);
+    if (m) {
+      var a = parseInt(m[1], 10), b = parseInt(m[2], 10), y = m[3];
+      if (y.length === 2) y = '20' + y;
+      var yy = parseInt(y, 10);
+      var day, month;
+      // Heuristic: if first > 12, must be DD/MM
+      if (a > 12 && b <= 12) { day = a; month = b; }
+      // If second > 12, must be MM/DD
+      else if (b > 12 && a <= 12) { day = b; month = a; }
+      // Both ambiguous → default per format
+      else {
+        // Canadian bank exports typically DD/MM (except older exports)
+        var canadianFormats = ['scotia','rbc','td','cibc','walletiq'];
+        if (canadianFormats.indexOf(formatHint) >= 0) { day = a; month = b; }
+        // Amex Canada uses MM/DD historically
+        else if (formatHint === 'amex') { day = b; month = a; }
+        else { day = a; month = b; }  // safe default
+      }
+      if (month > 12 || day > 31 || month < 1 || day < 1) return '';
+      return yy + '-' + String(month).padStart(2,'0') + '-' + String(day).padStart(2,'0');
+    }
+    // Textual: "Jul 3, 2026" / "3 Jul 2026" / "July 3 2026"
+    try {
+      var d = new Date(s);
+      if (!isNaN(d.getTime())) {
+        var yr = d.getFullYear();
+        if (yr >= 1990 && yr <= 2100) {
+          return yr + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+        }
+      }
+    } catch(e){}
+    return '';
+  }
+
+  // ================================================================
+  // FIX F: Auto-assign card by format
+  // ================================================================
+  function autoAssignCard(format){
+    try {
+      if (!window.userWallet || !window.CARDS_DB) return null;
+      var issuerHint = { scotia: 'Scotia', amex: 'Amex', rbc: 'RBC', td: 'TD', cibc: 'CIBC' }[format];
+      if (!issuerHint) return null;
+      var matches = [];
+      window.userWallet.forEach(function(k){
+        var c = window.CARDS_DB[k];
+        if (c && c.iss === issuerHint) matches.push(k);
+      });
+      if (matches.length === 1) {
+        stats.cardsAutoAssigned++;
+        return matches[0];
+      }
+      return null;
+    } catch(e) { return null; }
+  }
+
+  // ================================================================
+  // FIX J: Enhanced cleanMerchant
+  // ================================================================
+  function enhancedClean(raw){
+    if (!raw) return '';
+    var s = String(raw).trim();
+    // Use original cleanMerchant if available for baseline
+    try {
+      if (typeof window.cleanMerchant === 'function') s = window.cleanMerchant(raw);
+    } catch(e){}
+    // Now strip additional Canadian cities + province codes
+    s = s.replace(CITY_STRIP, '').replace(PROV_STRIP, '').replace(/\s+/g, ' ').trim();
+    // Title-case if all caps
+    if (s && s === s.toUpperCase() && s.length > 2) {
+      s = s.split(' ').map(function(w){ return w.length > 0 ? w.charAt(0).toUpperCase() + w.substring(1).toLowerCase() : w; }).join(' ');
+    }
+    return s;
+  }
+
+  // ================================================================
+  // FIX G: Improved CSV line splitter (RFC-4180-lite)
+  // ================================================================
+  function robustSplit(line){
+    var out = [];
+    var cur = '';
+    var inQuote = false;
+    for (var i = 0; i < line.length; i++) {
+      var c = line[i];
+      if (c === '"') {
+        // Escaped quote: "" → literal "
+        if (inQuote && line[i+1] === '"') { cur += '"'; i++; continue; }
+        inQuote = !inQuote;
+        continue;
+      }
+      if (c === ',' && !inQuote) { out.push(cur); cur = ''; continue; }
+      cur += c;
+    }
+    out.push(cur);
+    return out.map(function(s){ return s.trim(); });
+  }
+
+  // ================================================================
+  // Resolve category safely
+  // ================================================================
+  function safeCategory(merchant){
+    try {
+      if (typeof window.resolveCategory === 'function') {
+        var c = window.resolveCategory(merchant);
+        if (c) { stats.categoriesResolved++; return c; }
+      }
+    } catch(e){}
+    return 'base';
+  }
+
+  // ================================================================
+  // Get all existing fingerprints from BOTH storage keys
+  // ================================================================
+  function existingFingerprintSet(){
+    var set = new Set();
+    [TX_LEGACY_KEY, TX_MIRROR_KEY].forEach(function(k){
+      var arr = readJSON(k, []);
+      if (!Array.isArray(arr)) return;
+      arr.forEach(function(t){
+        if (!t) return;
+        var fp = fingerprint(t.date || t.d, t.merchant || t.m, t.amount || t.amt);
+        set.add(fp);
+      });
+    });
+    return set;
+  }
+
+  // ================================================================
+  // FIX A + B + C + E + H: Hardened handleCsvContent
+  // ================================================================
+  function installHardenedHandler(){
+    if (typeof window.handleCsvContent !== 'function') return false;
+    if (window.handleCsvContent.__v194Hardened) return true;
+    var origParse = window.parseCsvSmart;
+    if (typeof origParse !== 'function') return false;
+
+    window.handleCsvContent = function(csv){
+      try {
+        stats.imports++;
+        stats.lastImportAt = new Date().toISOString();
+
+        var parsed = origParse(csv);
+        if (!parsed || !Array.isArray(parsed.rows) || parsed.rows.length === 0) {
+          alert('No valid rows detected. Check your CSV.');
+          return;
+        }
+        stats.lastFormat = parsed.format;
+
+        var existing = existingFingerprintSet();
+        var autoCard = autoAssignCard(parsed.format);
+
+        var toAdd = [];
+        var dupes = 0;
+        var failed = 0;
+
+        parsed.rows.forEach(function(r, i){
+          try {
+            // Re-clean merchant with V194's enhanced list
+            var merchant = enhancedClean(r.merchant);
+            if (!merchant) { failed++; return; }
+            // Smart date parse (re-parse in case original left it non-ISO)
+            var date = smartParseDate(r.date, parsed.format) || r.date;
+            if (!date) { failed++; return; }
+            var amount = Number(r.amount);
+            if (!amount || amount <= 0) { failed++; return; }
+
+            var fp = fingerprint(date, merchant, amount);
+            if (existing.has(fp)) { dupes++; return; }
+            existing.add(fp);
+
+            var card = r.card;
+            if (!card || card === 'other') {
+              if (autoCard) card = autoCard;
+              else card = 'other';
+            }
+
+            var category = safeCategory(merchant);
+
+            var tx = {
+              id: 'tx_csv_' + Date.now() + '_' + i + '_' + Math.random().toString(36).slice(2, 6),
+              date: date,
+              merchant: merchant,
+              amount: amount,
+              card: card,
+              category: category,   // V188/V128 expects this
+              historical: true,     // V190/V85 filter dependency
+              __v194Import: true    // provenance
+            };
+            toAdd.push(tx);
+          } catch(e) {
+            failed++;
+            console.warn(TAG, 'row failed:', e && e.message, r);
+          }
+        });
+
+        stats.rowsAdded += toAdd.length;
+        stats.rowsDeduped += dupes;
+        stats.rowsFailed += failed;
+
+        if (toAdd.length === 0) {
+          if (dupes > 0) toast('✓ All ' + dupes + ' row(s) already imported (deduplicated)', {dur: 3000});
+          else toast('⚠️ No new rows added (' + failed + ' failed)', {error: true, dur: 4000});
+          return;
+        }
+
+        // Mirror-write to BOTH keys so V128/V188/V190 see the data
+        var legacyTxs = readJSON(TX_LEGACY_KEY, []);
+        if (!Array.isArray(legacyTxs)) legacyTxs = [];
+        var mirrorTxs = readJSON(TX_MIRROR_KEY, []);
+        if (!Array.isArray(mirrorTxs)) mirrorTxs = [];
+
+        // Sanity: merge — add newly-added tx to both
+        toAdd.forEach(function(t){
+          legacyTxs.push(t);
+          mirrorTxs.push(t);
+        });
+
+        writeJSON(TX_LEGACY_KEY, legacyTxs);
+        writeJSON(TX_MIRROR_KEY, mirrorTxs);
+
+        var formatLabels = { walletiq:'Wallet IQ', scotia:'Scotiabank', amex:'Amex', rbc:'RBC', td:'TD', cibc:'CIBC', generic:'Generic' };
+        var fmt = formatLabels[parsed.format] || parsed.format;
+        var summary = '✓ Imported ' + toAdd.length + ' from ' + fmt;
+        if (dupes > 0) summary += ' · ' + dupes + ' duplicate(s) skipped';
+        if (failed > 0) summary += ' · ' + failed + ' row(s) failed';
+        if (autoCard && stats.cardsAutoAssigned > 0) {
+          var cName = window.CARDS_DB && window.CARDS_DB[autoCard] && window.CARDS_DB[autoCard].n;
+          if (cName) summary += ' · assigned to ' + cName;
+        }
+        toast(summary, {dur: 4200});
+
+        // Kick all V-layer refreshers
+        var refresh = ['renderRewardsHero','renderOverview','renderTxList','buildMonthPills','renderMissedSummary','renderSubscriptions','renderAppliedList','renderVaultV122','__v128'];
+        refresh.forEach(function(fn){
+          try {
+            if (typeof window[fn] === 'function') window[fn]();
+            else if (window[fn] && typeof window[fn].reconcile === 'function') window[fn].reconcile();
+          } catch(e){}
+        });
+
+        console.log(TAG, 'import complete', {added: toAdd.length, dupes: dupes, failed: failed, format: parsed.format});
+
+      } catch(err) {
+        console.error(TAG, 'import failed:', err);
+        toast('CSV import failed: ' + (err && err.message), {error: true, dur: 5000});
+      }
+    };
+
+    window.handleCsvContent.__v194Hardened = true;
+    return true;
+  }
+
+  // ================================================================
+  // AUDIT
+  // ================================================================
+  function runAudit(){
+    console.group(TAG, 'CSV + TX STORAGE AUDIT');
+    var legacy = readJSON(TX_LEGACY_KEY, []);
+    var mirror = readJSON(TX_MIRROR_KEY, []);
+    console.log(TX_LEGACY_KEY + ' size:', Array.isArray(legacy) ? legacy.length : 0);
+    console.log(TX_MIRROR_KEY + ' size:', Array.isArray(mirror) ? mirror.length : 0);
+    if (Array.isArray(legacy) && Array.isArray(mirror)) {
+      if (legacy.length !== mirror.length) console.warn('Mismatch! Legacy has', legacy.length, 'but mirror has', mirror.length);
+    }
+
+    // Historical + category coverage on the mirror (V128/V190's source)
+    if (Array.isArray(mirror)) {
+      var hist = mirror.filter(function(t){ return t && (t.historical === true || t.__historical === true); }).length;
+      var noCat = mirror.filter(function(t){ return t && !t.category && !t.cat; }).length;
+      var v194 = mirror.filter(function(t){ return t && t.__v194Import; }).length;
+      console.log('Historical-flagged in mirror:', hist);
+      console.log('Missing category in mirror:', noCat);
+      console.log('V194-imported in mirror:', v194);
+    }
+
+    // Duplicate fingerprint check
+    var seen = new Set();
+    var dupes = 0;
+    (Array.isArray(mirror) ? mirror : []).forEach(function(t){
+      if (!t) return;
+      var fp = fingerprint(t.date, t.merchant, t.amount);
+      if (seen.has(fp)) dupes++;
+      else seen.add(fp);
+    });
+    console.log('Duplicate fingerprints in mirror:', dupes);
+    if (dupes > 0) console.warn('WARNING:', dupes, 'duplicate tx detected — re-import protection failed at some point');
+
+    // Sample recent V194 imports
+    if (Array.isArray(mirror)) {
+      var recent = mirror.filter(function(t){ return t && t.__v194Import; }).slice(-3);
+      if (recent.length > 0) {
+        console.log('Sample recent V194 imports:');
+        recent.forEach(function(t){
+          console.log('  ·', t.date, '|', t.merchant, '| $' + t.amount.toFixed(2), '|', t.card, '|', t.category, t.historical ? '[historical]' : '');
+        });
+      }
+    }
+
+    console.log('V194 stats:', stats);
+    console.groupEnd();
+    return { stats: stats, mirrorSize: mirror.length, legacySize: legacy.length };
+  }
+
+  // ================================================================
+  // BOOT
+  // ================================================================
+  function boot(){
+    var tries = 0;
+    var iv = setInterval(function(){
+      tries++;
+      if (installHardenedHandler() || tries > 60) clearInterval(iv);
+    }, 100);
+
+    console.log(TAG, 'patch installed. Run window.__v194.audit() to diagnose.');
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+
+  window.__v194 = {
+    audit: runAudit,
+    stats: stats,
+    smartParseDate: smartParseDate,
+    enhancedClean: enhancedClean,
+    robustSplit: robustSplit,
+    fingerprint: fingerprint,
+    // Reconcile mirror storage from legacy (one-shot repair for old imports)
+    repairMirrorFromLegacy: function(){
+      var legacy = readJSON(TX_LEGACY_KEY, []);
+      if (!Array.isArray(legacy) || legacy.length === 0) {
+        console.log(TAG, 'nothing to repair');
+        return 0;
+      }
+      var mirror = readJSON(TX_MIRROR_KEY, []);
+      if (!Array.isArray(mirror)) mirror = [];
+      var mirrorFps = new Set();
+      mirror.forEach(function(t){
+        if (t) mirrorFps.add(fingerprint(t.date, t.merchant, t.amount));
+      });
+      var added = 0;
+      legacy.forEach(function(t){
+        if (!t) return;
+        var fp = fingerprint(t.date, t.merchant, t.amount);
+        if (mirrorFps.has(fp)) return;
+        var copy = Object.assign({}, t);
+        if (!copy.category && !copy.cat && copy.merchant) {
+          copy.category = safeCategory(copy.merchant);
+        }
+        if (copy.historical == null && copy.__historical == null) {
+          copy.historical = true;  // conservative default for legacy imports
+        }
+        mirror.push(copy);
+        mirrorFps.add(fp);
+        added++;
+      });
+      if (added > 0) {
+        writeJSON(TX_MIRROR_KEY, mirror);
+        console.log(TAG, 'repaired mirror storage: added', added, 'tx from legacy');
+        // Kick V128 reconcile
+        try { if (window.__v128 && window.__v128.reconcile) window.__v128.reconcile(); } catch(e){}
+        try { if (typeof window.renderVaultV122 === 'function') window.renderVaultV122(); } catch(e){}
+      } else {
+        console.log(TAG, 'mirror already in sync');
+      }
+      return added;
+    }
+  };
+})();
+</script>
+<!-- ================== /V194 CSV UPLOAD + PARSE PATCH ================== -->
+
+
+<!-- ================== V195 WHERE TO PAY + RESET/EXPORT/IMPORT PATCH ================== -->
+<style id="v195-styles">
+.v195-toast {
+  position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-20px);
+  background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #fff;
+  padding: 12px 22px; border-radius: 99px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-weight: 900; font-size: 13.5px; letter-spacing: -.01em;
+  box-shadow: 0 8px 24px rgba(37,99,235,.42);
+  z-index: 350; opacity: 0; transition: opacity .24s ease, transform .3s cubic-bezier(.2,.9,.3,1.2);
+  pointer-events: none; max-width: 90vw; text-align: center;
+  display: flex; align-items: center; gap: 8px;
+}
+.v195-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.v195-toast.err { background: linear-gradient(135deg, #c4314a, #a02236); box-shadow: 0 8px 24px rgba(196,49,74,.42); }
+.v195-toast.ok  { background: linear-gradient(135deg, #1f8a3d, #2ba149); box-shadow: 0 8px 24px rgba(31,138,61,.42); }
+body.dark .v195-toast { background: linear-gradient(135deg, #a5b3d8, #8ea3d8); color: #0f0d1a; }
+</style>
+<script id="v195-patch">
+(function(){
+  'use strict';
+  var TAG = '[V195]';
+  console.log(TAG, 'where-to-pay + reset/export/import patch loading...');
+
+  var stats = {
+    locLookups: 0,
+    locCacheHits: 0,
+    locRateLimited: 0,
+    locFetchAborted: 0,
+    exports: 0,
+    imports: 0,
+    lastExportAt: null,
+    lastImportAt: null,
+    resetsRun: 0,
+    lastResetKeys: []
+  };
+
+  // ================================================================
+  // Helpers
+  // ================================================================
+  function escapeHtml(s){
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+  function readJSON(k, fb){ try{ var s=localStorage.getItem(k); if(!s) return fb; var p=JSON.parse(s); return p==null?fb:p; }catch(e){ return fb; } }
+
+  function toast(msg, kind, dur){
+    var el = document.querySelector('.v195-toast');
+    if (el) el.remove();
+    el = document.createElement('div');
+    el.className = 'v195-toast' + (kind ? ' ' + kind : '');
+    el.innerHTML = '<span>' + escapeHtml(msg) + '</span>';
+    document.body.appendChild(el);
+    requestAnimationFrame(function(){ el.classList.add('show'); });
+    var t = dur || 3000;
+    setTimeout(function(){ el.classList.remove('show'); }, t);
+    setTimeout(function(){ if (el.parentNode) el.remove(); }, t + 400);
+  }
+
+  // Enumerate all Wallet IQ storage keys (case-insensitive prefix match)
+  function walletIqKeys(){
+    var out = [];
+    try {
+      for (var i = 0; i < localStorage.length; i++) {
+        var k = localStorage.key(i);
+        if (k && /^walletiq/i.test(k)) out.push(k);
+      }
+    } catch(e){}
+    return out;
+  }
+
+  // ================================================================
+  // WHERE TO PAY — FIX B/C/D/E/G/H
+  // ================================================================
+  var LOC_CACHE = new Map();  // key: 'lat|lon' rounded to 4dp; value: {data, at}
+  var LOC_CACHE_TTL_MS = 5 * 60 * 1000;
+  var LOC_RATE_LIMIT_MS = 2000;
+  var _lastLookupAt = 0;
+  var _currentAbort = null;
+
+  function cacheKey(lat, lon){
+    return Math.round(lat * 10000) / 10000 + '|' + Math.round(lon * 10000) / 10000;
+  }
+
+  function extractMerchant(data){
+    if (!data) return { merchant: null, displayName: '' };
+    var merchantName = null;
+    var displayName = '';
+    try {
+      if (data.namedetails && data.namedetails.name) merchantName = data.namedetails.name;
+      if (!merchantName && data.name) merchantName = data.name;
+      if (data.address) {
+        var a = data.address;
+        if (!merchantName) {
+          if (a.shop && typeof a.shop === 'string' && a.shop.length > 2) merchantName = a.shop;
+          if (!merchantName && a.amenity && typeof a.amenity === 'string' && a.amenity.length > 2) merchantName = a.amenity;
+          if (!merchantName && a.building) merchantName = a.building;
+        }
+        displayName = [a.road, a.suburb || a.neighbourhood, a.city || a.town || a.village].filter(Boolean).join(', ');
+      }
+      if (!merchantName && data.display_name) merchantName = data.display_name.split(',')[0].trim();
+    } catch(e){}
+    return { merchant: merchantName, displayName: displayName };
+  }
+
+  function pickFallbackCardKey(cardName){
+    try {
+      if (typeof CARDS_DB === 'object' && cardName) {
+        for (var k in CARDS_DB) {
+          if (CARDS_DB[k] && CARDS_DB[k].n === cardName) return k;
+        }
+      }
+      // FIX H: first wallet card, not hardcoded 'cobalt'
+      if (typeof userWallet !== 'undefined' && userWallet && userWallet.size > 0) {
+        var it = userWallet.values();
+        var v = it.next();
+        if (!v.done) return v.value;
+      }
+      return Object.keys(CARDS_DB || {})[0] || 'cobalt';
+    } catch(e){ return 'cobalt'; }
+  }
+
+  // Render a location result with escaped strings — full re-implementation reusing V194's shape
+  function renderLocResultSafe(data, lat, lon){
+    var resEl = document.getElementById('locResult');
+    if (!resEl) return;
+    var extracted = extractMerchant(data);
+    var merchantName = extracted.merchant;
+    var displayName = extracted.displayName;
+
+    if (!merchantName) {
+      var here = displayName || (lat.toFixed(5) + ', ' + lon.toFixed(5));
+      resEl.innerHTML =
+        '<div class="warn-box"><b>No specific merchant detected at your location.</b><br><br><b>You are near:</b> ' + escapeHtml(here) + '</div>' +
+        '<div style="margin-top:12px"><div class="form-row"><label>Enter merchant name manually</label><input type="text" id="locManual" placeholder="e.g. Starbucks" oninput="renderLocManual(this.value)"></div><div id="locManualResult"></div></div>';
+      return;
+    }
+
+    var findBest = window.findBestCard;
+    if (typeof findBest !== 'function') return;
+    var result = findBest(merchantName);
+
+    var safeName = escapeHtml(merchantName);
+    var safeDisplay = escapeHtml(displayName);
+
+    var html = '<div style="background:#fff;border:1.5px solid var(--green);border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:var(--shadow)">';
+    html += '<div style="display:inline-block;background:var(--greenbg);color:var(--green);font-size:10px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;border-radius:99px;margin-bottom:8px">\u{1F4CD} Detected</div>';
+    html += '<div style="font-size:18px;font-weight:900;letter-spacing:-.02em;margin-bottom:2px">' + safeName + '</div>';
+    if (displayName) html += '<div style="font-size:11px;color:var(--muted);font-weight:700;margin-bottom:14px">' + safeDisplay + '</div>';
+
+    if (result.empty) {
+      html += '<div class="warn-box">Add cards to your wallet first to get a recommendation.</div>';
+    } else if (result.noCompatibleCard) {
+      html += '<div class="warn-box">\u26A0\uFE0F None of your cards match this merchant\'s accepted networks.<br>' + escapeHtml((result.acceptance && result.acceptance.note) || '') + '</div>';
+    } else {
+      var b = result.best, c = b.card, acc = result.acceptance;
+      var locCardKey = pickFallbackCardKey(c.n);
+      var svgFn = window.svgCard;
+      var svg = (typeof svgFn === 'function') ? svgFn(c, locCardKey) : ('<div style="font-size:64px">' + escapeHtml(c.e || '\uD83D\uDCB3') + '</div>');
+      html += '<div style="background:var(--surface-2);border-radius:14px;padding:14px;margin-bottom:10px">';
+      html += '<div style="font-size:9.5px;color:var(--muted);font-weight:900;letter-spacing:.1em;text-transform:uppercase;text-align:center;margin-bottom:10px">Use this card</div>';
+      html += '<div style="display:flex;justify-content:center;margin-bottom:12px">' + svg + '</div>';
+      html += '<div style="font-size:18px;font-weight:900;letter-spacing:-.02em;margin-top:4px;text-align:center">' + escapeHtml(c.n || '') + '</div>';
+      html += '<div style="font-family:ui-monospace,monospace;font-size:14px;font-weight:900;color:var(--green);margin-top:4px;text-align:center">Up to ' + b.rate.toFixed(1) + '% here</div>';
+      html += '</div>';
+      html += '<div style="font-size:11.5px;color:var(--muted);font-weight:700;line-height:1.5"><b style="color:var(--ink)">Why:</b> ' + escapeHtml(c.w || 'Best rate from your wallet.') + '</div>';
+      if (acc && acc.note) html += '<div class="info-box" style="margin-top:10px">' + escapeHtml(acc.note) + '</div>';
+      if (result.alternatives && result.alternatives.length) {
+        html += '<div class="alt-cards"><div class="alt-title">Other cards in your wallet</div>';
+        result.alternatives.forEach(function(a){
+          html += '<div class="alt-item"><span class="name">' + escapeHtml(a.card.e + ' ' + a.card.n) + '</span><span class="rate">' + a.rate.toFixed(1) + '%</span></div>';
+        });
+        html += '</div>';
+      }
+    }
+    html += '</div>';
+    resEl.innerHTML = html;
+  }
+
+  function hardenedLookup(){
+    var resEl = document.getElementById('locResult');
+    if (!resEl) return;
+
+    // FIX C: rate limit
+    var now = Date.now();
+    if (now - _lastLookupAt < LOC_RATE_LIMIT_MS) {
+      stats.locRateLimited++;
+      toast('Please wait a moment before searching again', 'err', 2000);
+      return;
+    }
+    _lastLookupAt = now;
+    stats.locLookups++;
+
+    if (!navigator.geolocation) {
+      resEl.innerHTML = '<div class="warn-box">Location not supported on this device. Use the search bar to look up any merchant.</div>';
+      return;
+    }
+
+    resEl.innerHTML = '<div class="empty-state"><div class="big">\u{1F4CD}</div><h3>Detecting location...</h3><p>Please allow location access when prompted.</p></div>';
+
+    navigator.geolocation.getCurrentPosition(function(pos){
+      var lat = pos.coords.latitude, lon = pos.coords.longitude;
+      resEl.innerHTML = '<div class="empty-state"><div class="big">\u{1F50D}</div><h3>Finding nearby merchant...</h3><p>' + lat.toFixed(4) + ', ' + lon.toFixed(4) + '</p></div>';
+
+      // FIX E: cache check
+      var ck = cacheKey(lat, lon);
+      var cached = LOC_CACHE.get(ck);
+      if (cached && (Date.now() - cached.at < LOC_CACHE_TTL_MS)) {
+        stats.locCacheHits++;
+        console.log(TAG, 'cache hit for', ck);
+        renderLocResultSafe(cached.data, lat, lon);
+        return;
+      }
+
+      // FIX B: AbortController with 8s timeout
+      if (_currentAbort) { try { _currentAbort.abort(); } catch(e){} }
+      var ctrl = ('AbortController' in window) ? new AbortController() : null;
+      _currentAbort = ctrl;
+      var timeoutId = setTimeout(function(){
+        if (ctrl) { try { ctrl.abort(); } catch(e){} }
+      }, 8000);
+
+      var url = 'https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=' + lat + '&lon=' + lon + '&zoom=18&addressdetails=1&namedetails=1';
+
+      var fetchOpts = { headers: { 'Accept-Language': 'en' } };
+      if (ctrl) fetchOpts.signal = ctrl.signal;
+
+      fetch(url, fetchOpts)
+        .then(function(r){ return r.json(); })
+        .then(function(data){
+          clearTimeout(timeoutId);
+          if (ctrl === _currentAbort) _currentAbort = null;
+          // FIX E: cache
+          LOC_CACHE.set(ck, { data: data, at: Date.now() });
+          if (LOC_CACHE.size > 20) {
+            // Trim oldest
+            var oldest = null, oldestAt = Infinity;
+            LOC_CACHE.forEach(function(v, k){ if (v.at < oldestAt) { oldestAt = v.at; oldest = k; } });
+            if (oldest) LOC_CACHE.delete(oldest);
+          }
+          renderLocResultSafe(data, lat, lon);
+        })
+        .catch(function(err){
+          clearTimeout(timeoutId);
+          if (err && err.name === 'AbortError') {
+            stats.locFetchAborted++;
+            resEl.innerHTML = '<div class="warn-box">Location lookup timed out. <br><br><b>You are at:</b> ' + lat.toFixed(5) + ', ' + lon.toFixed(5) + '</div>' +
+              '<div style="margin-top:12px"><div class="form-row"><label>Enter merchant name manually</label><input type="text" id="locManual" placeholder="e.g. Starbucks" oninput="renderLocManual(this.value)"></div><div id="locManualResult"></div></div>';
+            return;
+          }
+          resEl.innerHTML = '<div class="warn-box">Could not identify a nearby merchant automatically.<br><br><b>You are at:</b> ' + lat.toFixed(5) + ', ' + lon.toFixed(5) + '</div>' +
+            '<div style="margin-top:12px"><div class="form-row"><label>Enter merchant name manually</label><input type="text" id="locManual" placeholder="e.g. Starbucks" oninput="renderLocManual(this.value)"></div><div id="locManualResult"></div></div>';
+        });
+    }, function(err){
+      resEl.innerHTML = '<div class="warn-box">\u26A0\uFE0F Location denied: ' + escapeHtml(err.message || '') + '<br><br>Enable location in your browser settings, or use the home search bar.</div>';
+    }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 });
+  }
+
+  function wrapLookup(){
+    if (typeof window.lookupBestCard !== 'function') return false;
+    if (window.lookupBestCard.__v195Wrapped) return true;
+    window.lookupBestCard = hardenedLookup;
+    window.lookupBestCard.__v195Wrapped = true;
+    return true;
+  }
+
+  // FIX F: debounce renderLocManual
+  function wrapManual(){
+    if (typeof window.renderLocManual !== 'function') return false;
+    if (window.renderLocManual.__v195Wrapped) return true;
+    var orig = window.renderLocManual;
+    var timer = null;
+    window.renderLocManual = function(q){
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(function(){ orig.call(window, q); }, 150);
+    };
+    window.renderLocManual.__v195Wrapped = true;
+    return true;
+  }
+
+  // FIX G: abort on tab switch
+  function wrapSwitchTabForLoc(){
+    if (typeof window.switchTab !== 'function') return false;
+    if (window.switchTab.__v195LocWrapped) return true;
+    var orig = window.switchTab;
+    window.switchTab = function(tab){
+      if (tab !== 'location' && _currentAbort) {
+        try { _currentAbort.abort(); stats.locFetchAborted++; } catch(e){}
+        _currentAbort = null;
+      }
+      return orig.apply(this, arguments);
+    };
+    // Preserve other wraps' flags
+    for (var f in orig) { try { if (f.indexOf('__') === 0) window.switchTab[f] = orig[f]; } catch(e){} }
+    window.switchTab.__v195LocWrapped = true;
+    return true;
+  }
+
+  // ================================================================
+  // RESET — FIX I/L/M
+  // ================================================================
+  function countsForConfirm(){
+    var out = {};
+    try { out.wallet = (readJSON('walletIQ_v40_wallet', []) || []).length; } catch(e){ out.wallet = 0; }
+    try {
+      var tx1 = readJSON('walletIQ_v40_tx', []) || [];
+      var tx2 = readJSON('walletiq_transactions', []) || [];
+      out.tx = Math.max(tx1.length, tx2.length);
+    } catch(e){ out.tx = 0; }
+    try { out.custom = Object.keys(readJSON('walletIQ_v40_custom', {}) || {}).length; } catch(e){ out.custom = 0; }
+    try { out.mems = (readJSON('walletiq_memberships', []) || []).length; } catch(e){ out.mems = 0; }
+    try { out.credits = Object.keys(readJSON('walletiq_credits_v46', {}) || {}).filter(function(k){ var v=readJSON('walletiq_credits_v46',{}); return v[k] && v[k].redeemed;}).length; } catch(e){ out.credits = 0; }
+    try { out.applied = (readJSON('walletIQ_v40_applied', []) || []).length; } catch(e){ out.applied = 0; }
+    return out;
+  }
+
+  function wrapReset(){
+    if (typeof window.resetWalletIQ !== 'function') return false;
+    if (window.resetWalletIQ.__v195Wrapped) return true;
+    var orig = window.resetWalletIQ;
+
+    window.resetWalletIQ = function(){
+      // FIX M: detailed confirm
+      var c = countsForConfirm();
+      var summary = 'Reset ALL Wallet IQ data?\n\nThis will permanently delete:\n' +
+        '• ' + c.wallet + ' card' + (c.wallet===1?'':'s') + ' in your wallet\n' +
+        '• ' + c.tx + ' transaction' + (c.tx===1?'':'s') + '\n' +
+        '• ' + c.custom + ' custom card' + (c.custom===1?'':'s') + '\n' +
+        '• ' + c.mems + ' loyalty membership' + (c.mems===1?'':'s') + '\n' +
+        '• ' + c.applied + ' tracked welcome offer' + (c.applied===1?'':'s') + '\n' +
+        '• ' + c.credits + ' claimed statement credit' + (c.credits===1?'':'s') + '\n\n' +
+        'This action cannot be undone. Consider using "Export data" first.';
+      if (!window.confirm(summary)) return;
+
+      // Skip original's own confirm by short-circuiting: temporarily replace window.confirm
+      var origConfirm = window.confirm;
+      window.confirm = function(){ return true; };
+      var r;
+      try {
+        stats.resetsRun++;
+        // Snapshot the keys we're about to clear
+        var allKeys = walletIqKeys();
+        stats.lastResetKeys = allKeys.slice();
+
+        r = orig.apply(this, arguments);
+      } finally {
+        window.confirm = origConfirm;
+      }
+
+      // FIX I: thorough clear of ALL walletiq_* keys the original missed
+      try {
+        var remaining = walletIqKeys();
+        remaining.forEach(function(k){
+          try { localStorage.removeItem(k); } catch(e){}
+        });
+        console.log(TAG, 'reset cleared', remaining.length, 'additional walletiq keys:', remaining);
+      } catch(e){ console.warn(TAG, 'thorough reset:', e); }
+
+      // FIX L: invalidate V127 caches via V191 hook
+      try { if (typeof window.__v191Invalidate === 'function') window.__v191Invalidate('reset'); } catch(e){}
+
+      // Force DOM reset
+      try {
+        var sel = document.getElementById('employerBankSelect');
+        if (sel) sel.value = '';
+      } catch(e){}
+
+      // Force UI refresh cascade
+      ['renderCards','renderVault','renderRewardsHero','renderVaultV122','renderCredits','renderAppliedList','renderTxList','buildMonthPills','renderHomeCreditAlert'].forEach(function(fn){
+        try { if (typeof window[fn] === 'function') window[fn](); } catch(e){}
+      });
+
+      // V128 reconcile
+      try { if (window.__v128 && typeof window.__v128.reconcile === 'function') window.__v128.reconcile(); } catch(e){}
+
+      toast('All Wallet IQ data cleared', 'ok', 3000);
+      return r;
+    };
+    window.resetWalletIQ.__v195Wrapped = true;
+    return true;
+  }
+
+  // ================================================================
+  // EXPORT (FIX J + O)
+  // ================================================================
+  function todayStamp(){
+    var d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  }
+
+  window.exportWalletIQData = function(){
+    try {
+      var keys = walletIqKeys();
+      if (keys.length === 0) {
+        toast('No Wallet IQ data to export', 'err', 2500);
+        return;
+      }
+      var bundle = { version: 'V195', appVersion: 'Wallet IQ V195', exportedAt: new Date().toISOString(), keyCount: keys.length, data: {} };
+      keys.forEach(function(k){
+        try { bundle.data[k] = localStorage.getItem(k); } catch(e){}
+      });
+      var blob = new Blob([JSON.stringify(bundle, null, 2)], { type: 'application/json' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'wallet-iq-backup-' + todayStamp() + '.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      stats.exports++;
+      stats.lastExportAt = new Date().toISOString();
+      toast('Exported ' + keys.length + ' data key(s)', 'ok', 3000);
+    } catch(err) {
+      console.error(TAG, 'export failed:', err);
+      toast('Export failed: ' + (err && err.message), 'err', 4000);
+    }
+  };
+
+  window.exportTransactionsCSV = function(){
+    try {
+      // Union txs from both storage keys
+      var tx1 = readJSON('walletIQ_v40_tx', []) || [];
+      var tx2 = readJSON('walletiq_transactions', []) || [];
+      if (!Array.isArray(tx1)) tx1 = [];
+      if (!Array.isArray(tx2)) tx2 = [];
+      var seen = new Set();
+      var union = [];
+      function fp(t){ return String(t.date||'')+'|'+String(t.merchant||'').toLowerCase().trim()+'|'+(Number(t.amount)||0).toFixed(2); }
+      [tx1, tx2].forEach(function(arr){
+        arr.forEach(function(t){
+          if (!t) return;
+          var f = fp(t);
+          if (seen.has(f)) return;
+          seen.add(f);
+          union.push(t);
+        });
+      });
+      if (union.length === 0) {
+        toast('No transactions to export', 'err', 2500);
+        return;
+      }
+      var esc = function(s){
+        var v = String(s == null ? '' : s);
+        if (/[,"\n]/.test(v)) return '"' + v.replace(/"/g, '""') + '"';
+        return v;
+      };
+      var header = 'date,merchant,amount,card,category,historical';
+      var rows = union.map(function(t){
+        return [
+          esc(t.date || t.d || ''),
+          esc(t.merchant || t.m || ''),
+          esc(Number(t.amount || t.amt) || 0),
+          esc(t.card || t.cardKey || t.c || ''),
+          esc(t.category || t.cat || ''),
+          esc(t.historical === true || t.__historical === true ? 'true' : 'false')
+        ].join(',');
+      });
+      var csv = header + '\n' + rows.join('\n') + '\n';
+      var blob = new Blob([csv], { type: 'text/csv' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'wallet-iq-transactions-' + todayStamp() + '.csv';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast('Exported ' + union.length + ' transaction(s)', 'ok', 3000);
+    } catch(err) {
+      console.error(TAG, 'tx export failed:', err);
+      toast('Export failed: ' + (err && err.message), 'err', 4000);
+    }
+  };
+
+  // ================================================================
+  // IMPORT (FIX K)
+  // ================================================================
+  window.importWalletIQData = function(file){
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(ev){
+      try {
+        var bundle = JSON.parse(ev.target.result);
+        if (!bundle || typeof bundle !== 'object' || !bundle.data || typeof bundle.data !== 'object') {
+          throw new Error('Invalid Wallet IQ backup file structure');
+        }
+        var keys = Object.keys(bundle.data);
+        // Validate all keys are walletiq_* prefixed
+        var badKeys = keys.filter(function(k){ return !/^walletiq/i.test(k); });
+        if (badKeys.length > 0) {
+          throw new Error('Backup contains non-Wallet IQ keys: ' + badKeys.slice(0,3).join(', '));
+        }
+        if (keys.length === 0) {
+          throw new Error('Backup contains no data keys');
+        }
+
+        var existingKeys = walletIqKeys();
+        var overwriteMsg = 'Import ' + keys.length + ' data key(s) from backup?\n' +
+          (bundle.exportedAt ? 'Exported at: ' + bundle.exportedAt + '\n' : '') +
+          (bundle.appVersion ? 'From: ' + bundle.appVersion + '\n' : '') +
+          '\nThis will OVERWRITE ' + existingKeys.length + ' existing Wallet IQ key(s). Continue?';
+        if (!window.confirm(overwriteMsg)) return;
+
+        // First, clear existing walletiq keys (avoid stale merge)
+        existingKeys.forEach(function(k){
+          if (keys.indexOf(k) < 0) {
+            try { localStorage.removeItem(k); } catch(e){}
+          }
+        });
+        // Then write the imported keys
+        var written = 0;
+        keys.forEach(function(k){
+          try {
+            var v = bundle.data[k];
+            if (v == null) return;
+            localStorage.setItem(k, String(v));
+            written++;
+          } catch(e){ console.warn(TAG, 'import key failed:', k, e); }
+        });
+
+        stats.imports++;
+        stats.lastImportAt = new Date().toISOString();
+        toast('Imported ' + written + ' key(s). Reloading...', 'ok', 2000);
+
+        // Invalidate caches, then reload
+        try { if (typeof window.__v191Invalidate === 'function') window.__v191Invalidate('import'); } catch(e){}
+        setTimeout(function(){ try { location.reload(); } catch(e){} }, 1200);
+      } catch(err) {
+        console.error(TAG, 'import failed:', err);
+        toast('Import failed: ' + (err && err.message), 'err', 4500);
+      }
+    };
+    reader.onerror = function(){
+      toast('Could not read file', 'err', 3000);
+    };
+    reader.readAsText(file);
+  };
+
+  // ================================================================
+  // Inject 3 new drawer items (idempotent)
+  // ================================================================
+  function injectDrawerItems(){
+    try {
+      var body = document.querySelector('#drawer .drawer-body');
+      if (!body) return false;
+      if (body.querySelector('.v195-data-mgmt')) return true; // already injected
+
+      // Find the reset button so we can insert BEFORE it
+      var resetBtn = null;
+      var items = body.querySelectorAll('.drawer-item');
+      for (var i = 0; i < items.length; i++) {
+        var onclick = items[i].getAttribute('onclick') || '';
+        if (onclick.indexOf('resetWalletIQ') >= 0) { resetBtn = items[i]; break; }
+      }
+
+      var container = document.createElement('div');
+      container.className = 'v195-data-mgmt';
+
+      // Divider before our items
+      var div = document.createElement('div');
+      div.className = 'drawer-divider';
+      container.appendChild(div);
+
+      function mkItem(label, iconSvg, onclickJs){
+        var btn = document.createElement('button');
+        btn.className = 'drawer-item';
+        btn.type = 'button';
+        btn.setAttribute('onclick', onclickJs);
+        btn.innerHTML = '<span class="di-ico">' + iconSvg + '</span><span>' + label + '</span>';
+        return btn;
+      }
+
+      var svgExport = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
+      var svgImport = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>';
+      var svgTxCsv  = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>';
+
+      container.appendChild(mkItem('Export data', svgExport, "exportWalletIQData();closeDrawer();"));
+      container.appendChild(mkItem('Import data', svgImport, "document.getElementById('v195ImportInput').click();"));
+      container.appendChild(mkItem('Download transactions (CSV)', svgTxCsv, "exportTransactionsCSV();closeDrawer();"));
+
+      // Hidden file input for import (idempotent)
+      if (!document.getElementById('v195ImportInput')) {
+        var inp = document.createElement('input');
+        inp.type = 'file';
+        inp.id = 'v195ImportInput';
+        inp.accept = '.json,application/json';
+        inp.style.display = 'none';
+        inp.onchange = function(e){
+          var f = e.target.files && e.target.files[0];
+          if (f) {
+            if (typeof window.closeDrawer === 'function') window.closeDrawer();
+            window.importWalletIQData(f);
+          }
+          e.target.value = ''; // allow re-import
+        };
+        document.body.appendChild(inp);
+      }
+
+      if (resetBtn && resetBtn.parentNode === body) {
+        body.insertBefore(container, resetBtn);
+      } else {
+        body.appendChild(container);
+      }
+      return true;
+    } catch(e){ console.warn(TAG, 'injectDrawerItems:', e); return false; }
+  }
+
+  // ================================================================
+  // AUDIT
+  // ================================================================
+  function runAudit(){
+    console.group(TAG, 'WHERE TO PAY + RESET/EXPORT/IMPORT AUDIT');
+    // Where to Pay
+    console.log('Location lookups:', stats.locLookups);
+    console.log('Location cache hits:', stats.locCacheHits, '| cache size:', LOC_CACHE.size);
+    console.log('Rate-limited attempts:', stats.locRateLimited);
+    console.log('Aborted fetches:', stats.locFetchAborted);
+
+    // Reset
+    console.log('Resets run (V195):', stats.resetsRun);
+    if (stats.lastResetKeys.length > 0) console.log('Last reset cleared keys:', stats.lastResetKeys);
+
+    // Storage inventory
+    var keys = walletIqKeys();
+    var totalSize = 0;
+    var inventory = [];
+    keys.forEach(function(k){
+      var v = null;
+      try { v = localStorage.getItem(k); } catch(e){}
+      var size = v ? v.length : 0;
+      totalSize += size;
+      inventory.push({ key: k, bytes: size });
+    });
+    inventory.sort(function(a,b){ return b.bytes - a.bytes; });
+    console.log('Wallet IQ storage keys:', keys.length, '| total size: ~' + Math.round(totalSize/1024) + ' KB');
+    console.log('Top 5 by size:');
+    inventory.slice(0,5).forEach(function(x){ console.log('  ·', x.key, '(' + x.bytes + ' bytes)'); });
+
+    // Export/Import
+    console.log('Exports:', stats.exports, '| last:', stats.lastExportAt || 'never');
+    console.log('Imports:', stats.imports, '| last:', stats.lastImportAt || 'never');
+
+    // Drawer injection status
+    var drawerReady = !!(document.querySelector('#drawer .drawer-body .v195-data-mgmt'));
+    console.log('V195 drawer items injected:', drawerReady);
+    console.groupEnd();
+    return { stats: stats, storageKeys: keys.length, cacheSize: LOC_CACHE.size };
+  }
+
+  // ================================================================
+  // BOOT
+  // ================================================================
+  function boot(){
+    var tries = 0;
+    var iv = setInterval(function(){
+      tries++;
+      var okLookup = wrapLookup();
+      var okManual = wrapManual();
+      var okSwitch = wrapSwitchTabForLoc();
+      var okReset  = wrapReset();
+      var okDrawer = injectDrawerItems();
+      if ((okLookup && okManual && okSwitch && okReset && okDrawer) || tries > 60) {
+        clearInterval(iv);
+      }
+    }, 100);
+
+    // Re-inject drawer items if drawer is re-rendered
+    var drawer = document.getElementById('drawer');
+    if (drawer) {
+      new MutationObserver(function(){
+        if (!document.querySelector('#drawer .drawer-body .v195-data-mgmt')) {
+          injectDrawerItems();
+        }
+      }).observe(drawer, { childList: true, subtree: true });
+    }
+
+    console.log(TAG, 'patch installed. Run window.__v195.audit() to diagnose.');
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+
+  window.__v195 = {
+    audit: runAudit,
+    stats: stats,
+    exportData: function(){ return window.exportWalletIQData(); },
+    exportTx: function(){ return window.exportTransactionsCSV(); },
+    walletIqKeys: walletIqKeys,
+    locCache: LOC_CACHE,
+    injectDrawerItems: injectDrawerItems
+  };
+})();
+</script>
+<!-- ================== /V195 WHERE TO PAY + RESET/EXPORT/IMPORT PATCH ================== -->
 
 </body>
 </html>
