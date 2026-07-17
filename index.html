@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- V210 (2026-07-15): Welcome Offers refreshed with current July 2026 data verified via web search from Rewards Canada, Milesopedia, Prince of Travel, Frugal Flyer, Ratehub, and issuer sites. Rebuilt OFFERS array to 33 entries covering: (a) Current bonus amounts (Amex Platinum 170k MR, RBC Avion Privilege 100k Avion, Scotia Passport VI+ 60k Scene+, BMO eclipse VI Privilege 200k pts, TD Aeroplan VI Privilege 85k Aeroplan, CIBC Aeroplan VI Privilege 100k Aeroplan). (b) Real 2026 expiry dates (Amex Platinum + Amex Aeroplan Reserve Jul 28, RBC Avion cards Jul 15, Scotia Passport Aug 3, BMO eclipse Oct 31, Scotia Passport Privilege Nov 1). (c) 2026 additions: BMO Ascend World Elite Mastercard, BMO VIPorter World Elite MC, TD First Class Travel VI. (d) Same schema as V209 (n/iss/e/pts/val/fee/fyf/cat/color/expiry/why/apply). No JS logic changes. Rollback: restore the OFFERS array from V209. -->
-<!-- V209 (2026-07-15): Follow-up patch on top of V208 to close 3 remaining checklist gaps. FIX A: My Cards Wise wallet - V208 dedupe skipped V149 build if cardList had .cardBig from renderCards but no .v149-preview yet; V209 tracks hasBuiltOnce so first build always fires. FIX B: Location auto-detect - V183 required a button tap; V209 wraps switchTab so tabName===location triggers lookupBestCard() 250ms after tab activates IF navigator.permissions reports geolocation=granted (no unsolicited prompts). FIX C: Rewards Studio vault light coalescer - single rAF-debounce on renderVaultV122, no observers, no interval throttling (learned from V205/V206 overreach). FIX D deferred: Welcome offers list is July 2026 data (31 entries) - not refreshed here; request offer refresh separately for web-search-backed update. Rollback: delete the [script id=v209-patch] block. -->
-<!-- V208 (2026-07-15): Ground-up rebuild of 4 problem areas on TOP OF V203 BASELINE ONLY. V204-V207 patches were discarded entirely because they caused the flickering and rendering conflicts. Root causes fixed here: (1) DUPLICATE WELCOME OFFERS SEARCH: V181 injected an inline v181-offer-search input into the offers panel in addition to the top #q bar which already handles offers search. V208 hides the inline input via CSS. (2) FLICKERING COMBINED VALUE SUMMARY: V181 has a MutationObserver on the offers panel that fires decorateItems which rewrites v181SummaryTxt.innerHTML which triggers the observer again (feedback loop). V208 wraps the innerHTML setter with a signature-based skip. (3) MY CARDS FLICKER + EMPTY: V149 (Wise wallet) AND V165 (empty-state reconciler) both wrap switchTab; V149 also has setTimeout boot chains. V208 makes __v149.build idempotent via wallet-signature dedupe so redundant rebuilds are no-ops. (4) HERO-ART BLUE CIRCLE: V203s .hero-art::after CSS is removed. Location detector (Where to Pay) and Rewards Studio: NO changes - V203 code works; earlier issues were caused by discarded V204-V207 patches. Rollback: delete the [style id=v208-styles] and [script id=v208-patch] blocks. -->
+<!-- V242 (2026-07-17): PROPER ladder math fix - V235 excluded, V242 replaces it. V235s compact version dropped the code that updated the .v122-prog-bal-val summary line (the "approx $0.00 via [best]" line at the top). V242 fully rewrites that summary in addition to ladder rows: (1) reads manual balance from walletiq_memberships __v234Baseline / __v106ManualBaseline / balance, (2) detects dollar programs (Rogers Cash, WestJet Dollars, More Rewards, cashback) - their cpp is a multiplier not cents-per-point, (3) recomputes each redemption row value with program-aware formula, tracks bestValue and bestLabel, (4) rebuilds the .v122-prog-bal-val innerHTML with "approx $BEST via LABEL" using proper best rate, (5) also updates .v122-prog-bal-num to show manual balance not stale rendered value. Runs on boot, switchTab(rewards), renderVaultV122 wrap, v82:refresh event, saveTxFromModal wrap so transactions increase balance, and scoped MutationObserver on vaultPrograms (childList only, no subtree, to avoid feedback loop from our own innerHTML writes). Rollback: delete [id^=v242-]. -->
+<!-- V224 (2026-07-15): V222 + vault flicker kill added back. V222 wraps window.renderOffers so category filters trigger re-tag + re-apply. V224 also installs djb2 hash intercept on #v122-vault innerHTML setter to kill V183 vaultObs feedback loop (identical writes silently skip -> no cascade -> no flicker). Also wraps renderVaultV122 with rAF-coalesce. -->
+<!-- V222 (2026-07-15): Wraps renderOffers itself. V221 failed because V183 renderOffers writes to #offersList.innerHTML directly, wiping my data-v221-* attributes AND my chip .on state. V183 category filters (All/Travel/Cash/Hotel/No Fee) use onclick=setOfferFilter which calls renderOffers DIRECTLY - my switchTab wrap never fired. V222 wraps window.renderOffers so every V183 render triggers immediate re-tagging and re-applies our sort/filter state. Chip state preserved in a module var. -->
 <!-- V203 (2026-07-15): Five UX bug fixes on V202.
   1) Welcome Offers stat spacing ($0 combined value)
   2) Rewards Portfolio card clickable (navigates to Rewards tab)
@@ -65,7 +65,7 @@
 <meta http-equiv="Expires" content="0">
 
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>Wallet IQ V210</title>
+<title>Wallet IQ V242</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Wallet IQ">
@@ -34341,364 +34341,1023 @@ if (document.readyState === 'loading') {
 </script>
 
 
-<style id="v208-styles">
-/* V208 FIX 1: Hide V181 duplicate inline search input; top #q handles offers search */
-#offers .v181-offer-search,
-#offers input.v181-offer-search,
-.v181-controls .v181-offer-search {
-  display: none !important;
+<style id="v222-styles">
+/* Hide V181's summary (V183 has that) and #homeVaultSummary  */
+#v181SummaryTxt { display: none !important; }
+#homeVaultSummary { display: none !important; }
+
+/* Hide the tacky "Use recommended:" pill */
+[data-v143-pill],
+.alt-cards [data-v143-pill],
+.v70-override-note,
+.v138-revert-pill {
+  display: none !important; visibility: hidden !important;
+  height: 0 !important; margin: 0 !important; padding: 0 !important; overflow: hidden !important;
 }
-.v181-controls {
-  gap: 8px !important;
+.alt-cards .alt-hint { display: none !important; }
+
+/* V222 offers UI - clean modern */
+#v222-controls {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+  margin: 8px 0 10px; padding: 10px 12px;
+  background: var(--surface, #fff);
+  border-radius: 14px;
+  box-shadow: 0 1px 3px rgba(20,20,40,0.06);
+}
+#v222-sort {
+  padding: 8px 32px 8px 14px; border-radius: 99px;
+  background-color: var(--surface, #fff);
+  color: var(--ink, #111);
+  border: 1px solid var(--border, #e2e5eb);
+  font-family: inherit; font-size: 12.5px; font-weight: 900;
+  cursor: pointer; outline: none;
+  -webkit-appearance: none; appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'><path fill='%23888' d='M2 4l4 4 4-4z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+}
+.v222-chip {
+  padding: 7px 12px; border-radius: 99px;
+  background: var(--surface, #fff);
+  border: 1px solid var(--border, #e2e5eb);
+  color: var(--muted, #8b8b9a);
+  font-family: inherit; font-size: 12px; font-weight: 900;
+  cursor: pointer;
+  transition: all 0.14s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.v222-chip.on {
+  background: var(--brand, #2563eb);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(37,99,235,0.22);
+}
+.v222-chip:active { transform: scale(0.96); }
+
+#v222-summary {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px;
+  padding: 10px 14px; margin: 8px 0 12px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(37,99,235,0.06), rgba(124,58,237,0.06));
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 11.5px; font-weight: 900;
+  color: var(--ink, #111);
+}
+#v222-summary .c { color: var(--brand, #2563eb); }
+#v222-summary .v {
+  font-family: ui-monospace, "SF Mono", monospace;
+  color: var(--green, #1a7d3a);
+}
+#v222-summary .l {
+  font-size: 10.5px; opacity: 0.68;
+  letter-spacing: 0.10em; text-transform: uppercase;
+}
+#v222-summary .sep { opacity: 0.35; }
+#v222-summary.filtered {
+  background: linear-gradient(135deg, rgba(37,99,235,0.12), rgba(124,58,237,0.12));
 }
 
-/* V208 FIX 2: Stabilize #v181SummaryTxt layout to prevent visual flicker */
-#v181SummaryTxt {
-  display: inline-flex !important;
-  align-items: baseline !important;
-  gap: 6px !important;
-  min-height: 20px !important;
-}
-#v181SummaryTxt small {
-  letter-spacing: .08em !important;
-  opacity: .78 !important;
-  font-weight: 900 !important;
-  white-space: nowrap !important;
-}
+/* Hide offer cards V222 filtered out */
+.cardBig.v222-hide { display: none !important; }
+
+/* Snappier theme */
+body, body.dark { transition: background 0.15s ease !important; }
 </style>
 
-<script id="v208-patch">
+<script id="v222-offers">
 (function(){
   'use strict';
+  var V222 = window.__v222 = window.__v222 || {};
+
+  /* Module-level chip state that survives V183 rerenders */
+  var _quickFilter = '';  /* '' | 'expiring' | 'value' */
+
+  function matchOfferForCard(cardEl){
+    try {
+      if (!window.OFFERS || !Array.isArray(window.OFFERS)) return null;
+      var text = (cardEl.textContent || '').toLowerCase();
+      if (!text) return null;
+      var best = null; var bestLen = 0;
+      for (var i = 0; i < window.OFFERS.length; i++) {
+        var o = window.OFFERS[i];
+        var nm = String(o.n || '').toLowerCase();
+        if (nm && nm.length > bestLen && text.indexOf(nm) >= 0) {
+          best = o;
+          bestLen = nm.length;
+        }
+      }
+      return best;
+    } catch(e){ return null; }
+  }
+
+  function daysUntil(iso){
+    if (!iso) return Infinity;
+    try {
+      var d = new Date(iso).getTime();
+      return Math.ceil((d - Date.now()) / (1000 * 60 * 60 * 24));
+    } catch(e){ return Infinity; }
+  }
+
+  function tagCards(){
+    try {
+      var host = document.getElementById('offersList');
+      if (!host) return 0;
+      var cards = host.querySelectorAll('.cardBig');
+      var tagged = 0;
+      for (var i = 0; i < cards.length; i++) {
+        var card = cards[i];
+        var offer = matchOfferForCard(card);
+        if (!offer) continue;
+        var v = Number(offer.val || 0);
+        var d = daysUntil(offer.expiry);
+        var f = Number(offer.fee || 0);
+        card.setAttribute('data-v222-value', String(v));
+        card.setAttribute('data-v222-days', isFinite(d) ? String(d) : '999999');
+        card.setAttribute('data-v222-fee', String(f));
+        card.setAttribute('data-v222-name', String(offer.n || ''));
+        card.setAttribute('data-v222-cat', String(offer.cat || ''));
+        tagged++;
+      }
+      return tagged;
+    } catch(e){ return 0; }
+  }
+
+  function ensureControls(){
+    try {
+      var offersList = document.getElementById('offersList');
+      if (!offersList) return null;
+      var existing = document.getElementById('v222-controls');
+      if (existing) return existing;
+      var ctrl = document.createElement('div');
+      ctrl.id = 'v222-controls';
+      ctrl.innerHTML =
+        '<select id="v222-sort" aria-label="Sort offers">' +
+          '<option value="value">Top value first</option>' +
+          '<option value="expiring">Expiring soon</option>' +
+          '<option value="feeLow">Lowest fee</option>' +
+          '<option value="az">A-Z</option>' +
+        '</select>' +
+        '<button type="button" class="v222-chip" data-v222-quick="expiring">\u23F0 Expiring</button>' +
+        '<button type="button" class="v222-chip" data-v222-quick="value">\uD83D\uDC8E Top value</button>';
+      offersList.parentNode.insertBefore(ctrl, offersList);
+      /* Wire handlers */
+      var sortEl = ctrl.querySelector('#v222-sort');
+      sortEl.addEventListener('change', function(){ apply(); });
+      var chips = ctrl.querySelectorAll('.v222-chip');
+      for (var i = 0; i < chips.length; i++) {
+        (function(chip){
+          chip.addEventListener('click', function(){
+            var q = chip.getAttribute('data-v222-quick');
+            /* Toggle module-level state */
+            if (_quickFilter === q) {
+              _quickFilter = '';
+            } else {
+              _quickFilter = q;
+            }
+            /* Sync UI */
+            for (var k = 0; k < chips.length; k++) chips[k].classList.remove('on');
+            if (_quickFilter) {
+              for (var m = 0; m < chips.length; m++) {
+                if (chips[m].getAttribute('data-v222-quick') === _quickFilter) {
+                  chips[m].classList.add('on');
+                }
+              }
+            }
+            apply();
+          });
+        })(chips[i]);
+      }
+      return ctrl;
+    } catch(e){ return null; }
+  }
+
+  function ensureSummary(){
+    try {
+      var offersList = document.getElementById('offersList');
+      if (!offersList) return null;
+      var existing = document.getElementById('v222-summary');
+      if (existing) return existing;
+      var sum = document.createElement('div');
+      sum.id = 'v222-summary';
+      sum.innerHTML = '<span class="c">0</span><span class="l">welcome offers</span><span class="sep">\u00B7</span><span class="v">$0</span><span class="l">combined value</span>';
+      var controls = document.getElementById('v222-controls');
+      var anchor = controls || offersList;
+      anchor.parentNode.insertBefore(sum, anchor.nextSibling);
+      return sum;
+    } catch(e){ return null; }
+  }
+
+  function findStatValueEl(labelText){
+    try {
+      var labels = document.querySelectorAll('#offersHero .oh-stat .l');
+      for (var i = 0; i < labels.length; i++) {
+        if (((labels[i].textContent || '').trim().toUpperCase()) === labelText.toUpperCase()) {
+          var stat = labels[i].parentNode;
+          return stat ? stat.querySelector('.v') : null;
+        }
+      }
+      return null;
+    } catch(e){ return null; }
+  }
+
+  function updateTopStats(visibleCards){
+    try {
+      var countEl = findStatValueEl('CARDS TRACKED');
+      var topEl = findStatValueEl('TOP VALUE');
+      var avgEl = findStatValueEl('AVG MINSPEND');
+      if (countEl) countEl.textContent = String(visibleCards.length);
+      if (visibleCards.length === 0) {
+        if (topEl) topEl.textContent = '\u2014';
+        if (avgEl) avgEl.textContent = '\u2014';
+        return;
+      }
+      var topVal = 0;
+      for (var i = 0; i < visibleCards.length; i++) {
+        var v = Number(visibleCards[i].getAttribute('data-v222-value') || 0);
+        if (v > topVal) topVal = v;
+      }
+      if (topEl) topEl.textContent = '$' + topVal.toLocaleString('en-CA');
+      var totalFee = 0; var feeCount = 0;
+      for (var j = 0; j < visibleCards.length; j++) {
+        var f = Number(visibleCards[j].getAttribute('data-v222-fee') || 0);
+        if (f > 0) { totalFee += f; feeCount++; }
+      }
+      if (avgEl) avgEl.textContent = feeCount > 0 ? '$' + Math.round(totalFee / feeCount) : '\u2014';
+    } catch(e){}
+  }
+
+  function updateSummary(visible, total, visibleValue, filterActive){
+    try {
+      var sum = ensureSummary();
+      if (!sum) return;
+      var label = 'welcome offer' + (visible === 1 ? '' : 's');
+      var valStr = '$' + Math.round(visibleValue).toLocaleString('en-CA');
+      var countHtml = filterActive
+        ? '<span class="c">' + visible + ' of ' + total + '</span>'
+        : '<span class="c">' + visible + '</span>';
+      sum.innerHTML = countHtml +
+        '<span class="l">' + label + '</span>' +
+        '<span class="sep">\u00B7</span>' +
+        '<span class="v">' + valStr + '</span>' +
+        '<span class="l">combined value</span>';
+      sum.classList.toggle('filtered', !!filterActive);
+    } catch(e){}
+  }
+
+  function apply(){
+    try {
+      var host = document.getElementById('offersList');
+      if (!host) return;
+      /* Ensure everything is set up */
+      ensureControls();
+      ensureSummary();
+      /* Tag all cards */
+      tagCards();
+
+      var cards = Array.prototype.slice.call(host.querySelectorAll('.cardBig'));
+      var totalCards = cards.length;
+      if (totalCards === 0) return;
+
+      var sortEl = document.getElementById('v222-sort');
+      var sortVal = sortEl ? sortEl.value : 'value';
+      var quick = _quickFilter;
+
+      var visibleCards = [];
+      var visibleValue = 0;
+
+      for (var i = 0; i < cards.length; i++) {
+        var card = cards[i];
+        var v = Number(card.getAttribute('data-v222-value') || 0);
+        var d = Number(card.getAttribute('data-v222-days') || 999999);
+        var show = true;
+        if (quick === 'expiring') show = isFinite(d) && d >= 0 && d <= 60;
+        else if (quick === 'value') show = v >= 800;
+        card.classList.toggle('v222-hide', !show);
+        if (show) { visibleCards.push(card); visibleValue += v; }
+      }
+
+      visibleCards.sort(function(a, b){
+        var av = Number(a.getAttribute('data-v222-value') || 0);
+        var bv = Number(b.getAttribute('data-v222-value') || 0);
+        var ad = Number(a.getAttribute('data-v222-days') || 999999);
+        var bd = Number(b.getAttribute('data-v222-days') || 999999);
+        var af = Number(a.getAttribute('data-v222-fee') || 0);
+        var bf = Number(b.getAttribute('data-v222-fee') || 0);
+        var an = a.getAttribute('data-v222-name') || '';
+        var bn = b.getAttribute('data-v222-name') || '';
+        if (sortVal === 'expiring') return ad - bd;
+        if (sortVal === 'feeLow') return af - bf;
+        if (sortVal === 'az') return an.localeCompare(bn);
+        return bv - av;
+      });
+      for (var k = 0; k < visibleCards.length; k++) host.appendChild(visibleCards[k]);
+
+      var lbl = document.getElementById('offersCountLabel');
+      if (lbl) lbl.textContent = visibleCards.length + ' welcome offer' + (visibleCards.length === 1 ? '' : 's') + (quick ? ' shown' : ' available');
+      updateSummary(visibleCards.length, totalCards, visibleValue, !!quick);
+      updateTopStats(visibleCards);
+
+      if (window.__v222_debug) {
+        try {
+          console.log('[V222] apply:', {
+            totalCards: totalCards,
+            visible: visibleCards.length,
+            sort: sortVal,
+            quick: quick
+          });
+        } catch(_){}
+      }
+    } catch(e){ try { console.warn('[V222] apply:', e); } catch(_){} }
+  }
+  V222.apply = apply;
+
+  /* CRITICAL: wrap V183's renderOffers so every render re-tags + re-applies */
+  function wrapRenderOffers(){
+    try {
+      if (typeof window.renderOffers !== 'function') return false;
+      if (window.renderOffers.__v222Wrapped) return true;
+      var orig = window.renderOffers;
+      var wrapped = function(){
+        var r;
+        try { r = orig.apply(this, arguments); } catch(e){ try { console.warn('[V222] origRender:', e); } catch(_){} }
+        /* After V183 rewrites #offersList, wait a tick then re-tag + apply */
+        setTimeout(function(){
+          try { apply(); } catch(_){}
+        }, 20);
+        return r;
+      };
+      wrapped.__v222Wrapped = true;
+      window.renderOffers = wrapped;
+      return true;
+    } catch(e){ return false; }
+  }
+
+  function tryInstall(){
+    /* Wrap renderOffers if not yet */
+    wrapRenderOffers();
+    /* Also trigger apply directly (case where V183 already rendered before we booted) */
+    var host = document.getElementById('offersList');
+    if (host && host.querySelectorAll('.cardBig').length > 0) {
+      ensureControls();
+      ensureSummary();
+      apply();
+      return true;
+    }
+    return false;
+  }
 
   function boot(){
     try {
-      if (window.__v208Init) return;
-      window.__v208Init = true;
-      window.__v208 = window.__v208 || {};
+      if (window.__v222Init) return;
+      window.__v222Init = true;
 
-      // =========================================================
-      // FIX 2: Coalesce V181 offers summary writes
-      // =========================================================
-      function installSummaryCoalescer(){
-        try {
-          var el = document.getElementById('v181SummaryTxt');
-          if (!el || el.__v208Coalesced) return false;
-          var lastHTML = el.innerHTML;
+      /* Immediate + retries */
+      var tries = 0;
+      var tick = function(){
+        var ok = tryInstall();
+        if (ok && window.renderOffers && window.renderOffers.__v222Wrapped) return;
+        if (++tries < 40) setTimeout(tick, 200);
+      };
+      setTimeout(tick, 300);
+
+      /* Wrap switchTab too - belt & suspenders */
+      if (typeof window.switchTab === 'function' && !window.switchTab.__v222Wrapped) {
+        var orig = window.switchTab;
+        window.switchTab = function(tabName){
+          var r; try { r = orig.apply(this, arguments); } catch(e){}
           try {
-            var proto = Object.getPrototypeOf(el);
-            var desc = null;
-            var p = proto;
-            while (p && !desc) {
-              desc = Object.getOwnPropertyDescriptor(p, 'innerHTML');
-              p = Object.getPrototypeOf(p);
-            }
-            if (desc && desc.set) {
-              var origSetter = desc.set;
-              var origGetter = desc.get;
-              Object.defineProperty(el, 'innerHTML', {
-                configurable: true,
-                get: function(){ return origGetter.call(this); },
-                set: function(v){
-                  if (v === lastHTML) return;
-                  lastHTML = v;
-                  origSetter.call(this, v);
-                }
-              });
-              el.__v208Coalesced = true;
-              return true;
+            if (tabName === 'offers') {
+              setTimeout(tryInstall, 50);
+              setTimeout(tryInstall, 300);
+              setTimeout(tryInstall, 800);
             }
           } catch(_){}
-        } catch(e) {
-          try { console.warn('[V208] coalescer install error:', e); } catch(_){}
+          return r;
+        };
+        window.switchTab.__v222Wrapped = true;
+      }
+
+      /* If offers tab already active, install now */
+      try {
+        var op = document.getElementById('offers');
+        if (op && op.classList && op.classList.contains('active')) {
+          setTimeout(tryInstall, 300);
+          setTimeout(tryInstall, 1000);
         }
-        return false;
-      }
-      installSummaryCoalescer();
-      setTimeout(installSummaryCoalescer, 500);
-      setTimeout(installSummaryCoalescer, 1500);
+      } catch(_){}
 
-      // =========================================================
-      // FIX 3: My Cards - one clean rebuild path
-      // =========================================================
-      function walletSignature(){
-        try {
-          var raw = localStorage.getItem('walletIQ_v40_wallet') || '';
-          return raw.length + ':' + raw.slice(0, 200);
-        } catch(e){ return String(Date.now()); }
-      }
-
-      function installV149Dedupe(){
-        try {
-          if (!window.__v149 || typeof window.__v149.build !== 'function') return false;
-          if (window.__v149.__v208Wrapped) return true;
-          var origBuild = window.__v149.build;
-          var lastSig = null;
-          var pending = false;
-          function debouncedBuild(){
-            if (pending) return;
-            pending = true;
-            (window.requestAnimationFrame || function(cb){ setTimeout(cb, 16); })(function(){
-              pending = false;
-              try {
-                var sig = walletSignature();
-                var cardList = document.getElementById('cardList');
-                var count = cardList ? cardList.querySelectorAll('.cardBig').length : 0;
-                if (sig === lastSig && count > 0) return;
-                lastSig = sig;
-                origBuild.call(window);
-              } catch(e){}
-            });
-          }
-          window.__v149.build = debouncedBuild;
-          window.__v149.__v208Wrapped = true;
-          window.__v149.__originalBuild = origBuild;
-          return true;
-        } catch(e){
-          try { console.warn('[V208] v149 dedupe install error:', e); } catch(_){}
-        }
-        return false;
-      }
-      installV149Dedupe();
-      setTimeout(installV149Dedupe, 300);
-      setTimeout(installV149Dedupe, 900);
-      setTimeout(installV149Dedupe, 2000);
-
-      // =========================================================
-      // Debug: window.__v208.audit()
-      // =========================================================
-      window.__v208.audit = function(){
+      V222.audit = function(){
         var out = {};
         try {
-          var sum = document.getElementById('v181SummaryTxt');
-          out.summaryCoalesced = !!(sum && sum.__v208Coalesced);
-          out.v149Wrapped = !!(window.__v149 && window.__v149.__v208Wrapped);
-          out.v149Ready = !!(window.__v149 && window.__v149.ready);
-          var wallet = localStorage.getItem('walletIQ_v40_wallet');
-          try {
-            var w = wallet ? JSON.parse(wallet) : [];
-            out.walletSize = Array.isArray(w) ? w.length : (w ? Object.keys(w).length : 0);
-          } catch(_) { out.walletSize = null; }
-          var cardList = document.getElementById('cardList');
-          out.cardListChildCount = cardList ? cardList.children.length : null;
-          out.cardListCardBigCount = cardList ? cardList.querySelectorAll('.cardBig').length : null;
-          out.cardListV149PreviewCount = cardList ? cardList.querySelectorAll('.v149-preview').length : null;
-          var inlineSearch = document.querySelector('#offers .v181-offer-search');
-          out.inlineOffersSearchHidden = !inlineSearch || getComputedStyle(inlineSearch).display === 'none';
+          var host = document.getElementById('offersList');
+          out.totalCards = host ? host.querySelectorAll('.cardBig').length : 0;
+          out.tagged = host ? host.querySelectorAll('.cardBig[data-v222-value]').length : 0;
+          out.hidden = host ? host.querySelectorAll('.cardBig.v222-hide').length : 0;
+          out.controlsPresent = !!document.getElementById('v222-controls');
+          out.summaryPresent = !!document.getElementById('v222-summary');
+          out.summaryText = document.getElementById('v222-summary') ? String(document.getElementById('v222-summary').textContent || '').replace(/\s+/g, ' ').trim() : null;
+          out.sortValue = document.getElementById('v222-sort') ? document.getElementById('v222-sort').value : null;
+          out.quickFilter = _quickFilter;
+          out.activeChip = document.querySelector('.v222-chip.on') ? document.querySelector('.v222-chip.on').getAttribute('data-v222-quick') : null;
+          out.renderOffersWrapped = !!(window.renderOffers && window.renderOffers.__v222Wrapped);
+          var topStat = findStatValueEl('CARDS TRACKED');
+          out.cardsTrackedStat = topStat ? topStat.textContent : null;
+          out.sample = [];
+          if (host) {
+            var samp = host.querySelectorAll('.cardBig');
+            for (var i = 0; i < Math.min(3, samp.length); i++) {
+              var c = samp[i];
+              out.sample.push({
+                name: c.getAttribute('data-v222-name') || null,
+                value: c.getAttribute('data-v222-value') || null,
+                days: c.getAttribute('data-v222-days') || null,
+                hidden: c.classList.contains('v222-hide'),
+                textStart: (c.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 80)
+              });
+            }
+          }
         } catch(e){ out.error = String(e); }
         return out;
       };
+      V222.forceApply = function(){ apply(); return true; };
+      V222.forceInstall = function(){ return tryInstall(); };
+      V222.enableDebug = function(){ window.__v222_debug = true; return 'debug logging enabled'; };
 
-      window.__v208.rebuildCards = function(){
-        try {
-          if (window.__v149 && window.__v149.__originalBuild) {
-            window.__v149.__originalBuild.call(window);
-            return true;
-          }
-          if (window.__v149 && window.__v149.build) {
-            window.__v149.build();
-            return true;
-          }
-          return false;
-        } catch(e){ return String(e); }
-      };
-
-      try { console.log('[V208] clean patch active. Run window.__v208.audit() to inspect.'); } catch(_){}
-    } catch(outerErr) {
-      try { console.warn('[V208] top-level error:', outerErr); } catch(_){}
-    }
+      try { console.log('[V222] offers control installed. Run window.__v222.audit()'); } catch(_){}
+    } catch(e){}
   }
 
   function schedule(){ setTimeout(boot, 1200); }
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', schedule);
-  } else {
-    schedule();
-  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', schedule);
+  else schedule();
 })();
 </script>
 
-<script id="v209-patch">
+<style id="v224-vault-styles">
+/* No visual changes - purely functional */
+</style>
+<script id="v224-vault-flicker-kill">
 (function(){
   'use strict';
+  var V224 = window.__v224 = window.__v224 || {};
+  var vaultStats = { skippedIdentical: 0, allowed: 0 };
+
+  function djb2(s){
+    var h = 5381;
+    for (var i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0;
+    return h;
+  }
+
+  /* Intercept #v122-vault innerHTML setter so identical writes silently skip.
+     This is what breaks the V183 vaultObs -> 9 enhancers -> vaultObs feedback loop. */
+  function installVaultIntercept(){
+    try {
+      var vault = document.getElementById('v122-vault');
+      if (!vault) return false;
+      if (vault.__v224Intercepted) return true;
+      var proto = Object.getPrototypeOf(vault);
+      var desc = null, p = proto;
+      while (p && !desc) {
+        desc = Object.getOwnPropertyDescriptor(p, 'innerHTML');
+        p = Object.getPrototypeOf(p);
+      }
+      if (!desc || !desc.set) return false;
+      var origSetter = desc.set, origGetter = desc.get;
+      var lastHash = null;
+      Object.defineProperty(vault, 'innerHTML', {
+        configurable: true,
+        get: function(){ return origGetter.call(this); },
+        set: function(v){
+          try {
+            var newHash = djb2(String(v || ''));
+            if (newHash === lastHash) { vaultStats.skippedIdentical++; return; }
+            lastHash = newHash;
+            vaultStats.allowed++;
+          } catch(e){}
+          origSetter.call(this, v);
+        }
+      });
+      vault.__v224Intercepted = true;
+      return true;
+    } catch(e){ return false; }
+  }
+
+  /* Wrap renderVaultV122 with rAF-coalesce so multiple callers in same frame collapse to one paint */
+  function installVaultCoalescer(){
+    try {
+      if (typeof window.renderVaultV122 !== 'function') return false;
+      if (window.renderVaultV122.__v224Wrapped) return true;
+      var orig = window.renderVaultV122;
+      var pending = false;
+      window.renderVaultV122 = function(){
+        if (pending) return;
+        pending = true;
+        (window.requestAnimationFrame || function(cb){ setTimeout(cb, 16); })(function(){
+          pending = false;
+          try { orig.call(window); } catch(e){}
+        });
+      };
+      window.renderVaultV122.__v224Wrapped = true;
+      return true;
+    } catch(e){ return false; }
+  }
 
   function boot(){
     try {
-      if (window.__v209Init) return;
-      window.__v209Init = true;
-      window.__v209 = window.__v209 || {};
+      if (window.__v224Init) return;
+      window.__v224Init = true;
+      /* Retry install every 100ms for 5 seconds so V183/V128 boot doesn't beat us */
+      var tries = 0;
+      var tick = function(){
+        var a = installVaultIntercept();
+        var b = installVaultCoalescer();
+        if (a && b) return;
+        if (++tries < 50) setTimeout(tick, 100);
+      };
+      setTimeout(tick, 100);
 
-      // =========================================================
-      // FIX A: Always allow FIRST V149 Wise wallet build
-      // V208 skipped the build if .cardBig existed and sig unchanged,
-      // but V149 needs to run at least once to transform .cardBig into
-      // .v149-preview stacked wallet UI. V209 tracks hasBuiltOnce.
-      // =========================================================
-      function fixV149BuildOnce(){
-        try {
-          if (!window.__v149) return false;
-          if (window.__v149.__v209Wrapped) return true;
-          var original = window.__v149.__originalBuild || window.__v149.build;
-          if (!original || typeof original !== 'function') return false;
-
-          var hasBuiltOnce = false;
-          var lastSig = null;
-          var pending = false;
-
-          function walletSig(){
-            try { return (localStorage.getItem('walletIQ_v40_wallet') || '').length; } catch(e){ return -1; }
+      /* Also re-install on rewards tab switch */
+      if (typeof window.switchTab === 'function' && !window.switchTab.__v224Wrapped) {
+        var orig = window.switchTab;
+        window.switchTab = function(tabName){
+          var r; try { r = orig.apply(this, arguments); } catch(e){}
+          if (tabName === 'rewards') {
+            setTimeout(function(){ installVaultIntercept(); installVaultCoalescer(); }, 100);
+            setTimeout(function(){ installVaultIntercept(); installVaultCoalescer(); }, 500);
           }
-
-          function newBuild(){
-            if (pending) return;
-            pending = true;
-            (window.requestAnimationFrame || function(cb){ setTimeout(cb, 16); })(function(){
-              pending = false;
-              try {
-                var sig = walletSig();
-                var cardList = document.getElementById('cardList');
-                var previewCount = cardList ? cardList.querySelectorAll('.v149-preview').length : 0;
-                // Always allow first build OR if wise-wallet previews missing OR wallet changed
-                if (!hasBuiltOnce || previewCount === 0 || sig !== lastSig) {
-                  original.call(window);
-                  hasBuiltOnce = true;
-                  lastSig = sig;
-                }
-              } catch(e){}
-            });
-          }
-
-          window.__v149.build = newBuild;
-          window.__v149.__v209Wrapped = true;
-          window.__v149.__v209OriginalBuild = original;
-          return true;
-        } catch(e){}
-        return false;
-      }
-      fixV149BuildOnce();
-      setTimeout(fixV149BuildOnce, 400);
-      setTimeout(fixV149BuildOnce, 1200);
-
-      // =========================================================
-      // FIX B: Location auto-detect on tab switch (permission-gated)
-      // =========================================================
-      function shouldAutoDetectLocation(cb){
-        try {
-          if (!navigator.geolocation) { cb(false); return; }
-          if (navigator.permissions && navigator.permissions.query) {
-            navigator.permissions.query({ name: 'geolocation' }).then(function(status){
-              cb(status.state === 'granted');
-            }).catch(function(){ cb(false); });
-            return;
-          }
-        } catch(e){}
-        cb(false);
-      }
-
-      function autoDetectIfEmpty(){
-        try {
-          var resEl = document.getElementById('locResult');
-          if (!resEl) return;
-          if (resEl.innerHTML && resEl.innerHTML.trim().length > 50) return;
-          shouldAutoDetectLocation(function(canAuto){
-            if (canAuto && typeof window.lookupBestCard === 'function') {
-              window.lookupBestCard();
-            }
-          });
-        } catch(e){}
-      }
-
-      // =========================================================
-      // Wrap switchTab: location auto-detect + cardsTab V149 kick
-      // =========================================================
-      if (typeof window.switchTab === 'function' && !window.switchTab.__v209Wrapped) {
-        var origSwitchTab = window.switchTab;
-        var wrappedSwitchTab = function(tabName){
-          var r;
-          try { r = origSwitchTab.apply(this, arguments); } catch(e){}
-          try {
-            if (tabName === 'location') {
-              setTimeout(autoDetectIfEmpty, 250);
-            }
-            if (tabName === 'cardsTab') {
-              setTimeout(function(){
-                try { if (window.__v149 && window.__v149.build) window.__v149.build(); } catch(_){}
-              }, 100);
-            }
-          } catch(e){}
           return r;
         };
-        wrappedSwitchTab.__v209Wrapped = true;
-        window.switchTab = wrappedSwitchTab;
+        window.switchTab.__v224Wrapped = true;
       }
 
-      // =========================================================
-      // FIX C: Lightweight vault coalescer (rAF-debounce only)
-      // =========================================================
-      if (typeof window.renderVaultV122 === 'function' && !window.renderVaultV122.__v209Wrapped) {
-        var origVault = window.renderVaultV122;
-        var vaultPending = false;
-        window.renderVaultV122 = function(){
-          if (vaultPending) return;
-          vaultPending = true;
-          (window.requestAnimationFrame || function(cb){ setTimeout(cb, 16); })(function(){
-            vaultPending = false;
-            try { origVault.call(window); } catch(e){}
-          });
-        };
-        window.renderVaultV122.__v209Wrapped = true;
-        window.__v209.originalRenderVaultV122 = origVault;
-      }
-
-      // =========================================================
-      // Debug: window.__v209.audit()
-      // =========================================================
-      window.__v209.audit = function(){
+      V224.audit = function(){
         var out = {};
         try {
-          out.v149V209Wrapped = !!(window.__v149 && window.__v149.__v209Wrapped);
-          out.v208V149Wrapped = !!(window.__v149 && window.__v149.__v208Wrapped);
-          out.switchTabWrapped = !!(window.switchTab && window.switchTab.__v209Wrapped);
-          out.vaultWrapped = !!(window.renderVaultV122 && window.renderVaultV122.__v209Wrapped);
-          var cardList = document.getElementById('cardList');
-          out.cardListPreviewCount = cardList ? cardList.querySelectorAll('.v149-preview').length : null;
-          out.cardListCardBigCount = cardList ? cardList.querySelectorAll('.cardBig').length : null;
-          var locEl = document.getElementById('locResult');
-          out.locResultHasContent = !!(locEl && locEl.innerHTML.trim().length > 50);
+          var vault = document.getElementById('v122-vault');
+          out.vaultIntercepted = !!(vault && vault.__v224Intercepted);
+          out.vaultCoalesced = !!(window.renderVaultV122 && window.renderVaultV122.__v224Wrapped);
+          out.skippedIdentical = vaultStats.skippedIdentical;
+          out.allowed = vaultStats.allowed;
         } catch(e){ out.error = String(e); }
         return out;
       };
 
-      window.__v209.forceLocationDetect = function(){
-        try { if (typeof window.lookupBestCard === 'function') window.lookupBestCard(); return true; } catch(e){ return String(e); }
-      };
-      window.__v209.forceCardsBuild = function(){
-        try {
-          if (window.__v149 && window.__v149.__v209OriginalBuild) {
-            window.__v149.__v209OriginalBuild.call(window);
-            return true;
-          }
-          if (window.__v149 && window.__v149.build) {
-            window.__v149.build();
-            return true;
-          }
-        } catch(e){ return String(e); }
-        return false;
-      };
+      try { console.log('[V224] vault flicker kill active. Run window.__v224.audit()'); } catch(_){}
+    } catch(e){}
+  }
 
-      try { console.log('[V209] Follow-up patch active. Run window.__v209.audit() to inspect.'); } catch(_){}
-    } catch(outerErr) {
-      try { console.warn('[V209] top-level error:', outerErr); } catch(_){}
+  function schedule(){ setTimeout(boot, 800); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', schedule);
+  else schedule();
+})();
+</script>
+<style id="v226-home-tiles-css">
+#v226-home-tiles{margin-top:14px;display:grid;grid-template-columns:1fr;gap:10px}
+#v226-home-tiles .v226-tile{position:relative;overflow:hidden;background:linear-gradient(135deg,#ffffff 0%,#f0eef7 55%,#e9e2f2 100%);border:none;border-radius:22px;padding:16px 16px;display:grid;grid-template-columns:44px 1fr 20px;gap:12px;align-items:center;box-shadow:0 4px 18px rgba(85,75,130,.09);cursor:pointer}
+#v226-home-tiles .v226-tile:active{transform:scale(.985)}
+#v226-home-tiles .v226-tile::after{content:"";position:absolute;top:-30px;right:-30px;width:140px;height:140px;background:radial-gradient(circle,rgba(99,102,241,.14),transparent 65%);pointer-events:none}
+#v226-home-tiles .v226-tile.offers{background:linear-gradient(135deg,#ffffff 0%,#eef3fb 55%,#e2ecf9 100%)}
+#v226-home-tiles .v226-tile.offers::after{background:radial-gradient(circle,rgba(37,99,235,.14),transparent 65%)}
+#v226-home-tiles .v226-tile.credits{background:linear-gradient(135deg,#ffffff 0%,#eef5f0 55%,#e0eee5 100%)}
+#v226-home-tiles .v226-tile.credits::after{background:radial-gradient(circle,rgba(26,125,58,.14),transparent 65%)}
+#v226-home-tiles .v226-ico{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:22px;background:rgba(255,255,255,.75)}
+#v226-home-tiles .v226-body{min-width:0;z-index:1}
+#v226-home-tiles .v226-title{font-size:14.5px;font-weight:900;letter-spacing:-.02em;color:var(--ink);line-height:1.15}
+#v226-home-tiles .v226-sub{font-size:11.5px;color:var(--muted);font-weight:750;margin-top:2px;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#v226-home-tiles .v226-arrow{font-size:18px;color:var(--muted);font-weight:900;z-index:1}
+body.dark #v226-home-tiles .v226-tile{background:linear-gradient(135deg,#22212f 0%,#2a2540 55%,#2d1f38 100%)!important}
+body.dark #v226-home-tiles .v226-ico{background:rgba(255,255,255,.08)}
+#v226-home-tiles .v226-section-label{font-size:10px;color:var(--muted);font-weight:900;letter-spacing:.14em;text-transform:uppercase;margin:6px 2px -4px}
+</style>
+<script id="v226-home-tiles-inject">(function(){
+  'use strict';
+  function ensureHomeTiles(){ try { var home = document.getElementById('home'); if (!home) return false; if (document.getElementById('v226-home-tiles')) return true; var wrap = document.createElement('div'); wrap.id = 'v226-home-tiles'; var t1 = document.createElement('div'); t1.className='v226-tile rewards'; t1.innerHTML='<div class="v226-ico">\uD83C\uDFAF</div><div class="v226-body"><div class="v226-title">Rewards Studio</div><div class="v226-sub">Portfolio, activity, credits & vault</div></div><div class="v226-arrow">\u203A</div>'; t1.addEventListener('click', function(){ try { window.switchTab && window.switchTab('rewards'); } catch(e){} }); var t2 = document.createElement('div'); t2.className='v226-tile offers'; t2.innerHTML='<div class="v226-ico">\uD83C\uDF81</div><div class="v226-body"><div class="v226-title">Welcome offers</div><div class="v226-sub">Top Canadian cards by first-year value</div></div><div class="v226-arrow">\u203A</div>'; t2.addEventListener('click', function(){ try { window.switchTab && window.switchTab('offers'); } catch(e){} }); var t3 = document.createElement('div'); t3.className='v226-tile credits'; t3.innerHTML='<div class="v226-ico">\uD83D\uDCB3</div><div class="v226-body"><div class="v226-title">Statement credits</div><div class="v226-sub">Track every benefit before it expires</div></div><div class="v226-arrow">\u203A</div>'; t3.addEventListener('click', function(){ try { window.switchTab && window.switchTab('rewards'); } catch(e){} }); var label = document.createElement('div'); label.className = 'v226-section-label'; label.textContent = 'Explore'; wrap.appendChild(label); wrap.appendChild(t1); wrap.appendChild(t2); wrap.appendChild(t3); var greeting = home.querySelector('.greeting'); if (greeting && greeting.nextSibling) home.insertBefore(wrap, greeting.nextSibling); else home.appendChild(wrap); return true; } catch(e){ return false; } }
+  function boot(){ if (window.__v226Init) return; window.__v226Init = true; setTimeout(ensureHomeTiles, 200); setTimeout(ensureHomeTiles, 800); setTimeout(ensureHomeTiles, 2000); try { if (typeof window.switchTab === 'function' && !window.switchTab.__v226Wrapped) { var orig = window.switchTab; window.switchTab = function(tn){ var r; try { r = orig.apply(this, arguments); } catch(e){} if (tn === 'home') setTimeout(ensureHomeTiles, 60); return r; }; window.switchTab.__v226Wrapped = true; } } catch(e){} }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function(){ setTimeout(boot, 400); }); else setTimeout(boot, 400);
+})();</script>
+<style id="v227-search-focus-css">
+#v226-home-tiles[data-v227-hidden]{display:none!important}
+#emptyWalletState[data-v227-search-hide]{display:none!important}
+</style>
+<script id="v227-search-focus-tiles">(function(){
+  'use strict';
+  function isSearching(){ try { var q = document.getElementById('q'); if (!q) return false; return !!(q.value && q.value.trim().length > 0); } catch(e){ return false; } }
+  function apply(){ try { var s = isSearching(); var t = document.getElementById('v226-home-tiles'); var e = document.getElementById('emptyWalletState'); if (t) { if (s) t.setAttribute('data-v227-hidden','1'); else t.removeAttribute('data-v227-hidden'); } if (e) { if (s) e.setAttribute('data-v227-search-hide','1'); else e.removeAttribute('data-v227-search-hide'); } } catch(e){} }
+  function wireInput(){ try { var q = document.getElementById('q'); if (!q || q.__v227Wired) return false; q.__v227Wired = true; q.addEventListener('input', apply, true); q.addEventListener('keyup', apply, true); q.addEventListener('change', apply, true); return true; } catch(e){ return false; } }
+  function boot(){ if (window.__v227Init) return; window.__v227Init = true; var tries = 0; (function retry(){ wireInput(); apply(); tries++; if (tries < 20) setTimeout(retry, 150); })(); document.addEventListener('click', function(){ setTimeout(apply, 40); }, true); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function(){ setTimeout(boot, 500); }); else setTimeout(boot, 500);
+})();</script>
+<style id="v230-apple-wallet-css">
+#cardsTab[data-v230-populated] #cardsEmpty,#cardsTab[data-v230-populated] #cardsNoMatch{display:none!important}
+#cardList .v230-wallet{padding:8px 6px 20px;position:relative}
+#cardList .v230-hint{font-size:11px;color:var(--muted);font-weight:800;letter-spacing:.06em;text-align:center;padding:2px 0 14px;opacity:.6;text-transform:uppercase}
+#cardList .v230-stack{position:relative;display:flex;flex-direction:column;padding-bottom:8px}
+#cardList .v230-item{position:relative;transition:margin-top .42s cubic-bezier(.25,.85,.35,1.1),transform .18s ease;border-radius:14px;overflow:visible;cursor:pointer;user-select:none;margin-top:-142px}
+#cardList .v230-item:first-child{margin-top:0}
+#cardList .v230-item.open,#cardList .v230-item.push{margin-top:22px}
+#cardList .v230-item:active{transform:scale(.985)}
+#cardList .v230-art{width:100%;max-width:340px;margin:0 auto;aspect-ratio:340/210;filter:drop-shadow(0 6px 16px rgba(20,20,40,.2));transition:filter .28s ease}
+#cardList .v230-item.open .v230-art{filter:drop-shadow(0 14px 32px rgba(37,99,235,.28))}
+#cardList .v230-art svg{width:100%;height:100%;display:block;border-radius:14px}
+#cardList .v230-detail{max-height:0;overflow:hidden;transition:max-height .42s cubic-bezier(.25,.85,.35,1.1),margin-top .3s ease,padding .3s ease;padding:0 4px;margin-top:0}
+#cardList .v230-item.open .v230-detail{max-height:3000px;padding:14px 4px 4px;margin-top:10px}
+#cardList .v230-detail-inner{background:var(--surface);border-radius:18px;padding:16px 16px 14px;box-shadow:0 6px 20px rgba(20,20,40,.08);border:1px solid var(--border)}
+#cardList .v230-detail-name{font-size:17px;font-weight:900;letter-spacing:-.02em;color:var(--ink);margin-bottom:2px}
+#cardList .v230-detail-sub{font-size:12px;color:var(--muted);font-weight:750;margin-bottom:14px}
+#cardList .v230-fees{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border-radius:12px;overflow:hidden;margin-bottom:14px;border:1px solid var(--border)}
+#cardList .v230-fees>div{background:var(--surface);padding:12px 14px}
+#cardList .v230-fees .lbl{font-size:9.5px;color:var(--muted);font-weight:900;letter-spacing:.1em;text-transform:uppercase}
+#cardList .v230-fees .val{font-size:17px;font-weight:900;margin-top:3px;color:var(--ink);font-family:ui-monospace,monospace}
+#cardList .v230-benefits-label{font-size:9.5px;color:var(--muted);font-weight:900;letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px}
+#cardList .v230-benefits .row{display:grid;grid-template-columns:26px 1fr auto;gap:10px;align-items:center;padding:9px 4px;border-top:1px dashed var(--border);font-size:12.5px}
+#cardList .v230-benefits .row:first-child{border-top:none}
+#cardList .v230-benefits .row .ico{font-size:16px;text-align:center}
+#cardList .v230-benefits .row .txt{color:var(--ink);font-weight:700}
+#cardList .v230-benefits .row .v{font-family:ui-monospace,monospace;font-weight:900;font-size:11.5px;color:var(--brand,#5f74b8)}
+@media(max-width:390px){#cardList .v230-item{margin-top:-135px}#cardList .v230-art{max-width:320px}}
+</style>
+<script id="v230-apple-wallet-render">(function(){
+  'use strict';
+  var V230=window.__v230=window.__v230||{},VER=2;
+  function esc(s){try{var d=document.createElement('div'); d.textContent=String(s==null?'':s); return d.innerHTML;}catch(e){return '';}}
+  function getDB(){try{if(typeof CARDS_DB!=='undefined')return CARDS_DB;}catch(e){}return null;}
+  function getW(){try{if(typeof userWallet!=='undefined')return userWallet;}catch(e){}return null;}
+  function getE(){try{if(typeof isScotiaEmp!=='undefined')return !!isScotiaEmp;}catch(e){}return false;}
+  function getS(){try{if(typeof svgCard==='function')return svgCard;}catch(e){}return null;}
+  function sub(c){if(!c)return ''; var p=[]; if(c.iss)p.push(esc(c.iss)); if(c.net)p.push(esc(c.net)); if(c.r)p.push(esc(c.r)); return p.join(' \u00b7 ');}
+  function detail(c,k,ie){if(!c)return ''; var fee=c.feeRetail||0; if(c.scotiaEmployee&&ie)fee=fee*0.5; var b=''; if(c.benefits&&c.benefits.length){b='<div class="v230-benefits-label">Benefits & rewards</div><div class="v230-benefits">'; for(var i=0;i<c.benefits.length;i++){var x=c.benefits[i]||[]; b+='<div class="row"><span class="ico">'+esc(x[0]||'\u2022')+'</span><span class="txt">'+esc(x[1]||'')+'</span><span class="v">'+esc(x[2]||'')+'</span></div>';} b+='</div>';} return '<div class="v230-detail-inner"><div class="v230-detail-name">'+esc(c.n||k)+'</div><div class="v230-detail-sub">'+sub(c)+'</div><div class="v230-fees"><div><div class="lbl">Your Fee</div><div class="val">$'+fee.toFixed(0)+'</div></div><div><div class="lbl">Retail Fee</div><div class="val">$'+(c.feeRetail||0).toFixed(0)+'</div></div></div>'+b+'</div>';}
+  function bind(it,st){var az=it.querySelector('.v230-art'); if(!az)return; az.addEventListener('click',function(e){e.stopPropagation(); var wo=it.classList.contains('open'); var items=st.querySelectorAll('.v230-item'); for(var i=0;i<items.length;i++){items[i].classList.remove('open');items[i].classList.remove('push');} if(!wo){it.classList.add('open'); var f=false; for(var j=0;j<items.length;j++){if(f)items[j].classList.add('push'); if(items[j]===it)f=true;} try{setTimeout(function(){it.scrollIntoView({behavior:'smooth',block:'start'});},100);}catch(_){}}});}
+  function render(force){try{var cl=document.getElementById('cardList'); if(!cl)return false; var w=getW(); var ct=document.getElementById('cardsTab'); if(!w||!w.size){if(ct)ct.removeAttribute('data-v230-populated'); return false;} if(ct)ct.setAttribute('data-v230-populated','1'); var e=document.getElementById('cardsEmpty'); if(e&&e.style.display!=='none')e.style.display='none'; var DB=getDB(); if(!DB)return false; var ex=cl.querySelector('.v230-wallet'); if(!force&&ex&&ex.__v230Ver===VER&&ex.__v230Sz===w.size)return true; var tr=cl.querySelectorAll(':scope > .cardBig, :scope > .v149-wallet-wrap, :scope > .v230-wallet'); for(var k=0;k<tr.length;k++){try{tr[k].remove();}catch(e2){}} var ww=document.createElement('div'); ww.className='v230-wallet'; ww.__v230Ver=VER; ww.__v230Sz=w.size; var h=document.createElement('div'); h.className='v230-hint'; h.textContent='Tap a card to view details'; ww.appendChild(h); var st=document.createElement('div'); st.className='v230-stack'; ww.appendChild(st); var ie=getE(); var keys=Array.from(w); var sf=getS(); for(var i=0;i<keys.length;i++){var key=keys[i]; var c=DB[key]; if(!c)continue; var art=''; if(sf){try{art=sf(c,key);}catch(_){}} var it=document.createElement('div'); it.className='v230-item'; it.innerHTML='<div class="v230-art">'+art+'</div><div class="v230-detail">'+detail(c,key,ie)+'</div>'; bind(it,st); st.appendChild(it);} cl.appendChild(ww); return true;}catch(e){return false;}}
+  function boot(){if(window.__v230Init)return; window.__v230Init=true; try{if(window.__v149)window.__v149.build=function(){return;};}catch(e){} setTimeout(function(){render(false);},250); setTimeout(function(){render(false);},800); setTimeout(function(){render(false);},2000); try{if(typeof window.switchTab==='function'&&!window.switchTab.__v230Wrapped){var o=window.switchTab; window.switchTab=function(tn){var r;try{r=o.apply(this,arguments);}catch(e){}if(tn==='cardsTab'||tn==='cards'){setTimeout(function(){render(true);},40);setTimeout(function(){render(false);},300);} return r;}; window.switchTab.__v230Wrapped=true;}}catch(e){} V230.render=function(){return render(true);};}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,500);}); else setTimeout(boot,500);
+})();</script>
+<style id="v234-vault-css">
+.v234-overlay{position:fixed;inset:0;background:rgba(15,18,30,.65);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;transition:opacity .18s ease}
+.v234-overlay.show{opacity:1}
+.v234-modal{background:#fff;border-radius:20px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.35);overflow:hidden;transform:translateY(20px) scale(.96);transition:transform .22s cubic-bezier(.2,.9,.3,1.2)}
+body.dark .v234-modal{background:#22212f;color:#ececf5}
+.v234-overlay.show .v234-modal{transform:translateY(0) scale(1)}
+.v234-head{display:flex;align-items:center;gap:10px;padding:18px 20px 14px;border-bottom:1px solid rgba(0,0,0,.06)}
+.v234-emoji{font-size:22px}
+.v234-title{flex:1;font-size:17px;font-weight:900;letter-spacing:-.02em;color:#0a0a12}
+body.dark .v234-title{color:#ececf5}
+.v234-x{background:transparent;border:none;font-size:22px;color:#8b8b9a;cursor:pointer;padding:4px 8px;border-radius:8px;line-height:1;font-family:inherit}
+.v234-body{padding:18px 20px}
+.v234-lbl{font-size:10.5px;font-weight:900;color:#8b8b9a;letter-spacing:.14em;text-transform:uppercase;margin-bottom:8px}
+.v234-input{width:100%;padding:14px 16px;border:1.5px solid rgba(0,0,0,.1);border-radius:12px;font-size:20px;font-weight:900;font-family:ui-monospace,monospace;color:#0a0a12;background:#fff;outline:none;-webkit-appearance:none}
+body.dark .v234-input{background:#181722;border-color:rgba(255,255,255,.12);color:#ececf5}
+.v234-input:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.14)}
+.v234-input.invalid{border-color:#c95050}
+.v234-note{margin-top:14px;padding:11px 13px;background:rgba(37,99,235,.08);border-radius:12px;font-size:11.5px;color:#1e4194;font-weight:700;line-height:1.45}
+.v234-actions{display:flex;gap:10px;padding:0 20px 20px}
+.v234-btn{flex:1;padding:14px;border:none;border-radius:14px;font-size:14px;font-weight:900;cursor:pointer;font-family:inherit}
+.v234-cancel{background:#f0eef7;color:#0a0a12}
+body.dark .v234-cancel{background:#2d2b3d;color:#ececf5}
+.v234-save{background:#2563eb;color:#fff}
+.v234-flash{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10000;background:#1a7d3a;color:#fff;padding:14px 22px;border-radius:14px;font-size:14px;font-weight:900;opacity:0;transition:opacity .2s ease}
+.v234-flash.show{opacity:1}
+.v122-edit-overlay{display:none!important}
+</style>
+<script id="v234-vault-owner">(function(){
+  'use strict';
+  var V234=window.__v234=window.__v234||{}; var SK='walletiq_memberships';
+  function readJSON(k,fb){try{var v=localStorage.getItem(k); if(v==null)return fb; return JSON.parse(v);}catch(e){return fb;}}
+  function canon(s){return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'');}
+  function esc(s){try{var d=document.createElement('div'); d.textContent=String(s==null?'':s); return d.innerHTML;}catch(e){return '';}}
+  function getPR(){try{if(typeof PROGRAMS!=='undefined')return PROGRAMS;}catch(e){}return (window.PROGRAMS||{});}
+  function matchP(m,p){if(!m)return false; var c=canon(p); if(canon(m.key)===c)return true; if(canon(m.programKey)===c)return true; if(canon(m.program)===c)return true; var meta=getPR()[p]; if(meta&&meta.name&&canon(m.name)===canon(meta.name))return true; return false;}
+  function getBal(p){try{var m=readJSON(SK,[]); if(!Array.isArray(m))return 0; for(var i=0;i<m.length;i++){var e=m[i]; if(e&&e.__v234Manual&&matchP(e,p))return Number(e.__v234Baseline!=null?e.__v234Baseline:e.balance)||0;} for(var j=0;j<m.length;j++){if(matchP(m[j],p))return Number(m[j].balance)||0;}}catch(e){}return 0;}
+  var _oSI=localStorage.setItem.bind(localStorage), _sw=false;
+  function _iw(k,v){_sw=true;try{_oSI(k,JSON.stringify(v));}catch(e){}_sw=false;}
+  function persist(p,b){try{var meta=getPR()[p]||{name:p,unit:'pts',cpp:0,emoji:'\u2B50'}; var m=readJSON(SK,[]); if(!Array.isArray(m))m=[]; m=m.filter(function(x){return !matchP(x,p);}); var e={key:p,programKey:p,program:p,name:meta.name,n:meta.name,emoji:meta.emoji||'\u2B50',unit:meta.unit||'pts',cpp:meta.cpp||0,balance:b,pts:b,__v234Manual:true,__v234Baseline:b,__v106Auto:false,__v128Auto:false,__v140Auto:false,__v106ManualBaseline:b}; m.push(e); _iw(SK,m); return true;}catch(e){return false;}}
+  function installGuard(){try{if(localStorage.setItem.__v234Wrapped)return; localStorage.setItem=function(k,v){if(_sw||k!==SK)return _oSI(k,v); try{var inc=JSON.parse(v); if(!Array.isArray(inc))return _oSI(k,v); var cur=readJSON(SK,[]); if(!Array.isArray(cur))cur=[]; var ms=cur.filter(function(x){return x&&x.__v234Manual;}); if(!ms.length)return _oSI(k,v); var out=inc.filter(function(x){if(!x)return false; for(var i=0;i<ms.length;i++){var mn=ms[i]; if(matchP(x,mn.key||mn.programKey||mn.program))return false;} return true;}); for(var i=0;i<ms.length;i++)out.push(ms[i]); return _oSI(k,JSON.stringify(out));}catch(e){return _oSI(k,v);}}; localStorage.setItem.__v234Wrapped=true;}catch(e){}}
+  function flash(msg){try{var f=document.createElement('div'); f.className='v234-flash'; f.textContent=msg; document.body.appendChild(f); setTimeout(function(){f.classList.add('show');},10); setTimeout(function(){f.classList.remove('show'); setTimeout(function(){if(f.parentNode)f.parentNode.removeChild(f);},250);},1300);}catch(e){}}
+  function killAll(){try{var a=document.querySelectorAll('.v234-overlay, .v122-edit-overlay'); for(var i=0;i<a.length;i++){try{if(a[i].parentNode)a[i].parentNode.removeChild(a[i]);}catch(e){}} try{document.body.style.overflow='';}catch(e){}}catch(e){}}
+  function rerender(){try{if(typeof window.renderVaultV122==='function')window.renderVaultV122();}catch(e){} try{document.dispatchEvent(new CustomEvent('v82:refresh'));}catch(e){}}
+  function openModal(p){if(!p)return; killAll(); var meta=getPR()[p]||{name:p,unit:'pts',cpp:0,emoji:'\u2B50'}; var cur=getBal(p); var o=document.createElement('div'); o.className='v234-overlay'; o.innerHTML='<div class="v234-modal"><div class="v234-head"><div class="v234-emoji">'+esc(meta.emoji||'\u2B50')+'</div><div class="v234-title">'+esc(meta.name)+'</div><button type="button" class="v234-x">\u00D7</button></div><div class="v234-body"><div class="v234-lbl">Current balance ('+esc(meta.unit||'pts')+')</div><input type="tel" class="v234-input" value="'+cur+'" inputmode="numeric"><div class="v234-note">\uD83D\uDCA1 Enter your true current balance. Future auto-earned points will add on top.</div></div><div class="v234-actions"><button type="button" class="v234-btn v234-cancel">Cancel</button><button type="button" class="v234-btn v234-save">Save balance</button></div></div>'; document.body.appendChild(o); var inp=o.querySelector('.v234-input'), sb=o.querySelector('.v234-save'), xb=o.querySelector('.v234-x'), cb=o.querySelector('.v234-cancel'); xb.addEventListener('click',function(e){e.preventDefault();killAll();}); cb.addEventListener('click',function(e){e.preventDefault();killAll();}); o.addEventListener('click',function(e){if(e.target===o)killAll();}); sb.addEventListener('click',function(e){e.preventDefault(); var raw=String(inp.value||'').trim(); var nb=parseFloat(raw); if(raw===''||!isFinite(nb)||nb<0){inp.classList.add('invalid');try{inp.focus();}catch(_){}return;} var ok=persist(p,nb); killAll(); if(ok){flash('\u2713 Balance saved'); setTimeout(rerender,40); setTimeout(rerender,300);}}); inp.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();sb.click();}}); setTimeout(function(){o.classList.add('show');},10); setTimeout(function(){try{inp.focus();inp.select();}catch(_){}},250);}
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&document.querySelector('.v234-overlay, .v122-edit-overlay')){killAll();e.stopImmediatePropagation();}},true);
+  document.addEventListener('click',function(e){var t=e.target; if(!t||!t.closest)return; var eb=t.closest('.v122-prog-edit'); if(!eb)return; var p=eb.getAttribute('data-prog'); if(!p)return; e.stopImmediatePropagation();e.preventDefault(); openModal(p);},true);
+  function boot(){if(window.__v234Init)return; window.__v234Init=true; installGuard(); try{if(typeof window.openEditModal==='function'&&!window.openEditModal.__v234Wrapped){window.openEditModal=function(p){openModal(p);}; window.openEditModal.__v234Wrapped=true;}}catch(e){} V234.openModal=openModal;}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,200);}); else setTimeout(boot,200);
+})();</script>
+<style id="v237-offers-cleanup-css">
+.v181-offer-toolbar,.v181-offer-search,.v181-sort-select,[data-v181-chip],.v181-chip-row,.v181-offer-count,#v222-controls,#v222-sort,#v222-summary,[data-v222-quick]{display:none!important}
+#offers .foot[data-v237-hide]{display:none!important}
+</style>
+<script id="v237-offers-simplify">(function(){
+  'use strict';
+  var lastQ='';
+  function nuke(){try{var k=['.v181-offer-toolbar','.v181-chip-row','.v181-offer-count','#v222-controls','#v222-sort','#v222-summary']; for(var i=0;i<k.length;i++){var n=document.querySelectorAll(k[i]); for(var j=0;j<n.length;j++){try{n[j].parentNode&&n[j].parentNode.removeChild(n[j]);}catch(e){}}} var o=document.getElementById('offers'); if(o){var f=o.querySelectorAll('.foot'); for(var m=0;m<f.length;m++){if(/^Ranked by net first-year value/i.test((f[m].textContent||'').trim()))f[m].setAttribute('data-v237-hide','1');}}}catch(e){}}
+  function isOT(){try{var o=document.getElementById('offers'); return !!(o&&o.classList.contains('active'));}catch(e){return false;}}
+  function apply(qy){try{var q=String(qy||'').trim().toLowerCase(); lastQ=q; var l=document.getElementById('offersList'); if(!l)return; var c=l.querySelectorAll('.cardBig'); if(!c.length)return; var m=0; for(var i=0;i<c.length;i++){var s=true; if(q){s=(c[i].textContent||'').toLowerCase().indexOf(q)>=0;} c[i].style.display=s?'':'none'; if(s)m++;} var nm=document.getElementById('offersNoMatch'); if(nm)nm.style.display=(q&&m===0)?'block':'none';}catch(e){}}
+  function wire(){try{var q=document.getElementById('q'); if(!q||q.__v237Wired)return false; q.__v237Wired=true; q.addEventListener('input',function(){if(isOT())apply(q.value);},true); q.addEventListener('keyup',function(){if(isOT())apply(q.value);},true); return true;}catch(e){return false;}}
+  function boot(){if(window.__v237Init)return; window.__v237Init=true; setTimeout(nuke,300); setTimeout(nuke,900); setTimeout(nuke,2000); var t=0;(function retry(){wire(); t++; if(t<30)setTimeout(retry,200);})(); try{if(typeof window.switchTab==='function'&&!window.switchTab.__v237Wrapped){var o=window.switchTab; window.switchTab=function(tn){var r;try{r=o.apply(this,arguments);}catch(e){}if(tn==='offers'){setTimeout(function(){nuke();wire(); if(lastQ)apply(lastQ);},60); setTimeout(nuke,400);}else{lastQ=''; var l=document.getElementById('offersList'); if(l){var c=l.querySelectorAll('.cardBig'); for(var i=0;i<c.length;i++)c[i].style.display='';}} return r;}; window.switchTab.__v237Wrapped=true;}}catch(e){} try{if(typeof window.renderOffers==='function'&&!window.renderOffers.__v237Wrapped){var oR=window.renderOffers; window.renderOffers=function(){var r;try{r=oR.apply(this,arguments);}catch(e){}setTimeout(function(){nuke(); if(lastQ&&isOT())apply(lastQ);},20); return r;}; window.renderOffers.__v237Wrapped=true;}}catch(e){}}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,300);}); else setTimeout(boot,300);
+})();</script>
+<style id="v238-offers-cleanup-css">
+.v181-quick-chip,[data-quick="expiring"],[data-quick="value"],[data-quick="topvalue"]{display:none!important}
+</style>
+<script id="v238-nuke-chips">(function(){
+  'use strict';
+  function nuke(){try{var c=document.querySelectorAll('.v181-quick-chip, [data-quick="expiring"], [data-quick="value"], [data-quick="topvalue"]'); var p=[]; for(var i=0;i<c.length;i++){var pp=c[i].parentNode; if(pp&&p.indexOf(pp)===-1)p.push(pp);} for(var j=0;j<c.length;j++){try{c[j].parentNode&&c[j].parentNode.removeChild(c[j]);}catch(e){}} for(var k=0;k<p.length;k++){if(p[k].children.length===0){try{p[k].parentNode&&p[k].parentNode.removeChild(p[k]);}catch(e){}}}}catch(e){}}
+  function boot(){if(window.__v238Init)return; window.__v238Init=true; setTimeout(nuke,250); setTimeout(nuke,700); setTimeout(nuke,1500); try{if(typeof window.switchTab==='function'&&!window.switchTab.__v238Wrapped){var o=window.switchTab; window.switchTab=function(tn){var r;try{r=o.apply(this,arguments);}catch(e){}if(tn==='offers'){setTimeout(nuke,60);setTimeout(nuke,300);} return r;}; window.switchTab.__v238Wrapped=true;}}catch(e){} try{if(typeof window.renderOffers==='function'&&!window.renderOffers.__v238Wrapped){var oR=window.renderOffers; window.renderOffers=function(){var r;try{r=oR.apply(this,arguments);}catch(e){}setTimeout(nuke,30); return r;}; window.renderOffers.__v238Wrapped=true;}}catch(e){} try{var t=document.getElementById('offers'); if(t&&!t.__v238Observed){var mo=new MutationObserver(function(){if(mo.__p)return; mo.__p=true; (window.requestAnimationFrame||function(cb){setTimeout(cb,16);})(function(){mo.__p=false; nuke();});}); mo.observe(t,{childList:true,subtree:true}); t.__v238Observed=true;}}catch(e){}}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,300);}); else setTimeout(boot,300);
+})();</script>
+<style id="v239-audit-css">
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--brand,#2563eb);outline-offset:2px;border-radius:6px}
+body,main{overflow-x:hidden}
+main{max-width:100%}
+</style>
+<script id="v239-audit-sweep">(function(){
+  'use strict';
+  var V239=window.__v239=window.__v239||{};
+  function dedupe(){try{var all=document.querySelectorAll('[id]'); var by={}; for(var i=0;i<all.length;i++){var id=all[i].id; if(!id)continue; if(!by[id])by[id]=[]; by[id].push(all[i]);} var kn=['heroLogForm','heroLogMerchant','heroLogCard','heroLogAmount','heroLogPreview','locManual','locManualResult']; for(var x=0;x<kn.length;x++){var did=kn[x]; var els=by[did]; if(!els||els.length<=1)continue; var ch=null; for(var j=0;j<els.length;j++){if(els[j].closest('.panel.active')||els[j].closest('.hero')){ch=els[j];break;}} if(!ch)ch=els[0]; for(var k=0;k<els.length;k++){if(els[k]===ch)continue; try{els[k].removeAttribute('id');}catch(e){}}}}catch(e){}}
+  function installEsc(){try{if(window.__v239Escape)return; window.__v239Escape=true; document.addEventListener('keydown',function(e){if(e.key!=='Escape')return; var ov=document.querySelectorAll('.modal-overlay.show, .v122-edit-overlay, .v234-overlay, .drawer-overlay.open'); if(!ov.length)return; for(var i=0;i<ov.length;i++){try{if(ov[i].parentNode)ov[i].parentNode.removeChild(ov[i]);}catch(_){}} try{document.body.style.overflow='';}catch(_){} e.stopImmediatePropagation();},true);}catch(e){}}
+  function unlock(){try{if(document.body.style.overflow==='hidden'&&!document.querySelector('.modal-overlay.show, .v234-overlay.show, .drawer.open'))document.body.style.overflow='';}catch(e){}}
+  function silence(){try{if(console.__v239Silenced)return; console.__v239OrigLog=console.log; console.__v239OrigWarn=console.warn; console.log=function(){}; console.warn=function(){}; console.__v239Silenced=true;}catch(e){}}
+  function mobile(){try{var q=document.getElementById('q'); if(!q||q.__v239MF)return; q.__v239MF=true; q.style.pointerEvents='auto'; var cs=window.getComputedStyle(q); var fs=parseFloat(cs.fontSize); if(fs&&fs<16)q.style.fontSize='16px';}catch(e){}}
+  function pass(){dedupe(); unlock(); mobile();}
+  function boot(){if(window.__v239Init)return; window.__v239Init=true; silence(); installEsc(); setTimeout(pass,400); setTimeout(pass,1200); try{if(typeof window.switchTab==='function'&&!window.switchTab.__v239Wrapped){var o=window.switchTab; window.switchTab=function(){var r;try{r=o.apply(this,arguments);}catch(e){}setTimeout(pass,60); return r;}; window.switchTab.__v239Wrapped=true;}}catch(e){} V239.unsilence=function(){if(console.__v239OrigLog)console.log=console.__v239OrigLog; if(console.__v239OrigWarn)console.warn=console.__v239OrigWarn; console.__v239Silenced=false;};}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,250);}); else setTimeout(boot,250);
+})();</script>
+<script id="v241-delete-and-home-rebuild">(function(){
+  'use strict';
+  var V241=window.__v241=window.__v241||{}; var currentId=null;
+  var TX_KEYS=['walletiq_transactions','walletiq_tx_v13','walletiq_tx'];
+  function readAll(){for(var i=0;i<TX_KEYS.length;i++){try{var v=localStorage.getItem(TX_KEYS[i]); if(v){var p=JSON.parse(v); if(Array.isArray(p))return {arr:p,key:TX_KEYS[i]};}}catch(e){}} return {arr:[],key:TX_KEYS[0]};}
+  function rerender(){try{if(typeof window.renderRewardsHero==='function')window.renderRewardsHero();}catch(e){} try{if(typeof window.renderOverview==='function')window.renderOverview();}catch(e){} try{if(typeof window.renderMissedSummary==='function')window.renderMissedSummary();}catch(e){} try{if(typeof window.renderSubscriptions==='function')window.renderSubscriptions();}catch(e){} try{if(typeof window.renderTxList==='function')window.renderTxList();}catch(e){} try{if(typeof window.buildMonthPills==='function')window.buildMonthPills();}catch(e){} try{if(typeof window.renderCapWidget==='function')window.renderCapWidget();}catch(e){} try{if(typeof window.renderAppliedList==='function')window.renderAppliedList();}catch(e){} try{if(typeof window.renderHome==='function')window.renderHome();}catch(e){}}
+  function directDel(id){if(!id)return false; var d=readAll(); var b=d.arr.length; var f=d.arr.filter(function(t){return t&&t.id!==id;}); if(f.length===b)return false; try{localStorage.setItem(d.key,JSON.stringify(f));}catch(e){return false;} for(var i=0;i<TX_KEYS.length;i++){if(TX_KEYS[i]===d.key)continue; try{localStorage.setItem(TX_KEYS[i],JSON.stringify(f));}catch(e){}} return true;}
+  document.addEventListener('click',function(e){try{var t=e.target; if(!t||!t.closest)return; var b=t.closest('button'); if(!b)return; var oc=b.getAttribute('onclick')||''; var m=oc.match(/deleteTx\(['"]([^'"]+)['"]\)/); if(m)currentId=m[1];}catch(err){}},true);
+  function hijack(ov){if(!ov||ov.__v241Hijacked)return; ov.__v241Hijacked=true; try{var db=ov.querySelector('.danger, .v166-danger, [class*="danger"]'); if(!db)return; db.addEventListener('click',function(e){var id=currentId; if(!id)return; var ok=directDel(id); currentId=null; if(ok){ov.classList.remove('show'); try{if(ov.parentNode)ov.parentNode.removeChild(ov);}catch(err){} e.stopImmediatePropagation(); e.preventDefault(); rerender();}},true);}catch(err){}}
+  function install(){try{if(window.__v241Obs)return; var mo=new MutationObserver(function(muts){for(var i=0;i<muts.length;i++){var add=muts[i].addedNodes; for(var j=0;j<add.length;j++){var n=add[j]; if(!n||n.nodeType!==1)continue; if(n.classList&&(n.classList.contains('v179-confirm-overlay')||n.classList.contains('v166-modal-overlay')))hijack(n); try{if(n.querySelectorAll){var d=n.querySelectorAll('.v179-confirm-overlay, .v166-modal-overlay'); for(var k=0;k<d.length;k++)hijack(d[k]);}}catch(err){}}}}); mo.observe(document.documentElement,{childList:true,subtree:false}); if(document.body)mo.observe(document.body,{childList:true,subtree:false}); window.__v241Obs=mo;}catch(e){}}
+  function clearHome(){try{var q=document.getElementById('q'); if(q&&q.value){q.value=''; try{q.dispatchEvent(new Event('input',{bubbles:true}));}catch(e){}} var ac=document.getElementById('autocomplete'); if(ac)ac.classList.remove('show'); var t=document.getElementById('v226-home-tiles'); if(t)t.removeAttribute('data-v227-hidden'); var em=document.getElementById('emptyWalletState'); if(em)em.removeAttribute('data-v227-search-hide');}catch(e){}}
+  function wrapSave(){try{if(typeof window.saveTxFromModal!=='function'||window.saveTxFromModal.__v241W)return false; var o=window.saveTxFromModal; window.saveTxFromModal=function(){var r;try{r=o.apply(this,arguments);}catch(e){} clearHome(); try{if(typeof window.renderHome==='function')window.renderHome();}catch(e){} return r;}; window.saveTxFromModal.__v241W=true; return true;}catch(e){return false;}}
+  function boot(){if(window.__v241Init)return; window.__v241Init=true; try{if(window.__v240)window.__v240.__disabled=true;}catch(e){} install(); var t=0;(function retry(){wrapSave(); t++; if(t<30)setTimeout(retry,200);})(); V241.deleteTx=directDel; V241.rerender=rerender;}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,300);}); else setTimeout(boot,300);
+})();</script>
+<style id="v242-ladder-css">
+.v122-prog-card[data-v242-fixed] .v122-redeem-row.v242-fixed{opacity:1}
+</style>
+<script id="v242-ladder-summary-fix">(function(){
+  'use strict';
+  var V242 = window.__v242 = window.__v242 || {};
+  var stats = { patches: 0, cardsFixed: 0, lastCalc: {} };
+
+  // Programs whose "balance" is DOLLARS with a MULTIPLIER cpp (Rogers Cash 1.5x etc)
+  var DOLLAR_PROGS = {
+    rogerscash: true, rogers: true, rogerscashback: true,
+    westjetdollars: true, westjet: true,
+    morerewards: true, more: true,
+    mbnacashback: true, cashback: true,
+    scotiabankcashback: true
+  };
+  function isDollarProg(prog){
+    if (!prog) return false;
+    var c = String(prog).toLowerCase().replace(/[^a-z0-9]+/g, '');
+    return !!DOLLAR_PROGS[c];
+  }
+  function canon(s){ return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, ''); }
+  function readJSON(k, fb){ try { var v = localStorage.getItem(k); if (v == null) return fb; return JSON.parse(v); } catch(e){ return fb; } }
+
+  function getManualBalance(prog){
+    try {
+      var mems = readJSON('walletiq_memberships', []);
+      if (!Array.isArray(mems)) return null;
+      var progC = canon(prog);
+      for (var i = 0; i < mems.length; i++) {
+        var m = mems[i];
+        if (!m) continue;
+        var matches = canon(m.key) === progC || canon(m.programKey) === progC || canon(m.program) === progC;
+        if (!matches) continue;
+        // Prefer manual baseline (skips auto-earn drift)
+        if (m.__v234Baseline != null) return Number(m.__v234Baseline);
+        if (m.__v106ManualBaseline != null) return Number(m.__v106ManualBaseline);
+        if (m.balance != null) return Number(m.balance);
+      }
+    } catch(e){}
+    return null;
+  }
+
+  function fmtMoney(v){
+    var neg = v < 0;
+    v = Math.abs(v);
+    var s;
+    if (v >= 1000) s = '$' + Math.round(v).toLocaleString();
+    else if (v >= 10) s = '$' + v.toFixed(0);
+    else if (v > 0) s = '$' + v.toFixed(2);
+    else s = '$0';
+    return neg ? '-' + s : s;
+  }
+
+  function fmtInt(n){
+    try { return Math.round(Number(n) || 0).toLocaleString(); } catch(e){ return String(n); }
+  }
+
+  function fixCardMath(card){
+    try {
+      var prog = card.getAttribute('data-prog');
+      if (!prog) return;
+      var manual = getManualBalance(prog);
+      if (manual == null) return;
+      var isDollar = isDollarProg(prog);
+
+      // 1) Update the BIG balance number top-left
+      var balNumEl = card.querySelector('.v122-prog-bal-num');
+      if (balNumEl) {
+        balNumEl.textContent = isDollar ? manual.toFixed(2).replace(/\.00$/, '') : fmtInt(manual);
+      }
+
+      // 2) Recompute each redemption row value with program-aware formula
+      var rows = card.querySelectorAll('.v122-redeem-row');
+      var bestValue = -1;
+      var bestLabel = '';
+      var i;
+      for (i = 0; i < rows.length; i++) {
+        var row = rows[i];
+        var cppEl = row.querySelector('.v122-redeem-cpp');
+        var vEl = row.querySelector('.v122-redeem-v');
+        var lblEl = row.querySelector('.v122-redeem-lbl');
+        if (!cppEl || !vEl) continue;
+        var cppText = cppEl.textContent || '';
+        var cppNum = parseFloat(cppText.replace(/[^0-9.]/g, ''));
+        if (!isFinite(cppNum)) continue;
+
+        var value;
+        if (isDollar) {
+          // Rogers Cash: cpp label shows "150.00\u00A2" meaning 1.5x multiplier
+          // value = balance * (cpp / 100)
+          value = manual * (cppNum / 100);
+        } else {
+          // Points programs: cpp is cents-per-point
+          // value = (balance * cpp) / 100
+          value = (manual * cppNum) / 100;
+        }
+        vEl.textContent = fmtMoney(value);
+        row.classList.add('v242-fixed');
+
+        if (value > bestValue) {
+          bestValue = value;
+          bestLabel = lblEl ? (lblEl.textContent || '').trim() : '';
+        }
+      }
+
+      // 3) *** THE CRITICAL FIX *** Update the "\u2248 $VALUE via LABEL" summary line
+      // Native class is .v122-prog-bal-val
+      var big = card.querySelector('.v122-prog-bal-val');
+      if (big && bestValue > 0) {
+        // Preserve the small tag structure by rebuilding innerHTML
+        big.style.color = ''; // remove the gray "No balance yet" style
+        big.innerHTML = '\u2248 ' + fmtMoney(bestValue)
+          + ' <small>via ' + escapeHTML(bestLabel || 'best rate') + '</small>';
+      } else if (big && manual === 0) {
+        // Balance is truly 0 - show "No balance yet" state
+        big.style.color = 'var(--muted)';
+        big.innerHTML = 'No balance yet <small>\u2014 log a transaction to auto-accrue</small>';
+      }
+
+      card.setAttribute('data-v242-fixed', '1');
+      stats.cardsFixed++;
+      stats.lastCalc[prog] = {
+        manual: manual,
+        bestValue: bestValue,
+        bestLabel: bestLabel,
+        isDollar: isDollar
+      };
+    } catch(e){
+      try { console.warn && console.__v239OrigWarn && console.__v239OrigWarn.call(console, '[V242]', e); } catch(_){}
     }
   }
 
-  function schedule(){ setTimeout(boot, 1600); }
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', schedule);
-  } else {
-    schedule();
+  function escapeHTML(s){
+    try {
+      var d = document.createElement('div');
+      d.textContent = String(s == null ? '' : s);
+      return d.innerHTML;
+    } catch(e){ return ''; }
   }
-})();
-</script>
+
+  function patchAllCards(){
+    try {
+      var cards = document.querySelectorAll('.v122-prog-card[data-prog]');
+      if (!cards.length) return;
+      var i;
+      for (i = 0; i < cards.length; i++) fixCardMath(cards[i]);
+      stats.patches++;
+    } catch(e){}
+  }
+
+  function boot(){
+    if (window.__v242Init) return;
+    window.__v242Init = true;
+
+    // Neutralize V235 (older ladder-fix without summary update)
+    try { if (window.__v235) window.__v235.__disabled = true; } catch(e){}
+
+    // Initial passes
+    setTimeout(patchAllCards, 350);
+    setTimeout(patchAllCards, 900);
+    setTimeout(patchAllCards, 2500);
+    setTimeout(patchAllCards, 5000);
+
+    // Re-run on tab switch to rewards
+    try {
+      if (typeof window.switchTab === 'function' && !window.switchTab.__v242Wrapped) {
+        var orig = window.switchTab;
+        window.switchTab = function(tabName){
+          var r; try { r = orig.apply(this, arguments); } catch(e){}
+          if (tabName === 'rewards') {
+            setTimeout(patchAllCards, 80);
+            setTimeout(patchAllCards, 350);
+            setTimeout(patchAllCards, 900);
+          }
+          return r;
+        };
+        window.switchTab.__v242Wrapped = true;
+      }
+    } catch(e){}
+
+    // Re-run after every native renderVault
+    try {
+      if (typeof window.renderVaultV122 === 'function' && !window.renderVaultV122.__v242Wrapped) {
+        var origR = window.renderVaultV122;
+        window.renderVaultV122 = function(){
+          var r; try { r = origR.apply(this, arguments); } catch(e){}
+          setTimeout(patchAllCards, 20);
+          setTimeout(patchAllCards, 200);
+          return r;
+        };
+        window.renderVaultV122.__v242Wrapped = true;
+      }
+    } catch(e){}
+
+    // Re-run on v82 refresh (fired by V234 after save)
+    try {
+      document.addEventListener('v82:refresh', function(){
+        setTimeout(patchAllCards, 50);
+        setTimeout(patchAllCards, 300);
+      });
+    } catch(e){}
+
+    // Also re-run after transactions change (log/edit/delete a purchase)
+    try {
+      if (typeof window.saveTxFromModal === 'function' && !window.saveTxFromModal.__v242Wrapped) {
+        var origSave = window.saveTxFromModal;
+        window.saveTxFromModal = function(){
+          var r; try { r = origSave.apply(this, arguments); } catch(e){}
+          setTimeout(patchAllCards, 100);
+          setTimeout(patchAllCards, 500);
+          return r;
+        };
+        window.saveTxFromModal.__v242Wrapped = true;
+      }
+    } catch(e){}
+
+    // Scoped observer on vault container - catches native re-renders
+    var setupObserver = function(){
+      try {
+        var vaultProgs = document.getElementById('vaultPrograms') || document.getElementById('v122-vault');
+        if (!vaultProgs) return false;
+        if (vaultProgs.__v242Observed) return true;
+        var mo = new MutationObserver(function(){
+          if (mo.__pending) return;
+          mo.__pending = true;
+          (window.requestAnimationFrame || function(cb){ setTimeout(cb, 16); })(function(){
+            mo.__pending = false;
+            patchAllCards();
+          });
+        });
+        // subtree: false - only observe direct child mutations to avoid feedback loop from our own innerHTML writes
+        mo.observe(vaultProgs, { childList: true, subtree: false });
+        vaultProgs.__v242Observed = true;
+        return true;
+      } catch(e){ return false; }
+    };
+    var tries = 0;
+    (function retry(){
+      if (setupObserver()) return;
+      tries++;
+      if (tries < 30) setTimeout(retry, 250);
+    })();
+
+    V242.audit = function(){
+      return {
+        patches: stats.patches,
+        cardsFixed: stats.cardsFixed,
+        lastCalc: stats.lastCalc,
+        cardsInDom: document.querySelectorAll('.v122-prog-card[data-prog]').length,
+        cardsAlreadyFixed: document.querySelectorAll('.v122-prog-card[data-v242-fixed]').length,
+        v235Neutralized: !!(window.__v235 && window.__v235.__disabled)
+      };
+    };
+    V242.patchNow = patchAllCards;
+    V242.getBalance = getManualBalance;
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function(){ setTimeout(boot, 400); });
+  } else {
+    setTimeout(boot, 400);
+  }
+})();</script>
 </body>
 </html>
