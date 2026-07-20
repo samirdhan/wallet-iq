@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- V246 (2026-07-20) - RELEASE 3: THE FIRST-TIME USER. Welcome screen (Option B: Set up my wallet | Explore first), first-use coach-marks (Log Purchase, Rewards Studio, Where to Pay - auto-shown), guided empty states, mobile Safari keyboard-lift for modal inputs, "What's New" pill for returning users, Restart tour drawer item. Zero data changes. Rollback: delete [id^=v246-]. -->
+<!-- V248 (2026-07-20) - Welcome Offers apply-link fixes. Multiple OFFERS URLs returned 404 because issuers rewrote URL structures (Rogers, PC Financial, MBNA, Tangerine, Amex Marriott Bonvoy). V248 installs a verified URL map (checked live 2026-07-20) with 34 per-card exact URLs plus issuer-level fallbacks. Rewrites OFFERS[i].apply on boot and defensively intercepts .offer-apply-link clicks. Zero data changes. Rollback: delete [id=v248-script]. -->
+<!-- V247 (2026-07-20) - Location + delete fixes. Where to Pay uses Overpass API for nearby merchant discovery. Recent Activity gets edit + delete buttons. Rollback: delete [id^=v247-]. -->
+<!-- V246 (2026-07-20) - RELEASE 3: THE FIRST-TIME USER. Welcome screen (Option B), coach-marks, guided empty states, mobile Safari keyboard-lift, whats-new pill, restart tour. Rollback: delete [id^=v246-]. -->
 <!-- V245 (2026-07-20) - RELEASE 2: THE TRANSACTION ENGINE. Builds on V244 WalletIQState foundation. Makes Log Purchase -> See Points Grow bulletproof: (1) CleanSaveFlow wraps saveTxFromModal - computes earnings for flash toast, clears home search, forces recompute + unified rerender. (2) CleanDeleteFlow hijacks V179 confirm modal Delete button at CAPTURE phase, directly deletes from all 3 tx keys via V244 transaction() (atomic), fires unified rerender. (3) EarningsRecalculator subscribes to WalletIQState.onChange for tx keys - when tx storage changes, triggers V128 reconcile + V140 sync + V242 patchNow immediately (no waiting for setInterval polling). (4) UnifiedRerender runs all render pipelines in correct order (state engines first, then UI). (5) Flash toast confirms save (+$X earned) and delete (X removed) with 2.2s auto-dismiss. Zero features removed. Rollback: delete [id^=v245-]. -->
 <!-- V244 (2026-07-18) - RELEASE 1: THE STATE FREEZE. Foundation for consolidation plan. Installs a single window.WalletIQState manager that owns all writes to 6 critical storage keys (walletiq_v13_wallet, walletiq_memberships, walletiq_transactions, walletiq_tx_v13, walletiq_tx, walletiq_auto_earnings). Four protection layers: (1) djb2 hash dedup - identical writes silently skip, killing flicker cascades from 11 sync engines. (2) Preservation rules per key - manual entries flagged __v234Manual or __v244Manual survive any auto-engine rewrite; user-created transactions cant be silently deleted; wallet cant be wiped to empty without explicit flag. (3) Debounce coalescer - rapid writes to same key within 50ms collapse to one final write. (4) Change event bus - dispatch walletiq:statechange with key detail, single subscription point replacing 11 polling loops. Zero features removed. Every prior patch keeps working. Public API for Releases 2-4: get/set/delete/onChange/onKey/transaction/audit/history/dump. V231-V233 storage guards are now redundant but harmless (V244 sits above them). Rollback: delete [id^=v244-]. -->
 <!-- V224 (2026-07-15): V222 + vault flicker kill added back. V222 wraps window.renderOffers so category filters trigger re-tag + re-apply. V224 also installs djb2 hash intercept on #v122-vault innerHTML setter to kill V183 vaultObs feedback loop (identical writes silently skip -> no cascade -> no flicker). Also wraps renderVaultV122 with rAF-coalesce. -->
@@ -67,7 +69,7 @@
 <meta http-equiv="Expires" content="0">
 
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>Wallet IQ V246</title>
+<title>Wallet IQ V248</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Wallet IQ">
@@ -36166,21 +36168,8 @@ body.dark .v245-flash{background:linear-gradient(135deg,#7ec894 0%,#5ea87a 100%)
 })();</script>
 <!-- ============================================================
      V246 (2026-07-20) — RELEASE 3: THE FIRST-TIME USER
-     Onboarding polish for strangers picking up Wallet IQ cold.
-     (1) Welcome screen: first-run overlay explains what the app
-         does in 3 sentences, then offers "Set up my wallet" OR
-         "Explore first" (Option B).
-     (2) Guided empty states with clear next-step prompts.
-     (3) Auto-show first-use coach-marks on Log Purchase,
-         Rewards Studio, and Where to Pay (dismissible).
-     (4) Mobile Safari fixes: visualViewport keyboard handling,
-         touch-action on primary buttons, autocomplete clip fix.
-     (5) "What's New" pill for returning users (not first-timers).
-     (6) Restart tour drawer item to replay coach-marks.
-     Zero data changes. Rollback: delete [id^=v246-].
      ============================================================ -->
 <style id="v246-styles">
-/* ===== Welcome screen ===== */
 #v246-welcome{position:fixed;inset:0;z-index:1000;background:linear-gradient(160deg,#f6f2fb,#eeeaf5 40%,#f2ecf3);display:none;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px calc(32px + env(safe-area-inset-bottom,0px));animation:v246FadeIn .32s ease}
 #v246-welcome.show{display:flex}
 body.dark #v246-welcome{background:linear-gradient(160deg,#181628,#0f0d1a 40%,#0e0d15)}
@@ -36196,583 +36185,211 @@ body.dark .v246-welcome-tag{color:#a5b3d8}
 .v246-welcome-pitch b{color:var(--ink);font-weight:900}
 .v246-welcome-bullets{display:flex;flex-direction:column;gap:12px;margin-bottom:32px;width:100%;text-align:left}
 .v246-welcome-bullet{display:grid;grid-template-columns:36px 1fr;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:12px 14px;box-shadow:0 2px 8px rgba(85,75,130,.06)}
-body.dark .v246-welcome-bullet{background:var(--surface);border-color:var(--border)}
 .v246-welcome-bullet-ico{width:36px;height:36px;border-radius:10px;background:var(--accent-soft);display:grid;place-items:center;font-size:18px}
 .v246-welcome-bullet-txt{font-size:12.5px;font-weight:800;color:var(--ink);line-height:1.4}
 .v246-welcome-bullet-txt small{display:block;color:var(--muted);font-weight:750;font-size:11px;margin-top:2px}
 .v246-welcome-actions{display:flex;flex-direction:column;gap:10px;width:100%}
-.v246-btn{width:100%;padding:15px 20px;border-radius:99px;font-family:inherit;font-weight:900;font-size:14px;cursor:pointer;border:none;letter-spacing:-.01em;transition:transform .1s ease,opacity .12s ease;touch-action:manipulation}
+.v246-btn{width:100%;padding:15px 20px;border-radius:99px;font-family:inherit;font-weight:900;font-size:14px;cursor:pointer;border:none;transition:transform .1s ease;touch-action:manipulation}
 .v246-btn:active{transform:scale(.97)}
 .v246-btn-primary{background:linear-gradient(135deg,#5f74b8,#4c609e);color:#fff;box-shadow:0 6px 18px rgba(95,116,184,.32)}
 .v246-btn-secondary{background:transparent;color:var(--ink);border:1.5px solid var(--border-2)}
 body.dark .v246-btn-primary{background:linear-gradient(135deg,#8ea3d8,#7994c8);color:#0f0d1a}
-body.dark .v246-btn-secondary{color:var(--ink);border-color:var(--border-2)}
 .v246-welcome-foot{font-size:11px;color:var(--muted);font-weight:750;margin-top:18px;line-height:1.5}
-/* ===== Coach-marks ===== */
 #v246-coach-overlay{position:fixed;inset:0;z-index:900;pointer-events:none;display:none}
 #v246-coach-overlay.show{display:block}
 .v246-coach-backdrop{position:absolute;inset:0;background:rgba(15,13,26,.55);animation:v246FadeIn .22s ease;pointer-events:auto}
-.v246-coach-tooltip{position:absolute;background:var(--surface);border-radius:16px;padding:16px 16px 14px;box-shadow:0 12px 40px rgba(0,0,0,.28);max-width:300px;width:calc(100vw - 32px);pointer-events:auto;animation:v246CoachIn .28s cubic-bezier(.2,.9,.3,1.2);z-index:2}
-@keyframes v246CoachIn{from{opacity:0;transform:translateY(6px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
-.v246-coach-tooltip::before{content:"";position:absolute;width:14px;height:14px;background:var(--surface);transform:rotate(45deg);z-index:-1}
-.v246-coach-tooltip.arr-top::before{top:-6px;left:50%;margin-left:-7px}
-.v246-coach-tooltip.arr-bottom::before{bottom:-6px;left:50%;margin-left:-7px}
+.v246-coach-tooltip{position:absolute;background:var(--surface);border-radius:16px;padding:16px;box-shadow:0 12px 40px rgba(0,0,0,.28);max-width:300px;width:calc(100vw - 32px);pointer-events:auto;z-index:2}
 .v246-coach-head{display:flex;align-items:center;gap:8px;margin-bottom:6px}
 .v246-coach-ico{font-size:20px}
-.v246-coach-title{font-size:14px;font-weight:900;letter-spacing:-.02em;color:var(--ink);flex:1;line-height:1.2}
-.v246-coach-close{background:transparent;border:none;color:var(--muted);font-size:20px;font-weight:900;cursor:pointer;padding:0 4px;line-height:1;border-radius:6px;touch-action:manipulation}
-.v246-coach-close:hover{color:var(--ink)}
+.v246-coach-title{font-size:14px;font-weight:900;color:var(--ink);flex:1;line-height:1.2}
+.v246-coach-close{background:transparent;border:none;color:var(--muted);font-size:20px;font-weight:900;cursor:pointer;padding:0 4px;touch-action:manipulation}
 .v246-coach-body{font-size:12.5px;font-weight:750;color:var(--muted);line-height:1.5;margin-bottom:12px}
 .v246-coach-actions{display:flex;gap:8px;justify-content:flex-end;align-items:center}
 .v246-coach-progress{flex:1;font-size:10.5px;color:var(--muted);font-weight:800;letter-spacing:.06em;text-transform:uppercase}
 .v246-coach-btn{background:var(--brand);color:#fff;border:none;padding:8px 16px;border-radius:99px;font-family:inherit;font-size:12px;font-weight:900;cursor:pointer;touch-action:manipulation}
-.v246-coach-btn:active{transform:scale(.96)}
-body.dark .v246-coach-btn{background:var(--brand);color:#0f0d1a}
+body.dark .v246-coach-btn{color:#0f0d1a}
 .v246-coach-btn.ghost{background:transparent;color:var(--muted);padding:8px 10px}
 .v246-coach-highlight{position:absolute;border-radius:14px;box-shadow:0 0 0 4px rgba(95,116,184,.5),0 0 0 9999px rgba(15,13,26,.55);pointer-events:none;z-index:1;transition:all .3s cubic-bezier(.2,.9,.3,1.2)}
-/* ===== What's New pill ===== */
-.v246-whats-new{background:linear-gradient(135deg,#ffffff 0%,#f2ecf5 55%,#e9dff0 100%);border:1px solid rgba(95,116,184,.18);border-radius:16px;padding:12px 14px;display:grid;grid-template-columns:32px 1fr auto;gap:12px;align-items:center;margin:8px 0 12px;box-shadow:0 4px 14px rgba(85,75,130,.10);animation:v246FadeIn .32s ease}
+.v246-whats-new{background:linear-gradient(135deg,#fff,#f2ecf5 55%,#e9dff0);border:1px solid rgba(95,116,184,.18);border-radius:16px;padding:12px 14px;display:grid;grid-template-columns:32px 1fr auto;gap:12px;align-items:center;margin:8px 0 12px}
 body.dark .v246-whats-new{background:linear-gradient(135deg,#241d3a,#1e1732 55%,#181228);border-color:rgba(142,163,216,.22)}
 .v246-whats-new-ico{width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,#5f74b8,#4c609e);display:grid;place-items:center;font-size:16px;color:#fff}
-body.dark .v246-whats-new-ico{background:linear-gradient(135deg,#8ea3d8,#7994c8);color:#0f0d1a}
-.v246-whats-new-txt{min-width:0}
-.v246-whats-new-title{font-size:12.5px;font-weight:900;letter-spacing:-.01em;color:var(--ink);line-height:1.2}
+.v246-whats-new-title{font-size:12.5px;font-weight:900;color:var(--ink);line-height:1.2}
 .v246-whats-new-sub{font-size:11px;color:var(--muted);font-weight:800;margin-top:2px}
-.v246-whats-new-close{background:transparent;border:none;color:var(--muted);font-size:20px;font-weight:900;cursor:pointer;padding:2px 6px;line-height:1;border-radius:6px;touch-action:manipulation}
-.v246-whats-new-close:active{transform:scale(.9)}
-/* ===== Enhanced empty state (opt-in via .v246-guided) ===== */
-.v246-guided-empty{background:linear-gradient(135deg,var(--surface),var(--surface-2)) !important;border:1px dashed var(--border-2) !important}
-.v246-guided-empty .v246-guided-badge{display:inline-block;font-size:10px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:var(--brand);background:var(--accent-soft);padding:4px 10px;border-radius:99px;margin-bottom:10px}
-/* ===== Mobile Safari fixes ===== */
-button.hero-log-btn,button.hero-log-btn.v126-log-btn,.hl-save,.v81-add-btn,.v122-prog-edit,.v81-primary,.modal-actions .primary,.location-detect-btn,.empty-state button,.v246-btn,.v246-coach-btn,.v246-whats-new-close{touch-action:manipulation}
-@media (max-width:390px){
- .autocomplete{max-height:min(48vh,340px)!important}
- .v246-coach-tooltip{max-width:calc(100vw - 24px)}
-}
-/* Keyboard-lift class applied dynamically by JS */
-.v246-kbd-lift{transform:translateY(var(--v246-lift,0)) !important;transition:transform .2s ease}
+.v246-whats-new-close{background:transparent;border:none;color:var(--muted);font-size:20px;font-weight:900;cursor:pointer;padding:2px 6px;touch-action:manipulation}
+.v246-guided-empty{background:linear-gradient(135deg,var(--surface),var(--surface-2))!important;border:1px dashed var(--border-2)!important}
+.v246-guided-badge{display:inline-block;font-size:10px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:var(--brand);background:var(--accent-soft);padding:4px 10px;border-radius:99px;margin-bottom:10px}
+button.hero-log-btn,.hl-save,.v81-add-btn,.v122-prog-edit,.location-detect-btn,.empty-state button,.v246-btn,.v246-coach-btn{touch-action:manipulation}
+.v246-kbd-lift{transform:translateY(var(--v246-lift,0))!important;transition:transform .2s ease}
 </style>
-
 <script id="v246-script">
-(function(){
- 'use strict';
- var VERSION='V246';
- var K_WELCOME='walletiq_v246_welcome_seen';
- var K_COACH='walletiq_v246_coachmarks_seen';
- var K_APP_SEEN='walletiq_v246_seen';
- var K_WHATS_NEW='walletiq_v246_whatsnew_dismissed';
- function log(m){try{console.log('['+VERSION+']',m);}catch(e){}}
- function readJSON(k,fb){try{var r=localStorage.getItem(k);if(!r)return fb;var p=JSON.parse(r);return p==null?fb:p;}catch(e){return fb;}}
- function writeJSON(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
- function hasAnyWalletData(){
-  try{
-   // Check every persistence key the app writes to
-   var checks=['walletIQ_v40_wallet','walletiq_wallet','walletiq_transactions','walletiq_v82_tx','walletiq_tx','transactions','walletiq_memberships','walletiq_credits_v46'];
-   for(var i=0;i<checks.length;i++){
-    var v=readJSON(checks[i],null);
-    if(v){
-     if(Array.isArray(v)&&v.length>0)return true;
-     if(typeof v==='object'&&Object.keys(v).length>0)return true;
-     if(typeof v==='string'&&v.length>2)return true;
-    }
-   }
-   // Also check userWallet Set if runtime is loaded
-   if(typeof userWallet!=='undefined'&&userWallet&&userWallet.size>0)return true;
-  }catch(e){}
-  return false;
- }
- function isFirstTimeUser(){
-  var welcomeSeen=readJSON(K_WELCOME,false);
-  if(welcomeSeen)return false;
-  return !hasAnyWalletData();
- }
- /* ====================================================
-    1. WELCOME SCREEN (first-run overlay, Option B)
-    ==================================================== */
- var WELCOME_HTML=
-  '<div id="v246-welcome"><div class="v246-welcome-inner">'+
-   '<svg class="v246-welcome-logo" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'+
-    '<rect x="10" y="7" width="17" height="4" rx="1.2" fill="#c9d3e8" opacity="0.85"/>'+
-    '<rect x="8" y="10" width="20" height="5" rx="1.5" fill="#e0e7f2"/>'+
-    '<rect x="5" y="14" width="30" height="20" rx="4.5" fill="#5f74b8"/>'+
-    '<rect x="26" y="22" width="6" height="4.5" rx="1.2" fill="#4c609e"/>'+
-    '<circle cx="29" cy="24.25" r="1" fill="#faf7f2"/>'+
-    '<path d="M32 3.5 L33 6 L35.5 7 L33 8 L32 10.5 L31 8 L28.5 7 L31 6 Z" fill="#c9a35a"/>'+
-   '</svg>'+
-   '<div class="v246-welcome-brand">Wallet <span class="iq">IQ</span></div>'+
-   '<div class="v246-welcome-tag">Your Wallet, Maximized.</div>'+
-   '<div class="v246-welcome-pitch">Wallet IQ picks the <b>best credit card</b> for every purchase across <b>100+ Canadian cards</b> and <b>6,000+ merchants</b>. Points auto-accumulate, statement credits get tracked, and welcome offers stay organized. Everything runs on your device \u2014 nothing uploads anywhere.</div>'+
-   '<div class="v246-welcome-bullets">'+
-    '<div class="v246-welcome-bullet"><div class="v246-welcome-bullet-ico">\uD83D\uDCB3</div><div class="v246-welcome-bullet-txt">Best card for every merchant<small>Type any store name for instant recommendations</small></div></div>'+
-    '<div class="v246-welcome-bullet"><div class="v246-welcome-bullet-ico">\uD83C\uDFAF</div><div class="v246-welcome-bullet-txt">Auto-tracking rewards<small>Log a purchase \u2192 points appear in your Vault</small></div></div>'+
-    '<div class="v246-welcome-bullet"><div class="v246-welcome-bullet-ico">\uD83D\uDD10</div><div class="v246-welcome-bullet-txt">100% private<small>All data stays on your phone. No login. Ever.</small></div></div>'+
-   '</div>'+
-   '<div class="v246-welcome-actions">'+
-    '<button type="button" class="v246-btn v246-btn-primary" id="v246-welcome-setup">Set up my wallet</button>'+
-    '<button type="button" class="v246-btn v246-btn-secondary" id="v246-welcome-explore">Explore first</button>'+
-   '</div>'+
-   '<div class="v246-welcome-foot">You can always set up your wallet later from the menu.</div>'+
-  '</div></div>';
- function injectWelcome(){
-  if(document.getElementById('v246-welcome'))return;
-  var tmp=document.createElement('div');
-  tmp.innerHTML=WELCOME_HTML;
-  document.body.appendChild(tmp.firstChild);
-  document.getElementById('v246-welcome-setup').addEventListener('click',function(){
-   dismissWelcome();
-   // Hide legacy empty-state modal briefly to avoid stacking; then open onboarding
-   setTimeout(function(){try{if(typeof showOnboarding==='function')showOnboarding();}catch(e){}},250);
-  });
-  document.getElementById('v246-welcome-explore').addEventListener('click',function(){
-   dismissWelcome();
-   // Explore first \u2014 land on home; queue coach-marks so they auto-show as user navigates
-   armCoachMarks();
-  });
- }
- function showWelcome(){
-  injectWelcome();
-  var el=document.getElementById('v246-welcome');
-  if(el)el.classList.add('show');
-  // Suppress the app's legacy showOnboarding auto-fire so we don't double-present.
-  try{
-   var m=document.getElementById('onboardModal');
-   if(m)m.classList.remove('show');
-  }catch(e){}
- }
- function dismissWelcome(){
-  var el=document.getElementById('v246-welcome');
-  if(el)el.classList.remove('show');
-  writeJSON(K_WELCOME,true);
-  writeJSON(K_APP_SEEN,true);
- }
- /* ====================================================
-    2. FIRST-USE COACH-MARKS
-    Anchors: logPurchase (home hero), rewards (drawer/subtab), whereToPay (drawer).
-    Auto-shown to fresh users after they land on the surface.
-    ==================================================== */
- var COACH_STEPS=[
-  {id:'logPurchase',ico:'\uD83D\uDCB3',title:'Log a purchase',body:'Tap this button after searching a merchant to log a purchase. Points auto-accrue in your Vault \u2014 no manual entry ever.',selectorFn:function(){return document.querySelector('.hero-log-btn')||document.querySelector('#hero .v126-log-btn');},panel:'home',requiresQuery:true},
-  {id:'rewards',ico:'\uD83C\uDFAF',title:'Rewards Studio',body:'See total portfolio value, monthly earnings, statement credits, welcome offers, and live points balances \u2014 all in one place.',selectorFn:function(){return document.querySelector('.drawer-item[data-tab="rewards"]')||document.querySelector('.rewards-subtabs button.on');},panel:'any'},
-  {id:'whereToPay',ico:'\uD83D\uDCCD',title:'Where to Pay',body:'Use GPS to detect your current merchant and get the best card from your wallet \u2014 perfect when you\u2019re standing at a checkout.',selectorFn:function(){return document.querySelector('.drawer-item[data-tab="location"]');},panel:'any'}
- ];
- function loadCoachSeen(){var s=readJSON(K_COACH,{});return typeof s==='object'&&s?s:{};}
- function markCoachSeen(id){var s=loadCoachSeen();s[id]=1;writeJSON(K_COACH,s);}
- function isCoachSeen(id){return !!loadCoachSeen()[id];}
- var coachOverlayEl=null;
- function ensureCoachOverlay(){
-  if(coachOverlayEl)return coachOverlayEl;
-  coachOverlayEl=document.createElement('div');
-  coachOverlayEl.id='v246-coach-overlay';
-  coachOverlayEl.innerHTML='<div class="v246-coach-backdrop" data-v246-coach-bg="1"></div>'+
-   '<div class="v246-coach-highlight" id="v246-coach-hl" style="display:none"></div>'+
-   '<div class="v246-coach-tooltip" id="v246-coach-tip" role="dialog" aria-modal="true" style="display:none">'+
-    '<div class="v246-coach-head">'+
-     '<span class="v246-coach-ico" id="v246-coach-ico"></span>'+
-     '<div class="v246-coach-title" id="v246-coach-title"></div>'+
-     '<button type="button" class="v246-coach-close" id="v246-coach-close" aria-label="Dismiss">\u00D7</button>'+
-    '</div>'+
-    '<div class="v246-coach-body" id="v246-coach-body"></div>'+
-    '<div class="v246-coach-actions">'+
-     '<span class="v246-coach-progress" id="v246-coach-progress"></span>'+
-     '<button type="button" class="v246-coach-btn ghost" id="v246-coach-skip">Skip tour</button>'+
-     '<button type="button" class="v246-coach-btn" id="v246-coach-got">Got it</button>'+
-    '</div>'+
-   '</div>';
-  document.body.appendChild(coachOverlayEl);
-  coachOverlayEl.querySelector('#v246-coach-close').addEventListener('click',dismissCurrentCoach);
-  coachOverlayEl.querySelector('[data-v246-coach-bg="1"]').addEventListener('click',dismissCurrentCoach);
-  coachOverlayEl.querySelector('#v246-coach-got').addEventListener('click',dismissCurrentCoach);
-  coachOverlayEl.querySelector('#v246-coach-skip').addEventListener('click',skipAllCoaches);
-  return coachOverlayEl;
- }
- var currentCoach=null;
- var coachQueue=[];
- var coachArmed=false;
- function armCoachMarks(){coachArmed=true;checkCoachTriggers();}
- function disarmCoachMarks(){coachArmed=false;dismissCurrentCoach();}
- function getActivePanel(){
-  try{
-   if(typeof getActivePanelId==='function')return getActivePanelId();
-   var p=document.querySelectorAll('.panel');
-   for(var i=0;i<p.length;i++)if(p[i].classList.contains('active'))return p[i].id;
-  }catch(e){}
-  return 'home';
- }
- function checkCoachTriggers(){
-  if(!coachArmed)return;
-  if(currentCoach)return;
-  var panel=getActivePanel();
-  for(var i=0;i<COACH_STEPS.length;i++){
-   var step=COACH_STEPS[i];
-   if(isCoachSeen(step.id))continue;
-   if(step.panel!=='any'&&step.panel!==panel)continue;
-   if(step.requiresQuery){
-    var q=document.getElementById('q');
-    if(!q||!q.value||!q.value.trim())continue;
-   }
-   var anchor=step.selectorFn();
-   if(!anchor)continue;
-   var rect=anchor.getBoundingClientRect();
-   if(rect.width<8||rect.height<8)continue;
-   if(rect.bottom<0||rect.top>window.innerHeight)continue;
-   showCoach(step,anchor);
-   return;
-  }
- }
- function showCoach(step,anchor){
-  currentCoach=step;
-  ensureCoachOverlay();
-  var overlay=coachOverlayEl;
-  overlay.classList.add('show');
-  var tip=overlay.querySelector('#v246-coach-tip');
-  var hl=overlay.querySelector('#v246-coach-hl');
-  overlay.querySelector('#v246-coach-ico').textContent=step.ico;
-  overlay.querySelector('#v246-coach-title').textContent=step.title;
-  overlay.querySelector('#v246-coach-body').textContent=step.body;
-  var remaining=COACH_STEPS.filter(function(s){return !isCoachSeen(s.id);}).length;
-  var total=COACH_STEPS.length;
-  var current=total-remaining+1;
-  overlay.querySelector('#v246-coach-progress').textContent=current+' of '+total;
-  positionCoach(tip,hl,anchor);
-  tip.style.display='';
-  hl.style.display='';
- }
- function positionCoach(tip,hl,anchor){
-  var rect=anchor.getBoundingClientRect();
-  var pad=6;
-  hl.style.top=(rect.top-pad)+'px';
-  hl.style.left=(rect.left-pad)+'px';
-  hl.style.width=(rect.width+pad*2)+'px';
-  hl.style.height=(rect.height+pad*2)+'px';
-  // Wait for tip to render then measure
-  tip.style.visibility='hidden';
-  tip.style.top='0';
-  tip.style.left='0';
-  requestAnimationFrame(function(){
-   var tw=tip.offsetWidth;
-   var th=tip.offsetHeight;
-   var vw=window.innerWidth;
-   var vh=window.innerHeight;
-   var spaceBelow=vh-rect.bottom;
-   var spaceAbove=rect.top;
-   var placeBelow=spaceBelow>=(th+24)||spaceBelow>spaceAbove;
-   var top,left;
-   if(placeBelow){
-    top=rect.bottom+14;
-    tip.classList.remove('arr-bottom');
-    tip.classList.add('arr-top');
-   }else{
-    top=rect.top-th-14;
-    tip.classList.remove('arr-top');
-    tip.classList.add('arr-bottom');
-   }
-   left=rect.left+rect.width/2-tw/2;
-   if(left<12)left=12;
-   if(left+tw>vw-12)left=vw-tw-12;
-   if(top<12)top=12;
-   if(top+th>vh-12)top=vh-th-12;
-   tip.style.top=top+'px';
-   tip.style.left=left+'px';
-   tip.style.visibility='';
-  });
- }
- function dismissCurrentCoach(){
-  if(!currentCoach)return;
-  markCoachSeen(currentCoach.id);
-  currentCoach=null;
-  if(coachOverlayEl)coachOverlayEl.classList.remove('show');
-  // Continue tour if there are more steps on the current panel
-  setTimeout(function(){checkCoachTriggers();},220);
- }
- function skipAllCoaches(){
-  var s=loadCoachSeen();
-  COACH_STEPS.forEach(function(step){s[step.id]=1;});
-  writeJSON(K_COACH,s);
-  currentCoach=null;
-  if(coachOverlayEl)coachOverlayEl.classList.remove('show');
- }
- function restartTour(){
-  writeJSON(K_COACH,{});
-  coachArmed=true;
-  checkCoachTriggers();
-  showToast('Tour restarted \u2014 coach-marks will show as you navigate.');
- }
- window.__v246RestartTour=restartTour;
- // Watch for panel changes + query changes to re-check
- function installCoachWatchers(){
-  document.addEventListener('click',function(e){
-   var t=e.target;
-   if(!t)return;
-   // Panel switches
-   if(t.closest&&t.closest('[data-tab]'))setTimeout(checkCoachTriggers,250);
-   // Autocomplete pick triggers a query
-   if(t.closest&&t.closest('.ac-item'))setTimeout(checkCoachTriggers,300);
-  },true);
-  var q=document.getElementById('q');
-  if(q)q.addEventListener('input',function(){setTimeout(checkCoachTriggers,300);});
-  // Hero mutation triggers Log Purchase check
-  var hero=document.getElementById('hero');
-  if(hero){
-   var mo=new MutationObserver(function(){setTimeout(checkCoachTriggers,180);});
-   mo.observe(hero,{childList:true,subtree:false});
-  }
- }
- /* ====================================================
-    3. WHAT'S NEW PILL (returning users only)
-    ==================================================== */
- function injectWhatsNew(){
-  if(readJSON(K_WHATS_NEW,false))return;
-  if(isFirstTimeUser())return; // fresh users don't need "what's new"
-  if(!readJSON(K_APP_SEEN,false)){writeJSON(K_APP_SEEN,true);}
-  var home=document.getElementById('home');
-  if(!home)return;
-  if(document.querySelector('.v246-whats-new'))return;
-  var pill=document.createElement('div');
-  pill.className='v246-whats-new';
-  pill.innerHTML='<div class="v246-whats-new-ico">\u2728</div>'+
-   '<div class="v246-whats-new-txt">'+
-    '<div class="v246-whats-new-title">V246 \u00B7 First-time user polish</div>'+
-    '<div class="v246-whats-new-sub">Welcome flow, guided tour, mobile keyboard fixes</div>'+
-   '</div>'+
-   '<button type="button" class="v246-whats-new-close" aria-label="Dismiss">\u00D7</button>';
-  // Insert after greeting
-  var greeting=home.querySelector('.greeting');
-  if(greeting&&greeting.nextSibling){home.insertBefore(pill,greeting.nextSibling);}
-  else{home.insertBefore(pill,home.firstChild);}
-  pill.querySelector('.v246-whats-new-close').addEventListener('click',function(){
-   pill.style.opacity='0';
-   pill.style.transform='translateY(-4px)';
-   pill.style.transition='opacity .22s ease,transform .22s ease';
-   setTimeout(function(){if(pill.parentNode)pill.parentNode.removeChild(pill);},240);
-   writeJSON(K_WHATS_NEW,true);
-  });
- }
- /* ====================================================
-    4. GUIDED EMPTY STATES
-    Enhance existing empty states in-place (non-destructive).
-    ==================================================== */
- function enhanceEmptyStates(){
-  try{
-   // Home: wallet empty state \u2014 add badge without wiping content
-   var emptyWallet=document.getElementById('emptyWalletState');
-   if(emptyWallet&&!emptyWallet.querySelector('.v246-guided-badge')&&emptyWallet.style.display!=='none'){
-    emptyWallet.classList.add('v246-guided-empty');
-    var badge=document.createElement('div');
-    badge.className='v246-guided-badge';
-    badge.textContent='\uD83D\uDC4B First things first';
-    var h3=emptyWallet.querySelector('h3');
-    if(h3&&h3.parentNode)h3.parentNode.insertBefore(badge,h3);
-   }
-   // Cards tab empty state
-   var cardsEmpty=document.getElementById('cardsEmpty');
-   if(cardsEmpty&&!cardsEmpty.querySelector('.v246-guided-badge')&&cardsEmpty.style.display!=='none'){
-    cardsEmpty.classList.add('v246-guided-empty');
-    var b2=document.createElement('div');
-    b2.className='v246-guided-badge';
-    b2.textContent='\uD83D\uDCB3 Get started';
-    var h3b=cardsEmpty.querySelector('h3');
-    if(h3b&&h3b.parentNode)h3b.parentNode.insertBefore(b2,h3b);
-   }
-   // Activity (tx) empty state
-   var txEmpty=document.getElementById('txEmpty');
-   if(txEmpty&&!txEmpty.querySelector('.v246-guided-badge-tx')&&txEmpty.style.display!=='none'){
-    var b3=document.createElement('div');
-    b3.className='v246-guided-badge v246-guided-badge-tx';
-    b3.style.marginBottom='8px';
-    b3.textContent='\uD83D\uDCCA Track earnings';
-    var bigEl=txEmpty.querySelector('.big');
-    if(bigEl&&bigEl.parentNode)bigEl.parentNode.insertBefore(b3,bigEl);
-   }
-   // Applied (welcome offers) empty state
-   var appEmpty=document.getElementById('appliedEmpty');
-   if(appEmpty&&!appEmpty.querySelector('.v246-guided-badge-app')&&appEmpty.style.display!=='none'){
-    var b4=document.createElement('div');
-    b4.className='v246-guided-badge v246-guided-badge-app';
-    b4.style.marginBottom='8px';
-    b4.textContent='\uD83C\uDF81 Chase bonuses';
-    var bigEl2=appEmpty.querySelector('.big');
-    if(bigEl2&&bigEl2.parentNode)bigEl2.parentNode.insertBefore(b4,bigEl2);
-   }
-  }catch(e){}
- }
- /* ====================================================
-    5. RESTART TOUR DRAWER ITEM
-    ==================================================== */
- function injectDrawerTourItem(){
-  try{
-   var body=document.querySelector('.drawer-body');
-   if(!body)return;
-   if(body.querySelector('[data-v246-tour]'))return;
-   // Insert before the reset button (last item in drawer)
-   var resetBtn=null;
-   var items=body.querySelectorAll('.drawer-item');
-   for(var i=0;i<items.length;i++){
-    var txt=(items[i].textContent||'').toLowerCase();
-    if(txt.indexOf('reset')>=0){resetBtn=items[i];break;}
-   }
-   var btn=document.createElement('button');
-   btn.className='drawer-item';
-   btn.setAttribute('data-v246-tour','1');
-   btn.innerHTML='<span class="di-ico"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg></span><span>Restart guided tour</span>';
-   btn.addEventListener('click',function(){
-    if(typeof closeDrawer==='function')closeDrawer();
-    setTimeout(restartTour,320);
-   });
-   if(resetBtn&&resetBtn.parentNode){
-    var divider=document.createElement('div');
-    divider.className='drawer-divider';
-    resetBtn.parentNode.insertBefore(btn,resetBtn);
-    resetBtn.parentNode.insertBefore(divider,resetBtn);
-   }else{
-    body.appendChild(btn);
-   }
-  }catch(e){}
- }
- /* ====================================================
-    6. MOBILE SAFARI FIXES
-    (a) visualViewport keyboard-lift for modal inputs
-    (b) autocomplete constrained on small screens (CSS above)
-    (c) touch-action: manipulation (CSS above, kills 300ms delay)
-    ==================================================== */
- function installKeyboardLift(){
-  if(!('visualViewport' in window))return;
-  var vv=window.visualViewport;
-  var activeModal=null;
-  function applyLift(){
-   if(!activeModal)return;
-   var keyboardHeight=Math.max(0,window.innerHeight-vv.height-vv.offsetTop);
-   if(keyboardHeight>60){
-    var lift=Math.min(keyboardHeight-20,180);
-    activeModal.style.setProperty('--v246-lift','-'+lift+'px');
-    activeModal.classList.add('v246-kbd-lift');
-   }else{
-    activeModal.classList.remove('v246-kbd-lift');
-    activeModal.style.removeProperty('--v246-lift');
-   }
-  }
-  vv.addEventListener('resize',applyLift);
-  vv.addEventListener('scroll',applyLift);
-  document.addEventListener('focusin',function(e){
-   var t=e.target;
-   if(!t)return;
-   if(t.tagName!=='INPUT'&&t.tagName!=='TEXTAREA'&&t.tagName!=='SELECT')return;
-   var modal=t.closest&&t.closest('.modal-overlay.show .modal,.v81-modal-overlay.show .v81-modal,.v122-edit-overlay.show .v122-edit,#addTxModal .modal');
-   if(modal){activeModal=modal;setTimeout(applyLift,120);}
-  });
-  document.addEventListener('focusout',function(){
-   if(activeModal){
-    setTimeout(function(){
-     var stillFocused=document.activeElement&&(document.activeElement.tagName==='INPUT'||document.activeElement.tagName==='TEXTAREA');
-     if(!stillFocused){
-      activeModal.classList.remove('v246-kbd-lift');
-      activeModal.style.removeProperty('--v246-lift');
-      activeModal=null;
-     }
-    },80);
-   }
-  });
- }
- /* ====================================================
-    Toast helper (reuses V126 pattern)
-    ==================================================== */
- function showToast(msg){
-  var existing=document.querySelector('.v246-toast');
-  if(existing)existing.remove();
-  var t=document.createElement('div');
-  t.className='v246-toast log-flash';
-  t.style.cssText='position:fixed;top:20px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#5f74b8,#4c609e);color:#fff;padding:12px 20px;border-radius:99px;font-weight:900;font-size:13px;box-shadow:0 8px 24px rgba(95,116,184,.4);z-index:1100;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;max-width:88vw;text-align:center';
-  t.textContent=msg;
-  document.body.appendChild(t);
-  setTimeout(function(){t.style.opacity='0';t.style.transition='opacity .3s';setTimeout(function(){if(t.parentNode)t.remove();},350);},2400);
- }
- /* ====================================================
-    Auto-fire suppression + boot sequence
-    ==================================================== */
- function suppressLegacyAutoOnboard(){
-  // The legacy init calls showOnboarding after 400ms if no wallet + not hasOnboarded.
-  // We want our Welcome screen to fire first for a first-time user, so we intercept.
-  // Approach: wrap showOnboarding so if V246 welcome hasn't been dismissed yet AND
-  // this is a first-time user, we show the welcome instead.
-  try{
-   if(typeof window.showOnboarding==='function'&&!window.showOnboarding.__v246Wrapped){
-    var orig=window.showOnboarding;
-    window.showOnboarding=function(){
-     if(isFirstTimeUser()){showWelcome();return;}
-     return orig.apply(this,arguments);
-    };
-    window.showOnboarding.__v246Wrapped=true;
-   }
-  }catch(e){}
- }
- function boot(){
-  log('boot');
-  // Inject welcome overlay markup up-front (hidden until needed)
-  injectWelcome();
-  // Wrap showOnboarding so first-run defers to welcome
-  suppressLegacyAutoOnboard();
-  // If first-time user, show welcome now (regardless of legacy timing)
-  if(isFirstTimeUser()){
-   setTimeout(function(){showWelcome();},350);
-  }else{
-   // Returning user: inject "What's New" pill
-   setTimeout(injectWhatsNew,600);
-  }
-  // Empty state enhancement runs on load + on tab switch
-  setTimeout(enhanceEmptyStates,700);
-  setTimeout(enhanceEmptyStates,1600);
-  // Drawer tour item
-  setTimeout(injectDrawerTourItem,700);
-  // Coach watchers
-  installCoachWatchers();
-  // Keyboard lift for modals
-  installKeyboardLift();
-  // Arm coach-marks if this user hasn't seen them all yet AND
-  // has completed welcome (or is a returning user who never had one)
-  var welcomeSeen=readJSON(K_WELCOME,false);
-  var anySeen=Object.keys(loadCoachSeen()).length>0;
-  var allDone=COACH_STEPS.every(function(s){return isCoachSeen(s.id);});
-  if(welcomeSeen&&!allDone){
-   // Auto-show is only aggressive for fresh completions; for existing users
-   // we DON'T force it since they already know the app. Detect via K_APP_SEEN.
-   // Rule: fresh completion = welcome_seen exists but K_APP_SEEN did not exist
-   // before boot. Since we set K_APP_SEEN in injectWhatsNew for returning users,
-   // we treat auto-arm as: welcome_seen && !anySeen && no wallet data yet.
-   var isFreshCompletion=!anySeen&&!hasAnyWalletData();
-   if(isFreshCompletion){
-    coachArmed=true;
-    setTimeout(checkCoachTriggers,1200);
-   }
-  }
-  // Wrap switchTab to re-check coach-marks after tab change
-  try{
-   if(typeof window.switchTab==='function'&&!window.switchTab.__v246Wrapped){
-    var origST=window.switchTab;
-    window.switchTab=function(){
-     var r=origST.apply(this,arguments);
-     setTimeout(function(){enhanceEmptyStates();checkCoachTriggers();},280);
-     return r;
-    };
-    window.switchTab.__v246Wrapped=true;
-   }
-  }catch(e){}
-  log('ready. first-time='+isFirstTimeUser()+' welcome_seen='+welcomeSeen);
- }
- if(document.readyState==='loading'){
-  document.addEventListener('DOMContentLoaded',boot);
- }else{
-  boot();
- }
- // Late safety re-boots to catch DOM ready races
- setTimeout(boot,500);
- setTimeout(boot,1500);
- window.__v246={
-  version:VERSION,
-  showWelcome:showWelcome,
-  restartTour:restartTour,
-  enhanceEmptyStates:enhanceEmptyStates,
-  isFirstTimeUser:isFirstTimeUser,
-  boot:boot
- };
+(function(){'use strict';
+var K_WELCOME='walletiq_v246_welcome_seen',K_COACH='walletiq_v246_coachmarks_seen',K_APP_SEEN='walletiq_v246_seen',K_WHATS_NEW='walletiq_v246_whatsnew_dismissed';
+function readJSON(k,fb){try{var r=localStorage.getItem(k);if(!r)return fb;var p=JSON.parse(r);return p==null?fb:p;}catch(e){return fb;}}
+function writeJSON(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+function hasAnyWalletData(){try{var C=['walletIQ_v40_wallet','walletiq_wallet','walletiq_transactions','walletiq_v82_tx','walletiq_tx','transactions','walletiq_memberships','walletiq_credits_v46'];for(var i=0;i<C.length;i++){var v=readJSON(C[i],null);if(v){if(Array.isArray(v)&&v.length>0)return true;if(typeof v==='object'&&Object.keys(v).length>0)return true;}}if(typeof userWallet!=='undefined'&&userWallet&&userWallet.size>0)return true;}catch(e){}return false;}
+function isFirstTimeUser(){return !readJSON(K_WELCOME,false)&&!hasAnyWalletData();}
+var WELCOME_HTML='<div id="v246-welcome"><div class="v246-welcome-inner"><svg class="v246-welcome-logo" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><rect x="10" y="7" width="17" height="4" rx="1.2" fill="#c9d3e8" opacity="0.85"/><rect x="8" y="10" width="20" height="5" rx="1.5" fill="#e0e7f2"/><rect x="5" y="14" width="30" height="20" rx="4.5" fill="#5f74b8"/><rect x="26" y="22" width="6" height="4.5" rx="1.2" fill="#4c609e"/><circle cx="29" cy="24.25" r="1" fill="#faf7f2"/><path d="M32 3.5 L33 6 L35.5 7 L33 8 L32 10.5 L31 8 L28.5 7 L31 6 Z" fill="#c9a35a"/></svg><div class="v246-welcome-brand">Wallet <span class="iq">IQ</span></div><div class="v246-welcome-tag">Your Wallet, Maximized.</div><div class="v246-welcome-pitch">Wallet IQ picks the <b>best credit card</b> for every purchase across <b>100+ Canadian cards</b> and <b>6,000+ merchants</b>. Points auto-accumulate, statement credits get tracked, welcome offers stay organized. Everything runs on your device \u2014 nothing uploads.</div><div class="v246-welcome-bullets"><div class="v246-welcome-bullet"><div class="v246-welcome-bullet-ico">\uD83D\uDCB3</div><div class="v246-welcome-bullet-txt">Best card for every merchant<small>Type any store name for instant recommendations</small></div></div><div class="v246-welcome-bullet"><div class="v246-welcome-bullet-ico">\uD83C\uDFAF</div><div class="v246-welcome-bullet-txt">Auto-tracking rewards<small>Log a purchase \u2192 points appear in your Vault</small></div></div><div class="v246-welcome-bullet"><div class="v246-welcome-bullet-ico">\uD83D\uDD10</div><div class="v246-welcome-bullet-txt">100% private<small>All data stays on your phone. No login. Ever.</small></div></div></div><div class="v246-welcome-actions"><button type="button" class="v246-btn v246-btn-primary" id="v246-welcome-setup">Set up my wallet</button><button type="button" class="v246-btn v246-btn-secondary" id="v246-welcome-explore">Explore first</button></div><div class="v246-welcome-foot">You can always set up your wallet later from the menu.</div></div></div>';
+function injectWelcome(){if(document.getElementById('v246-welcome'))return;var t=document.createElement('div');t.innerHTML=WELCOME_HTML;document.body.appendChild(t.firstChild);document.getElementById('v246-welcome-setup').addEventListener('click',function(){dismissWelcome();setTimeout(function(){try{if(typeof showOnboarding==='function')showOnboarding();}catch(e){}},250);});document.getElementById('v246-welcome-explore').addEventListener('click',function(){dismissWelcome();armCoachMarks();});}
+function showWelcome(){injectWelcome();var e=document.getElementById('v246-welcome');if(e)e.classList.add('show');try{var m=document.getElementById('onboardModal');if(m)m.classList.remove('show');}catch(e){}}
+function dismissWelcome(){var e=document.getElementById('v246-welcome');if(e)e.classList.remove('show');writeJSON(K_WELCOME,true);writeJSON(K_APP_SEEN,true);}
+var COACH_STEPS=[{id:'logPurchase',ico:'\uD83D\uDCB3',title:'Log a purchase',body:'Tap this button after searching a merchant to log a purchase. Points auto-accrue in your Vault.',selectorFn:function(){return document.querySelector('.hero-log-btn')||document.querySelector('#hero .v126-log-btn');},panel:'home',requiresQuery:true},{id:'rewards',ico:'\uD83C\uDFAF',title:'Rewards Studio',body:'See total portfolio value, monthly earnings, statement credits, welcome offers, and live points balances \u2014 all in one place.',selectorFn:function(){return document.querySelector('.drawer-item[data-tab="rewards"]')||document.querySelector('.rewards-subtabs button.on');},panel:'any'},{id:'whereToPay',ico:'\uD83D\uDCCD',title:'Where to Pay',body:'Use GPS to detect your current merchant and get the best card from your wallet.',selectorFn:function(){return document.querySelector('.drawer-item[data-tab="location"]');},panel:'any'}];
+function loadCoachSeen(){var s=readJSON(K_COACH,{});return typeof s==='object'&&s?s:{};}
+function markCoachSeen(id){var s=loadCoachSeen();s[id]=1;writeJSON(K_COACH,s);}
+function isCoachSeen(id){return !!loadCoachSeen()[id];}
+var coachOverlayEl=null,currentCoach=null,coachArmed=false;
+function ensureCoachOverlay(){if(coachOverlayEl)return coachOverlayEl;coachOverlayEl=document.createElement('div');coachOverlayEl.id='v246-coach-overlay';coachOverlayEl.innerHTML='<div class="v246-coach-backdrop" data-bg="1"></div><div class="v246-coach-highlight" id="v246-coach-hl" style="display:none"></div><div class="v246-coach-tooltip" id="v246-coach-tip" style="display:none"><div class="v246-coach-head"><span class="v246-coach-ico" id="v246-coach-ico"></span><div class="v246-coach-title" id="v246-coach-title"></div><button type="button" class="v246-coach-close" id="v246-coach-close">\u00D7</button></div><div class="v246-coach-body" id="v246-coach-body"></div><div class="v246-coach-actions"><span class="v246-coach-progress" id="v246-coach-progress"></span><button type="button" class="v246-coach-btn ghost" id="v246-coach-skip">Skip tour</button><button type="button" class="v246-coach-btn" id="v246-coach-got">Got it</button></div></div>';document.body.appendChild(coachOverlayEl);coachOverlayEl.querySelector('#v246-coach-close').addEventListener('click',dismissCurrentCoach);coachOverlayEl.querySelector('[data-bg="1"]').addEventListener('click',dismissCurrentCoach);coachOverlayEl.querySelector('#v246-coach-got').addEventListener('click',dismissCurrentCoach);coachOverlayEl.querySelector('#v246-coach-skip').addEventListener('click',skipAllCoaches);return coachOverlayEl;}
+function armCoachMarks(){coachArmed=true;checkCoachTriggers();}
+function getActivePanel(){try{if(typeof getActivePanelId==='function')return getActivePanelId();var p=document.querySelectorAll('.panel');for(var i=0;i<p.length;i++)if(p[i].classList.contains('active'))return p[i].id;}catch(e){}return 'home';}
+function checkCoachTriggers(){if(!coachArmed||currentCoach)return;var panel=getActivePanel();for(var i=0;i<COACH_STEPS.length;i++){var s=COACH_STEPS[i];if(isCoachSeen(s.id))continue;if(s.panel!=='any'&&s.panel!==panel)continue;if(s.requiresQuery){var q=document.getElementById('q');if(!q||!q.value||!q.value.trim())continue;}var a=s.selectorFn();if(!a)continue;var r=a.getBoundingClientRect();if(r.width<8||r.height<8||r.bottom<0||r.top>window.innerHeight)continue;showCoach(s,a);return;}}
+function showCoach(step,anchor){currentCoach=step;ensureCoachOverlay();coachOverlayEl.classList.add('show');var tip=coachOverlayEl.querySelector('#v246-coach-tip'),hl=coachOverlayEl.querySelector('#v246-coach-hl');coachOverlayEl.querySelector('#v246-coach-ico').textContent=step.ico;coachOverlayEl.querySelector('#v246-coach-title').textContent=step.title;coachOverlayEl.querySelector('#v246-coach-body').textContent=step.body;var rem=COACH_STEPS.filter(function(s){return !isCoachSeen(s.id);}).length,tot=COACH_STEPS.length,cur=tot-rem+1;coachOverlayEl.querySelector('#v246-coach-progress').textContent=cur+' of '+tot;positionCoach(tip,hl,anchor);tip.style.display='';hl.style.display='';}
+function positionCoach(tip,hl,anchor){var r=anchor.getBoundingClientRect(),pad=6;hl.style.top=(r.top-pad)+'px';hl.style.left=(r.left-pad)+'px';hl.style.width=(r.width+pad*2)+'px';hl.style.height=(r.height+pad*2)+'px';tip.style.visibility='hidden';tip.style.top='0';tip.style.left='0';requestAnimationFrame(function(){var tw=tip.offsetWidth,th=tip.offsetHeight,vw=window.innerWidth,vh=window.innerHeight,sB=vh-r.bottom,sA=r.top,pB=sB>=(th+24)||sB>sA,top,left;top=pB?r.bottom+14:r.top-th-14;left=r.left+r.width/2-tw/2;if(left<12)left=12;if(left+tw>vw-12)left=vw-tw-12;if(top<12)top=12;if(top+th>vh-12)top=vh-th-12;tip.style.top=top+'px';tip.style.left=left+'px';tip.style.visibility='';});}
+function dismissCurrentCoach(){if(!currentCoach)return;markCoachSeen(currentCoach.id);currentCoach=null;if(coachOverlayEl)coachOverlayEl.classList.remove('show');setTimeout(checkCoachTriggers,220);}
+function skipAllCoaches(){var s=loadCoachSeen();COACH_STEPS.forEach(function(x){s[x.id]=1;});writeJSON(K_COACH,s);currentCoach=null;if(coachOverlayEl)coachOverlayEl.classList.remove('show');}
+function restartTour(){writeJSON(K_COACH,{});coachArmed=true;checkCoachTriggers();showToast('Tour restarted');}
+window.__v246RestartTour=restartTour;
+function installCoachWatchers(){document.addEventListener('click',function(e){var t=e.target;if(!t)return;if(t.closest&&t.closest('[data-tab]'))setTimeout(checkCoachTriggers,250);if(t.closest&&t.closest('.ac-item'))setTimeout(checkCoachTriggers,300);},true);var q=document.getElementById('q');if(q)q.addEventListener('input',function(){setTimeout(checkCoachTriggers,300);});var h=document.getElementById('hero');if(h){var mo=new MutationObserver(function(){setTimeout(checkCoachTriggers,180);});mo.observe(h,{childList:true});}}
+function injectWhatsNew(){if(readJSON(K_WHATS_NEW,false))return;if(isFirstTimeUser())return;writeJSON(K_APP_SEEN,true);var home=document.getElementById('home');if(!home||document.querySelector('.v246-whats-new'))return;var p=document.createElement('div');p.className='v246-whats-new';p.innerHTML='<div class="v246-whats-new-ico">\u2728</div><div><div class="v246-whats-new-title">V248 \u00B7 Offer links fixed</div><div class="v246-whats-new-sub">All apply-now links verified live and working</div></div><button type="button" class="v246-whats-new-close">\u00D7</button>';var g=home.querySelector('.greeting');if(g&&g.nextSibling)home.insertBefore(p,g.nextSibling);else home.insertBefore(p,home.firstChild);p.querySelector('.v246-whats-new-close').addEventListener('click',function(){p.style.opacity='0';p.style.transition='opacity .22s ease';setTimeout(function(){if(p.parentNode)p.remove();},240);writeJSON(K_WHATS_NEW,true);});}
+function enhanceEmptyStates(){try{var e=document.getElementById('emptyWalletState');if(e&&!e.querySelector('.v246-guided-badge')&&e.style.display!=='none'){e.classList.add('v246-guided-empty');var b=document.createElement('div');b.className='v246-guided-badge';b.textContent='\uD83D\uDC4B First things first';var h=e.querySelector('h3');if(h)h.parentNode.insertBefore(b,h);}var c=document.getElementById('cardsEmpty');if(c&&!c.querySelector('.v246-guided-badge')&&c.style.display!=='none'){c.classList.add('v246-guided-empty');var b2=document.createElement('div');b2.className='v246-guided-badge';b2.textContent='\uD83D\uDCB3 Get started';var h2=c.querySelector('h3');if(h2)h2.parentNode.insertBefore(b2,h2);}}catch(e){}}
+function injectDrawerTourItem(){try{var body=document.querySelector('.drawer-body');if(!body||body.querySelector('[data-v246-tour]'))return;var reset=null,items=body.querySelectorAll('.drawer-item');for(var i=0;i<items.length;i++){if((items[i].textContent||'').toLowerCase().indexOf('reset')>=0){reset=items[i];break;}}var btn=document.createElement('button');btn.className='drawer-item';btn.setAttribute('data-v246-tour','1');btn.innerHTML='<span class="di-ico">\uD83C\uDFAF</span><span>Restart guided tour</span>';btn.addEventListener('click',function(){if(typeof closeDrawer==='function')closeDrawer();setTimeout(restartTour,320);});if(reset&&reset.parentNode){var d=document.createElement('div');d.className='drawer-divider';reset.parentNode.insertBefore(btn,reset);reset.parentNode.insertBefore(d,reset);}else body.appendChild(btn);}catch(e){}}
+function installKeyboardLift(){if(!('visualViewport' in window))return;var vv=window.visualViewport,am=null;function apply(){if(!am)return;var kh=Math.max(0,window.innerHeight-vv.height-vv.offsetTop);if(kh>60){var lift=Math.min(kh-20,180);am.style.setProperty('--v246-lift','-'+lift+'px');am.classList.add('v246-kbd-lift');}else{am.classList.remove('v246-kbd-lift');am.style.removeProperty('--v246-lift');}}vv.addEventListener('resize',apply);vv.addEventListener('scroll',apply);document.addEventListener('focusin',function(e){var t=e.target;if(!t||(t.tagName!=='INPUT'&&t.tagName!=='TEXTAREA'&&t.tagName!=='SELECT'))return;var m=t.closest&&t.closest('.modal-overlay.show .modal,.v81-modal-overlay.show .v81-modal,.v122-edit-overlay.show .v122-edit,#addTxModal .modal');if(m){am=m;setTimeout(apply,120);}});document.addEventListener('focusout',function(){if(am){setTimeout(function(){var f=document.activeElement&&(document.activeElement.tagName==='INPUT'||document.activeElement.tagName==='TEXTAREA');if(!f){am.classList.remove('v246-kbd-lift');am.style.removeProperty('--v246-lift');am=null;}},80);}});}
+function showToast(msg){var e=document.querySelector('.v246-toast');if(e)e.remove();var t=document.createElement('div');t.className='v246-toast';t.style.cssText='position:fixed;top:20px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#5f74b8,#4c609e);color:#fff;padding:12px 20px;border-radius:99px;font-weight:900;font-size:13px;box-shadow:0 8px 24px rgba(95,116,184,.4);z-index:1100;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;max-width:88vw;text-align:center';t.textContent=msg;document.body.appendChild(t);setTimeout(function(){t.style.opacity='0';t.style.transition='opacity .3s';setTimeout(function(){if(t.parentNode)t.remove();},350);},2400);}
+function suppressLegacyAutoOnboard(){try{if(typeof window.showOnboarding==='function'&&!window.showOnboarding.__v246Wrapped){var o=window.showOnboarding;window.showOnboarding=function(){if(isFirstTimeUser()){showWelcome();return;}return o.apply(this,arguments);};window.showOnboarding.__v246Wrapped=true;}}catch(e){}}
+function boot(){injectWelcome();suppressLegacyAutoOnboard();if(isFirstTimeUser()){setTimeout(showWelcome,350);}else{setTimeout(injectWhatsNew,600);}setTimeout(enhanceEmptyStates,700);setTimeout(enhanceEmptyStates,1600);setTimeout(injectDrawerTourItem,700);installCoachWatchers();installKeyboardLift();var ws=readJSON(K_WELCOME,false),ad=COACH_STEPS.every(function(s){return isCoachSeen(s.id);});if(ws&&!ad){var fresh=Object.keys(loadCoachSeen()).length===0&&!hasAnyWalletData();if(fresh){coachArmed=true;setTimeout(checkCoachTriggers,1200);}}try{if(typeof window.switchTab==='function'&&!window.switchTab.__v246Wrapped){var st=window.switchTab;window.switchTab=function(){var r=st.apply(this,arguments);setTimeout(function(){enhanceEmptyStates();checkCoachTriggers();},280);return r;};window.switchTab.__v246Wrapped=true;}}catch(e){}}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+setTimeout(boot,500);setTimeout(boot,1500);
+window.__v246={showWelcome:showWelcome,restartTour:restartTour};
+})();
+</script>
+
+<!-- ============================================================
+     V247 (2026-07-20) — Location + delete fixes
+     ============================================================ -->
+<style id="v247-styles">
+.v247-nearby-wrap{margin-top:14px;background:var(--surface);border-radius:16px;padding:16px 14px;box-shadow:var(--shadow);border:1px solid var(--border)}
+.v247-nearby-head{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.v247-nearby-title{font-size:12px;font-weight:900;color:var(--muted);letter-spacing:.14em;text-transform:uppercase;flex:1}
+.v247-nearby-badge{font-size:10px;font-weight:900;color:var(--brand);background:var(--accent-soft);padding:3px 8px;border-radius:99px}
+.v247-nearby-list{display:flex;flex-direction:column;gap:6px}
+.v247-poi{display:grid;grid-template-columns:32px 1fr auto;gap:10px;align-items:center;padding:11px 12px;background:var(--surface);border:1px solid var(--border);border-radius:12px;cursor:pointer;text-align:left;font-family:inherit;transition:all .12s ease;touch-action:manipulation;width:100%}
+.v247-poi:active{transform:scale(.98)}
+.v247-poi:hover{border-color:var(--brand);background:var(--surface-2)}
+.v247-poi-ico{font-size:18px;text-align:center}
+.v247-poi-mid{min-width:0}
+.v247-poi-name{font-size:13px;font-weight:900;color:var(--ink);line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v247-poi-sub{font-size:10px;color:var(--muted);font-weight:800;text-transform:uppercase;margin-top:2px}
+.v247-poi-dist{font-family:ui-monospace,monospace;font-size:11px;font-weight:900;color:var(--brand);white-space:nowrap}
+.v247-nearby-empty{padding:16px 12px;text-align:center;color:var(--muted);font-size:12px;font-weight:800;line-height:1.4}
+.v247-nearby-loading{display:flex;align-items:center;justify-content:center;gap:10px;padding:16px;color:var(--muted);font-size:12px;font-weight:800}
+.v247-spinner{width:16px;height:16px;border:2px solid var(--border-2);border-top-color:var(--brand);border-radius:50%;animation:v247spin .8s linear infinite}
+@keyframes v247spin{to{transform:rotate(360deg)}}
+.v247-search-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;padding-top:10px;border-top:1px dashed var(--border)}
+.v247-chip{background:var(--surface-2);border:1px solid var(--border);border-radius:99px;padding:7px 12px;font-size:11.5px;font-weight:900;color:var(--ink);cursor:pointer;font-family:inherit;touch-action:manipulation}
+#overviewRecent .tx-item{position:relative;padding-right:78px}
+.v247-tx-actions{position:absolute;right:8px;top:50%;transform:translateY(-50%);display:flex;gap:5px;z-index:2}
+.v247-tx-actions button{width:32px;height:32px;border-radius:50%;border:1px solid var(--border);background:var(--surface);color:var(--muted);font-size:13px;cursor:pointer;padding:0;display:grid;place-items:center;touch-action:manipulation;font-weight:900}
+.v247-tx-actions button.v247-edit:hover{background:var(--accent-soft);color:var(--brand);border-color:var(--brand)}
+.v247-tx-actions button.v247-del:hover{background:var(--coral-soft);color:var(--coral);border-color:var(--coral)}
+#txList .tx-item .txbtns button{min-width:32px;min-height:32px;border-radius:8px;padding:4px 10px;font-size:14px;touch-action:manipulation;line-height:1}
+</style>
+<script id="v247-script">
+(function(){'use strict';
+function log(m){try{console.log('[V247]',m);}catch(e){}}
+function haversine(lat1,lon1,lat2,lon2){var R=6371000,rad=function(x){return x*Math.PI/180;},dLat=rad(lat2-lat1),dLon=rad(lon2-lon1);var a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(rad(lat1))*Math.cos(rad(lat2))*Math.sin(dLon/2)*Math.sin(dLon/2);return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));}
+var CAT_MAP={restaurant:{ico:'\uD83C\uDF7D\uFE0F',lbl:'Dining'},cafe:{ico:'\u2615',lbl:'Coffee'},fast_food:{ico:'\uD83C\uDF54',lbl:'Fast Food'},bar:{ico:'\uD83C\uDF7B',lbl:'Bar'},pub:{ico:'\uD83C\uDF7B',lbl:'Pub'},ice_cream:{ico:'\uD83C\uDF66',lbl:'Ice Cream'},pharmacy:{ico:'\uD83D\uDC8A',lbl:'Pharmacy'},fuel:{ico:'\u26FD',lbl:'Gas'},cinema:{ico:'\uD83C\uDFAC',lbl:'Cinema'},supermarket:{ico:'\uD83D\uDED2',lbl:'Grocery'},convenience:{ico:'\uD83E\uDD64',lbl:'Convenience'},clothes:{ico:'\uD83D\uDC57',lbl:'Fashion'},department_store:{ico:'\uD83C\uDFEC',lbl:'Dept Store'},electronics:{ico:'\uD83D\uDCF1',lbl:'Electronics'},hardware:{ico:'\uD83D\uDD28',lbl:'Hardware'},bakery:{ico:'\uD83E\uDD50',lbl:'Bakery'},books:{ico:'\uD83D\uDCDA',lbl:'Books'},shoes:{ico:'\uD83D\uDC5F',lbl:'Shoes'},beauty:{ico:'\uD83D\uDC84',lbl:'Beauty'},car:{ico:'\uD83D\uDE97',lbl:'Auto'},gift:{ico:'\uD83C\uDF81',lbl:'Gifts'},pet:{ico:'\uD83D\uDC36',lbl:'Pet'},sports:{ico:'\u26BD',lbl:'Sports'},alcohol:{ico:'\uD83C\uDF77',lbl:'Liquor'},mall:{ico:'\uD83C\uDFEC',lbl:'Mall'}};
+function typeMeta(t){return CAT_MAP[t]||{ico:'\uD83D\uDCB3',lbl:t?t.replace(/_/g,' '):'Merchant'};}
+function fmtDist(m){if(m<1000)return Math.round(m)+' m';return (m/1000).toFixed(1)+' km';}
+function fetchNearbyPOIs(lat,lon,radius){radius=radius||150;var q='[out:json][timeout:12];('+'node["shop"]["name"](around:'+radius+','+lat+','+lon+');'+'node["amenity"~"^(restaurant|cafe|fast_food|bar|pub|ice_cream|pharmacy|fuel|cinema|bakery)$"]["name"](around:'+radius+','+lat+','+lon+');'+'way["shop"]["name"](around:'+radius+','+lat+','+lon+');'+'way["amenity"~"^(restaurant|cafe|fast_food|bar|pub|ice_cream|pharmacy|fuel|cinema|bakery)$"]["name"](around:'+radius+','+lat+','+lon+');'+');out center 30;';var endpoints=['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter'];function tryOne(idx){if(idx>=endpoints.length)return Promise.reject(new Error('all failed'));return fetch(endpoints[idx],{method:'POST',body:'data='+encodeURIComponent(q)}).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}).catch(function(){return tryOne(idx+1);});}return tryOne(0).then(function(data){var pois=(data.elements||[]).map(function(e){var name=e.tags&&e.tags.name;if(!name)return null;var elat=e.lat||(e.center&&e.center.lat),elon=e.lon||(e.center&&e.center.lon);if(elat==null||elon==null)return null;var type=(e.tags&&(e.tags.shop||e.tags.amenity))||'other';return{name:name,type:type,dist:haversine(lat,lon,elat,elon)};}).filter(Boolean);var byName={};pois.forEach(function(p){var k=p.name.toLowerCase().trim();if(!byName[k]||byName[k].dist>p.dist)byName[k]=p;});return Object.keys(byName).map(function(k){return byName[k];}).sort(function(a,b){return a.dist-b.dist;}).slice(0,10);});}
+function renderNearbyList(container,pois,fnPick){if(!container)return;if(!pois||pois.length===0){container.innerHTML='<div class="v247-nearby-empty">No merchants found nearby. Type a merchant name below.</div>';return;}var html=pois.map(function(p){var m=typeMeta(p.type);var safe=p.name.replace(/</g,'&lt;').replace(/>/g,'&gt;');return '<button type="button" class="v247-poi" data-name="'+safe.replace(/"/g,'&quot;')+'"><span class="v247-poi-ico">'+m.ico+'</span><span class="v247-poi-mid"><span class="v247-poi-name">'+safe+'</span><span class="v247-poi-sub">'+m.lbl+'</span></span><span class="v247-poi-dist">'+fmtDist(p.dist)+'</span></button>';}).join('');container.innerHTML=html;Array.prototype.forEach.call(container.querySelectorAll('.v247-poi'),function(btn){btn.addEventListener('click',function(){var n=btn.getAttribute('data-name');if(fnPick)fnPick(n);});});}
+function v247Lookup(){var resEl=document.getElementById('locResult');if(!resEl)return;if(!navigator.geolocation){resEl.innerHTML='<div class="warn-box">Location not supported.</div>';return;}resEl.innerHTML='<div class="empty-state"><div class="big">\uD83D\uDCCD</div><h3>Detecting location...</h3><p>Please allow location access.</p></div>';navigator.geolocation.getCurrentPosition(function(pos){var lat=pos.coords.latitude,lon=pos.coords.longitude;resEl.innerHTML='<div class="empty-state"><div class="big">\uD83D\uDD0D</div><h3>Finding nearby merchants...</h3><p>'+lat.toFixed(4)+', '+lon.toFixed(4)+'</p></div>';fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat='+lat+'&lon='+lon+'&zoom=18&addressdetails=1&namedetails=1',{headers:{'Accept-Language':'en'}}).then(function(r){return r.json();}).catch(function(){return null;}).then(function(data){var merchantName=null,areaLabel='';if(data){if(data.namedetails&&data.namedetails.name)merchantName=data.namedetails.name;if(!merchantName&&data.name)merchantName=data.name;if(data.address){var a=data.address;if(!merchantName){if(a.shop&&typeof a.shop==='string'&&a.shop.length>2)merchantName=a.shop;if(!merchantName&&a.amenity&&typeof a.amenity==='string'&&a.amenity.length>2)merchantName=a.amenity;}areaLabel=[a.road,a.suburb||a.neighbourhood,a.city||a.town||a.village].filter(Boolean).join(', ');}}if(merchantName&&typeof window.__v247LegacyRenderLoc==='function'){try{window.__v247LegacyRenderLoc(data,lat,lon);return;}catch(e){}}var html='<div class="v247-nearby-wrap"><div class="v247-nearby-head"><div class="v247-nearby-title">\uD83D\uDCCD Nearby</div><div class="v247-nearby-badge">GPS</div></div>'+(areaLabel?'<div style="font-size:13px;font-weight:900;color:var(--ink);margin-bottom:2px">You\'re near '+areaLabel+'</div>':'')+'<div style="font-size:11px;color:var(--muted);font-weight:800;margin-bottom:12px">Tap a merchant to see the best card in your wallet</div><div class="v247-nearby-list" id="v247-nearby-list"><div class="v247-nearby-loading"><div class="v247-spinner"></div><span>Searching nearby merchants...</span></div></div><div class="v247-search-chips"><button type="button" class="v247-chip" data-q="dining">\uD83C\uDF7D\uFE0F Restaurants</button><button type="button" class="v247-chip" data-q="grocery">\uD83D\uDED2 Groceries</button><button type="button" class="v247-chip" data-q="gas">\u26FD Gas</button><button type="button" class="v247-chip" data-q="coffee">\u2615 Coffee</button></div></div><div style="margin-top:12px"><div class="form-row"><label>Or type a merchant name</label><input type="text" id="locManual" placeholder="e.g. Starbucks, Save-On-Foods" oninput="renderLocManual(this.value)" style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;font-size:15px;font-weight:750;background:var(--surface);color:var(--ink);font-family:inherit;outline:none"></div><div id="locManualResult"></div></div>';resEl.innerHTML=html;Array.prototype.forEach.call(resEl.querySelectorAll('.v247-chip'),function(chip){chip.addEventListener('click',function(){var q=chip.getAttribute('data-q');var input=document.getElementById('locManual');if(input){input.value=q;input.dispatchEvent(new Event('input',{bubbles:true}));}});});fetchNearbyPOIs(lat,lon,150).then(function(pois){var listEl=document.getElementById('v247-nearby-list');if(!listEl)return;if(pois.length===0){return fetchNearbyPOIs(lat,lon,300).then(function(wider){renderNearbyList(listEl,wider,pickMerchant);});}renderNearbyList(listEl,pois,pickMerchant);}).catch(function(err){log('Overpass err: '+err.message);var listEl=document.getElementById('v247-nearby-list');if(listEl)listEl.innerHTML='<div class="v247-nearby-empty">Couldn\'t reach merchant search. Type a merchant name below.</div>';});});},function(err){resEl.innerHTML='<div class="warn-box">\u26A0\uFE0F Location denied: '+err.message+'</div>';},{enableHighAccuracy:true,timeout:12000,maximumAge:60000});}
+function pickMerchant(name){if(!name)return;var resEl=document.getElementById('locResult');if(!resEl)return;var result=null;try{if(typeof findBestCard==='function')result=findBestCard(name);}catch(e){}if(!result)return;var card=result.best&&result.best.card;var html='<div style="background:var(--surface);border:1.5px solid var(--green);border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:var(--shadow)"><div style="display:inline-block;background:var(--greenbg);color:var(--green);font-size:10px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;border-radius:99px;margin-bottom:8px">\uD83D\uDCCD Selected</div><div style="font-size:18px;font-weight:900;margin-bottom:8px">'+name+'</div>';if(result.empty){html+='<div class="warn-box">Add cards to your wallet first.</div>';}else if(result.noCompatibleCard){html+='<div class="warn-box">\u26A0\uFE0F No compatible card in your wallet.</div>';}else if(card){var b=result.best;var key=null;try{key=Object.keys(CARDS_DB).find(function(k){return CARDS_DB[k].n===card.n;});}catch(e){}html+='<div style="background:var(--surface-2);border-radius:14px;padding:14px;margin-bottom:10px"><div style="font-size:9.5px;color:var(--muted);font-weight:900;letter-spacing:.1em;text-transform:uppercase;text-align:center;margin-bottom:10px">Use this card</div>';try{if(key&&typeof svgCard==='function')html+='<div style="display:flex;justify-content:center;margin-bottom:12px">'+svgCard(card,key)+'</div>';}catch(e){}html+='<div style="font-size:18px;font-weight:900;text-align:center">'+card.n+'</div><div style="font-family:ui-monospace,monospace;font-size:14px;font-weight:900;color:var(--green);text-align:center;margin-top:4px">Up to '+b.rate.toFixed(1)+'% here</div></div>';if(result.alternatives&&result.alternatives.length){html+='<div class="alt-cards"><div class="alt-title">Other cards in your wallet</div>';result.alternatives.forEach(function(a){html+='<div class="alt-item"><span class="name">'+a.card.e+' '+a.card.n+'</span><span class="rate">'+a.rate.toFixed(1)+'%</span></div>';});html+='</div>';}}html+='</div>';resEl.insertAdjacentHTML('afterbegin',html);try{resEl.scrollIntoView({behavior:'smooth',block:'start'});}catch(e){}}
+function installLocationFix(){try{if(typeof window.renderLocResult==='function'&&!window.__v247LegacyRenderLoc){window.__v247LegacyRenderLoc=window.renderLocResult;}}catch(e){}try{window.lookupBestCard=v247Lookup;}catch(e){}}
+function loadTxSafe(){try{if(typeof loadTx==='function')return loadTx()||[];}catch(e){}try{return JSON.parse(localStorage.getItem('walletIQ_v40_tx')||'[]');}catch(e){return[];}}
+function findTxByFingerprint(merchant,amount,dateStr){var txs=loadTxSafe();var m=(merchant||'').trim().toLowerCase();var a=parseFloat(amount)||0;for(var i=0;i<txs.length;i++){var t=txs[i];if(!t)continue;var tm=(t.merchant||'').trim().toLowerCase();var ta=parseFloat(t.amount)||0;if(tm===m&&Math.abs(ta-a)<0.005){if(dateStr){try{var d=new Date(t.date);var short=d.toLocaleDateString('en-CA',{month:'short',day:'numeric'});if(short===dateStr)return t;}catch(e){}}else return t;}}for(var j=0;j<txs.length;j++){var t2=txs[j];if(!t2)continue;var tm2=(t2.merchant||'').trim().toLowerCase();var ta2=parseFloat(t2.amount)||0;if(tm2===m&&Math.abs(ta2-a)<0.005)return t2;}return null;}
+function enhanceRecentActivity(){try{var container=document.getElementById('overviewRecent');if(!container)return;var items=container.querySelectorAll('.tx-item');if(!items.length)return;Array.prototype.forEach.call(items,function(item){if(item.querySelector('.v247-tx-actions'))return;var merchEl=item.querySelector('.txmerch');var amtEl=item.querySelector('.txamt');var metaEl=item.querySelector('.txmeta');if(!merchEl||!amtEl)return;var merchant=merchEl.textContent.trim();var amount=parseFloat((amtEl.textContent||'').replace(/[^\d.-]/g,''))||0;var dateStr='';if(metaEl){var mt=metaEl.textContent||'';var mm=mt.match(/([A-Za-z]{3})\s+(\d{1,2})/);if(mm)dateStr=mm[1]+' '+mm[2];}var actions=document.createElement('div');actions.className='v247-tx-actions';actions.innerHTML='<button type="button" class="v247-edit" title="Edit">\u270F</button><button type="button" class="v247-del" title="Delete">\u00D7</button>';actions.querySelector('.v247-edit').addEventListener('click',function(e){e.stopPropagation();var tx=findTxByFingerprint(merchant,amount,dateStr);if(tx&&tx.id&&typeof editTx==='function'){editTx(tx.id);}else{try{switchTab('rewards');if(typeof switchRewardsView==='function')switchRewardsView('tx');}catch(e2){}}});actions.querySelector('.v247-del').addEventListener('click',function(e){e.stopPropagation();var tx=findTxByFingerprint(merchant,amount,dateStr);if(!tx||!tx.id){alert('Could not locate this transaction. Delete from Activity tab.');return;}if(!confirm('Delete this purchase?\n\n'+merchant+' \u2014 $'+amount.toFixed(2)))return;try{if(typeof window.deleteTxSilent==='function'){window.deleteTxSilent(tx.id);}else{var txs=loadTxSafe().filter(function(t){return t.id!==tx.id;});try{if(typeof saveTxData==='function')saveTxData(txs);else localStorage.setItem('walletIQ_v40_tx',JSON.stringify(txs));}catch(e2){}try{if(window.WalletIQState&&window.WalletIQState.set)window.WalletIQState.set('walletIQ_v40_tx',txs);}catch(e2){}}try{if(typeof renderOverview==='function')renderOverview();}catch(e2){}try{if(typeof renderTxList==='function')renderTxList();}catch(e2){}try{if(typeof renderRewardsHero==='function')renderRewardsHero();}catch(e2){}try{if(typeof window.__v128Tick==='function')window.__v128Tick();}catch(e2){}try{if(typeof window.renderVaultV122==='function')window.renderVaultV122();}catch(e2){}try{if(window.__v140&&typeof window.__v140.sync==='function')window.__v140.sync();}catch(e2){}}catch(err){try{if(typeof deleteTx==='function')deleteTx(tx.id);}catch(e2){}}});item.appendChild(actions);});}catch(e){log('enhanceRecentActivity err: '+e.message);}}
+window.deleteTxSilent=function(id){try{var txs=loadTxSafe().filter(function(t){return t.id!==id;});if(typeof saveTxData==='function'){saveTxData(txs);}else{try{localStorage.setItem('walletIQ_v40_tx',JSON.stringify(txs));}catch(e){}}try{if(window.WalletIQState&&window.WalletIQState.set)window.WalletIQState.set('walletIQ_v40_tx',txs);}catch(e){}return true;}catch(e){return false;}};
+function boot(){installLocationFix();try{var container=document.getElementById('overviewRecent');if(container){var mo=new MutationObserver(function(){setTimeout(enhanceRecentActivity,50);});mo.observe(container,{childList:true,subtree:true});}}catch(e){}setTimeout(enhanceRecentActivity,600);setTimeout(enhanceRecentActivity,1800);try{if(typeof window.switchTab==='function'&&!window.switchTab.__v247Wrapped){var orig=window.switchTab;window.switchTab=function(){var r=orig.apply(this,arguments);setTimeout(enhanceRecentActivity,300);return r;};window.switchTab.__v247Wrapped=true;}if(typeof window.switchRewardsView==='function'&&!window.switchRewardsView.__v247Wrapped){var origSV=window.switchRewardsView;window.switchRewardsView=function(){var r=origSV.apply(this,arguments);setTimeout(enhanceRecentActivity,250);return r;};window.switchRewardsView.__v247Wrapped=true;}}catch(e){}}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+setTimeout(boot,500);setTimeout(boot,1500);
+window.__v247={lookup:v247Lookup,enhanceRecent:enhanceRecentActivity};
+})();
+</script>
+
+<!-- ============================================================
+     V248 (2026-07-20) — Welcome Offers apply-link fixes
+     ============================================================ -->
+<script id="v248-script">
+(function(){'use strict';
+function log(m){try{console.log('[V248]',m);}catch(e){}}
+var URL_MAP={
+ 'Amex Platinum':'https://www.americanexpress.com/en-ca/credit-cards/platinum-card/',
+ 'Amex Gold Rewards':'https://www.americanexpress.com/en-ca/credit-cards/gold-rewards-card/',
+ 'Amex Cobalt':'https://www.americanexpress.com/en-ca/credit-cards/cobalt-card/',
+ 'Amex Aeroplan Reserve':'https://www.americanexpress.com/en-ca/credit-cards/aeroplan-reserve/',
+ 'Amex Aeroplan':'https://www.americanexpress.com/en-ca/credit-cards/aeroplan-card/',
+ 'Amex SimplyCash Preferred':'https://www.americanexpress.com/en-ca/credit-cards/simply-cash-preferred-card/',
+ 'Marriott Bonvoy Amex':'https://www.americanexpress.com/en-ca/credit-cards/marriott-bonvoy-card/',
+ 'Marriott Bonvoy Amex (Hotel)':'https://www.americanexpress.com/en-ca/credit-cards/marriott-bonvoy-card/',
+ 'RBC Avion VI Privilege':'https://www.rbcroyalbank.com/credit-cards/travel/rbc-avion-visa-infinite-privilege.html',
+ 'RBC Avion Visa Infinite':'https://www.rbcroyalbank.com/credit-cards/travel/rbc-avion-visa-infinite.html',
+ 'RBC Avion Visa Platinum':'https://www.rbcroyalbank.com/credit-cards/travel/rbc-avion-visa-platinum.html',
+ 'CIBC Aeroplan VI Privilege':'https://www.cibc.com/en/personal-banking/credit-cards/all-credit-cards/aeroplan-visa-infinite-privilege-card.html',
+ 'CIBC Aeroplan Visa Infinite':'https://www.cibc.com/en/personal-banking/credit-cards/all-credit-cards/aeroplan-visa-infinite-card.html',
+ 'CIBC Aventura Visa Infinite':'https://www.cibc.com/en/personal-banking/credit-cards/all-credit-cards/aventura-visa-infinite-card.html',
+ 'CIBC Dividend VI':'https://www.cibc.com/en/personal-banking/credit-cards/all-credit-cards/dividend-visa-infinite-card.html',
+ 'BMO eclipse VI Privilege':'https://www.bmo.com/en-ca/main/personal/credit-cards/bmo-eclipse-visa-infinite-privilege/',
+ 'BMO eclipse Visa Infinite':'https://www.bmo.com/en-ca/main/personal/credit-cards/bmo-eclipse-visa-infinite/',
+ 'BMO Ascend WE MC':'https://www.bmo.com/en-ca/main/personal/credit-cards/bmo-ascend-world-elite-mastercard/',
+ 'BMO CashBack WE MC':'https://www.bmo.com/en-ca/main/personal/credit-cards/bmo-cashback-world-elite-mastercard/',
+ 'BMO VIPorter WE MC':'https://www.bmo.com/main/personal/credit-cards/',
+ 'TD Aeroplan VI Privilege':'https://www.td.com/ca/en/personal-banking/products/credit-cards/aeroplan/aeroplan-visa-infinite-privilege-card',
+ 'TD Aeroplan Visa Infinite':'https://www.td.com/ca/en/personal-banking/products/credit-cards/aeroplan/aeroplan-visa-infinite-card',
+ 'TD First Class Travel VI':'https://www.td.com/ca/en/personal-banking/products/credit-cards/travel-rewards/first-class-travel-visa-infinite-card',
+ 'TD Cash Back VI':'https://www.td.com/ca/en/personal-banking/products/credit-cards/cash-back/cash-back-visa-infinite',
+ 'Scotia Passport VI Privilege':'https://www.scotiabank.com/ca/en/personal/credit-cards/visa/passport-infinite-privilege-card.html',
+ 'Scotia Passport VI+':'https://www.scotiabank.com/ca/en/personal/credit-cards/visa/passport-infinite-card.html',
+ 'Scotia Gold Amex':'https://www.scotiabank.com/ca/en/personal/credit-cards/american-express/gold-card.html',
+ 'Scotia Momentum VI':'https://www.scotiabank.com/ca/en/personal/credit-cards/visa/momentum-visa-infinite-card.html',
+ 'Tangerine Rewards WE MC':'https://www.tangerine.ca/en/offers/world-elite-mastercard-offer',
+ 'MBNA Rewards WE MC':'https://www.mbna.ca/en/credit-cards/rewards/mbna-rewards-world-elite-mastercard',
+ 'MBNA True Line MC':'https://www.mbna.ca/en/credit-cards/low-interest/true-line-mastercard',
+ 'Rogers Red WE MC':'https://www.rogersbank.com/en/rogers_red_worldelite_mastercard_details/',
+ 'PC Financial WE MC':'https://www.pcfinancial.ca/en/credit-cards/world-elite/'
+};
+var ISSUER_FALLBACK={
+ 'Amex':'https://www.americanexpress.com/en-ca/credit-cards/all-cards/',
+ 'RBC':'https://www.rbcroyalbank.com/credit-cards/all-credit-cards.html',
+ 'CIBC':'https://www.cibc.com/en/personal-banking/credit-cards.html',
+ 'BMO':'https://www.bmo.com/main/personal/credit-cards/',
+ 'TD':'https://www.td.com/ca/en/personal-banking/products/credit-cards/',
+ 'Scotia':'https://www.scotiabank.com/ca/en/personal/credit-cards.html',
+ 'Tangerine':'https://www.tangerine.ca/en/personal/spend/credit-cards',
+ 'MBNA':'https://www.mbna.ca/en/credit-cards',
+ 'Rogers':'https://www.rogersbank.com/en/',
+ 'PC Financial':'https://www.pcfinancial.ca/en/credit-cards/',
+ 'Simplii':'https://www.simplii.com/en/personal-banking/credit-cards.html',
+ 'Neo':'https://www.neofinancial.com/cards',
+ 'Wealthsimple':'https://www.wealthsimple.com/en-ca/',
+ 'HSBC':'https://www.hsbc.ca/credit-cards/',
+ 'Capital One':'https://www.capitalone.ca/credit-cards/',
+ 'National Bank':'https://www.nbc.ca/personal/accounts/credit-cards.html',
+ 'Laurentian':'https://www.laurentianbank.ca/en/personal_banking/credit_cards.html',
+ 'Desjardins':'https://www.desjardins.com/ca/personal/loans-credit-cards/credit-cards/',
+ 'Home Trust':'https://www.hometrust.ca/credit-cards/',
+ 'Meridian':'https://www.meridiancu.ca/personal/borrow/credit-cards',
+ 'Brim':'https://www.brimfinancial.com/',
+ 'EQ Bank':'https://www.eqbank.ca/',
+ 'KOHO':'https://www.koho.ca/',
+ 'Canadian Tire':'https://triangle.canadiantire.ca/en/credit-cards.html',
+ 'Walmart':'https://www.walmart.ca/en/rewards/mastercard'
+};
+function pickBestURL(offer){if(!offer||!offer.n)return null;if(URL_MAP[offer.n])return URL_MAP[offer.n];if(offer.apply&&/^https?:\/\/[^/]+\/./.test(offer.apply))return offer.apply;if(offer.iss&&ISSUER_FALLBACK[offer.iss])return ISSUER_FALLBACK[offer.iss];return null;}
+function fixOffersArray(){try{if(typeof OFFERS==='undefined'||!Array.isArray(OFFERS))return 0;var fixed=0;for(var i=0;i<OFFERS.length;i++){var o=OFFERS[i];if(!o)continue;var better=pickBestURL(o);if(better&&better!==o.apply){o.apply=better;fixed++;}}return fixed;}catch(e){return 0;}}
+function fixRenderedLinks(){try{var links=document.querySelectorAll('.offer-apply-link');Array.prototype.forEach.call(links,function(link){var card=link.closest('.cardBig');if(!card)return;var header=card.querySelector('div[style*="font-size:14.5px"]');if(!header)return;var name=(header.textContent||'').trim();if(!name)return;var verified=URL_MAP[name];if(!verified)return;var current=link.getAttribute('href')||'';if(current!==verified){link.setAttribute('href',verified);}});}catch(e){}}
+function installClickInterceptor(){document.addEventListener('click',function(e){var t=e.target;if(!t)return;var link=t.closest&&t.closest('.offer-apply-link');if(!link)return;var card=link.closest('.cardBig');if(!card)return;var header=card.querySelector('div[style*="font-size:14.5px"]');if(!header)return;var name=(header.textContent||'').trim();if(!name)return;var verified=URL_MAP[name];if(!verified)return;var current=link.getAttribute('href')||'';if(current!==verified){link.setAttribute('href',verified);}},true);}
+function boot(){var fixed=fixOffersArray();log('boot: fixed '+fixed+' URLs in OFFERS array');installClickInterceptor();try{if(typeof renderOffers==='function')renderOffers();}catch(e){}setTimeout(fixRenderedLinks,300);setTimeout(fixRenderedLinks,1500);var offersList=document.getElementById('offersList');if(offersList){var mo=new MutationObserver(function(){setTimeout(fixRenderedLinks,50);});mo.observe(offersList,{childList:true,subtree:true});}}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+setTimeout(boot,500);setTimeout(boot,1500);
+window.__v248={URL_MAP:URL_MAP,fixOffersArray:fixOffersArray};
 })();
 </script>
 
