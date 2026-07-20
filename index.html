@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- V242 (2026-07-17): PROPER ladder math fix - V235 excluded, V242 replaces it. V235s compact version dropped the code that updated the .v122-prog-bal-val summary line (the "approx $0.00 via [best]" line at the top). V242 fully rewrites that summary in addition to ladder rows: (1) reads manual balance from walletiq_memberships __v234Baseline / __v106ManualBaseline / balance, (2) detects dollar programs (Rogers Cash, WestJet Dollars, More Rewards, cashback) - their cpp is a multiplier not cents-per-point, (3) recomputes each redemption row value with program-aware formula, tracks bestValue and bestLabel, (4) rebuilds the .v122-prog-bal-val innerHTML with "approx $BEST via LABEL" using proper best rate, (5) also updates .v122-prog-bal-num to show manual balance not stale rendered value. Runs on boot, switchTab(rewards), renderVaultV122 wrap, v82:refresh event, saveTxFromModal wrap so transactions increase balance, and scoped MutationObserver on vaultPrograms (childList only, no subtree, to avoid feedback loop from our own innerHTML writes). Rollback: delete [id^=v242-]. -->
+<!-- V246 (2026-07-20) - RELEASE 3: THE FIRST-TIME USER. Welcome screen (Option B: Set up my wallet | Explore first), first-use coach-marks (Log Purchase, Rewards Studio, Where to Pay - auto-shown), guided empty states, mobile Safari keyboard-lift for modal inputs, "What's New" pill for returning users, Restart tour drawer item. Zero data changes. Rollback: delete [id^=v246-]. -->
+<!-- V245 (2026-07-20) - RELEASE 2: THE TRANSACTION ENGINE. Builds on V244 WalletIQState foundation. Makes Log Purchase -> See Points Grow bulletproof: (1) CleanSaveFlow wraps saveTxFromModal - computes earnings for flash toast, clears home search, forces recompute + unified rerender. (2) CleanDeleteFlow hijacks V179 confirm modal Delete button at CAPTURE phase, directly deletes from all 3 tx keys via V244 transaction() (atomic), fires unified rerender. (3) EarningsRecalculator subscribes to WalletIQState.onChange for tx keys - when tx storage changes, triggers V128 reconcile + V140 sync + V242 patchNow immediately (no waiting for setInterval polling). (4) UnifiedRerender runs all render pipelines in correct order (state engines first, then UI). (5) Flash toast confirms save (+$X earned) and delete (X removed) with 2.2s auto-dismiss. Zero features removed. Rollback: delete [id^=v245-]. -->
+<!-- V244 (2026-07-18) - RELEASE 1: THE STATE FREEZE. Foundation for consolidation plan. Installs a single window.WalletIQState manager that owns all writes to 6 critical storage keys (walletiq_v13_wallet, walletiq_memberships, walletiq_transactions, walletiq_tx_v13, walletiq_tx, walletiq_auto_earnings). Four protection layers: (1) djb2 hash dedup - identical writes silently skip, killing flicker cascades from 11 sync engines. (2) Preservation rules per key - manual entries flagged __v234Manual or __v244Manual survive any auto-engine rewrite; user-created transactions cant be silently deleted; wallet cant be wiped to empty without explicit flag. (3) Debounce coalescer - rapid writes to same key within 50ms collapse to one final write. (4) Change event bus - dispatch walletiq:statechange with key detail, single subscription point replacing 11 polling loops. Zero features removed. Every prior patch keeps working. Public API for Releases 2-4: get/set/delete/onChange/onKey/transaction/audit/history/dump. V231-V233 storage guards are now redundant but harmless (V244 sits above them). Rollback: delete [id^=v244-]. -->
 <!-- V224 (2026-07-15): V222 + vault flicker kill added back. V222 wraps window.renderOffers so category filters trigger re-tag + re-apply. V224 also installs djb2 hash intercept on #v122-vault innerHTML setter to kill V183 vaultObs feedback loop (identical writes silently skip -> no cascade -> no flicker). Also wraps renderVaultV122 with rAF-coalesce. -->
 <!-- V222 (2026-07-15): Wraps renderOffers itself. V221 failed because V183 renderOffers writes to #offersList.innerHTML directly, wiping my data-v221-* attributes AND my chip .on state. V183 category filters (All/Travel/Cash/Hotel/No Fee) use onclick=setOfferFilter which calls renderOffers DIRECTLY - my switchTab wrap never fired. V222 wraps window.renderOffers so every V183 render triggers immediate re-tagging and re-applies our sort/filter state. Chip state preserved in a module var. -->
 <!-- V203 (2026-07-15): Five UX bug fixes on V202.
@@ -65,7 +67,7 @@
 <meta http-equiv="Expires" content="0">
 
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>Wallet IQ V242</title>
+<title>Wallet IQ V246</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Wallet IQ">
@@ -34911,51 +34913,645 @@ body, body.dark { transition: background 0.15s ease !important; }
   else schedule();
 })();
 </script>
+<style id="v244-state-freeze-css">
+/* V244 has no visual changes - purely structural. */
+</style>
+<script id="v244-state-freeze">(function(){
+  'use strict';
+  /* ============================================================================
+     V244 STATE FREEZE - Release 1 of the consolidation plan
+     ============================================================================
+     Purpose: Kill the 11-sync-engine war over localStorage.
+
+     What this module does:
+     ----------------------
+     1. HASH DEDUP: Skip writes that are byte-identical to current state.
+        This alone kills the flicker cascade where 11 engines all write the
+        same value on every render pass.
+
+     2. PRESERVATION RULES: For each protected key, define what CANNOT be
+        overwritten. Example: walletiq_memberships entries with __v234Manual
+        or __v244Manual flag cannot be silently removed by an auto engine.
+
+     3. DEBOUNCE COALESCER: If the same key is written multiple times within
+        50ms, collapse those writes into just the last one.
+
+     4. CHANGE EVENT BUS: When a write is actually accepted (not skipped),
+        dispatch ONE walletiq:statechange event with the key that changed.
+        Render engines subscribe once here instead of polling on 100ms
+        setInterval loops.
+
+     Public API for future releases:
+     -------------------------------
+     WalletIQState.get(key)              - read current value
+     WalletIQState.set(key, value)       - write with all protections
+     WalletIQState.delete(key)           - remove key
+     WalletIQState.onChange(fn)          - subscribe to any change
+     WalletIQState.onKey(key, fn)        - subscribe to specific key
+     WalletIQState.preserve(key, testFn) - add preservation rule
+     WalletIQState.transaction(fn)       - batch multiple writes
+     WalletIQState.audit()               - diagnostic snapshot
+     WalletIQState.history()             - last 100 write attempts
+     ============================================================================ */
+
+  // ==========================================================================
+  // 1. CONSTANTS AND UTILITIES
+  // ==========================================================================
+
+  var PROTECTED_KEYS = [
+    'walletiq_v13_wallet',
+    'walletiq_memberships',
+    'walletiq_transactions',
+    'walletiq_tx_v13',
+    'walletiq_tx',
+    'walletiq_auto_earnings'
+  ];
+
+  // djb2 hash - fast, collision-safe enough for change detection
+  function hash(s){
+    var h = 5381;
+    var str = String(s || '');
+    for (var i = 0; i < str.length; i++) {
+      h = ((h << 5) + h + str.charCodeAt(i)) | 0;
+    }
+    return h;
+  }
+
+  function canon(s){
+    return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+  }
+
+  function safeParseJSON(s, fallback){
+    try {
+      if (s == null) return fallback;
+      return JSON.parse(s);
+    } catch(e) { return fallback; }
+  }
+
+  function safeStringify(v){
+    try { return JSON.stringify(v); } catch(e) { return null; }
+  }
+
+  // ==========================================================================
+  // 2. STATE MANAGER STATE (heh)
+  // ==========================================================================
+
+  var manager = {
+    // Original localStorage.setItem, captured before we wrap
+    _origSetItem: null,
+    _origRemoveItem: null,
+
+    // hash per protected key of most recently accepted value
+    hashes: {},
+
+    // count of writes per state (for diagnostics)
+    stats: {
+      accepted: 0,
+      skippedIdentical: 0,
+      skippedPreserved: 0,
+      coalesced: 0,
+      writesPerKey: {}
+    },
+
+    // recent write attempts (for debugging via history())
+    history: [],
+    maxHistory: 100,
+
+    // change handlers registered via onChange / onKey
+    globalHandlers: [],
+    keyHandlers: {},
+
+    // debounce timers keyed by storage key
+    debounceTimers: {},
+    debouncePending: {},
+    debounceMs: 50,
+
+    // suppress our own writes from being re-processed
+    selfWrite: false,
+
+    // when transaction() is active, batch writes
+    txActive: false,
+    txQueue: []
+  };
+
+  // ==========================================================================
+  // 3. PRESERVATION RULES
+  // ==========================================================================
+  // A preservation rule takes the incoming value and returns a possibly-modified
+  // value that has manual/locked entries re-injected.
+
+  var preservationRules = {
+
+    // Vault memberships: __v234Manual and __v244Manual entries survive any rewrite
+    'walletiq_memberships': function(incoming, current){
+      if (!Array.isArray(incoming) || !Array.isArray(current)) return incoming;
+
+      // Extract manual entries from current
+      var manuals = [];
+      for (var i = 0; i < current.length; i++) {
+        var e = current[i];
+        if (e && (e.__v234Manual || e.__v244Manual)) manuals.push(e);
+      }
+      if (!manuals.length) return incoming;
+
+      // Remove any incoming entries that shadow a manual (by program key)
+      var out = [];
+      for (var j = 0; j < incoming.length; j++) {
+        var x = incoming[j];
+        if (!x) continue;
+        var shadowed = false;
+        for (var k = 0; k < manuals.length; k++) {
+          var mn = manuals[k];
+          var mnKey = mn.key || mn.programKey || mn.program;
+          var xKey = x.key || x.programKey || x.program;
+          if (canon(mnKey) === canon(xKey) && !x.__v234Manual && !x.__v244Manual) {
+            shadowed = true;
+            break;
+          }
+        }
+        if (!shadowed) out.push(x);
+      }
+
+      // Append manuals to guarantee they're in
+      for (var m = 0; m < manuals.length; m++) {
+        var already = false;
+        for (var n = 0; n < out.length; n++) {
+          if (out[n] === manuals[m]) { already = true; break; }
+        }
+        if (!already) out.push(manuals[m]);
+      }
+      return out;
+    },
+
+    // Transactions: entries with __v244Locked or generally, any user-created tx
+    // cannot be silently removed. Only explicit delete via WalletIQState.deleteTx
+    // can remove them.
+    'walletiq_transactions': function(incoming, current){
+      if (!Array.isArray(incoming) || !Array.isArray(current)) return incoming;
+      // Locked entries in current that don't exist in incoming should be preserved
+      var lockedIds = {};
+      var i;
+      for (i = 0; i < current.length; i++) {
+        var e = current[i];
+        if (e && e.id && (e.__v244Locked || e.__userCreated !== false)) {
+          lockedIds[e.id] = e;
+        }
+      }
+      var incomingIds = {};
+      for (i = 0; i < incoming.length; i++) {
+        if (incoming[i] && incoming[i].id) incomingIds[incoming[i].id] = true;
+      }
+      // Any locked id missing from incoming - re-add
+      var out = incoming.slice();
+      for (var id in lockedIds) {
+        if (!incomingIds[id]) out.push(lockedIds[id]);
+      }
+      return out;
+    },
+    // Mirror the same rule for the alt transaction keys
+    'walletiq_tx_v13': function(incoming, current){
+      return preservationRules['walletiq_transactions'](incoming, current);
+    },
+    'walletiq_tx': function(incoming, current){
+      return preservationRules['walletiq_transactions'](incoming, current);
+    },
+
+    // Wallet: never let it be overwritten with an empty array unless there
+    // are literally zero cards intended (which only user-triggered reset does).
+    // This blocks a whole class of "wallet suddenly empty" bugs.
+    'walletiq_v13_wallet': function(incoming, current){
+      if (!Array.isArray(current) || current.length === 0) return incoming;
+      if (Array.isArray(incoming) && incoming.length === 0) {
+        // Blocked: would wipe wallet. Only bypass if explicit reset flag set.
+        if (window.__walletIQAllowWipe) return incoming;
+        return current;
+      }
+      return incoming;
+    }
+  };
+
+  // Public: allow other patches to register their own preservation rules
+  function registerPreservation(key, rule){
+    if (typeof rule === 'function') {
+      preservationRules[key] = rule;
+    }
+  }
+
+  // ==========================================================================
+  // 4. CORE WRITE INTERCEPT
+  // ==========================================================================
+
+  function applyPreservation(key, incomingValue){
+    var rule = preservationRules[key];
+    if (!rule) return { value: incomingValue, preserved: false };
+    try {
+      var current = safeParseJSON(manager._origSetItem
+        ? localStorage.getItem(key)
+        : null, null);
+      var out = rule(incomingValue, current);
+      if (out !== incomingValue) {
+        return { value: out, preserved: true };
+      }
+      return { value: incomingValue, preserved: false };
+    } catch(e) {
+      return { value: incomingValue, preserved: false };
+    }
+  }
+
+  function actuallyWrite(key, valueStr){
+    manager.selfWrite = true;
+    try {
+      manager._origSetItem.call(localStorage, key, valueStr);
+      manager.stats.accepted++;
+      manager.stats.writesPerKey[key] = (manager.stats.writesPerKey[key] || 0) + 1;
+      manager.hashes[key] = hash(valueStr);
+      addHistory(key, 'accepted', valueStr.length);
+      notifyChange(key);
+    } catch(e) {
+      addHistory(key, 'error: ' + (e && e.message), 0);
+    }
+    manager.selfWrite = false;
+  }
+
+  function addHistory(key, outcome, sizeBytes){
+    try {
+      manager.history.push({
+        t: Date.now(),
+        key: key,
+        outcome: outcome,
+        sizeBytes: sizeBytes || 0
+      });
+      if (manager.history.length > manager.maxHistory) {
+        manager.history.shift();
+      }
+    } catch(e){}
+  }
+
+  // Handle a write attempt (called by wrapped setItem OR by public .set())
+  // Returns true if write was accepted (immediately or debounced), false if blocked.
+  function handleWrite(key, valueStr){
+    // If we're in a transaction, queue and return
+    if (manager.txActive) {
+      manager.txQueue.push({ key: key, value: valueStr });
+      return true;
+    }
+
+    // Not a protected key: pass through
+    if (PROTECTED_KEYS.indexOf(key) === -1) {
+      manager.selfWrite = true;
+      try { manager._origSetItem.call(localStorage, key, valueStr); }
+      catch(e){}
+      manager.selfWrite = false;
+      return true;
+    }
+
+    // Hash dedup: identical writes silently skip
+    var newHash = hash(valueStr);
+    if (newHash === manager.hashes[key]) {
+      manager.stats.skippedIdentical++;
+      addHistory(key, 'skipped-identical', valueStr.length);
+      return false;
+    }
+
+    // Debounce: coalesce rapid writes to same key
+    if (manager.debounceTimers[key]) {
+      // Already have a pending debounce. Update the pending value and skip this one.
+      manager.debouncePending[key] = valueStr;
+      manager.stats.coalesced++;
+      addHistory(key, 'coalesced', valueStr.length);
+      return true;
+    }
+
+    // Set up debounce window: wait 50ms to see if more writes coming
+    manager.debouncePending[key] = valueStr;
+    manager.debounceTimers[key] = setTimeout(function(){
+      var pendingStr = manager.debouncePending[key];
+      manager.debouncePending[key] = null;
+      manager.debounceTimers[key] = null;
+      commitWrite(key, pendingStr);
+    }, manager.debounceMs);
+
+    return true;
+  }
+
+  // Actually commit a debounced write (after preservation rules)
+  function commitWrite(key, valueStr){
+    var newHash = hash(valueStr);
+    // Re-check hash (may have become identical after debounce)
+    if (newHash === manager.hashes[key]) {
+      manager.stats.skippedIdentical++;
+      addHistory(key, 'skipped-identical-after-debounce', valueStr.length);
+      return;
+    }
+
+    // Apply preservation rules
+    var incoming = safeParseJSON(valueStr, null);
+    if (incoming !== null) {
+      var result = applyPreservation(key, incoming);
+      if (result.preserved) {
+        var newStr = safeStringify(result.value);
+        if (newStr && newStr !== valueStr) {
+          valueStr = newStr;
+          manager.stats.skippedPreserved++;
+          addHistory(key, 'preserved-and-merged', valueStr.length);
+        }
+      }
+    }
+
+    // Final identical check post-preservation
+    var finalHash = hash(valueStr);
+    if (finalHash === manager.hashes[key]) {
+      manager.stats.skippedIdentical++;
+      addHistory(key, 'skipped-identical-post-preserve', valueStr.length);
+      return;
+    }
+
+    // Write for real
+    actuallyWrite(key, valueStr);
+  }
+
+  // ==========================================================================
+  // 5. CHANGE EVENT BUS
+  // ==========================================================================
+
+  function notifyChange(key){
+    // Global handlers
+    try {
+      for (var i = 0; i < manager.globalHandlers.length; i++) {
+        try { manager.globalHandlers[i](key); } catch(e){}
+      }
+    } catch(e){}
+
+    // Key-specific handlers
+    try {
+      var hs = manager.keyHandlers[key];
+      if (hs) {
+        for (var j = 0; j < hs.length; j++) {
+          try { hs[j](key); } catch(e){}
+        }
+      }
+    } catch(e){}
+
+    // DOM CustomEvent - for external subscribers
+    try {
+      document.dispatchEvent(new CustomEvent('walletiq:statechange', {
+        detail: { key: key, time: Date.now() }
+      }));
+    } catch(e){}
+  }
+
+  // ==========================================================================
+  // 6. WRAP LOCALSTORAGE
+  // ==========================================================================
+
+  function installWrapper(){
+    if (localStorage.setItem.__v244Wrapped) return;
+    manager._origSetItem = localStorage.setItem;
+    manager._origRemoveItem = localStorage.removeItem;
+
+    var wrapped = function(key, value){
+      // If it's our own write, pass through directly
+      if (manager.selfWrite) {
+        return manager._origSetItem.call(localStorage, key, value);
+      }
+      // Otherwise route through handleWrite for full protection
+      var valueStr = String(value);
+      handleWrite(key, valueStr);
+    };
+    wrapped.__v244Wrapped = true;
+    localStorage.setItem = wrapped;
+
+    // Also seed initial hashes from current storage
+    for (var i = 0; i < PROTECTED_KEYS.length; i++) {
+      try {
+        var v = localStorage.getItem(PROTECTED_KEYS[i]);
+        if (v != null) manager.hashes[PROTECTED_KEYS[i]] = hash(v);
+      } catch(e){}
+    }
+  }
+
+  // ==========================================================================
+  // 7. PUBLIC API
+  // ==========================================================================
+
+  var WalletIQState = {
+
+    // Read a value from storage. Parses JSON automatically.
+    get: function(key){
+      try {
+        var raw = localStorage.getItem(key);
+        return safeParseJSON(raw, null);
+      } catch(e) { return null; }
+    },
+
+    // Write a value to storage. Applies all protections.
+    set: function(key, value){
+      var str = typeof value === 'string' ? value : safeStringify(value);
+      if (str === null) return false;
+      return handleWrite(key, str);
+    },
+
+    // Remove a key entirely (bypasses preservation - use with care)
+    delete: function(key){
+      manager.selfWrite = true;
+      try {
+        manager._origRemoveItem.call(localStorage, key);
+        delete manager.hashes[key];
+        notifyChange(key);
+      } catch(e){}
+      manager.selfWrite = false;
+    },
+
+    // Subscribe to ALL changes
+    onChange: function(fn){
+      if (typeof fn === 'function') {
+        manager.globalHandlers.push(fn);
+      }
+      return function unsubscribe(){
+        var idx = manager.globalHandlers.indexOf(fn);
+        if (idx >= 0) manager.globalHandlers.splice(idx, 1);
+      };
+    },
+
+    // Subscribe to changes for a specific key
+    onKey: function(key, fn){
+      if (!manager.keyHandlers[key]) manager.keyHandlers[key] = [];
+      manager.keyHandlers[key].push(fn);
+      return function unsubscribe(){
+        var idx = manager.keyHandlers[key].indexOf(fn);
+        if (idx >= 0) manager.keyHandlers[key].splice(idx, 1);
+      };
+    },
+
+    // Register a custom preservation rule
+    preserve: registerPreservation,
+
+    // Batch multiple writes as one atomic operation
+    transaction: function(fn){
+      if (manager.txActive) {
+        try { fn(); } catch(e){}
+        return;
+      }
+      manager.txActive = true;
+      manager.txQueue = [];
+      try {
+        fn();
+      } catch(e){}
+      manager.txActive = false;
+      // Flush queue - group by key, keep only last write per key
+      var byKey = {};
+      for (var i = 0; i < manager.txQueue.length; i++) {
+        byKey[manager.txQueue[i].key] = manager.txQueue[i].value;
+      }
+      manager.txQueue = [];
+      for (var k in byKey) {
+        handleWrite(k, byKey[k]);
+      }
+    },
+
+    // Diagnostic snapshot
+    audit: function(){
+      return {
+        accepted: manager.stats.accepted,
+        skippedIdentical: manager.stats.skippedIdentical,
+        skippedPreserved: manager.stats.skippedPreserved,
+        coalesced: manager.stats.coalesced,
+        writesPerKey: JSON.parse(JSON.stringify(manager.stats.writesPerKey)),
+        protectedKeys: PROTECTED_KEYS,
+        preservationRules: Object.keys(preservationRules),
+        globalHandlers: manager.globalHandlers.length,
+        keyHandlers: (function(){
+          var counts = {};
+          for (var k in manager.keyHandlers) counts[k] = manager.keyHandlers[k].length;
+          return counts;
+        })(),
+        lastWrite: manager.history.length ? manager.history[manager.history.length - 1] : null
+      };
+    },
+
+    // Recent write attempts (last 100)
+    history: function(){
+      return manager.history.slice();
+    },
+
+    // Show current storage state for protected keys
+    dump: function(){
+      var out = {};
+      for (var i = 0; i < PROTECTED_KEYS.length; i++) {
+        var k = PROTECTED_KEYS[i];
+        try {
+          var v = localStorage.getItem(k);
+          if (v == null) out[k] = null;
+          else {
+            var p = safeParseJSON(v, v);
+            if (Array.isArray(p)) out[k] = { type: 'array', length: p.length, sample: p.slice(0, 2) };
+            else if (typeof p === 'object') out[k] = { type: 'object', keys: Object.keys(p).slice(0, 5) };
+            else out[k] = { type: typeof p, value: p };
+          }
+        } catch(e) { out[k] = 'error'; }
+      }
+      return out;
+    },
+
+    // Marker for a transaction as user-created (locked against silent removal)
+    lockTransaction: function(tx){
+      if (tx && typeof tx === 'object') tx.__v244Locked = true;
+      return tx;
+    },
+
+    // Marker for a manual membership entry
+    markManual: function(entry){
+      if (entry && typeof entry === 'object') entry.__v244Manual = true;
+      return entry;
+    }
+  };
+
+  // ==========================================================================
+  // 8. BOOT
+  // ==========================================================================
+
+  function boot(){
+    if (window.__v244Init) return;
+    window.__v244Init = true;
+
+    installWrapper();
+
+    // Expose globally
+    window.WalletIQState = WalletIQState;
+
+    // Also mirror to __v244 for consistency with other patches
+    window.__v244 = {
+      state: WalletIQState,
+      audit: WalletIQState.audit,
+      history: WalletIQState.history,
+      dump: WalletIQState.dump,
+      manager: manager  // exposed for advanced debugging only
+    };
+
+    // Diagnostic banner in console (only if not silenced by V239)
+    if (console.__v239OrigLog) {
+      console.__v239OrigLog.call(console,
+        '%c[V244] State Freeze active. window.WalletIQState is now the single source of truth.',
+        'color:#10b981;font-weight:bold'
+      );
+    } else if (typeof console.log === 'function') {
+      try {
+        console.log('%c[V244] State Freeze active. window.WalletIQState is now the single source of truth.',
+          'color:#10b981;font-weight:bold');
+      } catch(e){}
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function(){ setTimeout(boot, 50); });
+  } else {
+    setTimeout(boot, 50);
+  }
+
+  // Also boot IMMEDIATELY (not deferred) because we want to intercept early writes
+  // from the initial page load, before setTimeout fires.
+  try {
+    installWrapper();
+    window.WalletIQState = WalletIQState;
+  } catch(e){}
+})();</script>
 <style id="v226-home-tiles-css">
 #v226-home-tiles{margin-top:14px;display:grid;grid-template-columns:1fr;gap:10px}
 #v226-home-tiles .v226-tile{position:relative;overflow:hidden;background:linear-gradient(135deg,#ffffff 0%,#f0eef7 55%,#e9e2f2 100%);border:none;border-radius:22px;padding:16px 16px;display:grid;grid-template-columns:44px 1fr 20px;gap:12px;align-items:center;box-shadow:0 4px 18px rgba(85,75,130,.09);cursor:pointer}
 #v226-home-tiles .v226-tile:active{transform:scale(.985)}
-#v226-home-tiles .v226-tile::after{content:"";position:absolute;top:-30px;right:-30px;width:140px;height:140px;background:radial-gradient(circle,rgba(99,102,241,.14),transparent 65%);pointer-events:none}
 #v226-home-tiles .v226-tile.offers{background:linear-gradient(135deg,#ffffff 0%,#eef3fb 55%,#e2ecf9 100%)}
-#v226-home-tiles .v226-tile.offers::after{background:radial-gradient(circle,rgba(37,99,235,.14),transparent 65%)}
 #v226-home-tiles .v226-tile.credits{background:linear-gradient(135deg,#ffffff 0%,#eef5f0 55%,#e0eee5 100%)}
-#v226-home-tiles .v226-tile.credits::after{background:radial-gradient(circle,rgba(26,125,58,.14),transparent 65%)}
 #v226-home-tiles .v226-ico{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:22px;background:rgba(255,255,255,.75)}
-#v226-home-tiles .v226-body{min-width:0;z-index:1}
-#v226-home-tiles .v226-title{font-size:14.5px;font-weight:900;letter-spacing:-.02em;color:var(--ink);line-height:1.15}
-#v226-home-tiles .v226-sub{font-size:11.5px;color:var(--muted);font-weight:750;margin-top:2px;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#v226-home-tiles .v226-arrow{font-size:18px;color:var(--muted);font-weight:900;z-index:1}
+#v226-home-tiles .v226-body{min-width:0}
+#v226-home-tiles .v226-title{font-size:14.5px;font-weight:900;letter-spacing:-.02em;color:var(--ink)}
+#v226-home-tiles .v226-sub{font-size:11.5px;color:var(--muted);font-weight:750;margin-top:2px}
+#v226-home-tiles .v226-arrow{font-size:18px;color:var(--muted);font-weight:900}
 body.dark #v226-home-tiles .v226-tile{background:linear-gradient(135deg,#22212f 0%,#2a2540 55%,#2d1f38 100%)!important}
 body.dark #v226-home-tiles .v226-ico{background:rgba(255,255,255,.08)}
 #v226-home-tiles .v226-section-label{font-size:10px;color:var(--muted);font-weight:900;letter-spacing:.14em;text-transform:uppercase;margin:6px 2px -4px}
 </style>
-<script id="v226-home-tiles-inject">(function(){
-  'use strict';
-  function ensureHomeTiles(){ try { var home = document.getElementById('home'); if (!home) return false; if (document.getElementById('v226-home-tiles')) return true; var wrap = document.createElement('div'); wrap.id = 'v226-home-tiles'; var t1 = document.createElement('div'); t1.className='v226-tile rewards'; t1.innerHTML='<div class="v226-ico">\uD83C\uDFAF</div><div class="v226-body"><div class="v226-title">Rewards Studio</div><div class="v226-sub">Portfolio, activity, credits & vault</div></div><div class="v226-arrow">\u203A</div>'; t1.addEventListener('click', function(){ try { window.switchTab && window.switchTab('rewards'); } catch(e){} }); var t2 = document.createElement('div'); t2.className='v226-tile offers'; t2.innerHTML='<div class="v226-ico">\uD83C\uDF81</div><div class="v226-body"><div class="v226-title">Welcome offers</div><div class="v226-sub">Top Canadian cards by first-year value</div></div><div class="v226-arrow">\u203A</div>'; t2.addEventListener('click', function(){ try { window.switchTab && window.switchTab('offers'); } catch(e){} }); var t3 = document.createElement('div'); t3.className='v226-tile credits'; t3.innerHTML='<div class="v226-ico">\uD83D\uDCB3</div><div class="v226-body"><div class="v226-title">Statement credits</div><div class="v226-sub">Track every benefit before it expires</div></div><div class="v226-arrow">\u203A</div>'; t3.addEventListener('click', function(){ try { window.switchTab && window.switchTab('rewards'); } catch(e){} }); var label = document.createElement('div'); label.className = 'v226-section-label'; label.textContent = 'Explore'; wrap.appendChild(label); wrap.appendChild(t1); wrap.appendChild(t2); wrap.appendChild(t3); var greeting = home.querySelector('.greeting'); if (greeting && greeting.nextSibling) home.insertBefore(wrap, greeting.nextSibling); else home.appendChild(wrap); return true; } catch(e){ return false; } }
-  function boot(){ if (window.__v226Init) return; window.__v226Init = true; setTimeout(ensureHomeTiles, 200); setTimeout(ensureHomeTiles, 800); setTimeout(ensureHomeTiles, 2000); try { if (typeof window.switchTab === 'function' && !window.switchTab.__v226Wrapped) { var orig = window.switchTab; window.switchTab = function(tn){ var r; try { r = orig.apply(this, arguments); } catch(e){} if (tn === 'home') setTimeout(ensureHomeTiles, 60); return r; }; window.switchTab.__v226Wrapped = true; } } catch(e){} }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function(){ setTimeout(boot, 400); }); else setTimeout(boot, 400);
-})();</script>
+<script id="v226-home-tiles-inject">(function(){'use strict';
+function ensureHomeTiles(){try{var home=document.getElementById('home');if(!home)return false;if(document.getElementById('v226-home-tiles'))return true;var wrap=document.createElement('div');wrap.id='v226-home-tiles';var t1=document.createElement('div');t1.className='v226-tile rewards';t1.innerHTML='<div class="v226-ico">\uD83C\uDFAF</div><div class="v226-body"><div class="v226-title">Rewards Studio</div><div class="v226-sub">Portfolio, activity, credits & vault</div></div><div class="v226-arrow">\u203A</div>';t1.addEventListener('click',function(){try{window.switchTab&&window.switchTab('rewards');}catch(e){}});var t2=document.createElement('div');t2.className='v226-tile offers';t2.innerHTML='<div class="v226-ico">\uD83C\uDF81</div><div class="v226-body"><div class="v226-title">Welcome offers</div><div class="v226-sub">Top Canadian cards by first-year value</div></div><div class="v226-arrow">\u203A</div>';t2.addEventListener('click',function(){try{window.switchTab&&window.switchTab('offers');}catch(e){}});var t3=document.createElement('div');t3.className='v226-tile credits';t3.innerHTML='<div class="v226-ico">\uD83D\uDCB3</div><div class="v226-body"><div class="v226-title">Statement credits</div><div class="v226-sub">Track every benefit before it expires</div></div><div class="v226-arrow">\u203A</div>';t3.addEventListener('click',function(){try{window.switchTab&&window.switchTab('rewards');}catch(e){}});var label=document.createElement('div');label.className='v226-section-label';label.textContent='Explore';wrap.appendChild(label);wrap.appendChild(t1);wrap.appendChild(t2);wrap.appendChild(t3);var greeting=home.querySelector('.greeting');if(greeting&&greeting.nextSibling)home.insertBefore(wrap,greeting.nextSibling);else home.appendChild(wrap);return true;}catch(e){return false;}}
+function boot(){if(window.__v226Init)return;window.__v226Init=true;setTimeout(ensureHomeTiles,200);setTimeout(ensureHomeTiles,800);setTimeout(ensureHomeTiles,2000);try{if(typeof window.switchTab==='function'&&!window.switchTab.__v226Wrapped){var orig=window.switchTab;window.switchTab=function(tn){var r;try{r=orig.apply(this,arguments);}catch(e){}if(tn==='home')setTimeout(ensureHomeTiles,60);return r;};window.switchTab.__v226Wrapped=true;}}catch(e){}}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,400);});else setTimeout(boot,400);})();</script>
 <style id="v227-search-focus-css">
 #v226-home-tiles[data-v227-hidden]{display:none!important}
 #emptyWalletState[data-v227-search-hide]{display:none!important}
 </style>
-<script id="v227-search-focus-tiles">(function(){
-  'use strict';
-  function isSearching(){ try { var q = document.getElementById('q'); if (!q) return false; return !!(q.value && q.value.trim().length > 0); } catch(e){ return false; } }
-  function apply(){ try { var s = isSearching(); var t = document.getElementById('v226-home-tiles'); var e = document.getElementById('emptyWalletState'); if (t) { if (s) t.setAttribute('data-v227-hidden','1'); else t.removeAttribute('data-v227-hidden'); } if (e) { if (s) e.setAttribute('data-v227-search-hide','1'); else e.removeAttribute('data-v227-search-hide'); } } catch(e){} }
-  function wireInput(){ try { var q = document.getElementById('q'); if (!q || q.__v227Wired) return false; q.__v227Wired = true; q.addEventListener('input', apply, true); q.addEventListener('keyup', apply, true); q.addEventListener('change', apply, true); return true; } catch(e){ return false; } }
-  function boot(){ if (window.__v227Init) return; window.__v227Init = true; var tries = 0; (function retry(){ wireInput(); apply(); tries++; if (tries < 20) setTimeout(retry, 150); })(); document.addEventListener('click', function(){ setTimeout(apply, 40); }, true); }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function(){ setTimeout(boot, 500); }); else setTimeout(boot, 500);
-})();</script>
+<script id="v227-search-focus-tiles">(function(){'use strict';
+function isSearching(){try{var q=document.getElementById('q');if(!q)return false;return !!(q.value&&q.value.trim().length>0);}catch(e){return false;}}
+function apply(){try{var s=isSearching();var t=document.getElementById('v226-home-tiles');var e=document.getElementById('emptyWalletState');if(t){if(s)t.setAttribute('data-v227-hidden','1');else t.removeAttribute('data-v227-hidden');}if(e){if(s)e.setAttribute('data-v227-search-hide','1');else e.removeAttribute('data-v227-search-hide');}}catch(e){}}
+function wireInput(){try{var q=document.getElementById('q');if(!q||q.__v227Wired)return false;q.__v227Wired=true;q.addEventListener('input',apply,true);q.addEventListener('keyup',apply,true);q.addEventListener('change',apply,true);return true;}catch(e){return false;}}
+function boot(){if(window.__v227Init)return;window.__v227Init=true;var tries=0;(function retry(){wireInput();apply();tries++;if(tries<20)setTimeout(retry,150);})();document.addEventListener('click',function(){setTimeout(apply,40);},true);}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,500);});else setTimeout(boot,500);})();</script>
 <style id="v230-apple-wallet-css">
 #cardsTab[data-v230-populated] #cardsEmpty,#cardsTab[data-v230-populated] #cardsNoMatch{display:none!important}
 #cardList .v230-wallet{padding:8px 6px 20px;position:relative}
 #cardList .v230-hint{font-size:11px;color:var(--muted);font-weight:800;letter-spacing:.06em;text-align:center;padding:2px 0 14px;opacity:.6;text-transform:uppercase}
-#cardList .v230-stack{position:relative;display:flex;flex-direction:column;padding-bottom:8px}
+#cardList .v230-stack{display:flex;flex-direction:column;padding-bottom:8px}
 #cardList .v230-item{position:relative;transition:margin-top .42s cubic-bezier(.25,.85,.35,1.1),transform .18s ease;border-radius:14px;overflow:visible;cursor:pointer;user-select:none;margin-top:-142px}
 #cardList .v230-item:first-child{margin-top:0}
 #cardList .v230-item.open,#cardList .v230-item.push{margin-top:22px}
-#cardList .v230-item:active{transform:scale(.985)}
 #cardList .v230-art{width:100%;max-width:340px;margin:0 auto;aspect-ratio:340/210;filter:drop-shadow(0 6px 16px rgba(20,20,40,.2));transition:filter .28s ease}
 #cardList .v230-item.open .v230-art{filter:drop-shadow(0 14px 32px rgba(37,99,235,.28))}
 #cardList .v230-art svg{width:100%;height:100%;display:block;border-radius:14px}
@@ -34976,21 +35572,19 @@ body.dark #v226-home-tiles .v226-ico{background:rgba(255,255,255,.08)}
 #cardList .v230-benefits .row .v{font-family:ui-monospace,monospace;font-weight:900;font-size:11.5px;color:var(--brand,#5f74b8)}
 @media(max-width:390px){#cardList .v230-item{margin-top:-135px}#cardList .v230-art{max-width:320px}}
 </style>
-<script id="v230-apple-wallet-render">(function(){
-  'use strict';
-  var V230=window.__v230=window.__v230||{},VER=2;
-  function esc(s){try{var d=document.createElement('div'); d.textContent=String(s==null?'':s); return d.innerHTML;}catch(e){return '';}}
-  function getDB(){try{if(typeof CARDS_DB!=='undefined')return CARDS_DB;}catch(e){}return null;}
-  function getW(){try{if(typeof userWallet!=='undefined')return userWallet;}catch(e){}return null;}
-  function getE(){try{if(typeof isScotiaEmp!=='undefined')return !!isScotiaEmp;}catch(e){}return false;}
-  function getS(){try{if(typeof svgCard==='function')return svgCard;}catch(e){}return null;}
-  function sub(c){if(!c)return ''; var p=[]; if(c.iss)p.push(esc(c.iss)); if(c.net)p.push(esc(c.net)); if(c.r)p.push(esc(c.r)); return p.join(' \u00b7 ');}
-  function detail(c,k,ie){if(!c)return ''; var fee=c.feeRetail||0; if(c.scotiaEmployee&&ie)fee=fee*0.5; var b=''; if(c.benefits&&c.benefits.length){b='<div class="v230-benefits-label">Benefits & rewards</div><div class="v230-benefits">'; for(var i=0;i<c.benefits.length;i++){var x=c.benefits[i]||[]; b+='<div class="row"><span class="ico">'+esc(x[0]||'\u2022')+'</span><span class="txt">'+esc(x[1]||'')+'</span><span class="v">'+esc(x[2]||'')+'</span></div>';} b+='</div>';} return '<div class="v230-detail-inner"><div class="v230-detail-name">'+esc(c.n||k)+'</div><div class="v230-detail-sub">'+sub(c)+'</div><div class="v230-fees"><div><div class="lbl">Your Fee</div><div class="val">$'+fee.toFixed(0)+'</div></div><div><div class="lbl">Retail Fee</div><div class="val">$'+(c.feeRetail||0).toFixed(0)+'</div></div></div>'+b+'</div>';}
-  function bind(it,st){var az=it.querySelector('.v230-art'); if(!az)return; az.addEventListener('click',function(e){e.stopPropagation(); var wo=it.classList.contains('open'); var items=st.querySelectorAll('.v230-item'); for(var i=0;i<items.length;i++){items[i].classList.remove('open');items[i].classList.remove('push');} if(!wo){it.classList.add('open'); var f=false; for(var j=0;j<items.length;j++){if(f)items[j].classList.add('push'); if(items[j]===it)f=true;} try{setTimeout(function(){it.scrollIntoView({behavior:'smooth',block:'start'});},100);}catch(_){}}});}
-  function render(force){try{var cl=document.getElementById('cardList'); if(!cl)return false; var w=getW(); var ct=document.getElementById('cardsTab'); if(!w||!w.size){if(ct)ct.removeAttribute('data-v230-populated'); return false;} if(ct)ct.setAttribute('data-v230-populated','1'); var e=document.getElementById('cardsEmpty'); if(e&&e.style.display!=='none')e.style.display='none'; var DB=getDB(); if(!DB)return false; var ex=cl.querySelector('.v230-wallet'); if(!force&&ex&&ex.__v230Ver===VER&&ex.__v230Sz===w.size)return true; var tr=cl.querySelectorAll(':scope > .cardBig, :scope > .v149-wallet-wrap, :scope > .v230-wallet'); for(var k=0;k<tr.length;k++){try{tr[k].remove();}catch(e2){}} var ww=document.createElement('div'); ww.className='v230-wallet'; ww.__v230Ver=VER; ww.__v230Sz=w.size; var h=document.createElement('div'); h.className='v230-hint'; h.textContent='Tap a card to view details'; ww.appendChild(h); var st=document.createElement('div'); st.className='v230-stack'; ww.appendChild(st); var ie=getE(); var keys=Array.from(w); var sf=getS(); for(var i=0;i<keys.length;i++){var key=keys[i]; var c=DB[key]; if(!c)continue; var art=''; if(sf){try{art=sf(c,key);}catch(_){}} var it=document.createElement('div'); it.className='v230-item'; it.innerHTML='<div class="v230-art">'+art+'</div><div class="v230-detail">'+detail(c,key,ie)+'</div>'; bind(it,st); st.appendChild(it);} cl.appendChild(ww); return true;}catch(e){return false;}}
-  function boot(){if(window.__v230Init)return; window.__v230Init=true; try{if(window.__v149)window.__v149.build=function(){return;};}catch(e){} setTimeout(function(){render(false);},250); setTimeout(function(){render(false);},800); setTimeout(function(){render(false);},2000); try{if(typeof window.switchTab==='function'&&!window.switchTab.__v230Wrapped){var o=window.switchTab; window.switchTab=function(tn){var r;try{r=o.apply(this,arguments);}catch(e){}if(tn==='cardsTab'||tn==='cards'){setTimeout(function(){render(true);},40);setTimeout(function(){render(false);},300);} return r;}; window.switchTab.__v230Wrapped=true;}}catch(e){} V230.render=function(){return render(true);};}
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,500);}); else setTimeout(boot,500);
-})();</script>
+<script id="v230-apple-wallet-render">(function(){'use strict';
+var V230=window.__v230=window.__v230||{},VER=2;
+function esc(s){try{var d=document.createElement('div');d.textContent=String(s==null?'':s);return d.innerHTML;}catch(e){return '';}}
+function getDB(){try{if(typeof CARDS_DB!=='undefined')return CARDS_DB;}catch(e){}return null;}
+function getW(){try{if(typeof userWallet!=='undefined')return userWallet;}catch(e){}return null;}
+function getE(){try{if(typeof isScotiaEmp!=='undefined')return !!isScotiaEmp;}catch(e){}return false;}
+function getS(){try{if(typeof svgCard==='function')return svgCard;}catch(e){}return null;}
+function sub(c){if(!c)return '';var p=[];if(c.iss)p.push(esc(c.iss));if(c.net)p.push(esc(c.net));if(c.r)p.push(esc(c.r));return p.join(' \u00b7 ');}
+function detail(c,k,ie){if(!c)return '';var fee=c.feeRetail||0;if(c.scotiaEmployee&&ie)fee=fee*0.5;var b='';if(c.benefits&&c.benefits.length){b='<div class="v230-benefits-label">Benefits & rewards</div><div class="v230-benefits">';for(var i=0;i<c.benefits.length;i++){var x=c.benefits[i]||[];b+='<div class="row"><span class="ico">'+esc(x[0]||'\u2022')+'</span><span class="txt">'+esc(x[1]||'')+'</span><span class="v">'+esc(x[2]||'')+'</span></div>';}b+='</div>';}return '<div class="v230-detail-inner"><div class="v230-detail-name">'+esc(c.n||k)+'</div><div class="v230-detail-sub">'+sub(c)+'</div><div class="v230-fees"><div><div class="lbl">Your Fee</div><div class="val">$'+fee.toFixed(0)+'</div></div><div><div class="lbl">Retail Fee</div><div class="val">$'+(c.feeRetail||0).toFixed(0)+'</div></div></div>'+b+'</div>';}
+function bind(it,st){var az=it.querySelector('.v230-art');if(!az)return;az.addEventListener('click',function(e){e.stopPropagation();var wo=it.classList.contains('open');var items=st.querySelectorAll('.v230-item');for(var i=0;i<items.length;i++){items[i].classList.remove('open');items[i].classList.remove('push');}if(!wo){it.classList.add('open');var f=false;for(var j=0;j<items.length;j++){if(f)items[j].classList.add('push');if(items[j]===it)f=true;}try{setTimeout(function(){it.scrollIntoView({behavior:'smooth',block:'start'});},100);}catch(_){}}});}
+function render(force){try{var cl=document.getElementById('cardList');if(!cl)return false;var w=getW();var ct=document.getElementById('cardsTab');if(!w||!w.size){if(ct)ct.removeAttribute('data-v230-populated');return false;}if(ct)ct.setAttribute('data-v230-populated','1');var e=document.getElementById('cardsEmpty');if(e&&e.style.display!=='none')e.style.display='none';var DB=getDB();if(!DB)return false;var ex=cl.querySelector('.v230-wallet');if(!force&&ex&&ex.__v230Ver===VER&&ex.__v230Sz===w.size)return true;var tr=cl.querySelectorAll(':scope > .cardBig, :scope > .v149-wallet-wrap, :scope > .v230-wallet');for(var k=0;k<tr.length;k++){try{tr[k].remove();}catch(e2){}}var ww=document.createElement('div');ww.className='v230-wallet';ww.__v230Ver=VER;ww.__v230Sz=w.size;var h=document.createElement('div');h.className='v230-hint';h.textContent='Tap a card to view details';ww.appendChild(h);var st=document.createElement('div');st.className='v230-stack';ww.appendChild(st);var ie=getE();var keys=Array.from(w);var sf=getS();for(var i=0;i<keys.length;i++){var key=keys[i];var c=DB[key];if(!c)continue;var art='';if(sf){try{art=sf(c,key);}catch(_){}}var it=document.createElement('div');it.className='v230-item';it.innerHTML='<div class="v230-art">'+art+'</div><div class="v230-detail">'+detail(c,key,ie)+'</div>';bind(it,st);st.appendChild(it);}cl.appendChild(ww);return true;}catch(e){return false;}}
+function boot(){if(window.__v230Init)return;window.__v230Init=true;try{if(window.__v149)window.__v149.build=function(){return;};}catch(e){}setTimeout(function(){render(false);},250);setTimeout(function(){render(false);},800);setTimeout(function(){render(false);},2000);try{if(typeof window.switchTab==='function'&&!window.switchTab.__v230Wrapped){var o=window.switchTab;window.switchTab=function(tn){var r;try{r=o.apply(this,arguments);}catch(e){}if(tn==='cardsTab'||tn==='cards'){setTimeout(function(){render(true);},40);setTimeout(function(){render(false);},300);}return r;};window.switchTab.__v230Wrapped=true;}}catch(e){}V230.render=function(){return render(true);};}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,500);});else setTimeout(boot,500);})();</script>
 <style id="v234-vault-css">
 .v234-overlay{position:fixed;inset:0;background:rgba(15,18,30,.65);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;transition:opacity .18s ease}
 .v234-overlay.show{opacity:1}
@@ -35001,14 +35595,14 @@ body.dark .v234-modal{background:#22212f;color:#ececf5}
 .v234-emoji{font-size:22px}
 .v234-title{flex:1;font-size:17px;font-weight:900;letter-spacing:-.02em;color:#0a0a12}
 body.dark .v234-title{color:#ececf5}
-.v234-x{background:transparent;border:none;font-size:22px;color:#8b8b9a;cursor:pointer;padding:4px 8px;border-radius:8px;line-height:1;font-family:inherit}
+.v234-x{background:transparent;border:none;font-size:22px;color:#8b8b9a;cursor:pointer;padding:4px 8px;border-radius:8px;font-family:inherit}
 .v234-body{padding:18px 20px}
 .v234-lbl{font-size:10.5px;font-weight:900;color:#8b8b9a;letter-spacing:.14em;text-transform:uppercase;margin-bottom:8px}
-.v234-input{width:100%;padding:14px 16px;border:1.5px solid rgba(0,0,0,.1);border-radius:12px;font-size:20px;font-weight:900;font-family:ui-monospace,monospace;color:#0a0a12;background:#fff;outline:none;-webkit-appearance:none}
-body.dark .v234-input{background:#181722;border-color:rgba(255,255,255,.12);color:#ececf5}
-.v234-input:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.14)}
+.v234-input{width:100%;padding:14px 16px;border:1.5px solid rgba(0,0,0,.1);border-radius:12px;font-size:20px;font-weight:900;font-family:ui-monospace,monospace;color:#0a0a12;background:#fff;outline:none}
+body.dark .v234-input{background:#181722;color:#ececf5}
+.v234-input:focus{border-color:#2563eb}
 .v234-input.invalid{border-color:#c95050}
-.v234-note{margin-top:14px;padding:11px 13px;background:rgba(37,99,235,.08);border-radius:12px;font-size:11.5px;color:#1e4194;font-weight:700;line-height:1.45}
+.v234-note{margin-top:14px;padding:11px 13px;background:rgba(37,99,235,.08);border-radius:12px;font-size:11.5px;color:#1e4194;font-weight:700}
 .v234-actions{display:flex;gap:10px;padding:0 20px 20px}
 .v234-btn{flex:1;padding:14px;border:none;border-radius:14px;font-size:14px;font-weight:900;cursor:pointer;font-family:inherit}
 .v234-cancel{background:#f0eef7;color:#0a0a12}
@@ -35018,214 +35612,225 @@ body.dark .v234-cancel{background:#2d2b3d;color:#ececf5}
 .v234-flash.show{opacity:1}
 .v122-edit-overlay{display:none!important}
 </style>
-<script id="v234-vault-owner">(function(){
-  'use strict';
-  var V234=window.__v234=window.__v234||{}; var SK='walletiq_memberships';
-  function readJSON(k,fb){try{var v=localStorage.getItem(k); if(v==null)return fb; return JSON.parse(v);}catch(e){return fb;}}
-  function canon(s){return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'');}
-  function esc(s){try{var d=document.createElement('div'); d.textContent=String(s==null?'':s); return d.innerHTML;}catch(e){return '';}}
-  function getPR(){try{if(typeof PROGRAMS!=='undefined')return PROGRAMS;}catch(e){}return (window.PROGRAMS||{});}
-  function matchP(m,p){if(!m)return false; var c=canon(p); if(canon(m.key)===c)return true; if(canon(m.programKey)===c)return true; if(canon(m.program)===c)return true; var meta=getPR()[p]; if(meta&&meta.name&&canon(m.name)===canon(meta.name))return true; return false;}
-  function getBal(p){try{var m=readJSON(SK,[]); if(!Array.isArray(m))return 0; for(var i=0;i<m.length;i++){var e=m[i]; if(e&&e.__v234Manual&&matchP(e,p))return Number(e.__v234Baseline!=null?e.__v234Baseline:e.balance)||0;} for(var j=0;j<m.length;j++){if(matchP(m[j],p))return Number(m[j].balance)||0;}}catch(e){}return 0;}
-  var _oSI=localStorage.setItem.bind(localStorage), _sw=false;
-  function _iw(k,v){_sw=true;try{_oSI(k,JSON.stringify(v));}catch(e){}_sw=false;}
-  function persist(p,b){try{var meta=getPR()[p]||{name:p,unit:'pts',cpp:0,emoji:'\u2B50'}; var m=readJSON(SK,[]); if(!Array.isArray(m))m=[]; m=m.filter(function(x){return !matchP(x,p);}); var e={key:p,programKey:p,program:p,name:meta.name,n:meta.name,emoji:meta.emoji||'\u2B50',unit:meta.unit||'pts',cpp:meta.cpp||0,balance:b,pts:b,__v234Manual:true,__v234Baseline:b,__v106Auto:false,__v128Auto:false,__v140Auto:false,__v106ManualBaseline:b}; m.push(e); _iw(SK,m); return true;}catch(e){return false;}}
-  function installGuard(){try{if(localStorage.setItem.__v234Wrapped)return; localStorage.setItem=function(k,v){if(_sw||k!==SK)return _oSI(k,v); try{var inc=JSON.parse(v); if(!Array.isArray(inc))return _oSI(k,v); var cur=readJSON(SK,[]); if(!Array.isArray(cur))cur=[]; var ms=cur.filter(function(x){return x&&x.__v234Manual;}); if(!ms.length)return _oSI(k,v); var out=inc.filter(function(x){if(!x)return false; for(var i=0;i<ms.length;i++){var mn=ms[i]; if(matchP(x,mn.key||mn.programKey||mn.program))return false;} return true;}); for(var i=0;i<ms.length;i++)out.push(ms[i]); return _oSI(k,JSON.stringify(out));}catch(e){return _oSI(k,v);}}; localStorage.setItem.__v234Wrapped=true;}catch(e){}}
-  function flash(msg){try{var f=document.createElement('div'); f.className='v234-flash'; f.textContent=msg; document.body.appendChild(f); setTimeout(function(){f.classList.add('show');},10); setTimeout(function(){f.classList.remove('show'); setTimeout(function(){if(f.parentNode)f.parentNode.removeChild(f);},250);},1300);}catch(e){}}
-  function killAll(){try{var a=document.querySelectorAll('.v234-overlay, .v122-edit-overlay'); for(var i=0;i<a.length;i++){try{if(a[i].parentNode)a[i].parentNode.removeChild(a[i]);}catch(e){}} try{document.body.style.overflow='';}catch(e){}}catch(e){}}
-  function rerender(){try{if(typeof window.renderVaultV122==='function')window.renderVaultV122();}catch(e){} try{document.dispatchEvent(new CustomEvent('v82:refresh'));}catch(e){}}
-  function openModal(p){if(!p)return; killAll(); var meta=getPR()[p]||{name:p,unit:'pts',cpp:0,emoji:'\u2B50'}; var cur=getBal(p); var o=document.createElement('div'); o.className='v234-overlay'; o.innerHTML='<div class="v234-modal"><div class="v234-head"><div class="v234-emoji">'+esc(meta.emoji||'\u2B50')+'</div><div class="v234-title">'+esc(meta.name)+'</div><button type="button" class="v234-x">\u00D7</button></div><div class="v234-body"><div class="v234-lbl">Current balance ('+esc(meta.unit||'pts')+')</div><input type="tel" class="v234-input" value="'+cur+'" inputmode="numeric"><div class="v234-note">\uD83D\uDCA1 Enter your true current balance. Future auto-earned points will add on top.</div></div><div class="v234-actions"><button type="button" class="v234-btn v234-cancel">Cancel</button><button type="button" class="v234-btn v234-save">Save balance</button></div></div>'; document.body.appendChild(o); var inp=o.querySelector('.v234-input'), sb=o.querySelector('.v234-save'), xb=o.querySelector('.v234-x'), cb=o.querySelector('.v234-cancel'); xb.addEventListener('click',function(e){e.preventDefault();killAll();}); cb.addEventListener('click',function(e){e.preventDefault();killAll();}); o.addEventListener('click',function(e){if(e.target===o)killAll();}); sb.addEventListener('click',function(e){e.preventDefault(); var raw=String(inp.value||'').trim(); var nb=parseFloat(raw); if(raw===''||!isFinite(nb)||nb<0){inp.classList.add('invalid');try{inp.focus();}catch(_){}return;} var ok=persist(p,nb); killAll(); if(ok){flash('\u2713 Balance saved'); setTimeout(rerender,40); setTimeout(rerender,300);}}); inp.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();sb.click();}}); setTimeout(function(){o.classList.add('show');},10); setTimeout(function(){try{inp.focus();inp.select();}catch(_){}},250);}
-  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&document.querySelector('.v234-overlay, .v122-edit-overlay')){killAll();e.stopImmediatePropagation();}},true);
-  document.addEventListener('click',function(e){var t=e.target; if(!t||!t.closest)return; var eb=t.closest('.v122-prog-edit'); if(!eb)return; var p=eb.getAttribute('data-prog'); if(!p)return; e.stopImmediatePropagation();e.preventDefault(); openModal(p);},true);
-  function boot(){if(window.__v234Init)return; window.__v234Init=true; installGuard(); try{if(typeof window.openEditModal==='function'&&!window.openEditModal.__v234Wrapped){window.openEditModal=function(p){openModal(p);}; window.openEditModal.__v234Wrapped=true;}}catch(e){} V234.openModal=openModal;}
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,200);}); else setTimeout(boot,200);
-})();</script>
+<script id="v234-vault-owner">(function(){'use strict';
+var V234=window.__v234=window.__v234||{};var SK='walletiq_memberships';
+function readJSON(k,fb){try{var v=localStorage.getItem(k);if(v==null)return fb;return JSON.parse(v);}catch(e){return fb;}}
+function canon(s){return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'');}
+function esc(s){try{var d=document.createElement('div');d.textContent=String(s==null?'':s);return d.innerHTML;}catch(e){return '';}}
+function getPR(){try{if(typeof PROGRAMS!=='undefined')return PROGRAMS;}catch(e){}return (window.PROGRAMS||{});}
+function matchP(m,p){if(!m)return false;var c=canon(p);if(canon(m.key)===c)return true;if(canon(m.programKey)===c)return true;if(canon(m.program)===c)return true;var meta=getPR()[p];if(meta&&meta.name&&canon(m.name)===canon(meta.name))return true;return false;}
+function getBal(p){try{var m=readJSON(SK,[]);if(!Array.isArray(m))return 0;for(var i=0;i<m.length;i++){var e=m[i];if(e&&(e.__v234Manual||e.__v244Manual)&&matchP(e,p))return Number(e.__v234Baseline!=null?e.__v234Baseline:e.balance)||0;}for(var j=0;j<m.length;j++){if(matchP(m[j],p))return Number(m[j].balance)||0;}}catch(e){}return 0;}
+function persist(p,b){try{var meta=getPR()[p]||{name:p,unit:'pts',cpp:0,emoji:'\u2B50'};var m=readJSON(SK,[]);if(!Array.isArray(m))m=[];m=m.filter(function(x){return !matchP(x,p);});var e={key:p,programKey:p,program:p,name:meta.name,n:meta.name,emoji:meta.emoji||'\u2B50',unit:meta.unit||'pts',cpp:meta.cpp||0,balance:b,pts:b,__v234Manual:true,__v244Manual:true,__v234Baseline:b,__v106Auto:false,__v128Auto:false,__v140Auto:false,__v106ManualBaseline:b};m.push(e);if(window.WalletIQState){window.WalletIQState.set(SK,m);}else{try{localStorage.setItem(SK,JSON.stringify(m));}catch(_){}}return true;}catch(e){return false;}}
+function flash(msg){try{var f=document.createElement('div');f.className='v234-flash';f.textContent=msg;document.body.appendChild(f);setTimeout(function(){f.classList.add('show');},10);setTimeout(function(){f.classList.remove('show');setTimeout(function(){if(f.parentNode)f.parentNode.removeChild(f);},250);},1300);}catch(e){}}
+function killAll(){try{var a=document.querySelectorAll('.v234-overlay, .v122-edit-overlay');for(var i=0;i<a.length;i++){try{if(a[i].parentNode)a[i].parentNode.removeChild(a[i]);}catch(e){}}try{document.body.style.overflow='';}catch(e){}}catch(e){}}
+function rerender(){try{if(typeof window.renderVaultV122==='function')window.renderVaultV122();}catch(e){}try{document.dispatchEvent(new CustomEvent('v82:refresh'));}catch(e){}}
+function openModal(p){if(!p)return;killAll();var meta=getPR()[p]||{name:p,unit:'pts',cpp:0,emoji:'\u2B50'};var cur=getBal(p);var o=document.createElement('div');o.className='v234-overlay';o.innerHTML='<div class="v234-modal"><div class="v234-head"><div class="v234-emoji">'+esc(meta.emoji||'\u2B50')+'</div><div class="v234-title">'+esc(meta.name)+'</div><button type="button" class="v234-x">\u00D7</button></div><div class="v234-body"><div class="v234-lbl">Current balance ('+esc(meta.unit||'pts')+')</div><input type="tel" class="v234-input" value="'+cur+'" inputmode="numeric"><div class="v234-note">\uD83D\uDCA1 Enter your true current balance. Future auto-earned points will add on top.</div></div><div class="v234-actions"><button type="button" class="v234-btn v234-cancel">Cancel</button><button type="button" class="v234-btn v234-save">Save balance</button></div></div>';document.body.appendChild(o);var inp=o.querySelector('.v234-input'),sb=o.querySelector('.v234-save'),xb=o.querySelector('.v234-x'),cb=o.querySelector('.v234-cancel');xb.addEventListener('click',function(e){e.preventDefault();killAll();});cb.addEventListener('click',function(e){e.preventDefault();killAll();});o.addEventListener('click',function(e){if(e.target===o)killAll();});sb.addEventListener('click',function(e){e.preventDefault();var raw=String(inp.value||'').trim();var nb=parseFloat(raw);if(raw===''||!isFinite(nb)||nb<0){inp.classList.add('invalid');try{inp.focus();}catch(_){}return;}var ok=persist(p,nb);killAll();if(ok){flash('\u2713 Balance saved');setTimeout(rerender,40);setTimeout(rerender,300);}});inp.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();sb.click();}});setTimeout(function(){o.classList.add('show');},10);setTimeout(function(){try{inp.focus();inp.select();}catch(_){}},250);}
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&document.querySelector('.v234-overlay, .v122-edit-overlay')){killAll();e.stopImmediatePropagation();}},true);
+document.addEventListener('click',function(e){var t=e.target;if(!t||!t.closest)return;var eb=t.closest('.v122-prog-edit');if(!eb)return;var p=eb.getAttribute('data-prog');if(!p)return;e.stopImmediatePropagation();e.preventDefault();openModal(p);},true);
+function boot(){if(window.__v234Init)return;window.__v234Init=true;try{if(typeof window.openEditModal==='function'&&!window.openEditModal.__v234Wrapped){window.openEditModal=function(p){openModal(p);};window.openEditModal.__v234Wrapped=true;}}catch(e){}V234.openModal=openModal;}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,200);});else setTimeout(boot,200);})();</script>
 <style id="v237-offers-cleanup-css">
 .v181-offer-toolbar,.v181-offer-search,.v181-sort-select,[data-v181-chip],.v181-chip-row,.v181-offer-count,#v222-controls,#v222-sort,#v222-summary,[data-v222-quick]{display:none!important}
 #offers .foot[data-v237-hide]{display:none!important}
 </style>
-<script id="v237-offers-simplify">(function(){
-  'use strict';
-  var lastQ='';
-  function nuke(){try{var k=['.v181-offer-toolbar','.v181-chip-row','.v181-offer-count','#v222-controls','#v222-sort','#v222-summary']; for(var i=0;i<k.length;i++){var n=document.querySelectorAll(k[i]); for(var j=0;j<n.length;j++){try{n[j].parentNode&&n[j].parentNode.removeChild(n[j]);}catch(e){}}} var o=document.getElementById('offers'); if(o){var f=o.querySelectorAll('.foot'); for(var m=0;m<f.length;m++){if(/^Ranked by net first-year value/i.test((f[m].textContent||'').trim()))f[m].setAttribute('data-v237-hide','1');}}}catch(e){}}
-  function isOT(){try{var o=document.getElementById('offers'); return !!(o&&o.classList.contains('active'));}catch(e){return false;}}
-  function apply(qy){try{var q=String(qy||'').trim().toLowerCase(); lastQ=q; var l=document.getElementById('offersList'); if(!l)return; var c=l.querySelectorAll('.cardBig'); if(!c.length)return; var m=0; for(var i=0;i<c.length;i++){var s=true; if(q){s=(c[i].textContent||'').toLowerCase().indexOf(q)>=0;} c[i].style.display=s?'':'none'; if(s)m++;} var nm=document.getElementById('offersNoMatch'); if(nm)nm.style.display=(q&&m===0)?'block':'none';}catch(e){}}
-  function wire(){try{var q=document.getElementById('q'); if(!q||q.__v237Wired)return false; q.__v237Wired=true; q.addEventListener('input',function(){if(isOT())apply(q.value);},true); q.addEventListener('keyup',function(){if(isOT())apply(q.value);},true); return true;}catch(e){return false;}}
-  function boot(){if(window.__v237Init)return; window.__v237Init=true; setTimeout(nuke,300); setTimeout(nuke,900); setTimeout(nuke,2000); var t=0;(function retry(){wire(); t++; if(t<30)setTimeout(retry,200);})(); try{if(typeof window.switchTab==='function'&&!window.switchTab.__v237Wrapped){var o=window.switchTab; window.switchTab=function(tn){var r;try{r=o.apply(this,arguments);}catch(e){}if(tn==='offers'){setTimeout(function(){nuke();wire(); if(lastQ)apply(lastQ);},60); setTimeout(nuke,400);}else{lastQ=''; var l=document.getElementById('offersList'); if(l){var c=l.querySelectorAll('.cardBig'); for(var i=0;i<c.length;i++)c[i].style.display='';}} return r;}; window.switchTab.__v237Wrapped=true;}}catch(e){} try{if(typeof window.renderOffers==='function'&&!window.renderOffers.__v237Wrapped){var oR=window.renderOffers; window.renderOffers=function(){var r;try{r=oR.apply(this,arguments);}catch(e){}setTimeout(function(){nuke(); if(lastQ&&isOT())apply(lastQ);},20); return r;}; window.renderOffers.__v237Wrapped=true;}}catch(e){}}
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,300);}); else setTimeout(boot,300);
-})();</script>
+<script id="v237-offers-simplify">(function(){'use strict';var lastQ='';
+function nuke(){try{var k=['.v181-offer-toolbar','.v181-chip-row','.v181-offer-count','#v222-controls','#v222-sort','#v222-summary'];for(var i=0;i<k.length;i++){var n=document.querySelectorAll(k[i]);for(var j=0;j<n.length;j++){try{n[j].parentNode&&n[j].parentNode.removeChild(n[j]);}catch(e){}}}var o=document.getElementById('offers');if(o){var f=o.querySelectorAll('.foot');for(var m=0;m<f.length;m++){if(/^Ranked by net first-year value/i.test((f[m].textContent||'').trim()))f[m].setAttribute('data-v237-hide','1');}}}catch(e){}}
+function isOT(){try{var o=document.getElementById('offers');return !!(o&&o.classList.contains('active'));}catch(e){return false;}}
+function apply(qy){try{var q=String(qy||'').trim().toLowerCase();lastQ=q;var l=document.getElementById('offersList');if(!l)return;var c=l.querySelectorAll('.cardBig');if(!c.length)return;var m=0;for(var i=0;i<c.length;i++){var s=true;if(q){s=(c[i].textContent||'').toLowerCase().indexOf(q)>=0;}c[i].style.display=s?'':'none';if(s)m++;}var nm=document.getElementById('offersNoMatch');if(nm)nm.style.display=(q&&m===0)?'block':'none';}catch(e){}}
+function wire(){try{var q=document.getElementById('q');if(!q||q.__v237Wired)return false;q.__v237Wired=true;q.addEventListener('input',function(){if(isOT())apply(q.value);},true);q.addEventListener('keyup',function(){if(isOT())apply(q.value);},true);return true;}catch(e){return false;}}
+function boot(){if(window.__v237Init)return;window.__v237Init=true;setTimeout(nuke,300);setTimeout(nuke,900);setTimeout(nuke,2000);var t=0;(function retry(){wire();t++;if(t<30)setTimeout(retry,200);})();try{if(typeof window.switchTab==='function'&&!window.switchTab.__v237Wrapped){var o=window.switchTab;window.switchTab=function(tn){var r;try{r=o.apply(this,arguments);}catch(e){}if(tn==='offers'){setTimeout(function(){nuke();wire();if(lastQ)apply(lastQ);},60);setTimeout(nuke,400);}else{lastQ='';var l=document.getElementById('offersList');if(l){var c=l.querySelectorAll('.cardBig');for(var i=0;i<c.length;i++)c[i].style.display='';}}return r;};window.switchTab.__v237Wrapped=true;}}catch(e){}try{if(typeof window.renderOffers==='function'&&!window.renderOffers.__v237Wrapped){var oR=window.renderOffers;window.renderOffers=function(){var r;try{r=oR.apply(this,arguments);}catch(e){}setTimeout(function(){nuke();if(lastQ&&isOT())apply(lastQ);},20);return r;};window.renderOffers.__v237Wrapped=true;}}catch(e){}}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,300);});else setTimeout(boot,300);})();</script>
 <style id="v238-offers-cleanup-css">
 .v181-quick-chip,[data-quick="expiring"],[data-quick="value"],[data-quick="topvalue"]{display:none!important}
 </style>
-<script id="v238-nuke-chips">(function(){
-  'use strict';
-  function nuke(){try{var c=document.querySelectorAll('.v181-quick-chip, [data-quick="expiring"], [data-quick="value"], [data-quick="topvalue"]'); var p=[]; for(var i=0;i<c.length;i++){var pp=c[i].parentNode; if(pp&&p.indexOf(pp)===-1)p.push(pp);} for(var j=0;j<c.length;j++){try{c[j].parentNode&&c[j].parentNode.removeChild(c[j]);}catch(e){}} for(var k=0;k<p.length;k++){if(p[k].children.length===0){try{p[k].parentNode&&p[k].parentNode.removeChild(p[k]);}catch(e){}}}}catch(e){}}
-  function boot(){if(window.__v238Init)return; window.__v238Init=true; setTimeout(nuke,250); setTimeout(nuke,700); setTimeout(nuke,1500); try{if(typeof window.switchTab==='function'&&!window.switchTab.__v238Wrapped){var o=window.switchTab; window.switchTab=function(tn){var r;try{r=o.apply(this,arguments);}catch(e){}if(tn==='offers'){setTimeout(nuke,60);setTimeout(nuke,300);} return r;}; window.switchTab.__v238Wrapped=true;}}catch(e){} try{if(typeof window.renderOffers==='function'&&!window.renderOffers.__v238Wrapped){var oR=window.renderOffers; window.renderOffers=function(){var r;try{r=oR.apply(this,arguments);}catch(e){}setTimeout(nuke,30); return r;}; window.renderOffers.__v238Wrapped=true;}}catch(e){} try{var t=document.getElementById('offers'); if(t&&!t.__v238Observed){var mo=new MutationObserver(function(){if(mo.__p)return; mo.__p=true; (window.requestAnimationFrame||function(cb){setTimeout(cb,16);})(function(){mo.__p=false; nuke();});}); mo.observe(t,{childList:true,subtree:true}); t.__v238Observed=true;}}catch(e){}}
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,300);}); else setTimeout(boot,300);
-})();</script>
+<script id="v238-nuke-chips">(function(){'use strict';
+function nuke(){try{var c=document.querySelectorAll('.v181-quick-chip, [data-quick="expiring"], [data-quick="value"], [data-quick="topvalue"]');var p=[];for(var i=0;i<c.length;i++){var pp=c[i].parentNode;if(pp&&p.indexOf(pp)===-1)p.push(pp);}for(var j=0;j<c.length;j++){try{c[j].parentNode&&c[j].parentNode.removeChild(c[j]);}catch(e){}}for(var k=0;k<p.length;k++){if(p[k].children.length===0){try{p[k].parentNode&&p[k].parentNode.removeChild(p[k]);}catch(e){}}}}catch(e){}}
+function boot(){if(window.__v238Init)return;window.__v238Init=true;setTimeout(nuke,250);setTimeout(nuke,700);setTimeout(nuke,1500);try{if(typeof window.switchTab==='function'&&!window.switchTab.__v238Wrapped){var o=window.switchTab;window.switchTab=function(tn){var r;try{r=o.apply(this,arguments);}catch(e){}if(tn==='offers'){setTimeout(nuke,60);setTimeout(nuke,300);}return r;};window.switchTab.__v238Wrapped=true;}}catch(e){}try{if(typeof window.renderOffers==='function'&&!window.renderOffers.__v238Wrapped){var oR=window.renderOffers;window.renderOffers=function(){var r;try{r=oR.apply(this,arguments);}catch(e){}setTimeout(nuke,30);return r;};window.renderOffers.__v238Wrapped=true;}}catch(e){}try{var t=document.getElementById('offers');if(t&&!t.__v238Observed){var mo=new MutationObserver(function(){if(mo.__p)return;mo.__p=true;(window.requestAnimationFrame||function(cb){setTimeout(cb,16);})(function(){mo.__p=false;nuke();});});mo.observe(t,{childList:true,subtree:true});t.__v238Observed=true;}}catch(e){}}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,300);});else setTimeout(boot,300);})();</script>
 <style id="v239-audit-css">
 button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--brand,#2563eb);outline-offset:2px;border-radius:6px}
 body,main{overflow-x:hidden}
 main{max-width:100%}
 </style>
-<script id="v239-audit-sweep">(function(){
-  'use strict';
-  var V239=window.__v239=window.__v239||{};
-  function dedupe(){try{var all=document.querySelectorAll('[id]'); var by={}; for(var i=0;i<all.length;i++){var id=all[i].id; if(!id)continue; if(!by[id])by[id]=[]; by[id].push(all[i]);} var kn=['heroLogForm','heroLogMerchant','heroLogCard','heroLogAmount','heroLogPreview','locManual','locManualResult']; for(var x=0;x<kn.length;x++){var did=kn[x]; var els=by[did]; if(!els||els.length<=1)continue; var ch=null; for(var j=0;j<els.length;j++){if(els[j].closest('.panel.active')||els[j].closest('.hero')){ch=els[j];break;}} if(!ch)ch=els[0]; for(var k=0;k<els.length;k++){if(els[k]===ch)continue; try{els[k].removeAttribute('id');}catch(e){}}}}catch(e){}}
-  function installEsc(){try{if(window.__v239Escape)return; window.__v239Escape=true; document.addEventListener('keydown',function(e){if(e.key!=='Escape')return; var ov=document.querySelectorAll('.modal-overlay.show, .v122-edit-overlay, .v234-overlay, .drawer-overlay.open'); if(!ov.length)return; for(var i=0;i<ov.length;i++){try{if(ov[i].parentNode)ov[i].parentNode.removeChild(ov[i]);}catch(_){}} try{document.body.style.overflow='';}catch(_){} e.stopImmediatePropagation();},true);}catch(e){}}
-  function unlock(){try{if(document.body.style.overflow==='hidden'&&!document.querySelector('.modal-overlay.show, .v234-overlay.show, .drawer.open'))document.body.style.overflow='';}catch(e){}}
-  function silence(){try{if(console.__v239Silenced)return; console.__v239OrigLog=console.log; console.__v239OrigWarn=console.warn; console.log=function(){}; console.warn=function(){}; console.__v239Silenced=true;}catch(e){}}
-  function mobile(){try{var q=document.getElementById('q'); if(!q||q.__v239MF)return; q.__v239MF=true; q.style.pointerEvents='auto'; var cs=window.getComputedStyle(q); var fs=parseFloat(cs.fontSize); if(fs&&fs<16)q.style.fontSize='16px';}catch(e){}}
-  function pass(){dedupe(); unlock(); mobile();}
-  function boot(){if(window.__v239Init)return; window.__v239Init=true; silence(); installEsc(); setTimeout(pass,400); setTimeout(pass,1200); try{if(typeof window.switchTab==='function'&&!window.switchTab.__v239Wrapped){var o=window.switchTab; window.switchTab=function(){var r;try{r=o.apply(this,arguments);}catch(e){}setTimeout(pass,60); return r;}; window.switchTab.__v239Wrapped=true;}}catch(e){} V239.unsilence=function(){if(console.__v239OrigLog)console.log=console.__v239OrigLog; if(console.__v239OrigWarn)console.warn=console.__v239OrigWarn; console.__v239Silenced=false;};}
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,250);}); else setTimeout(boot,250);
-})();</script>
-<script id="v241-delete-and-home-rebuild">(function(){
-  'use strict';
-  var V241=window.__v241=window.__v241||{}; var currentId=null;
-  var TX_KEYS=['walletiq_transactions','walletiq_tx_v13','walletiq_tx'];
-  function readAll(){for(var i=0;i<TX_KEYS.length;i++){try{var v=localStorage.getItem(TX_KEYS[i]); if(v){var p=JSON.parse(v); if(Array.isArray(p))return {arr:p,key:TX_KEYS[i]};}}catch(e){}} return {arr:[],key:TX_KEYS[0]};}
-  function rerender(){try{if(typeof window.renderRewardsHero==='function')window.renderRewardsHero();}catch(e){} try{if(typeof window.renderOverview==='function')window.renderOverview();}catch(e){} try{if(typeof window.renderMissedSummary==='function')window.renderMissedSummary();}catch(e){} try{if(typeof window.renderSubscriptions==='function')window.renderSubscriptions();}catch(e){} try{if(typeof window.renderTxList==='function')window.renderTxList();}catch(e){} try{if(typeof window.buildMonthPills==='function')window.buildMonthPills();}catch(e){} try{if(typeof window.renderCapWidget==='function')window.renderCapWidget();}catch(e){} try{if(typeof window.renderAppliedList==='function')window.renderAppliedList();}catch(e){} try{if(typeof window.renderHome==='function')window.renderHome();}catch(e){}}
-  function directDel(id){if(!id)return false; var d=readAll(); var b=d.arr.length; var f=d.arr.filter(function(t){return t&&t.id!==id;}); if(f.length===b)return false; try{localStorage.setItem(d.key,JSON.stringify(f));}catch(e){return false;} for(var i=0;i<TX_KEYS.length;i++){if(TX_KEYS[i]===d.key)continue; try{localStorage.setItem(TX_KEYS[i],JSON.stringify(f));}catch(e){}} return true;}
-  document.addEventListener('click',function(e){try{var t=e.target; if(!t||!t.closest)return; var b=t.closest('button'); if(!b)return; var oc=b.getAttribute('onclick')||''; var m=oc.match(/deleteTx\(['"]([^'"]+)['"]\)/); if(m)currentId=m[1];}catch(err){}},true);
-  function hijack(ov){if(!ov||ov.__v241Hijacked)return; ov.__v241Hijacked=true; try{var db=ov.querySelector('.danger, .v166-danger, [class*="danger"]'); if(!db)return; db.addEventListener('click',function(e){var id=currentId; if(!id)return; var ok=directDel(id); currentId=null; if(ok){ov.classList.remove('show'); try{if(ov.parentNode)ov.parentNode.removeChild(ov);}catch(err){} e.stopImmediatePropagation(); e.preventDefault(); rerender();}},true);}catch(err){}}
-  function install(){try{if(window.__v241Obs)return; var mo=new MutationObserver(function(muts){for(var i=0;i<muts.length;i++){var add=muts[i].addedNodes; for(var j=0;j<add.length;j++){var n=add[j]; if(!n||n.nodeType!==1)continue; if(n.classList&&(n.classList.contains('v179-confirm-overlay')||n.classList.contains('v166-modal-overlay')))hijack(n); try{if(n.querySelectorAll){var d=n.querySelectorAll('.v179-confirm-overlay, .v166-modal-overlay'); for(var k=0;k<d.length;k++)hijack(d[k]);}}catch(err){}}}}); mo.observe(document.documentElement,{childList:true,subtree:false}); if(document.body)mo.observe(document.body,{childList:true,subtree:false}); window.__v241Obs=mo;}catch(e){}}
-  function clearHome(){try{var q=document.getElementById('q'); if(q&&q.value){q.value=''; try{q.dispatchEvent(new Event('input',{bubbles:true}));}catch(e){}} var ac=document.getElementById('autocomplete'); if(ac)ac.classList.remove('show'); var t=document.getElementById('v226-home-tiles'); if(t)t.removeAttribute('data-v227-hidden'); var em=document.getElementById('emptyWalletState'); if(em)em.removeAttribute('data-v227-search-hide');}catch(e){}}
-  function wrapSave(){try{if(typeof window.saveTxFromModal!=='function'||window.saveTxFromModal.__v241W)return false; var o=window.saveTxFromModal; window.saveTxFromModal=function(){var r;try{r=o.apply(this,arguments);}catch(e){} clearHome(); try{if(typeof window.renderHome==='function')window.renderHome();}catch(e){} return r;}; window.saveTxFromModal.__v241W=true; return true;}catch(e){return false;}}
-  function boot(){if(window.__v241Init)return; window.__v241Init=true; try{if(window.__v240)window.__v240.__disabled=true;}catch(e){} install(); var t=0;(function retry(){wrapSave(); t++; if(t<30)setTimeout(retry,200);})(); V241.deleteTx=directDel; V241.rerender=rerender;}
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,300);}); else setTimeout(boot,300);
-})();</script>
-<style id="v242-ladder-css">
-.v122-prog-card[data-v242-fixed] .v122-redeem-row.v242-fixed{opacity:1}
+<script id="v239-audit-sweep">(function(){'use strict';var V239=window.__v239=window.__v239||{};
+function dedupe(){try{var all=document.querySelectorAll('[id]');var by={};for(var i=0;i<all.length;i++){var id=all[i].id;if(!id)continue;if(!by[id])by[id]=[];by[id].push(all[i]);}var kn=['heroLogForm','heroLogMerchant','heroLogCard','heroLogAmount','heroLogPreview','locManual','locManualResult'];for(var x=0;x<kn.length;x++){var did=kn[x];var els=by[did];if(!els||els.length<=1)continue;var ch=null;for(var j=0;j<els.length;j++){if(els[j].closest('.panel.active')||els[j].closest('.hero')){ch=els[j];break;}}if(!ch)ch=els[0];for(var k=0;k<els.length;k++){if(els[k]===ch)continue;try{els[k].removeAttribute('id');}catch(e){}}}}catch(e){}}
+function installEsc(){try{if(window.__v239Escape)return;window.__v239Escape=true;document.addEventListener('keydown',function(e){if(e.key!=='Escape')return;var ov=document.querySelectorAll('.modal-overlay.show, .v122-edit-overlay, .v234-overlay, .drawer-overlay.open');if(!ov.length)return;for(var i=0;i<ov.length;i++){try{if(ov[i].parentNode)ov[i].parentNode.removeChild(ov[i]);}catch(_){}}try{document.body.style.overflow='';}catch(_){}e.stopImmediatePropagation();},true);}catch(e){}}
+function unlock(){try{if(document.body.style.overflow==='hidden'&&!document.querySelector('.modal-overlay.show, .v234-overlay.show, .drawer.open'))document.body.style.overflow='';}catch(e){}}
+function silence(){try{if(console.__v239Silenced)return;console.__v239OrigLog=console.log;console.__v239OrigWarn=console.warn;console.log=function(){};console.warn=function(){};console.__v239Silenced=true;}catch(e){}}
+function mobile(){try{var q=document.getElementById('q');if(!q||q.__v239MF)return;q.__v239MF=true;q.style.pointerEvents='auto';var cs=window.getComputedStyle(q);var fs=parseFloat(cs.fontSize);if(fs&&fs<16)q.style.fontSize='16px';}catch(e){}}
+function pass(){dedupe();unlock();mobile();}
+function boot(){if(window.__v239Init)return;window.__v239Init=true;silence();installEsc();setTimeout(pass,400);setTimeout(pass,1200);try{if(typeof window.switchTab==='function'&&!window.switchTab.__v239Wrapped){var o=window.switchTab;window.switchTab=function(){var r;try{r=o.apply(this,arguments);}catch(e){}setTimeout(pass,60);return r;};window.switchTab.__v239Wrapped=true;}}catch(e){}V239.unsilence=function(){if(console.__v239OrigLog)console.log=console.__v239OrigLog;if(console.__v239OrigWarn)console.warn=console.__v239OrigWarn;console.__v239Silenced=false;};}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,250);});else setTimeout(boot,250);})();</script>
+<script id="v241-delete-and-home-rebuild">(function(){'use strict';
+var V241=window.__v241=window.__v241||{};var currentId=null;
+var TX_KEYS=['walletiq_transactions','walletiq_tx_v13','walletiq_tx'];
+function readAll(){for(var i=0;i<TX_KEYS.length;i++){try{var v=localStorage.getItem(TX_KEYS[i]);if(v){var p=JSON.parse(v);if(Array.isArray(p))return {arr:p,key:TX_KEYS[i]};}}catch(e){}}return {arr:[],key:TX_KEYS[0]};}
+function rerender(){try{if(typeof window.renderRewardsHero==='function')window.renderRewardsHero();}catch(e){}try{if(typeof window.renderOverview==='function')window.renderOverview();}catch(e){}try{if(typeof window.renderMissedSummary==='function')window.renderMissedSummary();}catch(e){}try{if(typeof window.renderSubscriptions==='function')window.renderSubscriptions();}catch(e){}try{if(typeof window.renderTxList==='function')window.renderTxList();}catch(e){}try{if(typeof window.buildMonthPills==='function')window.buildMonthPills();}catch(e){}try{if(typeof window.renderCapWidget==='function')window.renderCapWidget();}catch(e){}try{if(typeof window.renderAppliedList==='function')window.renderAppliedList();}catch(e){}try{if(typeof window.renderHome==='function')window.renderHome();}catch(e){}}
+function directDel(id){if(!id)return false;var d=readAll();var b=d.arr.length;var f=d.arr.filter(function(t){return t&&t.id!==id;});if(f.length===b)return false;if(window.WalletIQState){window.WalletIQState.set(d.key,f);for(var i=0;i<TX_KEYS.length;i++){if(TX_KEYS[i]===d.key)continue;window.WalletIQState.set(TX_KEYS[i],f);}}else{try{localStorage.setItem(d.key,JSON.stringify(f));}catch(e){return false;}for(var i2=0;i2<TX_KEYS.length;i2++){if(TX_KEYS[i2]===d.key)continue;try{localStorage.setItem(TX_KEYS[i2],JSON.stringify(f));}catch(e){}}}return true;}
+document.addEventListener('click',function(e){try{var t=e.target;if(!t||!t.closest)return;var b=t.closest('button');if(!b)return;var oc=b.getAttribute('onclick')||'';var m=oc.match(/deleteTx\(['"]([^'"]+)['"]\)/);if(m)currentId=m[1];}catch(err){}},true);
+function hijack(ov){if(!ov||ov.__v241Hijacked)return;ov.__v241Hijacked=true;try{var db=ov.querySelector('.danger, .v166-danger, [class*="danger"]');if(!db)return;db.addEventListener('click',function(e){var id=currentId;if(!id)return;var ok=directDel(id);currentId=null;if(ok){ov.classList.remove('show');try{if(ov.parentNode)ov.parentNode.removeChild(ov);}catch(err){}e.stopImmediatePropagation();e.preventDefault();rerender();}},true);}catch(err){}}
+function install(){try{if(window.__v241Obs)return;var mo=new MutationObserver(function(muts){for(var i=0;i<muts.length;i++){var add=muts[i].addedNodes;for(var j=0;j<add.length;j++){var n=add[j];if(!n||n.nodeType!==1)continue;if(n.classList&&(n.classList.contains('v179-confirm-overlay')||n.classList.contains('v166-modal-overlay')))hijack(n);try{if(n.querySelectorAll){var d=n.querySelectorAll('.v179-confirm-overlay, .v166-modal-overlay');for(var k=0;k<d.length;k++)hijack(d[k]);}}catch(err){}}}});mo.observe(document.documentElement,{childList:true,subtree:false});if(document.body)mo.observe(document.body,{childList:true,subtree:false});window.__v241Obs=mo;}catch(e){}}
+function clearHome(){try{var q=document.getElementById('q');if(q&&q.value){q.value='';try{q.dispatchEvent(new Event('input',{bubbles:true}));}catch(e){}}var ac=document.getElementById('autocomplete');if(ac)ac.classList.remove('show');var t=document.getElementById('v226-home-tiles');if(t)t.removeAttribute('data-v227-hidden');var em=document.getElementById('emptyWalletState');if(em)em.removeAttribute('data-v227-search-hide');}catch(e){}}
+function wrapSave(){try{if(typeof window.saveTxFromModal!=='function'||window.saveTxFromModal.__v241W)return false;var o=window.saveTxFromModal;window.saveTxFromModal=function(){var r;try{r=o.apply(this,arguments);}catch(e){}clearHome();try{if(typeof window.renderHome==='function')window.renderHome();}catch(e){}return r;};window.saveTxFromModal.__v241W=true;return true;}catch(e){return false;}}
+function boot(){if(window.__v241Init)return;window.__v241Init=true;install();var t=0;(function retry(){wrapSave();t++;if(t<30)setTimeout(retry,200);})();V241.deleteTx=directDel;V241.rerender=rerender;}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,300);});else setTimeout(boot,300);})();</script>
+<style id="v242-ladder-css">.v122-prog-card[data-v242-fixed] .v122-redeem-row.v242-fixed{opacity:1}</style>
+<script id="v242-ladder-summary-fix">(function(){'use strict';
+var V242=window.__v242=window.__v242||{};var DOLLAR_PROGS={rogerscash:1,rogers:1,rogerscashback:1,westjetdollars:1,westjet:1,morerewards:1,more:1,mbnacashback:1,cashback:1,scotiabankcashback:1};
+function isDollarProg(p){if(!p)return false;var c=String(p).toLowerCase().replace(/[^a-z0-9]+/g,'');return !!DOLLAR_PROGS[c];}
+function canon(s){return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'');}
+function readJSON(k,fb){try{var v=localStorage.getItem(k);if(v==null)return fb;return JSON.parse(v);}catch(e){return fb;}}
+function getBal(p){try{var m=readJSON('walletiq_memberships',[]);if(!Array.isArray(m))return null;var pC=canon(p);for(var i=0;i<m.length;i++){var e=m[i];if(!e)continue;var mt=canon(e.key)===pC||canon(e.programKey)===pC||canon(e.program)===pC;if(!mt)continue;if(e.__v234Baseline!=null)return Number(e.__v234Baseline);if(e.__v106ManualBaseline!=null)return Number(e.__v106ManualBaseline);if(e.balance!=null)return Number(e.balance);}}catch(e){}return null;}
+function fmtM(v){var n=v<0;v=Math.abs(v);var s;if(v>=1000)s='$'+Math.round(v).toLocaleString();else if(v>=10)s='$'+v.toFixed(0);else if(v>0)s='$'+v.toFixed(2);else s='$0';return n?'-'+s:s;}
+function escH(s){try{var d=document.createElement('div');d.textContent=String(s==null?'':s);return d.innerHTML;}catch(e){return '';}}
+function fixCard(card){try{var p=card.getAttribute('data-prog');if(!p)return;var m=getBal(p);if(m==null)return;var d=isDollarProg(p);var b=card.querySelector('.v122-prog-bal-num');if(b)b.textContent=d?m.toFixed(2).replace(/\.00$/,''):Math.round(m).toLocaleString();var rows=card.querySelectorAll('.v122-redeem-row');var bestV=-1;var bestL='';for(var i=0;i<rows.length;i++){var r=rows[i];var ce=r.querySelector('.v122-redeem-cpp');var ve=r.querySelector('.v122-redeem-v');var le=r.querySelector('.v122-redeem-lbl');if(!ce||!ve)continue;var cn=parseFloat((ce.textContent||'').replace(/[^0-9.]/g,''));if(!isFinite(cn))continue;var v=d?m*(cn/100):(m*cn)/100;ve.textContent=fmtM(v);r.classList.add('v242-fixed');if(v>bestV){bestV=v;bestL=le?(le.textContent||'').trim():'';}}var big=card.querySelector('.v122-prog-bal-val');if(big&&bestV>0){big.style.color='';big.innerHTML='\u2248 '+fmtM(bestV)+' <small>via '+escH(bestL||'best rate')+'</small>';}card.setAttribute('data-v242-fixed','1');}catch(e){}}
+function patchAll(){try{var c=document.querySelectorAll('.v122-prog-card[data-prog]');for(var i=0;i<c.length;i++)fixCard(c[i]);}catch(e){}}
+function boot(){if(window.__v242Init)return;window.__v242Init=true;setTimeout(patchAll,350);setTimeout(patchAll,900);setTimeout(patchAll,2500);try{if(typeof window.switchTab==='function'&&!window.switchTab.__v242Wrapped){var o=window.switchTab;window.switchTab=function(tn){var r;try{r=o.apply(this,arguments);}catch(e){}if(tn==='rewards'){setTimeout(patchAll,80);setTimeout(patchAll,350);}return r;};window.switchTab.__v242Wrapped=true;}}catch(e){}try{if(typeof window.renderVaultV122==='function'&&!window.renderVaultV122.__v242Wrapped){var oR=window.renderVaultV122;window.renderVaultV122=function(){var r;try{r=oR.apply(this,arguments);}catch(e){}setTimeout(patchAll,20);return r;};window.renderVaultV122.__v242Wrapped=true;}}catch(e){}try{document.addEventListener('v82:refresh',function(){setTimeout(patchAll,50);setTimeout(patchAll,300);});}catch(e){}try{document.addEventListener('walletiq:statechange',function(ev){if(ev&&ev.detail&&ev.detail.key==='walletiq_memberships'){setTimeout(patchAll,20);}});}catch(e){}try{if(typeof window.saveTxFromModal==='function'&&!window.saveTxFromModal.__v242W){var oS=window.saveTxFromModal;window.saveTxFromModal=function(){var r;try{r=oS.apply(this,arguments);}catch(e){}setTimeout(patchAll,100);setTimeout(patchAll,500);return r;};window.saveTxFromModal.__v242W=true;}}catch(e){}var setup=function(){try{var vp=document.getElementById('vaultPrograms')||document.getElementById('v122-vault');if(!vp)return false;if(vp.__v242Observed)return true;var mo=new MutationObserver(function(){if(mo.__p)return;mo.__p=true;(window.requestAnimationFrame||function(cb){setTimeout(cb,16);})(function(){mo.__p=false;patchAll();});});mo.observe(vp,{childList:true,subtree:false});vp.__v242Observed=true;return true;}catch(e){return false;}};var t=0;(function retry(){if(setup())return;t++;if(t<30)setTimeout(retry,250);})();V242.patchNow=patchAll;}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,400);});else setTimeout(boot,400);})();</script>
+<script id="v243-where-to-pay-fix">(function(){'use strict';
+var V243=window.__v243=window.__v243||{};
+var GENERIC=/^(yes|no|building|commercial|residential|apartments|house|unclassified|way|node|relation|street|road|highway|footway|path)$/i;
+function isReasonable(name,data){if(!name||typeof name!=='string')return false;var s=name.trim();if(s.length<2)return false;if(/^\d+$/.test(s))return false;if(GENERIC.test(s))return false;if(data&&data.address){var a=data.address;var lc=s.toLowerCase();if(a.road&&a.road.toLowerCase()===lc)return false;if(a.street&&a.street.toLowerCase()===lc)return false;if(a.pedestrian&&a.pedestrian.toLowerCase()===lc)return false;}return true;}
+function extractMerchant(data){if(!data)return {name:null,confidence:'none',displayName:''};var dn='';if(data.address){var a=data.address;dn=[a.road,a.suburb||a.neighbourhood,a.city||a.town||a.village].filter(Boolean).join(', ');}var cs=[];if(data.namedetails&&typeof data.namedetails==='object'){var nd=data.namedetails;if(typeof nd.name==='string')cs.push(nd.name);if(typeof nd['name:en']==='string')cs.push(nd['name:en']);if(typeof nd.brand==='string')cs.push(nd.brand);if(typeof nd.operator==='string')cs.push(nd.operator);if(typeof nd.official_name==='string')cs.push(nd.official_name);}if(typeof data.name==='string')cs.push(data.name);if(data.address){var ad=data.address;var af=['shop','amenity','tourism','leisure','office','craft','building','healthcare','sport','historic','man_made'];for(var i=0;i<af.length;i++){var v=ad[af[i]];if(typeof v==='string')cs.push(v);}}if(data.extratags&&typeof data.extratags==='object'){var et=data.extratags;if(typeof et.brand==='string')cs.push(et.brand);if(typeof et.operator==='string')cs.push(et.operator);}for(var j=0;j<cs.length;j++){if(isReasonable(cs[j],data)){return {name:cs[j],confidence:'high',displayName:dn};}}if(typeof data.display_name==='string'){var first=data.display_name.split(',')[0].trim();if(isReasonable(first,data)&&first.length>=3&&!/^\d/.test(first)){return {name:first,confidence:'medium',displayName:dn};}}return {name:null,confidence:'low',displayName:dn};}
+V243.extractMerchant=extractMerchant;
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function nrm(n){try{if(window.__v162&&typeof window.__v162.normalizeMerchantName==='function')return window.__v162.normalizeMerchantName(n);}catch(e){}return String(n||'').trim();}
+function bestC(m){if(typeof window.findBestCard!=='function')return null;try{return window.findBestCard(m);}catch(e){return null;}}
+function renderResult(data,lat,lon){var el=document.getElementById('locResult');if(!el)return;var info=extractMerchant(data);var dn=info.displayName||(lat.toFixed(5)+', '+lon.toFixed(5));if(!info.name){el.innerHTML='<div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px;margin-top:6px;box-shadow:var(--shadow)"><div class="v162-nearby-badge">\uD83D\uDCCD Located</div><div style="font-size:15.5px;font-weight:900;letter-spacing:-.02em;margin-bottom:2px">You are here</div><div style="font-size:12px;color:var(--muted);font-weight:700;margin-bottom:12px">'+esc(dn)+'</div><div class="info-box">This spot doesn\u2019t match a specific business. Type the merchant name above to look it up.</div></div><div style="text-align:center;margin-top:10px"><button class="v162-retry-btn" onclick="window.__v162 && window.__v162.runDetect()">\uD83D\uDD04 Try again</button></div>';return;}var lookup=nrm(info.name)||info.name;var result=bestC(lookup);var badge=info.confidence==='high'?'<div class="v162-detected-badge">\uD83D\uDCCD Detected</div>':'<div class="v162-nearby-badge">\uD83D\uDCCD Nearby</div>';var bc=info.confidence==='high'?'1.5px solid var(--green)':'1px solid var(--border)';var html='<div style="background:var(--surface);border:'+bc+';border-radius:16px;padding:16px;margin-top:6px;box-shadow:var(--shadow)">'+badge+'<div style="font-size:18px;font-weight:900;letter-spacing:-.02em;margin-bottom:2px">'+esc(info.name)+'</div>';if(dn)html+='<div style="font-size:11px;color:var(--muted);font-weight:700;margin-bottom:14px">'+esc(dn)+'</div>';if(!result){html+='<div class="warn-box">Card recommender not ready. Try again.</div>';}else if(result.empty){html+='<div class="warn-box">Add cards to your wallet first.</div>';}else if(result.noCompatibleCard){html+='<div class="warn-box">\u26A0\uFE0F None of your cards match this merchant.</div>';}else{var b=result.best,c=b.card;var ck='cobalt';try{if(typeof CARDS_DB!=='undefined'){for(var k in CARDS_DB){if(CARDS_DB[k]&&CARDS_DB[k].n===c.n){ck=k;break;}}}}catch(e){}var svg='';try{if(typeof window.svgCard==='function')svg=window.svgCard(c,ck);}catch(e){}html+='<div style="background:var(--surface-2);border-radius:14px;padding:14px;margin-bottom:10px"><div style="font-size:9.5px;color:var(--muted);font-weight:900;letter-spacing:.1em;text-transform:uppercase;text-align:center;margin-bottom:10px">Use this card</div>'+(svg?'<div style="display:flex;justify-content:center;margin-bottom:12px">'+svg+'</div>':'')+'<div style="font-size:18px;font-weight:900;letter-spacing:-.02em;margin-top:4px;text-align:center">'+esc(c.n||'')+'</div><div style="font-family:ui-monospace,monospace;font-size:14px;font-weight:900;color:var(--green);margin-top:4px;text-align:center">Up to '+(b.rate||0).toFixed(1)+'% here</div></div>';html+='<div style="font-size:11.5px;color:var(--muted);font-weight:700;line-height:1.5"><b style="color:var(--ink)">Why:</b> '+esc(c.w||'Best rate from your wallet.')+'</div>';if(result.alternatives&&result.alternatives.length){html+='<div class="alt-cards"><div class="alt-title">Other cards in your wallet</div>';for(var ai=0;ai<Math.min(3,result.alternatives.length);ai++){var al=result.alternatives[ai];html+='<div class="alt-item"><span class="name">'+esc(al.card.n)+'</span><span class="rate">'+(al.rate||0).toFixed(1)+'%</span></div>';}html+='</div>';}}html+='</div>';el.innerHTML=html;}
+V243.renderResult=renderResult;
+function ft(url,opts,ms){opts=opts||{};return new Promise(function(resolve,reject){var ac=null,timer=null;try{if(typeof AbortController==='function'){ac=new AbortController();opts.signal=ac.signal;}}catch(_){}timer=setTimeout(function(){try{if(ac)ac.abort();}catch(_){}reject(new Error('timeout'));},ms);fetch(url,opts).then(function(r){clearTimeout(timer);if(!r.ok){reject(new Error('http '+r.status));return;}resolve(r);}).catch(function(err){clearTimeout(timer);reject(err);});});}
+function geo(){return new Promise(function(resolve,reject){if(!navigator.geolocation){reject(new Error('unsupported'));return;}navigator.geolocation.getCurrentPosition(function(pos){resolve(pos);},function(){navigator.geolocation.getCurrentPosition(function(pos){resolve(pos);},function(err2){reject(err2);},{enableHighAccuracy:true,timeout:15000,maximumAge:60000});},{enableHighAccuracy:false,timeout:5000,maximumAge:300000});});}
+function renderStatus(ico,title,sub,retry){var el=document.getElementById('locResult');if(!el)return;var rH=retry?'<button class="v162-retry-btn" onclick="window.__v162 && window.__v162.runDetect()">\uD83D\uDD04 Try again</button>':'';el.innerHTML='<div class="v162-status-card"><div class="big">'+ico+'</div><h3>'+esc(title)+'</h3>'+(sub?'<p>'+sub+'</p>':'')+'<p style="margin-top:10px">Or type the merchant above.</p>'+rH+'</div>';}
+function runDetect(){try{if(window.__v162&&typeof window.__v162.injectManualField==='function')window.__v162.injectManualField();}catch(e){}renderStatus('\uD83D\uDCCD','Detecting location\u2026','Allow location when prompted.',false);geo().then(function(pos){var lat=pos.coords.latitude,lon=pos.coords.longitude;renderStatus('\uD83D\uDD0D','Finding nearby merchant\u2026',lat.toFixed(4)+', '+lon.toFixed(4),false);var url='https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat='+lat+'&lon='+lon+'&zoom=18&addressdetails=1&namedetails=1&extratags=1';ft(url,{headers:{'Accept-Language':'en'}},8000).then(function(r){return r.json();}).then(function(data){renderResult(data,lat,lon);}).catch(function(err){var r=(err&&err.message==='timeout')?'The lookup took too long.':'The lookup didn\u2019t respond.';renderStatus('\u26A0\uFE0F','Could not identify',r+'<br><b>You are at:</b> '+lat.toFixed(5)+', '+lon.toFixed(5),true);});}).catch(function(err){var t='Location unavailable',s='Enable location or use search.';if(err&&err.code===1){t='Permission denied';s='Allow location, then Try again.';}else if(err&&err.code===3){t='Location timed out';s='Try again outdoors.';}renderStatus('\u26A0\uFE0F',t,s,true);});}
+V243.runDetect=runDetect;
+function install(){try{if(window.__v162){window.__v162.runDetect=runDetect;window.__v162.extractMerchant=extractMerchant;window.__v162.renderResult=renderResult;return true;}}catch(e){}return false;}
+function boot(){if(window.__v243Init)return;window.__v243Init=true;var t=0;(function retry(){if(install())return;t++;if(t<40)setTimeout(retry,200);})();}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,300);});else setTimeout(boot,300);})();</script>
+<style id="v245-tx-engine-css">
+/* V245 flash toast for save/delete confirmations */
+.v245-flash{position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-10px);background:linear-gradient(135deg,#1a7d3a 0%,#26a04a 100%);color:#fff;padding:12px 20px;border-radius:14px;font-weight:900;font-size:13.5px;box-shadow:0 8px 24px rgba(26,125,58,.32);z-index:99999;opacity:0;transition:opacity .22s ease,transform .3s cubic-bezier(.2,.9,.3,1.2);pointer-events:none;max-width:90vw;text-align:center;display:flex;align-items:center;gap:8px;letter-spacing:-.01em;font-family:inherit}
+.v245-flash.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.v245-flash .v245-flash-ico{font-size:18px}
+.v245-flash small{opacity:.9;font-size:11px;font-weight:800;margin-left:4px}
+body.dark .v245-flash{background:linear-gradient(135deg,#7ec894 0%,#5ea87a 100%);color:#0f0d1a}
 </style>
-<script id="v242-ladder-summary-fix">(function(){
+<script id="v245-tx-engine">(function(){
   'use strict';
-  var V242 = window.__v242 = window.__v242 || {};
-  var stats = { patches: 0, cardsFixed: 0, lastCalc: {} };
+  /* ============================================================================
+     V245 TRANSACTION ENGINE — Release 2 of the consolidation plan.
+     ============================================================================
+     Foundation: V244's WalletIQState.
+     Goal: Log Purchase → See Points Grow becomes bulletproof.
 
-  // Programs whose "balance" is DOLLARS with a MULTIPLIER cpp (Rogers Cash 1.5x etc)
-  var DOLLAR_PROGS = {
-    rogerscash: true, rogers: true, rogerscashback: true,
-    westjetdollars: true, westjet: true,
-    morerewards: true, more: true,
-    mbnacashback: true, cashback: true,
-    scotiabankcashback: true
+     Modules installed:
+     1. CleanSaveFlow — replaces saveTxFromModal with deterministic version.
+     2. CleanDeleteFlow — hijacks confirm modal + fires unified rerender.
+     3. EarningsRecalculator — subscribes to tx changes, rebuilds auto-earnings.
+     4. UnifiedRerender — single function that repaints all UI surfaces.
+     5. FlashToast — instant feedback ("+240 MR pts earned" etc)
+
+     Uses V241 delete hijack as base but adds:
+       - Explicit earnings recompute after every tx mutation
+       - Vault balance UI refresh triggered synchronously
+       - Flash toast with points earned/removed
+       - Single unified rerender path so home page + rewards + vault stay in sync
+     ============================================================================ */
+
+  var TX_KEYS = ['walletiq_transactions', 'walletiq_tx_v13', 'walletiq_tx'];
+  var stats = {
+    savesRun: 0, deletesRun: 0, editsRun: 0,
+    earningsRecomputes: 0, rerenders: 0,
+    lastError: null
   };
-  function isDollarProg(prog){
-    if (!prog) return false;
-    var c = String(prog).toLowerCase().replace(/[^a-z0-9]+/g, '');
-    return !!DOLLAR_PROGS[c];
-  }
-  function canon(s){ return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, ''); }
-  function readJSON(k, fb){ try { var v = localStorage.getItem(k); if (v == null) return fb; return JSON.parse(v); } catch(e){ return fb; } }
 
-  function getManualBalance(prog){
+  // ==========================================================================
+  // 1. UNIFIED RERENDER — ONE function, all UI surfaces, right order.
+  // ==========================================================================
+
+  function unifiedRerender(){
+    stats.rerenders++;
+    // Order matters:
+    //   (a) storage-writing engines fire first (V128 reconcile, V140 sync)
+    //   (b) THEN render pipelines that read that storage
+    try { if (typeof window.__v128Tick === 'function') window.__v128Tick(); } catch(e){}
+    try { if (window.__v140 && typeof window.__v140.sync === 'function') window.__v140.sync(); } catch(e){}
+    // Vault + rewards renderers
+    try { if (typeof window.renderVaultV122 === 'function') window.renderVaultV122(); } catch(e){}
+    try { if (window.__v242 && typeof window.__v242.patchNow === 'function') window.__v242.patchNow(); } catch(e){}
+    try { if (typeof window.renderRewardsHero === 'function') window.renderRewardsHero(); } catch(e){}
+    try { if (typeof window.renderOverview === 'function') window.renderOverview(); } catch(e){}
+    try { if (typeof window.renderMissedSummary === 'function') window.renderMissedSummary(); } catch(e){}
+    try { if (typeof window.renderSubscriptions === 'function') window.renderSubscriptions(); } catch(e){}
+    try { if (typeof window.renderTxList === 'function') window.renderTxList(); } catch(e){}
+    try { if (typeof window.buildMonthPills === 'function') window.buildMonthPills(); } catch(e){}
+    try { if (typeof window.renderCapWidget === 'function') window.renderCapWidget(); } catch(e){}
+    try { if (typeof window.renderAppliedList === 'function') window.renderAppliedList(); } catch(e){}
+    // Home tiles + hero
+    try { if (typeof window.renderHome === 'function') window.renderHome(); } catch(e){}
+  }
+
+  // ==========================================================================
+  // 2. EARNINGS RECALCULATOR — fires on tx storage change, forces V128/V140
+  //    to reconcile immediately (not on their intervals).
+  // ==========================================================================
+
+  var recomputePending = false;
+  function requestRecompute(){
+    if (recomputePending) return;
+    recomputePending = true;
+    // Give V128/V140 storage listeners a tick to react, then force sync
+    setTimeout(function(){
+      recomputePending = false;
+      stats.earningsRecomputes++;
+      try { if (typeof window.__v128Tick === 'function') window.__v128Tick(); } catch(e){}
+      try { if (window.__v140 && typeof window.__v140.sync === 'function') window.__v140.sync(); } catch(e){}
+      // After earnings are updated, refresh vault UI
+      try { if (typeof window.renderVaultV122 === 'function') window.renderVaultV122(); } catch(e){}
+      try { if (window.__v242 && typeof window.__v242.patchNow === 'function') window.__v242.patchNow(); } catch(e){}
+      try { if (typeof window.renderRewardsHero === 'function') window.renderRewardsHero(); } catch(e){}
+    }, 40);
+  }
+
+  // Subscribe to tx-key changes via V244 state manager
+  function subscribeToTxChanges(){
     try {
-      var mems = readJSON('walletiq_memberships', []);
-      if (!Array.isArray(mems)) return null;
-      var progC = canon(prog);
-      for (var i = 0; i < mems.length; i++) {
-        var m = mems[i];
-        if (!m) continue;
-        var matches = canon(m.key) === progC || canon(m.programKey) === progC || canon(m.program) === progC;
-        if (!matches) continue;
-        // Prefer manual baseline (skips auto-earn drift)
-        if (m.__v234Baseline != null) return Number(m.__v234Baseline);
-        if (m.__v106ManualBaseline != null) return Number(m.__v106ManualBaseline);
-        if (m.balance != null) return Number(m.balance);
-      }
+      if (!window.WalletIQState || typeof window.WalletIQState.onChange !== 'function') return false;
+      window.WalletIQState.onChange(function(key){
+        if (key === 'walletiq_transactions' ||
+            key === 'walletiq_tx_v13' ||
+            key === 'walletiq_tx' ||
+            key === 'walletiq_auto_earnings') {
+          requestRecompute();
+        }
+      });
+      return true;
+    } catch(e) { return false; }
+  }
+
+  // ==========================================================================
+  // 3. FLASH TOAST — instant feedback for save/delete
+  // ==========================================================================
+
+  function showFlash(icon, msg, sub){
+    try {
+      // Remove any existing flash
+      var existing = document.querySelector('.v245-flash');
+      if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
+      var flash = document.createElement('div');
+      flash.className = 'v245-flash';
+      var subHtml = sub ? '<small>' + escapeHTML(sub) + '</small>' : '';
+      flash.innerHTML = '<span class="v245-flash-ico">' + escapeHTML(icon) + '</span> ' + escapeHTML(msg) + subHtml;
+      document.body.appendChild(flash);
+      // Trigger animation
+      setTimeout(function(){ flash.classList.add('show'); }, 10);
+      // Auto-dismiss
+      setTimeout(function(){
+        flash.classList.remove('show');
+        setTimeout(function(){
+          try { if (flash.parentNode) flash.parentNode.removeChild(flash); } catch(_){}
+        }, 250);
+      }, 2200);
     } catch(e){}
-    return null;
-  }
-
-  function fmtMoney(v){
-    var neg = v < 0;
-    v = Math.abs(v);
-    var s;
-    if (v >= 1000) s = '$' + Math.round(v).toLocaleString();
-    else if (v >= 10) s = '$' + v.toFixed(0);
-    else if (v > 0) s = '$' + v.toFixed(2);
-    else s = '$0';
-    return neg ? '-' + s : s;
-  }
-
-  function fmtInt(n){
-    try { return Math.round(Number(n) || 0).toLocaleString(); } catch(e){ return String(n); }
-  }
-
-  function fixCardMath(card){
-    try {
-      var prog = card.getAttribute('data-prog');
-      if (!prog) return;
-      var manual = getManualBalance(prog);
-      if (manual == null) return;
-      var isDollar = isDollarProg(prog);
-
-      // 1) Update the BIG balance number top-left
-      var balNumEl = card.querySelector('.v122-prog-bal-num');
-      if (balNumEl) {
-        balNumEl.textContent = isDollar ? manual.toFixed(2).replace(/\.00$/, '') : fmtInt(manual);
-      }
-
-      // 2) Recompute each redemption row value with program-aware formula
-      var rows = card.querySelectorAll('.v122-redeem-row');
-      var bestValue = -1;
-      var bestLabel = '';
-      var i;
-      for (i = 0; i < rows.length; i++) {
-        var row = rows[i];
-        var cppEl = row.querySelector('.v122-redeem-cpp');
-        var vEl = row.querySelector('.v122-redeem-v');
-        var lblEl = row.querySelector('.v122-redeem-lbl');
-        if (!cppEl || !vEl) continue;
-        var cppText = cppEl.textContent || '';
-        var cppNum = parseFloat(cppText.replace(/[^0-9.]/g, ''));
-        if (!isFinite(cppNum)) continue;
-
-        var value;
-        if (isDollar) {
-          // Rogers Cash: cpp label shows "150.00\u00A2" meaning 1.5x multiplier
-          // value = balance * (cpp / 100)
-          value = manual * (cppNum / 100);
-        } else {
-          // Points programs: cpp is cents-per-point
-          // value = (balance * cpp) / 100
-          value = (manual * cppNum) / 100;
-        }
-        vEl.textContent = fmtMoney(value);
-        row.classList.add('v242-fixed');
-
-        if (value > bestValue) {
-          bestValue = value;
-          bestLabel = lblEl ? (lblEl.textContent || '').trim() : '';
-        }
-      }
-
-      // 3) *** THE CRITICAL FIX *** Update the "\u2248 $VALUE via LABEL" summary line
-      // Native class is .v122-prog-bal-val
-      var big = card.querySelector('.v122-prog-bal-val');
-      if (big && bestValue > 0) {
-        // Preserve the small tag structure by rebuilding innerHTML
-        big.style.color = ''; // remove the gray "No balance yet" style
-        big.innerHTML = '\u2248 ' + fmtMoney(bestValue)
-          + ' <small>via ' + escapeHTML(bestLabel || 'best rate') + '</small>';
-      } else if (big && manual === 0) {
-        // Balance is truly 0 - show "No balance yet" state
-        big.style.color = 'var(--muted)';
-        big.innerHTML = 'No balance yet <small>\u2014 log a transaction to auto-accrue</small>';
-      }
-
-      card.setAttribute('data-v242-fixed', '1');
-      stats.cardsFixed++;
-      stats.lastCalc[prog] = {
-        manual: manual,
-        bestValue: bestValue,
-        bestLabel: bestLabel,
-        isDollar: isDollar
-      };
-    } catch(e){
-      try { console.warn && console.__v239OrigWarn && console.__v239OrigWarn.call(console, '[V242]', e); } catch(_){}
-    }
   }
 
   function escapeHTML(s){
@@ -35233,131 +35838,943 @@ main{max-width:100%}
       var d = document.createElement('div');
       d.textContent = String(s == null ? '' : s);
       return d.innerHTML;
-    } catch(e){ return ''; }
+    } catch(e) { return ''; }
   }
 
-  function patchAllCards(){
+  // ==========================================================================
+  // 4. TX STORAGE READ HELPERS
+  // ==========================================================================
+
+  function readAllTx(){
+    for (var i = 0; i < TX_KEYS.length; i++) {
+      try {
+        var v = localStorage.getItem(TX_KEYS[i]);
+        if (v) {
+          var parsed = JSON.parse(v);
+          if (Array.isArray(parsed)) return { arr: parsed, key: TX_KEYS[i] };
+        }
+      } catch(e){}
+    }
+    return { arr: [], key: TX_KEYS[0] };
+  }
+
+  function writeAllTxSynced(arr){
+    // Write to ALL 3 tx storage keys atomically via V244 transaction()
+    if (window.WalletIQState && typeof window.WalletIQState.transaction === 'function') {
+      window.WalletIQState.transaction(function(){
+        for (var i = 0; i < TX_KEYS.length; i++) {
+          window.WalletIQState.set(TX_KEYS[i], arr);
+        }
+      });
+      return true;
+    }
+    // Fallback: direct write
+    for (var i = 0; i < TX_KEYS.length; i++) {
+      try { localStorage.setItem(TX_KEYS[i], JSON.stringify(arr)); } catch(e){}
+    }
+    return true;
+  }
+
+  // ==========================================================================
+  // 5. POINTS-EARNED CALCULATOR (for flash toast)
+  // ==========================================================================
+
+  function computeTxEarnings(tx){
+    if (!tx) return null;
     try {
-      var cards = document.querySelectorAll('.v122-prog-card[data-prog]');
-      if (!cards.length) return;
-      var i;
-      for (i = 0; i < cards.length; i++) fixCardMath(cards[i]);
-      stats.patches++;
+      // Use V128's card→program map if available
+      var cardKey = tx.card || tx.cardKey || tx.c;
+      if (!cardKey) return null;
+      var amount = parseFloat(tx.amount || tx.amt || 0);
+      if (!(amount > 0)) return null;
+      var CARDS_DB = window.CARDS_DB;
+      if (!CARDS_DB || !CARDS_DB[cardKey]) return null;
+      var card = CARDS_DB[cardKey];
+      var category = tx.category || tx.cat || 'base';
+      var rate = 1;
+      if (card.realRates && card.realRates[category] != null) rate = card.realRates[category];
+      else if (card.realRates && card.realRates.base != null) rate = card.realRates.base;
+      var dollarsEarned = (amount * rate) / 100;
+      return {
+        dollarsEarned: dollarsEarned,
+        rate: rate,
+        cardName: card.n || cardKey,
+        category: category
+      };
+    } catch(e) { return null; }
+  }
+
+  function fmtMoney(n){
+    if (!isFinite(n)) n = 0;
+    if (Math.abs(n) < 0.01) return '$0.00';
+    return '$' + n.toFixed(2);
+  }
+
+  // ==========================================================================
+  // 6. CLEAN SAVE FLOW
+  // ==========================================================================
+
+  function wrapSaveTxFromModal(){
+    try {
+      if (typeof window.saveTxFromModal !== 'function') return false;
+      if (window.saveTxFromModal.__v245Wrapped) return true;
+      var orig = window.saveTxFromModal;
+      window.saveTxFromModal = function(){
+        var beforeTx = readAllTx();
+        var beforeCount = beforeTx.arr.length;
+        // Call original save (writes to storage)
+        var r;
+        try { r = orig.apply(this, arguments); } catch(e) { stats.lastError = e && e.message; }
+        stats.savesRun++;
+        // Detect the newly-added transaction (last one added)
+        var afterTx = readAllTx();
+        var newTx = null;
+        if (afterTx.arr.length > beforeCount) {
+          // Find the delta
+          newTx = afterTx.arr[afterTx.arr.length - 1];
+        }
+        // Mark as user-created via V244 lockTransaction if available
+        if (newTx && window.WalletIQState && typeof window.WalletIQState.lockTransaction === 'function') {
+          try { window.WalletIQState.lockTransaction(newTx); } catch(e){}
+        }
+        // Clear home search input so Explore tiles come back
+        try {
+          var q = document.getElementById('q');
+          if (q && q.value) {
+            q.value = '';
+            try { q.dispatchEvent(new Event('input', { bubbles: true })); } catch(e){}
+          }
+          var ac = document.getElementById('autocomplete');
+          if (ac) ac.classList.remove('show');
+          var tiles = document.getElementById('v226-home-tiles');
+          if (tiles) tiles.removeAttribute('data-v227-hidden');
+          var empty = document.getElementById('emptyWalletState');
+          if (empty) empty.removeAttribute('data-v227-search-hide');
+        } catch(e){}
+        // Compute earnings for flash
+        var flashSub = '';
+        if (newTx) {
+          var earn = computeTxEarnings(newTx);
+          if (earn && earn.dollarsEarned > 0) {
+            flashSub = '+' + fmtMoney(earn.dollarsEarned) + ' earned on ' + earn.cardName;
+          }
+        }
+        // Flash
+        showFlash('\u2705', 'Purchase logged', flashSub);
+        // Recompute earnings + rerender everything
+        requestRecompute();
+        setTimeout(unifiedRerender, 100);
+        return r;
+      };
+      window.saveTxFromModal.__v245Wrapped = true;
+      return true;
+    } catch(e) { return false; }
+  }
+
+  // ==========================================================================
+  // 7. CLEAN DELETE FLOW (builds on V241's hijack but adds earnings + rerender)
+  // ==========================================================================
+
+  var currentDeleteId = null;
+
+  function directDelete(id){
+    if (!id) return { ok: false };
+    var data = readAllTx();
+    var deletedTx = null;
+    var filtered = data.arr.filter(function(t){
+      if (t && t.id === id) { deletedTx = t; return false; }
+      return true;
+    });
+    if (filtered.length === data.arr.length) return { ok: false };
+    writeAllTxSynced(filtered);
+    stats.deletesRun++;
+    return { ok: true, deletedTx: deletedTx };
+  }
+
+  // Watch for confirm modal appearing, hijack Delete button at capture phase
+  function hijackConfirmModal(overlay){
+    if (!overlay || overlay.__v245Hijacked) return;
+    overlay.__v245Hijacked = true;
+    try {
+      var dangerBtn = overlay.querySelector('.danger, .v166-danger, [class*="danger"]');
+      if (!dangerBtn) return;
+      dangerBtn.addEventListener('click', function(e){
+        var id = currentDeleteId;
+        if (!id) return; // no id captured, let normal handler run
+        var result = directDelete(id);
+        currentDeleteId = null;
+        if (result.ok) {
+          // Close modal immediately
+          overlay.classList.remove('show');
+          try { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); } catch(err){}
+          e.stopImmediatePropagation();
+          e.preventDefault();
+          // Compute what was lost
+          var flashSub = '';
+          if (result.deletedTx) {
+            var earn = computeTxEarnings(result.deletedTx);
+            if (earn && earn.dollarsEarned > 0) {
+              flashSub = fmtMoney(earn.dollarsEarned) + ' rewards removed';
+            }
+          }
+          showFlash('\uD83D\uDDD1', 'Purchase deleted', flashSub);
+          // Recompute + rerender
+          requestRecompute();
+          setTimeout(unifiedRerender, 100);
+        }
+      }, true); // capture phase
+    } catch(err){}
+  }
+
+  // Capture tx id when user taps a native × delete button (parses onclick attr)
+  function installIdCapture(){
+    try {
+      document.addEventListener('click', function(e){
+        var t = e.target;
+        if (!t || !t.closest) return;
+        var btn = t.closest('button');
+        if (!btn) return;
+        var onClick = btn.getAttribute('onclick') || '';
+        var m = onClick.match(/deleteTx\(['"]([^'"]+)['"]\)/);
+        if (m) currentDeleteId = m[1];
+      }, true);
     } catch(e){}
   }
+
+  function installConfirmObserver(){
+    try {
+      if (window.__v245ConfirmObserver) return;
+      var mo = new MutationObserver(function(mutations){
+        for (var i = 0; i < mutations.length; i++) {
+          var added = mutations[i].addedNodes;
+          for (var j = 0; j < added.length; j++) {
+            var n = added[j];
+            if (!n || n.nodeType !== 1) continue;
+            if (n.classList && (
+                n.classList.contains('v179-confirm-overlay') ||
+                n.classList.contains('v166-modal-overlay')
+            )) {
+              hijackConfirmModal(n);
+            }
+            try {
+              if (n.querySelectorAll) {
+                var desc = n.querySelectorAll('.v179-confirm-overlay, .v166-modal-overlay');
+                for (var k = 0; k < desc.length; k++) hijackConfirmModal(desc[k]);
+              }
+            } catch(err){}
+          }
+        }
+      });
+      mo.observe(document.documentElement, { childList: true, subtree: false });
+      if (document.body) mo.observe(document.body, { childList: true, subtree: false });
+      window.__v245ConfirmObserver = mo;
+    } catch(e){}
+  }
+
+  // ==========================================================================
+  // 8. EDIT FLOW — wrap editTx so it also fires unified rerender + recompute
+  // ==========================================================================
+
+  function wrapEditTx(){
+    try {
+      if (typeof window.editTx !== 'function' || window.editTx.__v245Wrapped) return false;
+      var orig = window.editTx;
+      window.editTx = function(id){
+        var r;
+        try { r = orig.apply(this, arguments); } catch(e){ stats.lastError = e && e.message; }
+        stats.editsRun++;
+        // Edit typically opens a modal, doesn't save yet — but ensures state is ready
+        requestRecompute();
+        return r;
+      };
+      window.editTx.__v245Wrapped = true;
+      return true;
+    } catch(e) { return false; }
+  }
+
+  // ==========================================================================
+  // 9. BOOT
+  // ==========================================================================
 
   function boot(){
-    if (window.__v242Init) return;
-    window.__v242Init = true;
+    if (window.__v245Init) return;
+    window.__v245Init = true;
 
-    // Neutralize V235 (older ladder-fix without summary update)
-    try { if (window.__v235) window.__v235.__disabled = true; } catch(e){}
+    installIdCapture();
+    installConfirmObserver();
 
-    // Initial passes
-    setTimeout(patchAllCards, 350);
-    setTimeout(patchAllCards, 900);
-    setTimeout(patchAllCards, 2500);
-    setTimeout(patchAllCards, 5000);
-
-    // Re-run on tab switch to rewards
-    try {
-      if (typeof window.switchTab === 'function' && !window.switchTab.__v242Wrapped) {
-        var orig = window.switchTab;
-        window.switchTab = function(tabName){
-          var r; try { r = orig.apply(this, arguments); } catch(e){}
-          if (tabName === 'rewards') {
-            setTimeout(patchAllCards, 80);
-            setTimeout(patchAllCards, 350);
-            setTimeout(patchAllCards, 900);
-          }
-          return r;
-        };
-        window.switchTab.__v242Wrapped = true;
-      }
-    } catch(e){}
-
-    // Re-run after every native renderVault
-    try {
-      if (typeof window.renderVaultV122 === 'function' && !window.renderVaultV122.__v242Wrapped) {
-        var origR = window.renderVaultV122;
-        window.renderVaultV122 = function(){
-          var r; try { r = origR.apply(this, arguments); } catch(e){}
-          setTimeout(patchAllCards, 20);
-          setTimeout(patchAllCards, 200);
-          return r;
-        };
-        window.renderVaultV122.__v242Wrapped = true;
-      }
-    } catch(e){}
-
-    // Re-run on v82 refresh (fired by V234 after save)
-    try {
-      document.addEventListener('v82:refresh', function(){
-        setTimeout(patchAllCards, 50);
-        setTimeout(patchAllCards, 300);
-      });
-    } catch(e){}
-
-    // Also re-run after transactions change (log/edit/delete a purchase)
-    try {
-      if (typeof window.saveTxFromModal === 'function' && !window.saveTxFromModal.__v242Wrapped) {
-        var origSave = window.saveTxFromModal;
-        window.saveTxFromModal = function(){
-          var r; try { r = origSave.apply(this, arguments); } catch(e){}
-          setTimeout(patchAllCards, 100);
-          setTimeout(patchAllCards, 500);
-          return r;
-        };
-        window.saveTxFromModal.__v242Wrapped = true;
-      }
-    } catch(e){}
-
-    // Scoped observer on vault container - catches native re-renders
-    var setupObserver = function(){
-      try {
-        var vaultProgs = document.getElementById('vaultPrograms') || document.getElementById('v122-vault');
-        if (!vaultProgs) return false;
-        if (vaultProgs.__v242Observed) return true;
-        var mo = new MutationObserver(function(){
-          if (mo.__pending) return;
-          mo.__pending = true;
-          (window.requestAnimationFrame || function(cb){ setTimeout(cb, 16); })(function(){
-            mo.__pending = false;
-            patchAllCards();
-          });
-        });
-        // subtree: false - only observe direct child mutations to avoid feedback loop from our own innerHTML writes
-        mo.observe(vaultProgs, { childList: true, subtree: false });
-        vaultProgs.__v242Observed = true;
-        return true;
-      } catch(e){ return false; }
-    };
+    // Try to wrap saveTxFromModal / editTx with retries (they may not exist yet)
     var tries = 0;
     (function retry(){
-      if (setupObserver()) return;
+      wrapSaveTxFromModal();
+      wrapEditTx();
       tries++;
-      if (tries < 30) setTimeout(retry, 250);
+      if (tries < 30) setTimeout(retry, 200);
     })();
 
-    V242.audit = function(){
-      return {
-        patches: stats.patches,
-        cardsFixed: stats.cardsFixed,
-        lastCalc: stats.lastCalc,
-        cardsInDom: document.querySelectorAll('.v122-prog-card[data-prog]').length,
-        cardsAlreadyFixed: document.querySelectorAll('.v122-prog-card[data-v242-fixed]').length,
-        v235Neutralized: !!(window.__v235 && window.__v235.__disabled)
-      };
+    // Subscribe to V244 state changes for auto-recompute
+    var subscribed = subscribeToTxChanges();
+    if (!subscribed) {
+      // V244 may not be ready — retry
+      var subTries = 0;
+      (function subRetry(){
+        if (subscribeToTxChanges()) return;
+        subTries++;
+        if (subTries < 20) setTimeout(subRetry, 200);
+      })();
+    }
+
+    // Public API for debugging
+    window.__v245 = {
+      audit: function(){
+        return {
+          savesRun: stats.savesRun,
+          deletesRun: stats.deletesRun,
+          editsRun: stats.editsRun,
+          earningsRecomputes: stats.earningsRecomputes,
+          rerenders: stats.rerenders,
+          lastError: stats.lastError,
+          saveTxWrapped: !!(window.saveTxFromModal && window.saveTxFromModal.__v245Wrapped),
+          editTxWrapped: !!(window.editTx && window.editTx.__v245Wrapped),
+          confirmObserverActive: !!window.__v245ConfirmObserver,
+          currentDeleteId: currentDeleteId,
+          v244StateAvailable: !!(window.WalletIQState),
+          txCount: readAllTx().arr.length
+        };
+      },
+      recompute: requestRecompute,
+      rerender: unifiedRerender,
+      showFlash: showFlash,
+      readAllTx: readAllTx,
+      computeTxEarnings: computeTxEarnings
     };
-    V242.patchNow = patchAllCards;
-    V242.getBalance = getManualBalance;
+
+    // Diagnostic
+    if (console.__v239OrigLog) {
+      console.__v239OrigLog.call(console,
+        '%c[V245] Transaction Engine active. Log purchase -> flash toast + auto-recompute.',
+        'color:#7ed892;font-weight:bold'
+      );
+    }
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function(){ setTimeout(boot, 400); });
+    document.addEventListener('DOMContentLoaded', function(){ setTimeout(boot, 350); });
   } else {
-    setTimeout(boot, 400);
+    setTimeout(boot, 350);
   }
 })();</script>
+<!-- ============================================================
+     V246 (2026-07-20) — RELEASE 3: THE FIRST-TIME USER
+     Onboarding polish for strangers picking up Wallet IQ cold.
+     (1) Welcome screen: first-run overlay explains what the app
+         does in 3 sentences, then offers "Set up my wallet" OR
+         "Explore first" (Option B).
+     (2) Guided empty states with clear next-step prompts.
+     (3) Auto-show first-use coach-marks on Log Purchase,
+         Rewards Studio, and Where to Pay (dismissible).
+     (4) Mobile Safari fixes: visualViewport keyboard handling,
+         touch-action on primary buttons, autocomplete clip fix.
+     (5) "What's New" pill for returning users (not first-timers).
+     (6) Restart tour drawer item to replay coach-marks.
+     Zero data changes. Rollback: delete [id^=v246-].
+     ============================================================ -->
+<style id="v246-styles">
+/* ===== Welcome screen ===== */
+#v246-welcome{position:fixed;inset:0;z-index:1000;background:linear-gradient(160deg,#f6f2fb,#eeeaf5 40%,#f2ecf3);display:none;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px calc(32px + env(safe-area-inset-bottom,0px));animation:v246FadeIn .32s ease}
+#v246-welcome.show{display:flex}
+body.dark #v246-welcome{background:linear-gradient(160deg,#181628,#0f0d1a 40%,#0e0d15)}
+@keyframes v246FadeIn{from{opacity:0}to{opacity:1}}
+.v246-welcome-inner{max-width:420px;width:100%;display:flex;flex-direction:column;align-items:center;text-align:center}
+.v246-welcome-logo{width:88px;height:88px;margin-bottom:20px;filter:drop-shadow(0 8px 24px rgba(85,75,130,.22))}
+.v246-welcome-brand{font-size:32px;font-weight:900;letter-spacing:-.03em;color:var(--ink);margin-bottom:6px}
+.v246-welcome-brand .iq{color:#5f74b8}
+body.dark .v246-welcome-brand .iq{color:#a5b3d8}
+.v246-welcome-tag{font-size:15px;font-weight:800;color:#5f74b8;margin-bottom:22px;letter-spacing:-.01em}
+body.dark .v246-welcome-tag{color:#a5b3d8}
+.v246-welcome-pitch{font-size:15px;font-weight:750;color:var(--muted);line-height:1.55;margin-bottom:28px;padding:0 4px}
+.v246-welcome-pitch b{color:var(--ink);font-weight:900}
+.v246-welcome-bullets{display:flex;flex-direction:column;gap:12px;margin-bottom:32px;width:100%;text-align:left}
+.v246-welcome-bullet{display:grid;grid-template-columns:36px 1fr;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:12px 14px;box-shadow:0 2px 8px rgba(85,75,130,.06)}
+body.dark .v246-welcome-bullet{background:var(--surface);border-color:var(--border)}
+.v246-welcome-bullet-ico{width:36px;height:36px;border-radius:10px;background:var(--accent-soft);display:grid;place-items:center;font-size:18px}
+.v246-welcome-bullet-txt{font-size:12.5px;font-weight:800;color:var(--ink);line-height:1.4}
+.v246-welcome-bullet-txt small{display:block;color:var(--muted);font-weight:750;font-size:11px;margin-top:2px}
+.v246-welcome-actions{display:flex;flex-direction:column;gap:10px;width:100%}
+.v246-btn{width:100%;padding:15px 20px;border-radius:99px;font-family:inherit;font-weight:900;font-size:14px;cursor:pointer;border:none;letter-spacing:-.01em;transition:transform .1s ease,opacity .12s ease;touch-action:manipulation}
+.v246-btn:active{transform:scale(.97)}
+.v246-btn-primary{background:linear-gradient(135deg,#5f74b8,#4c609e);color:#fff;box-shadow:0 6px 18px rgba(95,116,184,.32)}
+.v246-btn-secondary{background:transparent;color:var(--ink);border:1.5px solid var(--border-2)}
+body.dark .v246-btn-primary{background:linear-gradient(135deg,#8ea3d8,#7994c8);color:#0f0d1a}
+body.dark .v246-btn-secondary{color:var(--ink);border-color:var(--border-2)}
+.v246-welcome-foot{font-size:11px;color:var(--muted);font-weight:750;margin-top:18px;line-height:1.5}
+/* ===== Coach-marks ===== */
+#v246-coach-overlay{position:fixed;inset:0;z-index:900;pointer-events:none;display:none}
+#v246-coach-overlay.show{display:block}
+.v246-coach-backdrop{position:absolute;inset:0;background:rgba(15,13,26,.55);animation:v246FadeIn .22s ease;pointer-events:auto}
+.v246-coach-tooltip{position:absolute;background:var(--surface);border-radius:16px;padding:16px 16px 14px;box-shadow:0 12px 40px rgba(0,0,0,.28);max-width:300px;width:calc(100vw - 32px);pointer-events:auto;animation:v246CoachIn .28s cubic-bezier(.2,.9,.3,1.2);z-index:2}
+@keyframes v246CoachIn{from{opacity:0;transform:translateY(6px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+.v246-coach-tooltip::before{content:"";position:absolute;width:14px;height:14px;background:var(--surface);transform:rotate(45deg);z-index:-1}
+.v246-coach-tooltip.arr-top::before{top:-6px;left:50%;margin-left:-7px}
+.v246-coach-tooltip.arr-bottom::before{bottom:-6px;left:50%;margin-left:-7px}
+.v246-coach-head{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.v246-coach-ico{font-size:20px}
+.v246-coach-title{font-size:14px;font-weight:900;letter-spacing:-.02em;color:var(--ink);flex:1;line-height:1.2}
+.v246-coach-close{background:transparent;border:none;color:var(--muted);font-size:20px;font-weight:900;cursor:pointer;padding:0 4px;line-height:1;border-radius:6px;touch-action:manipulation}
+.v246-coach-close:hover{color:var(--ink)}
+.v246-coach-body{font-size:12.5px;font-weight:750;color:var(--muted);line-height:1.5;margin-bottom:12px}
+.v246-coach-actions{display:flex;gap:8px;justify-content:flex-end;align-items:center}
+.v246-coach-progress{flex:1;font-size:10.5px;color:var(--muted);font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+.v246-coach-btn{background:var(--brand);color:#fff;border:none;padding:8px 16px;border-radius:99px;font-family:inherit;font-size:12px;font-weight:900;cursor:pointer;touch-action:manipulation}
+.v246-coach-btn:active{transform:scale(.96)}
+body.dark .v246-coach-btn{background:var(--brand);color:#0f0d1a}
+.v246-coach-btn.ghost{background:transparent;color:var(--muted);padding:8px 10px}
+.v246-coach-highlight{position:absolute;border-radius:14px;box-shadow:0 0 0 4px rgba(95,116,184,.5),0 0 0 9999px rgba(15,13,26,.55);pointer-events:none;z-index:1;transition:all .3s cubic-bezier(.2,.9,.3,1.2)}
+/* ===== What's New pill ===== */
+.v246-whats-new{background:linear-gradient(135deg,#ffffff 0%,#f2ecf5 55%,#e9dff0 100%);border:1px solid rgba(95,116,184,.18);border-radius:16px;padding:12px 14px;display:grid;grid-template-columns:32px 1fr auto;gap:12px;align-items:center;margin:8px 0 12px;box-shadow:0 4px 14px rgba(85,75,130,.10);animation:v246FadeIn .32s ease}
+body.dark .v246-whats-new{background:linear-gradient(135deg,#241d3a,#1e1732 55%,#181228);border-color:rgba(142,163,216,.22)}
+.v246-whats-new-ico{width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,#5f74b8,#4c609e);display:grid;place-items:center;font-size:16px;color:#fff}
+body.dark .v246-whats-new-ico{background:linear-gradient(135deg,#8ea3d8,#7994c8);color:#0f0d1a}
+.v246-whats-new-txt{min-width:0}
+.v246-whats-new-title{font-size:12.5px;font-weight:900;letter-spacing:-.01em;color:var(--ink);line-height:1.2}
+.v246-whats-new-sub{font-size:11px;color:var(--muted);font-weight:800;margin-top:2px}
+.v246-whats-new-close{background:transparent;border:none;color:var(--muted);font-size:20px;font-weight:900;cursor:pointer;padding:2px 6px;line-height:1;border-radius:6px;touch-action:manipulation}
+.v246-whats-new-close:active{transform:scale(.9)}
+/* ===== Enhanced empty state (opt-in via .v246-guided) ===== */
+.v246-guided-empty{background:linear-gradient(135deg,var(--surface),var(--surface-2)) !important;border:1px dashed var(--border-2) !important}
+.v246-guided-empty .v246-guided-badge{display:inline-block;font-size:10px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:var(--brand);background:var(--accent-soft);padding:4px 10px;border-radius:99px;margin-bottom:10px}
+/* ===== Mobile Safari fixes ===== */
+button.hero-log-btn,button.hero-log-btn.v126-log-btn,.hl-save,.v81-add-btn,.v122-prog-edit,.v81-primary,.modal-actions .primary,.location-detect-btn,.empty-state button,.v246-btn,.v246-coach-btn,.v246-whats-new-close{touch-action:manipulation}
+@media (max-width:390px){
+ .autocomplete{max-height:min(48vh,340px)!important}
+ .v246-coach-tooltip{max-width:calc(100vw - 24px)}
+}
+/* Keyboard-lift class applied dynamically by JS */
+.v246-kbd-lift{transform:translateY(var(--v246-lift,0)) !important;transition:transform .2s ease}
+</style>
+
+<script id="v246-script">
+(function(){
+ 'use strict';
+ var VERSION='V246';
+ var K_WELCOME='walletiq_v246_welcome_seen';
+ var K_COACH='walletiq_v246_coachmarks_seen';
+ var K_APP_SEEN='walletiq_v246_seen';
+ var K_WHATS_NEW='walletiq_v246_whatsnew_dismissed';
+ function log(m){try{console.log('['+VERSION+']',m);}catch(e){}}
+ function readJSON(k,fb){try{var r=localStorage.getItem(k);if(!r)return fb;var p=JSON.parse(r);return p==null?fb:p;}catch(e){return fb;}}
+ function writeJSON(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+ function hasAnyWalletData(){
+  try{
+   // Check every persistence key the app writes to
+   var checks=['walletIQ_v40_wallet','walletiq_wallet','walletiq_transactions','walletiq_v82_tx','walletiq_tx','transactions','walletiq_memberships','walletiq_credits_v46'];
+   for(var i=0;i<checks.length;i++){
+    var v=readJSON(checks[i],null);
+    if(v){
+     if(Array.isArray(v)&&v.length>0)return true;
+     if(typeof v==='object'&&Object.keys(v).length>0)return true;
+     if(typeof v==='string'&&v.length>2)return true;
+    }
+   }
+   // Also check userWallet Set if runtime is loaded
+   if(typeof userWallet!=='undefined'&&userWallet&&userWallet.size>0)return true;
+  }catch(e){}
+  return false;
+ }
+ function isFirstTimeUser(){
+  var welcomeSeen=readJSON(K_WELCOME,false);
+  if(welcomeSeen)return false;
+  return !hasAnyWalletData();
+ }
+ /* ====================================================
+    1. WELCOME SCREEN (first-run overlay, Option B)
+    ==================================================== */
+ var WELCOME_HTML=
+  '<div id="v246-welcome"><div class="v246-welcome-inner">'+
+   '<svg class="v246-welcome-logo" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'+
+    '<rect x="10" y="7" width="17" height="4" rx="1.2" fill="#c9d3e8" opacity="0.85"/>'+
+    '<rect x="8" y="10" width="20" height="5" rx="1.5" fill="#e0e7f2"/>'+
+    '<rect x="5" y="14" width="30" height="20" rx="4.5" fill="#5f74b8"/>'+
+    '<rect x="26" y="22" width="6" height="4.5" rx="1.2" fill="#4c609e"/>'+
+    '<circle cx="29" cy="24.25" r="1" fill="#faf7f2"/>'+
+    '<path d="M32 3.5 L33 6 L35.5 7 L33 8 L32 10.5 L31 8 L28.5 7 L31 6 Z" fill="#c9a35a"/>'+
+   '</svg>'+
+   '<div class="v246-welcome-brand">Wallet <span class="iq">IQ</span></div>'+
+   '<div class="v246-welcome-tag">Your Wallet, Maximized.</div>'+
+   '<div class="v246-welcome-pitch">Wallet IQ picks the <b>best credit card</b> for every purchase across <b>100+ Canadian cards</b> and <b>6,000+ merchants</b>. Points auto-accumulate, statement credits get tracked, and welcome offers stay organized. Everything runs on your device \u2014 nothing uploads anywhere.</div>'+
+   '<div class="v246-welcome-bullets">'+
+    '<div class="v246-welcome-bullet"><div class="v246-welcome-bullet-ico">\uD83D\uDCB3</div><div class="v246-welcome-bullet-txt">Best card for every merchant<small>Type any store name for instant recommendations</small></div></div>'+
+    '<div class="v246-welcome-bullet"><div class="v246-welcome-bullet-ico">\uD83C\uDFAF</div><div class="v246-welcome-bullet-txt">Auto-tracking rewards<small>Log a purchase \u2192 points appear in your Vault</small></div></div>'+
+    '<div class="v246-welcome-bullet"><div class="v246-welcome-bullet-ico">\uD83D\uDD10</div><div class="v246-welcome-bullet-txt">100% private<small>All data stays on your phone. No login. Ever.</small></div></div>'+
+   '</div>'+
+   '<div class="v246-welcome-actions">'+
+    '<button type="button" class="v246-btn v246-btn-primary" id="v246-welcome-setup">Set up my wallet</button>'+
+    '<button type="button" class="v246-btn v246-btn-secondary" id="v246-welcome-explore">Explore first</button>'+
+   '</div>'+
+   '<div class="v246-welcome-foot">You can always set up your wallet later from the menu.</div>'+
+  '</div></div>';
+ function injectWelcome(){
+  if(document.getElementById('v246-welcome'))return;
+  var tmp=document.createElement('div');
+  tmp.innerHTML=WELCOME_HTML;
+  document.body.appendChild(tmp.firstChild);
+  document.getElementById('v246-welcome-setup').addEventListener('click',function(){
+   dismissWelcome();
+   // Hide legacy empty-state modal briefly to avoid stacking; then open onboarding
+   setTimeout(function(){try{if(typeof showOnboarding==='function')showOnboarding();}catch(e){}},250);
+  });
+  document.getElementById('v246-welcome-explore').addEventListener('click',function(){
+   dismissWelcome();
+   // Explore first \u2014 land on home; queue coach-marks so they auto-show as user navigates
+   armCoachMarks();
+  });
+ }
+ function showWelcome(){
+  injectWelcome();
+  var el=document.getElementById('v246-welcome');
+  if(el)el.classList.add('show');
+  // Suppress the app's legacy showOnboarding auto-fire so we don't double-present.
+  try{
+   var m=document.getElementById('onboardModal');
+   if(m)m.classList.remove('show');
+  }catch(e){}
+ }
+ function dismissWelcome(){
+  var el=document.getElementById('v246-welcome');
+  if(el)el.classList.remove('show');
+  writeJSON(K_WELCOME,true);
+  writeJSON(K_APP_SEEN,true);
+ }
+ /* ====================================================
+    2. FIRST-USE COACH-MARKS
+    Anchors: logPurchase (home hero), rewards (drawer/subtab), whereToPay (drawer).
+    Auto-shown to fresh users after they land on the surface.
+    ==================================================== */
+ var COACH_STEPS=[
+  {id:'logPurchase',ico:'\uD83D\uDCB3',title:'Log a purchase',body:'Tap this button after searching a merchant to log a purchase. Points auto-accrue in your Vault \u2014 no manual entry ever.',selectorFn:function(){return document.querySelector('.hero-log-btn')||document.querySelector('#hero .v126-log-btn');},panel:'home',requiresQuery:true},
+  {id:'rewards',ico:'\uD83C\uDFAF',title:'Rewards Studio',body:'See total portfolio value, monthly earnings, statement credits, welcome offers, and live points balances \u2014 all in one place.',selectorFn:function(){return document.querySelector('.drawer-item[data-tab="rewards"]')||document.querySelector('.rewards-subtabs button.on');},panel:'any'},
+  {id:'whereToPay',ico:'\uD83D\uDCCD',title:'Where to Pay',body:'Use GPS to detect your current merchant and get the best card from your wallet \u2014 perfect when you\u2019re standing at a checkout.',selectorFn:function(){return document.querySelector('.drawer-item[data-tab="location"]');},panel:'any'}
+ ];
+ function loadCoachSeen(){var s=readJSON(K_COACH,{});return typeof s==='object'&&s?s:{};}
+ function markCoachSeen(id){var s=loadCoachSeen();s[id]=1;writeJSON(K_COACH,s);}
+ function isCoachSeen(id){return !!loadCoachSeen()[id];}
+ var coachOverlayEl=null;
+ function ensureCoachOverlay(){
+  if(coachOverlayEl)return coachOverlayEl;
+  coachOverlayEl=document.createElement('div');
+  coachOverlayEl.id='v246-coach-overlay';
+  coachOverlayEl.innerHTML='<div class="v246-coach-backdrop" data-v246-coach-bg="1"></div>'+
+   '<div class="v246-coach-highlight" id="v246-coach-hl" style="display:none"></div>'+
+   '<div class="v246-coach-tooltip" id="v246-coach-tip" role="dialog" aria-modal="true" style="display:none">'+
+    '<div class="v246-coach-head">'+
+     '<span class="v246-coach-ico" id="v246-coach-ico"></span>'+
+     '<div class="v246-coach-title" id="v246-coach-title"></div>'+
+     '<button type="button" class="v246-coach-close" id="v246-coach-close" aria-label="Dismiss">\u00D7</button>'+
+    '</div>'+
+    '<div class="v246-coach-body" id="v246-coach-body"></div>'+
+    '<div class="v246-coach-actions">'+
+     '<span class="v246-coach-progress" id="v246-coach-progress"></span>'+
+     '<button type="button" class="v246-coach-btn ghost" id="v246-coach-skip">Skip tour</button>'+
+     '<button type="button" class="v246-coach-btn" id="v246-coach-got">Got it</button>'+
+    '</div>'+
+   '</div>';
+  document.body.appendChild(coachOverlayEl);
+  coachOverlayEl.querySelector('#v246-coach-close').addEventListener('click',dismissCurrentCoach);
+  coachOverlayEl.querySelector('[data-v246-coach-bg="1"]').addEventListener('click',dismissCurrentCoach);
+  coachOverlayEl.querySelector('#v246-coach-got').addEventListener('click',dismissCurrentCoach);
+  coachOverlayEl.querySelector('#v246-coach-skip').addEventListener('click',skipAllCoaches);
+  return coachOverlayEl;
+ }
+ var currentCoach=null;
+ var coachQueue=[];
+ var coachArmed=false;
+ function armCoachMarks(){coachArmed=true;checkCoachTriggers();}
+ function disarmCoachMarks(){coachArmed=false;dismissCurrentCoach();}
+ function getActivePanel(){
+  try{
+   if(typeof getActivePanelId==='function')return getActivePanelId();
+   var p=document.querySelectorAll('.panel');
+   for(var i=0;i<p.length;i++)if(p[i].classList.contains('active'))return p[i].id;
+  }catch(e){}
+  return 'home';
+ }
+ function checkCoachTriggers(){
+  if(!coachArmed)return;
+  if(currentCoach)return;
+  var panel=getActivePanel();
+  for(var i=0;i<COACH_STEPS.length;i++){
+   var step=COACH_STEPS[i];
+   if(isCoachSeen(step.id))continue;
+   if(step.panel!=='any'&&step.panel!==panel)continue;
+   if(step.requiresQuery){
+    var q=document.getElementById('q');
+    if(!q||!q.value||!q.value.trim())continue;
+   }
+   var anchor=step.selectorFn();
+   if(!anchor)continue;
+   var rect=anchor.getBoundingClientRect();
+   if(rect.width<8||rect.height<8)continue;
+   if(rect.bottom<0||rect.top>window.innerHeight)continue;
+   showCoach(step,anchor);
+   return;
+  }
+ }
+ function showCoach(step,anchor){
+  currentCoach=step;
+  ensureCoachOverlay();
+  var overlay=coachOverlayEl;
+  overlay.classList.add('show');
+  var tip=overlay.querySelector('#v246-coach-tip');
+  var hl=overlay.querySelector('#v246-coach-hl');
+  overlay.querySelector('#v246-coach-ico').textContent=step.ico;
+  overlay.querySelector('#v246-coach-title').textContent=step.title;
+  overlay.querySelector('#v246-coach-body').textContent=step.body;
+  var remaining=COACH_STEPS.filter(function(s){return !isCoachSeen(s.id);}).length;
+  var total=COACH_STEPS.length;
+  var current=total-remaining+1;
+  overlay.querySelector('#v246-coach-progress').textContent=current+' of '+total;
+  positionCoach(tip,hl,anchor);
+  tip.style.display='';
+  hl.style.display='';
+ }
+ function positionCoach(tip,hl,anchor){
+  var rect=anchor.getBoundingClientRect();
+  var pad=6;
+  hl.style.top=(rect.top-pad)+'px';
+  hl.style.left=(rect.left-pad)+'px';
+  hl.style.width=(rect.width+pad*2)+'px';
+  hl.style.height=(rect.height+pad*2)+'px';
+  // Wait for tip to render then measure
+  tip.style.visibility='hidden';
+  tip.style.top='0';
+  tip.style.left='0';
+  requestAnimationFrame(function(){
+   var tw=tip.offsetWidth;
+   var th=tip.offsetHeight;
+   var vw=window.innerWidth;
+   var vh=window.innerHeight;
+   var spaceBelow=vh-rect.bottom;
+   var spaceAbove=rect.top;
+   var placeBelow=spaceBelow>=(th+24)||spaceBelow>spaceAbove;
+   var top,left;
+   if(placeBelow){
+    top=rect.bottom+14;
+    tip.classList.remove('arr-bottom');
+    tip.classList.add('arr-top');
+   }else{
+    top=rect.top-th-14;
+    tip.classList.remove('arr-top');
+    tip.classList.add('arr-bottom');
+   }
+   left=rect.left+rect.width/2-tw/2;
+   if(left<12)left=12;
+   if(left+tw>vw-12)left=vw-tw-12;
+   if(top<12)top=12;
+   if(top+th>vh-12)top=vh-th-12;
+   tip.style.top=top+'px';
+   tip.style.left=left+'px';
+   tip.style.visibility='';
+  });
+ }
+ function dismissCurrentCoach(){
+  if(!currentCoach)return;
+  markCoachSeen(currentCoach.id);
+  currentCoach=null;
+  if(coachOverlayEl)coachOverlayEl.classList.remove('show');
+  // Continue tour if there are more steps on the current panel
+  setTimeout(function(){checkCoachTriggers();},220);
+ }
+ function skipAllCoaches(){
+  var s=loadCoachSeen();
+  COACH_STEPS.forEach(function(step){s[step.id]=1;});
+  writeJSON(K_COACH,s);
+  currentCoach=null;
+  if(coachOverlayEl)coachOverlayEl.classList.remove('show');
+ }
+ function restartTour(){
+  writeJSON(K_COACH,{});
+  coachArmed=true;
+  checkCoachTriggers();
+  showToast('Tour restarted \u2014 coach-marks will show as you navigate.');
+ }
+ window.__v246RestartTour=restartTour;
+ // Watch for panel changes + query changes to re-check
+ function installCoachWatchers(){
+  document.addEventListener('click',function(e){
+   var t=e.target;
+   if(!t)return;
+   // Panel switches
+   if(t.closest&&t.closest('[data-tab]'))setTimeout(checkCoachTriggers,250);
+   // Autocomplete pick triggers a query
+   if(t.closest&&t.closest('.ac-item'))setTimeout(checkCoachTriggers,300);
+  },true);
+  var q=document.getElementById('q');
+  if(q)q.addEventListener('input',function(){setTimeout(checkCoachTriggers,300);});
+  // Hero mutation triggers Log Purchase check
+  var hero=document.getElementById('hero');
+  if(hero){
+   var mo=new MutationObserver(function(){setTimeout(checkCoachTriggers,180);});
+   mo.observe(hero,{childList:true,subtree:false});
+  }
+ }
+ /* ====================================================
+    3. WHAT'S NEW PILL (returning users only)
+    ==================================================== */
+ function injectWhatsNew(){
+  if(readJSON(K_WHATS_NEW,false))return;
+  if(isFirstTimeUser())return; // fresh users don't need "what's new"
+  if(!readJSON(K_APP_SEEN,false)){writeJSON(K_APP_SEEN,true);}
+  var home=document.getElementById('home');
+  if(!home)return;
+  if(document.querySelector('.v246-whats-new'))return;
+  var pill=document.createElement('div');
+  pill.className='v246-whats-new';
+  pill.innerHTML='<div class="v246-whats-new-ico">\u2728</div>'+
+   '<div class="v246-whats-new-txt">'+
+    '<div class="v246-whats-new-title">V246 \u00B7 First-time user polish</div>'+
+    '<div class="v246-whats-new-sub">Welcome flow, guided tour, mobile keyboard fixes</div>'+
+   '</div>'+
+   '<button type="button" class="v246-whats-new-close" aria-label="Dismiss">\u00D7</button>';
+  // Insert after greeting
+  var greeting=home.querySelector('.greeting');
+  if(greeting&&greeting.nextSibling){home.insertBefore(pill,greeting.nextSibling);}
+  else{home.insertBefore(pill,home.firstChild);}
+  pill.querySelector('.v246-whats-new-close').addEventListener('click',function(){
+   pill.style.opacity='0';
+   pill.style.transform='translateY(-4px)';
+   pill.style.transition='opacity .22s ease,transform .22s ease';
+   setTimeout(function(){if(pill.parentNode)pill.parentNode.removeChild(pill);},240);
+   writeJSON(K_WHATS_NEW,true);
+  });
+ }
+ /* ====================================================
+    4. GUIDED EMPTY STATES
+    Enhance existing empty states in-place (non-destructive).
+    ==================================================== */
+ function enhanceEmptyStates(){
+  try{
+   // Home: wallet empty state \u2014 add badge without wiping content
+   var emptyWallet=document.getElementById('emptyWalletState');
+   if(emptyWallet&&!emptyWallet.querySelector('.v246-guided-badge')&&emptyWallet.style.display!=='none'){
+    emptyWallet.classList.add('v246-guided-empty');
+    var badge=document.createElement('div');
+    badge.className='v246-guided-badge';
+    badge.textContent='\uD83D\uDC4B First things first';
+    var h3=emptyWallet.querySelector('h3');
+    if(h3&&h3.parentNode)h3.parentNode.insertBefore(badge,h3);
+   }
+   // Cards tab empty state
+   var cardsEmpty=document.getElementById('cardsEmpty');
+   if(cardsEmpty&&!cardsEmpty.querySelector('.v246-guided-badge')&&cardsEmpty.style.display!=='none'){
+    cardsEmpty.classList.add('v246-guided-empty');
+    var b2=document.createElement('div');
+    b2.className='v246-guided-badge';
+    b2.textContent='\uD83D\uDCB3 Get started';
+    var h3b=cardsEmpty.querySelector('h3');
+    if(h3b&&h3b.parentNode)h3b.parentNode.insertBefore(b2,h3b);
+   }
+   // Activity (tx) empty state
+   var txEmpty=document.getElementById('txEmpty');
+   if(txEmpty&&!txEmpty.querySelector('.v246-guided-badge-tx')&&txEmpty.style.display!=='none'){
+    var b3=document.createElement('div');
+    b3.className='v246-guided-badge v246-guided-badge-tx';
+    b3.style.marginBottom='8px';
+    b3.textContent='\uD83D\uDCCA Track earnings';
+    var bigEl=txEmpty.querySelector('.big');
+    if(bigEl&&bigEl.parentNode)bigEl.parentNode.insertBefore(b3,bigEl);
+   }
+   // Applied (welcome offers) empty state
+   var appEmpty=document.getElementById('appliedEmpty');
+   if(appEmpty&&!appEmpty.querySelector('.v246-guided-badge-app')&&appEmpty.style.display!=='none'){
+    var b4=document.createElement('div');
+    b4.className='v246-guided-badge v246-guided-badge-app';
+    b4.style.marginBottom='8px';
+    b4.textContent='\uD83C\uDF81 Chase bonuses';
+    var bigEl2=appEmpty.querySelector('.big');
+    if(bigEl2&&bigEl2.parentNode)bigEl2.parentNode.insertBefore(b4,bigEl2);
+   }
+  }catch(e){}
+ }
+ /* ====================================================
+    5. RESTART TOUR DRAWER ITEM
+    ==================================================== */
+ function injectDrawerTourItem(){
+  try{
+   var body=document.querySelector('.drawer-body');
+   if(!body)return;
+   if(body.querySelector('[data-v246-tour]'))return;
+   // Insert before the reset button (last item in drawer)
+   var resetBtn=null;
+   var items=body.querySelectorAll('.drawer-item');
+   for(var i=0;i<items.length;i++){
+    var txt=(items[i].textContent||'').toLowerCase();
+    if(txt.indexOf('reset')>=0){resetBtn=items[i];break;}
+   }
+   var btn=document.createElement('button');
+   btn.className='drawer-item';
+   btn.setAttribute('data-v246-tour','1');
+   btn.innerHTML='<span class="di-ico"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg></span><span>Restart guided tour</span>';
+   btn.addEventListener('click',function(){
+    if(typeof closeDrawer==='function')closeDrawer();
+    setTimeout(restartTour,320);
+   });
+   if(resetBtn&&resetBtn.parentNode){
+    var divider=document.createElement('div');
+    divider.className='drawer-divider';
+    resetBtn.parentNode.insertBefore(btn,resetBtn);
+    resetBtn.parentNode.insertBefore(divider,resetBtn);
+   }else{
+    body.appendChild(btn);
+   }
+  }catch(e){}
+ }
+ /* ====================================================
+    6. MOBILE SAFARI FIXES
+    (a) visualViewport keyboard-lift for modal inputs
+    (b) autocomplete constrained on small screens (CSS above)
+    (c) touch-action: manipulation (CSS above, kills 300ms delay)
+    ==================================================== */
+ function installKeyboardLift(){
+  if(!('visualViewport' in window))return;
+  var vv=window.visualViewport;
+  var activeModal=null;
+  function applyLift(){
+   if(!activeModal)return;
+   var keyboardHeight=Math.max(0,window.innerHeight-vv.height-vv.offsetTop);
+   if(keyboardHeight>60){
+    var lift=Math.min(keyboardHeight-20,180);
+    activeModal.style.setProperty('--v246-lift','-'+lift+'px');
+    activeModal.classList.add('v246-kbd-lift');
+   }else{
+    activeModal.classList.remove('v246-kbd-lift');
+    activeModal.style.removeProperty('--v246-lift');
+   }
+  }
+  vv.addEventListener('resize',applyLift);
+  vv.addEventListener('scroll',applyLift);
+  document.addEventListener('focusin',function(e){
+   var t=e.target;
+   if(!t)return;
+   if(t.tagName!=='INPUT'&&t.tagName!=='TEXTAREA'&&t.tagName!=='SELECT')return;
+   var modal=t.closest&&t.closest('.modal-overlay.show .modal,.v81-modal-overlay.show .v81-modal,.v122-edit-overlay.show .v122-edit,#addTxModal .modal');
+   if(modal){activeModal=modal;setTimeout(applyLift,120);}
+  });
+  document.addEventListener('focusout',function(){
+   if(activeModal){
+    setTimeout(function(){
+     var stillFocused=document.activeElement&&(document.activeElement.tagName==='INPUT'||document.activeElement.tagName==='TEXTAREA');
+     if(!stillFocused){
+      activeModal.classList.remove('v246-kbd-lift');
+      activeModal.style.removeProperty('--v246-lift');
+      activeModal=null;
+     }
+    },80);
+   }
+  });
+ }
+ /* ====================================================
+    Toast helper (reuses V126 pattern)
+    ==================================================== */
+ function showToast(msg){
+  var existing=document.querySelector('.v246-toast');
+  if(existing)existing.remove();
+  var t=document.createElement('div');
+  t.className='v246-toast log-flash';
+  t.style.cssText='position:fixed;top:20px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#5f74b8,#4c609e);color:#fff;padding:12px 20px;border-radius:99px;font-weight:900;font-size:13px;box-shadow:0 8px 24px rgba(95,116,184,.4);z-index:1100;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;max-width:88vw;text-align:center';
+  t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(function(){t.style.opacity='0';t.style.transition='opacity .3s';setTimeout(function(){if(t.parentNode)t.remove();},350);},2400);
+ }
+ /* ====================================================
+    Auto-fire suppression + boot sequence
+    ==================================================== */
+ function suppressLegacyAutoOnboard(){
+  // The legacy init calls showOnboarding after 400ms if no wallet + not hasOnboarded.
+  // We want our Welcome screen to fire first for a first-time user, so we intercept.
+  // Approach: wrap showOnboarding so if V246 welcome hasn't been dismissed yet AND
+  // this is a first-time user, we show the welcome instead.
+  try{
+   if(typeof window.showOnboarding==='function'&&!window.showOnboarding.__v246Wrapped){
+    var orig=window.showOnboarding;
+    window.showOnboarding=function(){
+     if(isFirstTimeUser()){showWelcome();return;}
+     return orig.apply(this,arguments);
+    };
+    window.showOnboarding.__v246Wrapped=true;
+   }
+  }catch(e){}
+ }
+ function boot(){
+  log('boot');
+  // Inject welcome overlay markup up-front (hidden until needed)
+  injectWelcome();
+  // Wrap showOnboarding so first-run defers to welcome
+  suppressLegacyAutoOnboard();
+  // If first-time user, show welcome now (regardless of legacy timing)
+  if(isFirstTimeUser()){
+   setTimeout(function(){showWelcome();},350);
+  }else{
+   // Returning user: inject "What's New" pill
+   setTimeout(injectWhatsNew,600);
+  }
+  // Empty state enhancement runs on load + on tab switch
+  setTimeout(enhanceEmptyStates,700);
+  setTimeout(enhanceEmptyStates,1600);
+  // Drawer tour item
+  setTimeout(injectDrawerTourItem,700);
+  // Coach watchers
+  installCoachWatchers();
+  // Keyboard lift for modals
+  installKeyboardLift();
+  // Arm coach-marks if this user hasn't seen them all yet AND
+  // has completed welcome (or is a returning user who never had one)
+  var welcomeSeen=readJSON(K_WELCOME,false);
+  var anySeen=Object.keys(loadCoachSeen()).length>0;
+  var allDone=COACH_STEPS.every(function(s){return isCoachSeen(s.id);});
+  if(welcomeSeen&&!allDone){
+   // Auto-show is only aggressive for fresh completions; for existing users
+   // we DON'T force it since they already know the app. Detect via K_APP_SEEN.
+   // Rule: fresh completion = welcome_seen exists but K_APP_SEEN did not exist
+   // before boot. Since we set K_APP_SEEN in injectWhatsNew for returning users,
+   // we treat auto-arm as: welcome_seen && !anySeen && no wallet data yet.
+   var isFreshCompletion=!anySeen&&!hasAnyWalletData();
+   if(isFreshCompletion){
+    coachArmed=true;
+    setTimeout(checkCoachTriggers,1200);
+   }
+  }
+  // Wrap switchTab to re-check coach-marks after tab change
+  try{
+   if(typeof window.switchTab==='function'&&!window.switchTab.__v246Wrapped){
+    var origST=window.switchTab;
+    window.switchTab=function(){
+     var r=origST.apply(this,arguments);
+     setTimeout(function(){enhanceEmptyStates();checkCoachTriggers();},280);
+     return r;
+    };
+    window.switchTab.__v246Wrapped=true;
+   }
+  }catch(e){}
+  log('ready. first-time='+isFirstTimeUser()+' welcome_seen='+welcomeSeen);
+ }
+ if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',boot);
+ }else{
+  boot();
+ }
+ // Late safety re-boots to catch DOM ready races
+ setTimeout(boot,500);
+ setTimeout(boot,1500);
+ window.__v246={
+  version:VERSION,
+  showWelcome:showWelcome,
+  restartTour:restartTour,
+  enhanceEmptyStates:enhanceEmptyStates,
+  isFirstTimeUser:isFirstTimeUser,
+  boot:boot
+ };
+})();
+</script>
+
 </body>
 </html>
