@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- V249 (2026-07-20) - Portfolio + delete sync + tab-restore fixes. (1) Membership balance changes now propagate to Total Portfolio Value hero via localStorage.setItem intercept + full rerender cascade (V128, V122, hero tiles, home summary). (2) Deleting a transaction now syncs across ALL 5 tx storage keys (walletIQ_v40_tx, walletiq_transactions, walletiq_v82_tx, walletiq_tx, transactions) so V128 reconciler cant rebuild it back. saveTxData also mirrors writes to keep engines aligned. (3) Active tab + subtab persisted to localStorage; refresh restores to the tab you were on. Rollback: delete [id=v249-script]. -->
-<!-- V248 (2026-07-20) - 34 verified apply-link URLs + issuer fallbacks. Rollback: delete [id=v248-script]. -->
-<!-- V247 (2026-07-20) - Where to Pay uses Overpass API for nearby merchant discovery. Rollback: delete [id^=v247-]. -->
-<!-- V246 (2026-07-20) - RELEASE 3: THE FIRST-TIME USER. Welcome screen, mobile Safari keyboard-lift. Rollback: delete [id^=v246-]. -->
+<!-- V250 (2026-07-20) - THE REWARDS STUDIO REWRITE. Not a patch. A proper data layer. Unified Transaction Store (getTxs/setTxs across 5 keys atomically). Unified Membership Store. Single portfolio calculator called by ALL renderers. Bulletproof studio renderer updates #rhTotal/#rhVault/#rhThisMonth/#rhYTD from fresh reads every rAF + 2s safety tick. Tab persistence via URL hash. Wraps saveTxData + deleteTx to mirror all 5 tx keys. Public API: window.V250. Fixes 3 bugs: portfolio total not updating on membership change, deletes coming back on refresh, refresh returning to home. Rollback: delete [id=v250-script]. -->
+<!-- V248 (2026-07-20) - 34 verified apply-link URLs + issuer fallbacks. -->
+<!-- V247 (2026-07-20) - Where to Pay uses Overpass API for nearby merchant discovery. -->
+<!-- V246 (2026-07-20) - Welcome screen + mobile Safari keyboard-lift. -->
 <!-- V245 (2026-07-20) - RELEASE 2: THE TRANSACTION ENGINE. Builds on V244 WalletIQState foundation. Makes Log Purchase -> See Points Grow bulletproof: (1) CleanSaveFlow wraps saveTxFromModal - computes earnings for flash toast, clears home search, forces recompute + unified rerender. (2) CleanDeleteFlow hijacks V179 confirm modal Delete button at CAPTURE phase, directly deletes from all 3 tx keys via V244 transaction() (atomic), fires unified rerender. (3) EarningsRecalculator subscribes to WalletIQState.onChange for tx keys - when tx storage changes, triggers V128 reconcile + V140 sync + V242 patchNow immediately (no waiting for setInterval polling). (4) UnifiedRerender runs all render pipelines in correct order (state engines first, then UI). (5) Flash toast confirms save (+$X earned) and delete (X removed) with 2.2s auto-dismiss. Zero features removed. Rollback: delete [id^=v245-]. -->
 <!-- V244 (2026-07-18) - RELEASE 1: THE STATE FREEZE. Foundation for consolidation plan. Installs a single window.WalletIQState manager that owns all writes to 6 critical storage keys (walletiq_v13_wallet, walletiq_memberships, walletiq_transactions, walletiq_tx_v13, walletiq_tx, walletiq_auto_earnings). Four protection layers: (1) djb2 hash dedup - identical writes silently skip, killing flicker cascades from 11 sync engines. (2) Preservation rules per key - manual entries flagged __v234Manual or __v244Manual survive any auto-engine rewrite; user-created transactions cant be silently deleted; wallet cant be wiped to empty without explicit flag. (3) Debounce coalescer - rapid writes to same key within 50ms collapse to one final write. (4) Change event bus - dispatch walletiq:statechange with key detail, single subscription point replacing 11 polling loops. Zero features removed. Every prior patch keeps working. Public API for Releases 2-4: get/set/delete/onChange/onKey/transaction/audit/history/dump. V231-V233 storage guards are now redundant but harmless (V244 sits above them). Rollback: delete [id^=v244-]. -->
 <!-- V224 (2026-07-15): V222 + vault flicker kill added back. V222 wraps window.renderOffers so category filters trigger re-tag + re-apply. V224 also installs djb2 hash intercept on #v122-vault innerHTML setter to kill V183 vaultObs feedback loop (identical writes silently skip -> no cascade -> no flicker). Also wraps renderVaultV122 with rAF-coalesce. -->
@@ -70,7 +70,7 @@
 <meta http-equiv="Expires" content="0">
 
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>Wallet IQ V249</title>
+<title>Wallet IQ V250</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Wallet IQ">
@@ -36167,9 +36167,7 @@ body.dark .v245-flash{background:linear-gradient(135deg,#7ec894 0%,#5ea87a 100%)
     setTimeout(boot, 350);
   }
 })();</script>
-<!-- ============================================================
-     V246 — RELEASE 3: FIRST-TIME USER (compact)
-     ============================================================ -->
+<!-- V246 — Welcome + keyboard-lift -->
 <style id="v246-styles">
 #v246-welcome{position:fixed;inset:0;z-index:1000;background:linear-gradient(160deg,#f6f2fb,#eeeaf5 40%,#f2ecf3);display:none;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px calc(32px + env(safe-area-inset-bottom,0px));animation:v246FadeIn .32s ease}
 #v246-welcome.show{display:flex}
@@ -36196,477 +36194,751 @@ body.dark .v246-welcome-tag{color:#a5b3d8}
 .v246-btn-secondary{background:transparent;color:var(--ink);border:1.5px solid var(--border-2)}
 body.dark .v246-btn-primary{background:linear-gradient(135deg,#8ea3d8,#7994c8);color:#0f0d1a}
 .v246-welcome-foot{font-size:11px;color:var(--muted);font-weight:750;margin-top:18px}
-.v246-whats-new{background:linear-gradient(135deg,#fff,#f2ecf5 55%,#e9dff0);border:1px solid rgba(95,116,184,.18);border-radius:16px;padding:12px 14px;display:grid;grid-template-columns:32px 1fr auto;gap:12px;align-items:center;margin:8px 0 12px}
-body.dark .v246-whats-new{background:linear-gradient(135deg,#241d3a,#1e1732 55%,#181228);border-color:rgba(142,163,216,.22)}
-.v246-whats-new-ico{width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,#5f74b8,#4c609e);display:grid;place-items:center;font-size:16px;color:#fff}
-.v246-whats-new-title{font-size:12.5px;font-weight:900;color:var(--ink);line-height:1.2}
-.v246-whats-new-sub{font-size:11px;color:var(--muted);font-weight:800;margin-top:2px}
-.v246-whats-new-close{background:transparent;border:none;color:var(--muted);font-size:20px;font-weight:900;cursor:pointer;padding:2px 6px;touch-action:manipulation}
 button.hero-log-btn,.hl-save,.v81-add-btn,.v122-prog-edit,.location-detect-btn,.empty-state button,.v246-btn{touch-action:manipulation}
 .v246-kbd-lift{transform:translateY(var(--v246-lift,0))!important;transition:transform .2s ease}
 </style>
 <script id="v246-script">
 (function(){'use strict';
-var K_WELCOME='walletiq_v246_welcome_seen',K_APP_SEEN='walletiq_v246_seen',K_WHATS_NEW='walletiq_v249_whatsnew_dismissed';
+var K_WELCOME='walletiq_v246_welcome_seen';
 function readJSON(k,fb){try{var r=localStorage.getItem(k);if(!r)return fb;var p=JSON.parse(r);return p==null?fb:p;}catch(e){return fb;}}
 function writeJSON(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
 function hasAnyWalletData(){try{var C=['walletIQ_v40_wallet','walletiq_wallet','walletiq_transactions','walletIQ_v40_tx','walletiq_memberships'];for(var i=0;i<C.length;i++){var v=readJSON(C[i],null);if(v){if(Array.isArray(v)&&v.length>0)return true;if(typeof v==='object'&&Object.keys(v).length>0)return true;}}if(typeof userWallet!=='undefined'&&userWallet&&userWallet.size>0)return true;}catch(e){}return false;}
 function isFirstTimeUser(){return !readJSON(K_WELCOME,false)&&!hasAnyWalletData();}
-var WELCOME_HTML='<div id="v246-welcome"><div class="v246-welcome-inner"><svg class="v246-welcome-logo" viewBox="0 0 40 40"><rect x="10" y="7" width="17" height="4" rx="1.2" fill="#c9d3e8" opacity="0.85"/><rect x="8" y="10" width="20" height="5" rx="1.5" fill="#e0e7f2"/><rect x="5" y="14" width="30" height="20" rx="4.5" fill="#5f74b8"/><rect x="26" y="22" width="6" height="4.5" rx="1.2" fill="#4c609e"/><circle cx="29" cy="24.25" r="1" fill="#faf7f2"/><path d="M32 3.5 L33 6 L35.5 7 L33 8 L32 10.5 L31 8 L28.5 7 L31 6 Z" fill="#c9a35a"/></svg><div class="v246-welcome-brand">Wallet <span class="iq">IQ</span></div><div class="v246-welcome-tag">Your Wallet, Maximized.</div><div class="v246-welcome-pitch">Wallet IQ picks the <b>best credit card</b> for every purchase across <b>100+ Canadian cards</b> and <b>6,000+ merchants</b>. Points auto-accumulate, statement credits get tracked. Everything runs on your device.</div><div class="v246-welcome-bullets"><div class="v246-welcome-bullet"><div class="v246-welcome-bullet-ico">\uD83D\uDCB3</div><div class="v246-welcome-bullet-txt">Best card for every merchant<small>Type any store name for instant recommendations</small></div></div><div class="v246-welcome-bullet"><div class="v246-welcome-bullet-ico">\uD83C\uDFAF</div><div class="v246-welcome-bullet-txt">Auto-tracking rewards<small>Log a purchase \u2192 points appear in your Vault</small></div></div><div class="v246-welcome-bullet"><div class="v246-welcome-bullet-ico">\uD83D\uDD10</div><div class="v246-welcome-bullet-txt">100% private<small>All data stays on your phone. No login. Ever.</small></div></div></div><div class="v246-welcome-actions"><button type="button" class="v246-btn v246-btn-primary" id="v246-welcome-setup">Set up my wallet</button><button type="button" class="v246-btn v246-btn-secondary" id="v246-welcome-explore">Explore first</button></div><div class="v246-welcome-foot">You can always set up your wallet later from the menu.</div></div></div>';
-function injectWelcome(){if(document.getElementById('v246-welcome'))return;var t=document.createElement('div');t.innerHTML=WELCOME_HTML;document.body.appendChild(t.firstChild);document.getElementById('v246-welcome-setup').addEventListener('click',function(){dismissWelcome();setTimeout(function(){try{if(typeof showOnboarding==='function')showOnboarding();}catch(e){}},250);});document.getElementById('v246-welcome-explore').addEventListener('click',function(){dismissWelcome();});}
-function showWelcome(){injectWelcome();var e=document.getElementById('v246-welcome');if(e)e.classList.add('show');try{var m=document.getElementById('onboardModal');if(m)m.classList.remove('show');}catch(e){}}
-function dismissWelcome(){var e=document.getElementById('v246-welcome');if(e)e.classList.remove('show');writeJSON(K_WELCOME,true);writeJSON(K_APP_SEEN,true);}
-function injectWhatsNew(){if(readJSON(K_WHATS_NEW,false))return;if(isFirstTimeUser())return;writeJSON(K_APP_SEEN,true);var home=document.getElementById('home');if(!home||document.querySelector('.v246-whats-new'))return;var p=document.createElement('div');p.className='v246-whats-new';p.innerHTML='<div class="v246-whats-new-ico">\u2728</div><div><div class="v246-whats-new-title">V249 \u00B7 Portfolio + delete + tab-restore fixes</div><div class="v246-whats-new-sub">Balance updates propagate, deletes stick, refresh returns you</div></div><button type="button" class="v246-whats-new-close">\u00D7</button>';var g=home.querySelector('.greeting');if(g&&g.nextSibling)home.insertBefore(p,g.nextSibling);else home.insertBefore(p,home.firstChild);p.querySelector('.v246-whats-new-close').addEventListener('click',function(){p.style.opacity='0';p.style.transition='opacity .22s ease';setTimeout(function(){if(p.parentNode)p.remove();},240);writeJSON(K_WHATS_NEW,true);});}
+var HTML='<div id="v246-welcome"><div class="v246-welcome-inner"><svg class="v246-welcome-logo" viewBox="0 0 40 40"><rect x="10" y="7" width="17" height="4" rx="1.2" fill="#c9d3e8" opacity="0.85"/><rect x="8" y="10" width="20" height="5" rx="1.5" fill="#e0e7f2"/><rect x="5" y="14" width="30" height="20" rx="4.5" fill="#5f74b8"/><rect x="26" y="22" width="6" height="4.5" rx="1.2" fill="#4c609e"/><circle cx="29" cy="24.25" r="1" fill="#faf7f2"/><path d="M32 3.5 L33 6 L35.5 7 L33 8 L32 10.5 L31 8 L28.5 7 L31 6 Z" fill="#c9a35a"/></svg><div class="v246-welcome-brand">Wallet <span class="iq">IQ</span></div><div class="v246-welcome-tag">Your Wallet, Maximized.</div><div class="v246-welcome-pitch">Wallet IQ picks the <b>best credit card</b> for every purchase across <b>100+ Canadian cards</b> and <b>6,000+ merchants</b>. Points auto-accumulate. Everything runs on your device.</div><div class="v246-welcome-bullets"><div class="v246-welcome-bullet"><div class="v246-welcome-bullet-ico">\uD83D\uDCB3</div><div class="v246-welcome-bullet-txt">Best card for every merchant<small>Type any store name for instant recommendations</small></div></div><div class="v246-welcome-bullet"><div class="v246-welcome-bullet-ico">\uD83C\uDFAF</div><div class="v246-welcome-bullet-txt">Auto-tracking rewards<small>Log a purchase \u2192 points appear in your Vault</small></div></div><div class="v246-welcome-bullet"><div class="v246-welcome-bullet-ico">\uD83D\uDD10</div><div class="v246-welcome-bullet-txt">100% private<small>All data stays on your phone. No login. Ever.</small></div></div></div><div class="v246-welcome-actions"><button type="button" class="v246-btn v246-btn-primary" id="v246-welcome-setup">Set up my wallet</button><button type="button" class="v246-btn v246-btn-secondary" id="v246-welcome-explore">Explore first</button></div><div class="v246-welcome-foot">You can always set up your wallet later from the menu.</div></div></div>';
+function inject(){if(document.getElementById('v246-welcome'))return;var t=document.createElement('div');t.innerHTML=HTML;document.body.appendChild(t.firstChild);document.getElementById('v246-welcome-setup').addEventListener('click',function(){dismiss();setTimeout(function(){try{if(typeof showOnboarding==='function')showOnboarding();}catch(e){}},250);});document.getElementById('v246-welcome-explore').addEventListener('click',dismiss);}
+function show(){inject();var e=document.getElementById('v246-welcome');if(e)e.classList.add('show');try{var m=document.getElementById('onboardModal');if(m)m.classList.remove('show');}catch(e){}}
+function dismiss(){var e=document.getElementById('v246-welcome');if(e)e.classList.remove('show');writeJSON(K_WELCOME,true);}
+function suppressAuto(){try{if(typeof window.showOnboarding==='function'&&!window.showOnboarding.__v246){var o=window.showOnboarding;window.showOnboarding=function(){if(isFirstTimeUser()){show();return;}return o.apply(this,arguments);};window.showOnboarding.__v246=true;}}catch(e){}}
 function installKeyboardLift(){if(!('visualViewport' in window))return;var vv=window.visualViewport,am=null;function apply(){if(!am)return;var kh=Math.max(0,window.innerHeight-vv.height-vv.offsetTop);if(kh>60){var lift=Math.min(kh-20,180);am.style.setProperty('--v246-lift','-'+lift+'px');am.classList.add('v246-kbd-lift');}else{am.classList.remove('v246-kbd-lift');am.style.removeProperty('--v246-lift');}}vv.addEventListener('resize',apply);vv.addEventListener('scroll',apply);document.addEventListener('focusin',function(e){var t=e.target;if(!t||(t.tagName!=='INPUT'&&t.tagName!=='TEXTAREA'&&t.tagName!=='SELECT'))return;var m=t.closest&&t.closest('.modal-overlay.show .modal,.v81-modal-overlay.show .v81-modal,.v122-edit-overlay.show .v122-edit,#addTxModal .modal');if(m){am=m;setTimeout(apply,120);}});document.addEventListener('focusout',function(){if(am){setTimeout(function(){var f=document.activeElement&&(document.activeElement.tagName==='INPUT'||document.activeElement.tagName==='TEXTAREA');if(!f){am.classList.remove('v246-kbd-lift');am.style.removeProperty('--v246-lift');am=null;}},80);}});}
-function suppressLegacyAutoOnboard(){try{if(typeof window.showOnboarding==='function'&&!window.showOnboarding.__v246Wrapped){var o=window.showOnboarding;window.showOnboarding=function(){if(isFirstTimeUser()){showWelcome();return;}return o.apply(this,arguments);};window.showOnboarding.__v246Wrapped=true;}}catch(e){}}
-function boot(){injectWelcome();suppressLegacyAutoOnboard();if(isFirstTimeUser()){setTimeout(showWelcome,350);}else{setTimeout(injectWhatsNew,600);}installKeyboardLift();}
+function boot(){inject();suppressAuto();if(isFirstTimeUser())setTimeout(show,350);installKeyboardLift();}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 setTimeout(boot,500);setTimeout(boot,1500);
-window.__v246={showWelcome:showWelcome};
 })();
 </script>
 
-<!-- ============================================================
-     V247 — Location + delete UI (compact)
-     ============================================================ -->
+<!-- V247 — Location fix (Recent Activity delete integration moved to V250) -->
 <style id="v247-styles">
 .v247-nearby-wrap{margin-top:14px;background:var(--surface);border-radius:16px;padding:16px 14px;box-shadow:var(--shadow);border:1px solid var(--border)}
 .v247-nearby-head{display:flex;align-items:center;gap:8px;margin-bottom:10px}
 .v247-nearby-title{font-size:12px;font-weight:900;color:var(--muted);letter-spacing:.14em;text-transform:uppercase;flex:1}
 .v247-nearby-badge{font-size:10px;font-weight:900;color:var(--brand);background:var(--accent-soft);padding:3px 8px;border-radius:99px}
 .v247-nearby-list{display:flex;flex-direction:column;gap:6px}
-.v247-poi{display:grid;grid-template-columns:32px 1fr auto;gap:10px;align-items:center;padding:11px 12px;background:var(--surface);border:1px solid var(--border);border-radius:12px;cursor:pointer;text-align:left;font-family:inherit;transition:all .12s ease;touch-action:manipulation;width:100%}
+.v247-poi{display:grid;grid-template-columns:32px 1fr auto;gap:10px;align-items:center;padding:11px 12px;background:var(--surface);border:1px solid var(--border);border-radius:12px;cursor:pointer;text-align:left;font-family:inherit;touch-action:manipulation;width:100%}
 .v247-poi:active{transform:scale(.98)}
 .v247-poi:hover{border-color:var(--brand);background:var(--surface-2)}
 .v247-poi-ico{font-size:18px;text-align:center}
-.v247-poi-mid{min-width:0}
-.v247-poi-name{font-size:13px;font-weight:900;color:var(--ink);line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v247-poi-name{font-size:13px;font-weight:900;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .v247-poi-sub{font-size:10px;color:var(--muted);font-weight:800;text-transform:uppercase;margin-top:2px}
-.v247-poi-dist{font-family:ui-monospace,monospace;font-size:11px;font-weight:900;color:var(--brand);white-space:nowrap}
-.v247-nearby-empty{padding:16px 12px;text-align:center;color:var(--muted);font-size:12px;font-weight:800;line-height:1.4}
+.v247-poi-dist{font-family:ui-monospace,monospace;font-size:11px;font-weight:900;color:var(--brand)}
+.v247-nearby-empty{padding:16px 12px;text-align:center;color:var(--muted);font-size:12px;font-weight:800}
 .v247-nearby-loading{display:flex;align-items:center;justify-content:center;gap:10px;padding:16px;color:var(--muted);font-size:12px;font-weight:800}
 .v247-spinner{width:16px;height:16px;border:2px solid var(--border-2);border-top-color:var(--brand);border-radius:50%;animation:v247spin .8s linear infinite}
 @keyframes v247spin{to{transform:rotate(360deg)}}
 .v247-search-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;padding-top:10px;border-top:1px dashed var(--border)}
 .v247-chip{background:var(--surface-2);border:1px solid var(--border);border-radius:99px;padding:7px 12px;font-size:11.5px;font-weight:900;color:var(--ink);cursor:pointer;font-family:inherit;touch-action:manipulation}
-#overviewRecent .tx-item{position:relative;padding-right:78px}
-.v247-tx-actions{position:absolute;right:8px;top:50%;transform:translateY(-50%);display:flex;gap:5px;z-index:2}
-.v247-tx-actions button{width:32px;height:32px;border-radius:50%;border:1px solid var(--border);background:var(--surface);color:var(--muted);font-size:13px;cursor:pointer;padding:0;display:grid;place-items:center;touch-action:manipulation;font-weight:900}
-.v247-tx-actions button.v247-edit:hover{background:var(--accent-soft);color:var(--brand);border-color:var(--brand)}
-.v247-tx-actions button.v247-del:hover{background:var(--coral-soft);color:var(--coral);border-color:var(--coral)}
-#txList .tx-item .txbtns button{min-width:32px;min-height:32px;border-radius:8px;padding:4px 10px;font-size:14px;touch-action:manipulation;line-height:1}
 </style>
 <script id="v247-script">
 (function(){'use strict';
-function haversine(lat1,lon1,lat2,lon2){var R=6371000,rad=function(x){return x*Math.PI/180;},dLat=rad(lat2-lat1),dLon=rad(lon2-lon1);var a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(rad(lat1))*Math.cos(rad(lat2))*Math.sin(dLon/2)*Math.sin(dLon/2);return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));}
-var CAT_MAP={restaurant:{ico:'\uD83C\uDF7D\uFE0F',lbl:'Dining'},cafe:{ico:'\u2615',lbl:'Coffee'},fast_food:{ico:'\uD83C\uDF54',lbl:'Fast Food'},bar:{ico:'\uD83C\uDF7B',lbl:'Bar'},pub:{ico:'\uD83C\uDF7B',lbl:'Pub'},pharmacy:{ico:'\uD83D\uDC8A',lbl:'Pharmacy'},fuel:{ico:'\u26FD',lbl:'Gas'},cinema:{ico:'\uD83C\uDFAC',lbl:'Cinema'},supermarket:{ico:'\uD83D\uDED2',lbl:'Grocery'},convenience:{ico:'\uD83E\uDD64',lbl:'Convenience'},clothes:{ico:'\uD83D\uDC57',lbl:'Fashion'},department_store:{ico:'\uD83C\uDFEC',lbl:'Dept Store'},electronics:{ico:'\uD83D\uDCF1',lbl:'Electronics'},hardware:{ico:'\uD83D\uDD28',lbl:'Hardware'},bakery:{ico:'\uD83E\uDD50',lbl:'Bakery'},books:{ico:'\uD83D\uDCDA',lbl:'Books'},beauty:{ico:'\uD83D\uDC84',lbl:'Beauty'},alcohol:{ico:'\uD83C\uDF77',lbl:'Liquor'},mall:{ico:'\uD83C\uDFEC',lbl:'Mall'}};
-function typeMeta(t){return CAT_MAP[t]||{ico:'\uD83D\uDCB3',lbl:t?t.replace(/_/g,' '):'Merchant'};}
-function fmtDist(m){if(m<1000)return Math.round(m)+' m';return (m/1000).toFixed(1)+' km';}
-function fetchNearbyPOIs(lat,lon,radius){radius=radius||150;var q='[out:json][timeout:12];('+'node["shop"]["name"](around:'+radius+','+lat+','+lon+');'+'node["amenity"~"^(restaurant|cafe|fast_food|bar|pub|pharmacy|fuel|cinema|bakery)$"]["name"](around:'+radius+','+lat+','+lon+');'+'way["shop"]["name"](around:'+radius+','+lat+','+lon+');'+'way["amenity"~"^(restaurant|cafe|fast_food|bar|pub|pharmacy|fuel|cinema|bakery)$"]["name"](around:'+radius+','+lat+','+lon+');'+');out center 30;';var endpoints=['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter'];function tryOne(idx){if(idx>=endpoints.length)return Promise.reject(new Error('all failed'));return fetch(endpoints[idx],{method:'POST',body:'data='+encodeURIComponent(q)}).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}).catch(function(){return tryOne(idx+1);});}return tryOne(0).then(function(data){var pois=(data.elements||[]).map(function(e){var name=e.tags&&e.tags.name;if(!name)return null;var elat=e.lat||(e.center&&e.center.lat),elon=e.lon||(e.center&&e.center.lon);if(elat==null||elon==null)return null;var type=(e.tags&&(e.tags.shop||e.tags.amenity))||'other';return{name:name,type:type,dist:haversine(lat,lon,elat,elon)};}).filter(Boolean);var byName={};pois.forEach(function(p){var k=p.name.toLowerCase().trim();if(!byName[k]||byName[k].dist>p.dist)byName[k]=p;});return Object.keys(byName).map(function(k){return byName[k];}).sort(function(a,b){return a.dist-b.dist;}).slice(0,10);});}
-function renderNearbyList(container,pois,fnPick){if(!container)return;if(!pois||pois.length===0){container.innerHTML='<div class="v247-nearby-empty">No merchants found nearby. Type a merchant name below.</div>';return;}var html=pois.map(function(p){var m=typeMeta(p.type);var safe=p.name.replace(/</g,'&lt;').replace(/>/g,'&gt;');return '<button type="button" class="v247-poi" data-name="'+safe.replace(/"/g,'&quot;')+'"><span class="v247-poi-ico">'+m.ico+'</span><span class="v247-poi-mid"><span class="v247-poi-name">'+safe+'</span><span class="v247-poi-sub">'+m.lbl+'</span></span><span class="v247-poi-dist">'+fmtDist(p.dist)+'</span></button>';}).join('');container.innerHTML=html;Array.prototype.forEach.call(container.querySelectorAll('.v247-poi'),function(btn){btn.addEventListener('click',function(){var n=btn.getAttribute('data-name');if(fnPick)fnPick(n);});});}
-function pickMerchant(name){if(!name)return;var resEl=document.getElementById('locResult');if(!resEl)return;var result=null;try{if(typeof findBestCard==='function')result=findBestCard(name);}catch(e){}if(!result)return;var card=result.best&&result.best.card;var html='<div style="background:var(--surface);border:1.5px solid var(--green);border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:var(--shadow)"><div style="display:inline-block;background:var(--greenbg);color:var(--green);font-size:10px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;border-radius:99px;margin-bottom:8px">\uD83D\uDCCD Selected</div><div style="font-size:18px;font-weight:900;margin-bottom:8px">'+name+'</div>';if(result.empty){html+='<div class="warn-box">Add cards to your wallet first.</div>';}else if(result.noCompatibleCard){html+='<div class="warn-box">\u26A0\uFE0F No compatible card in your wallet.</div>';}else if(card){var b=result.best;var key=null;try{key=Object.keys(CARDS_DB).find(function(k){return CARDS_DB[k].n===card.n;});}catch(e){}html+='<div style="background:var(--surface-2);border-radius:14px;padding:14px;margin-bottom:10px"><div style="font-size:9.5px;color:var(--muted);font-weight:900;letter-spacing:.1em;text-transform:uppercase;text-align:center;margin-bottom:10px">Use this card</div>';try{if(key&&typeof svgCard==='function')html+='<div style="display:flex;justify-content:center;margin-bottom:12px">'+svgCard(card,key)+'</div>';}catch(e){}html+='<div style="font-size:18px;font-weight:900;text-align:center">'+card.n+'</div><div style="font-family:ui-monospace,monospace;font-size:14px;font-weight:900;color:var(--green);text-align:center;margin-top:4px">Up to '+b.rate.toFixed(1)+'% here</div></div>';if(result.alternatives&&result.alternatives.length){html+='<div class="alt-cards"><div class="alt-title">Other cards in your wallet</div>';result.alternatives.forEach(function(a){html+='<div class="alt-item"><span class="name">'+a.card.e+' '+a.card.n+'</span><span class="rate">'+a.rate.toFixed(1)+'%</span></div>';});html+='</div>';}}html+='</div>';resEl.insertAdjacentHTML('afterbegin',html);try{resEl.scrollIntoView({behavior:'smooth',block:'start'});}catch(e){}}
-function v247Lookup(){var resEl=document.getElementById('locResult');if(!resEl)return;if(!navigator.geolocation){resEl.innerHTML='<div class="warn-box">Location not supported.</div>';return;}resEl.innerHTML='<div class="empty-state"><div class="big">\uD83D\uDCCD</div><h3>Detecting location...</h3><p>Please allow location access.</p></div>';navigator.geolocation.getCurrentPosition(function(pos){var lat=pos.coords.latitude,lon=pos.coords.longitude;resEl.innerHTML='<div class="empty-state"><div class="big">\uD83D\uDD0D</div><h3>Finding nearby merchants...</h3><p>'+lat.toFixed(4)+', '+lon.toFixed(4)+'</p></div>';fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat='+lat+'&lon='+lon+'&zoom=18&addressdetails=1&namedetails=1',{headers:{'Accept-Language':'en'}}).then(function(r){return r.json();}).catch(function(){return null;}).then(function(data){var merchantName=null,areaLabel='';if(data){if(data.namedetails&&data.namedetails.name)merchantName=data.namedetails.name;if(!merchantName&&data.name)merchantName=data.name;if(data.address){var a=data.address;if(!merchantName){if(a.shop&&typeof a.shop==='string'&&a.shop.length>2)merchantName=a.shop;if(!merchantName&&a.amenity&&typeof a.amenity==='string'&&a.amenity.length>2)merchantName=a.amenity;}areaLabel=[a.road,a.suburb||a.neighbourhood,a.city||a.town||a.village].filter(Boolean).join(', ');}}if(merchantName&&typeof window.__v247LegacyRenderLoc==='function'){try{window.__v247LegacyRenderLoc(data,lat,lon);return;}catch(e){}}var html='<div class="v247-nearby-wrap"><div class="v247-nearby-head"><div class="v247-nearby-title">\uD83D\uDCCD Nearby</div><div class="v247-nearby-badge">GPS</div></div>'+(areaLabel?'<div style="font-size:13px;font-weight:900;color:var(--ink);margin-bottom:2px">You\'re near '+areaLabel+'</div>':'')+'<div style="font-size:11px;color:var(--muted);font-weight:800;margin-bottom:12px">Tap a merchant to see the best card in your wallet</div><div class="v247-nearby-list" id="v247-nearby-list"><div class="v247-nearby-loading"><div class="v247-spinner"></div><span>Searching nearby merchants...</span></div></div><div class="v247-search-chips"><button type="button" class="v247-chip" data-q="dining">\uD83C\uDF7D\uFE0F Restaurants</button><button type="button" class="v247-chip" data-q="grocery">\uD83D\uDED2 Groceries</button><button type="button" class="v247-chip" data-q="gas">\u26FD Gas</button><button type="button" class="v247-chip" data-q="coffee">\u2615 Coffee</button></div></div><div style="margin-top:12px"><div class="form-row"><label>Or type a merchant name</label><input type="text" id="locManual" placeholder="e.g. Starbucks, Save-On-Foods" oninput="renderLocManual(this.value)" style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;font-size:15px;font-weight:750;background:var(--surface);color:var(--ink);font-family:inherit;outline:none"></div><div id="locManualResult"></div></div>';resEl.innerHTML=html;Array.prototype.forEach.call(resEl.querySelectorAll('.v247-chip'),function(chip){chip.addEventListener('click',function(){var q=chip.getAttribute('data-q');var input=document.getElementById('locManual');if(input){input.value=q;input.dispatchEvent(new Event('input',{bubbles:true}));}});});fetchNearbyPOIs(lat,lon,150).then(function(pois){var listEl=document.getElementById('v247-nearby-list');if(!listEl)return;if(pois.length===0){return fetchNearbyPOIs(lat,lon,300).then(function(wider){renderNearbyList(listEl,wider,pickMerchant);});}renderNearbyList(listEl,pois,pickMerchant);}).catch(function(){var listEl=document.getElementById('v247-nearby-list');if(listEl)listEl.innerHTML='<div class="v247-nearby-empty">Couldn\'t reach merchant search. Type a merchant name below.</div>';});});},function(err){resEl.innerHTML='<div class="warn-box">\u26A0\uFE0F Location denied: '+err.message+'</div>';},{enableHighAccuracy:true,timeout:12000,maximumAge:60000});}
-function installLocationFix(){try{if(typeof window.renderLocResult==='function'&&!window.__v247LegacyRenderLoc){window.__v247LegacyRenderLoc=window.renderLocResult;}}catch(e){}try{window.lookupBestCard=v247Lookup;}catch(e){}}
-function boot(){installLocationFix();}
+function haversine(la1,lo1,la2,lo2){var R=6371000,r=function(x){return x*Math.PI/180;},dL=r(la2-la1),dO=r(lo2-lo1);var a=Math.sin(dL/2)*Math.sin(dL/2)+Math.cos(r(la1))*Math.cos(r(la2))*Math.sin(dO/2)*Math.sin(dO/2);return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));}
+var CAT={restaurant:{ico:'\uD83C\uDF7D\uFE0F',lbl:'Dining'},cafe:{ico:'\u2615',lbl:'Coffee'},fast_food:{ico:'\uD83C\uDF54',lbl:'Fast Food'},bar:{ico:'\uD83C\uDF7B',lbl:'Bar'},pharmacy:{ico:'\uD83D\uDC8A',lbl:'Pharmacy'},fuel:{ico:'\u26FD',lbl:'Gas'},cinema:{ico:'\uD83C\uDFAC',lbl:'Cinema'},supermarket:{ico:'\uD83D\uDED2',lbl:'Grocery'},convenience:{ico:'\uD83E\uDD64',lbl:'Convenience'},clothes:{ico:'\uD83D\uDC57',lbl:'Fashion'},department_store:{ico:'\uD83C\uDFEC',lbl:'Dept Store'},electronics:{ico:'\uD83D\uDCF1',lbl:'Electronics'},bakery:{ico:'\uD83E\uDD50',lbl:'Bakery'},books:{ico:'\uD83D\uDCDA',lbl:'Books'},alcohol:{ico:'\uD83C\uDF77',lbl:'Liquor'}};
+function tm(t){return CAT[t]||{ico:'\uD83D\uDCB3',lbl:t?t.replace(/_/g,' '):'Merchant'};}
+function fd(m){return m<1000?Math.round(m)+' m':(m/1000).toFixed(1)+' km';}
+function fetchPOI(la,lo,r){r=r||150;var q='[out:json][timeout:12];('+'node["shop"]["name"](around:'+r+','+la+','+lo+');node["amenity"~"^(restaurant|cafe|fast_food|bar|pub|pharmacy|fuel|cinema|bakery)$"]["name"](around:'+r+','+la+','+lo+');way["shop"]["name"](around:'+r+','+la+','+lo+');way["amenity"~"^(restaurant|cafe|fast_food|bar|pub|pharmacy|fuel|cinema|bakery)$"]["name"](around:'+r+','+la+','+lo+'););out center 30;';var ep=['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter'];function T(i){if(i>=ep.length)return Promise.reject();return fetch(ep[i],{method:'POST',body:'data='+encodeURIComponent(q)}).then(function(r){if(!r.ok)throw 0;return r.json();}).catch(function(){return T(i+1);});}return T(0).then(function(d){var p=(d.elements||[]).map(function(e){var n=e.tags&&e.tags.name;if(!n)return null;var eL=e.lat||(e.center&&e.center.lat),eO=e.lon||(e.center&&e.center.lon);if(eL==null||eO==null)return null;var t=(e.tags&&(e.tags.shop||e.tags.amenity))||'other';return{name:n,type:t,dist:haversine(la,lo,eL,eO)};}).filter(Boolean);var byN={};p.forEach(function(x){var k=x.name.toLowerCase().trim();if(!byN[k]||byN[k].dist>x.dist)byN[k]=x;});return Object.keys(byN).map(function(k){return byN[k];}).sort(function(a,b){return a.dist-b.dist;}).slice(0,10);});}
+function renderList(c,p,pk){if(!c)return;if(!p||!p.length){c.innerHTML='<div class="v247-nearby-empty">No merchants found nearby. Type a name below.</div>';return;}c.innerHTML=p.map(function(x){var m=tm(x.type);var s=x.name.replace(/</g,'&lt;').replace(/>/g,'&gt;');return '<button type="button" class="v247-poi" data-name="'+s.replace(/"/g,'&quot;')+'"><span class="v247-poi-ico">'+m.ico+'</span><span><span class="v247-poi-name">'+s+'</span><span class="v247-poi-sub">'+m.lbl+'</span></span><span class="v247-poi-dist">'+fd(x.dist)+'</span></button>';}).join('');Array.prototype.forEach.call(c.querySelectorAll('.v247-poi'),function(b){b.addEventListener('click',function(){var n=b.getAttribute('data-name');if(pk)pk(n);});});}
+function pick(name){if(!name)return;var r=document.getElementById('locResult');if(!r)return;var res=null;try{if(typeof findBestCard==='function')res=findBestCard(name);}catch(e){}if(!res)return;var c=res.best&&res.best.card;var h='<div style="background:var(--surface);border:1.5px solid var(--green);border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:var(--shadow)"><div style="display:inline-block;background:var(--greenbg);color:var(--green);font-size:10px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;border-radius:99px;margin-bottom:8px">\uD83D\uDCCD Selected</div><div style="font-size:18px;font-weight:900;margin-bottom:8px">'+name+'</div>';if(res.empty)h+='<div class="warn-box">Add cards to your wallet first.</div>';else if(res.noCompatibleCard)h+='<div class="warn-box">\u26A0\uFE0F No compatible card.</div>';else if(c){var b=res.best;var k=null;try{k=Object.keys(CARDS_DB).find(function(x){return CARDS_DB[x].n===c.n;});}catch(e){}h+='<div style="background:var(--surface-2);border-radius:14px;padding:14px;margin-bottom:10px"><div style="font-size:9.5px;color:var(--muted);font-weight:900;letter-spacing:.1em;text-transform:uppercase;text-align:center;margin-bottom:10px">Use this card</div>';try{if(k&&typeof svgCard==='function')h+='<div style="display:flex;justify-content:center;margin-bottom:12px">'+svgCard(c,k)+'</div>';}catch(e){}h+='<div style="font-size:18px;font-weight:900;text-align:center">'+c.n+'</div><div style="font-family:ui-monospace,monospace;font-size:14px;font-weight:900;color:var(--green);text-align:center;margin-top:4px">Up to '+b.rate.toFixed(1)+'% here</div></div>';if(res.alternatives&&res.alternatives.length){h+='<div class="alt-cards"><div class="alt-title">Other cards</div>';res.alternatives.forEach(function(a){h+='<div class="alt-item"><span class="name">'+a.card.e+' '+a.card.n+'</span><span class="rate">'+a.rate.toFixed(1)+'%</span></div>';});h+='</div>';}}h+='</div>';r.insertAdjacentHTML('afterbegin',h);try{r.scrollIntoView({behavior:'smooth',block:'start'});}catch(e){}}
+function look(){var r=document.getElementById('locResult');if(!r)return;if(!navigator.geolocation){r.innerHTML='<div class="warn-box">Location not supported.</div>';return;}r.innerHTML='<div class="empty-state"><div class="big">\uD83D\uDCCD</div><h3>Detecting location...</h3></div>';navigator.geolocation.getCurrentPosition(function(p){var la=p.coords.latitude,lo=p.coords.longitude;r.innerHTML='<div class="empty-state"><div class="big">\uD83D\uDD0D</div><h3>Finding nearby merchants...</h3><p>'+la.toFixed(4)+', '+lo.toFixed(4)+'</p></div>';fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat='+la+'&lon='+lo+'&zoom=18&addressdetails=1&namedetails=1').then(function(x){return x.json();}).catch(function(){return null;}).then(function(d){var mn=null,al='';if(d){if(d.namedetails&&d.namedetails.name)mn=d.namedetails.name;if(!mn&&d.name)mn=d.name;if(d.address){var a=d.address;if(!mn){if(a.shop&&typeof a.shop==='string'&&a.shop.length>2)mn=a.shop;if(!mn&&a.amenity&&typeof a.amenity==='string'&&a.amenity.length>2)mn=a.amenity;}al=[a.road,a.suburb||a.neighbourhood,a.city||a.town||a.village].filter(Boolean).join(', ');}}if(mn&&typeof window.__v247LegacyRenderLoc==='function'){try{window.__v247LegacyRenderLoc(d,la,lo);return;}catch(e){}}var h='<div class="v247-nearby-wrap"><div class="v247-nearby-head"><div class="v247-nearby-title">\uD83D\uDCCD Nearby</div><div class="v247-nearby-badge">GPS</div></div>'+(al?'<div style="font-size:13px;font-weight:900;color:var(--ink);margin-bottom:2px">You\'re near '+al+'</div>':'')+'<div style="font-size:11px;color:var(--muted);font-weight:800;margin-bottom:12px">Tap a merchant to see the best card in your wallet</div><div class="v247-nearby-list" id="v247-nearby-list"><div class="v247-nearby-loading"><div class="v247-spinner"></div><span>Searching...</span></div></div><div class="v247-search-chips"><button type="button" class="v247-chip" data-q="dining">\uD83C\uDF7D\uFE0F Restaurants</button><button type="button" class="v247-chip" data-q="grocery">\uD83D\uDED2 Groceries</button><button type="button" class="v247-chip" data-q="gas">\u26FD Gas</button><button type="button" class="v247-chip" data-q="coffee">\u2615 Coffee</button></div></div><div style="margin-top:12px"><div class="form-row"><label>Or type a merchant name</label><input type="text" id="locManual" placeholder="e.g. Starbucks" oninput="renderLocManual(this.value)" style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;font-size:15px;font-weight:750;background:var(--surface);color:var(--ink);font-family:inherit;outline:none"></div><div id="locManualResult"></div></div>';r.innerHTML=h;Array.prototype.forEach.call(r.querySelectorAll('.v247-chip'),function(c){c.addEventListener('click',function(){var q=c.getAttribute('data-q');var i=document.getElementById('locManual');if(i){i.value=q;i.dispatchEvent(new Event('input',{bubbles:true}));}});});fetchPOI(la,lo,150).then(function(x){var l=document.getElementById('v247-nearby-list');if(!l)return;if(x.length===0){return fetchPOI(la,lo,300).then(function(w){renderList(l,w,pick);});}renderList(l,x,pick);}).catch(function(){var l=document.getElementById('v247-nearby-list');if(l)l.innerHTML='<div class="v247-nearby-empty">Couldn\'t search. Type a name below.</div>';});});},function(e){r.innerHTML='<div class="warn-box">\u26A0\uFE0F '+e.message+'</div>';},{enableHighAccuracy:true,timeout:12000,maximumAge:60000});}
+function inst(){try{if(typeof window.renderLocResult==='function'&&!window.__v247LegacyRenderLoc)window.__v247LegacyRenderLoc=window.renderLocResult;}catch(e){}try{window.lookupBestCard=look;}catch(e){}}
+function boot(){inst();}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 setTimeout(boot,500);setTimeout(boot,1500);
-window.__v247={lookup:v247Lookup};
 })();
 </script>
 
-<!-- ============================================================
-     V248 — Verified apply-link URLs
-     ============================================================ -->
+<!-- V248 — Verified apply-link URLs -->
 <script id="v248-script">
 (function(){'use strict';
 var URL_MAP={
- 'Amex Platinum':'https://www.americanexpress.com/en-ca/credit-cards/platinum-card/',
- 'Amex Gold Rewards':'https://www.americanexpress.com/en-ca/credit-cards/gold-rewards-card/',
- 'Amex Cobalt':'https://www.americanexpress.com/en-ca/credit-cards/cobalt-card/',
- 'Amex Aeroplan Reserve':'https://www.americanexpress.com/en-ca/credit-cards/aeroplan-reserve/',
- 'Amex Aeroplan':'https://www.americanexpress.com/en-ca/credit-cards/aeroplan-card/',
- 'Amex SimplyCash Preferred':'https://www.americanexpress.com/en-ca/credit-cards/simply-cash-preferred-card/',
- 'Marriott Bonvoy Amex':'https://www.americanexpress.com/en-ca/credit-cards/marriott-bonvoy-card/',
- 'Marriott Bonvoy Amex (Hotel)':'https://www.americanexpress.com/en-ca/credit-cards/marriott-bonvoy-card/',
- 'RBC Avion VI Privilege':'https://www.rbcroyalbank.com/credit-cards/travel/rbc-avion-visa-infinite-privilege.html',
- 'RBC Avion Visa Infinite':'https://www.rbcroyalbank.com/credit-cards/travel/rbc-avion-visa-infinite.html',
- 'RBC Avion Visa Platinum':'https://www.rbcroyalbank.com/credit-cards/travel/rbc-avion-visa-platinum.html',
- 'CIBC Aeroplan VI Privilege':'https://www.cibc.com/en/personal-banking/credit-cards/all-credit-cards/aeroplan-visa-infinite-privilege-card.html',
- 'CIBC Aeroplan Visa Infinite':'https://www.cibc.com/en/personal-banking/credit-cards/all-credit-cards/aeroplan-visa-infinite-card.html',
- 'CIBC Aventura Visa Infinite':'https://www.cibc.com/en/personal-banking/credit-cards/all-credit-cards/aventura-visa-infinite-card.html',
- 'CIBC Dividend VI':'https://www.cibc.com/en/personal-banking/credit-cards/all-credit-cards/dividend-visa-infinite-card.html',
- 'BMO eclipse VI Privilege':'https://www.bmo.com/en-ca/main/personal/credit-cards/bmo-eclipse-visa-infinite-privilege/',
- 'BMO eclipse Visa Infinite':'https://www.bmo.com/en-ca/main/personal/credit-cards/bmo-eclipse-visa-infinite/',
- 'BMO Ascend WE MC':'https://www.bmo.com/en-ca/main/personal/credit-cards/bmo-ascend-world-elite-mastercard/',
- 'BMO CashBack WE MC':'https://www.bmo.com/en-ca/main/personal/credit-cards/bmo-cashback-world-elite-mastercard/',
- 'BMO VIPorter WE MC':'https://www.bmo.com/main/personal/credit-cards/',
- 'TD Aeroplan VI Privilege':'https://www.td.com/ca/en/personal-banking/products/credit-cards/aeroplan/aeroplan-visa-infinite-privilege-card',
- 'TD Aeroplan Visa Infinite':'https://www.td.com/ca/en/personal-banking/products/credit-cards/aeroplan/aeroplan-visa-infinite-card',
- 'TD First Class Travel VI':'https://www.td.com/ca/en/personal-banking/products/credit-cards/travel-rewards/first-class-travel-visa-infinite-card',
- 'TD Cash Back VI':'https://www.td.com/ca/en/personal-banking/products/credit-cards/cash-back/cash-back-visa-infinite',
- 'Scotia Passport VI Privilege':'https://www.scotiabank.com/ca/en/personal/credit-cards/visa/passport-infinite-privilege-card.html',
- 'Scotia Passport VI+':'https://www.scotiabank.com/ca/en/personal/credit-cards/visa/passport-infinite-card.html',
- 'Scotia Gold Amex':'https://www.scotiabank.com/ca/en/personal/credit-cards/american-express/gold-card.html',
- 'Scotia Momentum VI':'https://www.scotiabank.com/ca/en/personal/credit-cards/visa/momentum-visa-infinite-card.html',
- 'Tangerine Rewards WE MC':'https://www.tangerine.ca/en/offers/world-elite-mastercard-offer',
- 'MBNA Rewards WE MC':'https://www.mbna.ca/en/credit-cards/rewards/mbna-rewards-world-elite-mastercard',
- 'MBNA True Line MC':'https://www.mbna.ca/en/credit-cards/low-interest/true-line-mastercard',
- 'Rogers Red WE MC':'https://www.rogersbank.com/en/rogers_red_worldelite_mastercard_details/',
- 'PC Financial WE MC':'https://www.pcfinancial.ca/en/credit-cards/world-elite/'
-};
-var ISSUER_FALLBACK={'Amex':'https://www.americanexpress.com/en-ca/credit-cards/all-cards/','RBC':'https://www.rbcroyalbank.com/credit-cards/all-credit-cards.html','CIBC':'https://www.cibc.com/en/personal-banking/credit-cards.html','BMO':'https://www.bmo.com/main/personal/credit-cards/','TD':'https://www.td.com/ca/en/personal-banking/products/credit-cards/','Scotia':'https://www.scotiabank.com/ca/en/personal/credit-cards.html','Tangerine':'https://www.tangerine.ca/en/personal/spend/credit-cards','MBNA':'https://www.mbna.ca/en/credit-cards','Rogers':'https://www.rogersbank.com/en/','PC Financial':'https://www.pcfinancial.ca/en/credit-cards/'};
-function pickBestURL(o){if(!o||!o.n)return null;if(URL_MAP[o.n])return URL_MAP[o.n];if(o.apply&&/^https?:\/\/[^/]+\/./.test(o.apply))return o.apply;if(o.iss&&ISSUER_FALLBACK[o.iss])return ISSUER_FALLBACK[o.iss];return null;}
-function fixOffersArray(){try{if(typeof OFFERS==='undefined'||!Array.isArray(OFFERS))return 0;var f=0;for(var i=0;i<OFFERS.length;i++){var o=OFFERS[i];if(!o)continue;var b=pickBestURL(o);if(b&&b!==o.apply){o.apply=b;f++;}}return f;}catch(e){return 0;}}
-function fixRenderedLinks(){try{var links=document.querySelectorAll('.offer-apply-link');Array.prototype.forEach.call(links,function(link){var card=link.closest('.cardBig');if(!card)return;var header=card.querySelector('div[style*="font-size:14.5px"]');if(!header)return;var name=(header.textContent||'').trim();if(!name)return;var v=URL_MAP[name];if(!v)return;if((link.getAttribute('href')||'')!==v)link.setAttribute('href',v);});}catch(e){}}
-function installClickInterceptor(){document.addEventListener('click',function(e){var t=e.target;if(!t)return;var link=t.closest&&t.closest('.offer-apply-link');if(!link)return;var card=link.closest('.cardBig');if(!card)return;var header=card.querySelector('div[style*="font-size:14.5px"]');if(!header)return;var name=(header.textContent||'').trim();if(!name)return;var v=URL_MAP[name];if(!v)return;if((link.getAttribute('href')||'')!==v)link.setAttribute('href',v);},true);}
-function boot(){fixOffersArray();installClickInterceptor();try{if(typeof renderOffers==='function')renderOffers();}catch(e){}setTimeout(fixRenderedLinks,300);setTimeout(fixRenderedLinks,1500);var ol=document.getElementById('offersList');if(ol){var mo=new MutationObserver(function(){setTimeout(fixRenderedLinks,50);});mo.observe(ol,{childList:true,subtree:true});}}
+'Amex Platinum':'https://www.americanexpress.com/en-ca/credit-cards/platinum-card/',
+'Amex Gold Rewards':'https://www.americanexpress.com/en-ca/credit-cards/gold-rewards-card/',
+'Amex Cobalt':'https://www.americanexpress.com/en-ca/credit-cards/cobalt-card/',
+'Amex Aeroplan Reserve':'https://www.americanexpress.com/en-ca/credit-cards/aeroplan-reserve/',
+'Amex Aeroplan':'https://www.americanexpress.com/en-ca/credit-cards/aeroplan-card/',
+'Amex SimplyCash Preferred':'https://www.americanexpress.com/en-ca/credit-cards/simply-cash-preferred-card/',
+'Marriott Bonvoy Amex':'https://www.americanexpress.com/en-ca/credit-cards/marriott-bonvoy-card/',
+'Marriott Bonvoy Amex (Hotel)':'https://www.americanexpress.com/en-ca/credit-cards/marriott-bonvoy-card/',
+'RBC Avion VI Privilege':'https://www.rbcroyalbank.com/credit-cards/travel/rbc-avion-visa-infinite-privilege.html',
+'RBC Avion Visa Infinite':'https://www.rbcroyalbank.com/credit-cards/travel/rbc-avion-visa-infinite.html',
+'RBC Avion Visa Platinum':'https://www.rbcroyalbank.com/credit-cards/travel/rbc-avion-visa-platinum.html',
+'CIBC Aeroplan VI Privilege':'https://www.cibc.com/en/personal-banking/credit-cards/all-credit-cards/aeroplan-visa-infinite-privilege-card.html',
+'CIBC Aeroplan Visa Infinite':'https://www.cibc.com/en/personal-banking/credit-cards/all-credit-cards/aeroplan-visa-infinite-card.html',
+'CIBC Aventura Visa Infinite':'https://www.cibc.com/en/personal-banking/credit-cards/all-credit-cards/aventura-visa-infinite-card.html',
+'CIBC Dividend VI':'https://www.cibc.com/en/personal-banking/credit-cards/all-credit-cards/dividend-visa-infinite-card.html',
+'BMO eclipse VI Privilege':'https://www.bmo.com/en-ca/main/personal/credit-cards/bmo-eclipse-visa-infinite-privilege/',
+'BMO eclipse Visa Infinite':'https://www.bmo.com/en-ca/main/personal/credit-cards/bmo-eclipse-visa-infinite/',
+'BMO Ascend WE MC':'https://www.bmo.com/en-ca/main/personal/credit-cards/bmo-ascend-world-elite-mastercard/',
+'BMO CashBack WE MC':'https://www.bmo.com/en-ca/main/personal/credit-cards/bmo-cashback-world-elite-mastercard/',
+'BMO VIPorter WE MC':'https://www.bmo.com/main/personal/credit-cards/',
+'TD Aeroplan VI Privilege':'https://www.td.com/ca/en/personal-banking/products/credit-cards/aeroplan/aeroplan-visa-infinite-privilege-card',
+'TD Aeroplan Visa Infinite':'https://www.td.com/ca/en/personal-banking/products/credit-cards/aeroplan/aeroplan-visa-infinite-card',
+'TD First Class Travel VI':'https://www.td.com/ca/en/personal-banking/products/credit-cards/travel-rewards/first-class-travel-visa-infinite-card',
+'TD Cash Back VI':'https://www.td.com/ca/en/personal-banking/products/credit-cards/cash-back/cash-back-visa-infinite',
+'Scotia Passport VI Privilege':'https://www.scotiabank.com/ca/en/personal/credit-cards/visa/passport-infinite-privilege-card.html',
+'Scotia Passport VI+':'https://www.scotiabank.com/ca/en/personal/credit-cards/visa/passport-infinite-card.html',
+'Scotia Gold Amex':'https://www.scotiabank.com/ca/en/personal/credit-cards/american-express/gold-card.html',
+'Scotia Momentum VI':'https://www.scotiabank.com/ca/en/personal/credit-cards/visa/momentum-visa-infinite-card.html',
+'Tangerine Rewards WE MC':'https://www.tangerine.ca/en/offers/world-elite-mastercard-offer',
+'MBNA Rewards WE MC':'https://www.mbna.ca/en/credit-cards/rewards/mbna-rewards-world-elite-mastercard',
+'MBNA True Line MC':'https://www.mbna.ca/en/credit-cards/low-interest/true-line-mastercard',
+'Rogers Red WE MC':'https://www.rogersbank.com/en/rogers_red_worldelite_mastercard_details/',
+'PC Financial WE MC':'https://www.pcfinancial.ca/en/credit-cards/world-elite/'};
+var FB={'Amex':'https://www.americanexpress.com/en-ca/credit-cards/all-cards/','RBC':'https://www.rbcroyalbank.com/credit-cards/all-credit-cards.html','CIBC':'https://www.cibc.com/en/personal-banking/credit-cards.html','BMO':'https://www.bmo.com/main/personal/credit-cards/','TD':'https://www.td.com/ca/en/personal-banking/products/credit-cards/','Scotia':'https://www.scotiabank.com/ca/en/personal/credit-cards.html','Tangerine':'https://www.tangerine.ca/en/personal/spend/credit-cards','MBNA':'https://www.mbna.ca/en/credit-cards','Rogers':'https://www.rogersbank.com/en/','PC Financial':'https://www.pcfinancial.ca/en/credit-cards/'};
+function pick(o){if(!o||!o.n)return null;if(URL_MAP[o.n])return URL_MAP[o.n];if(o.apply&&/^https?:\/\/[^/]+\/./.test(o.apply))return o.apply;if(o.iss&&FB[o.iss])return FB[o.iss];return null;}
+function fix(){try{if(typeof OFFERS==='undefined'||!Array.isArray(OFFERS))return 0;var f=0;for(var i=0;i<OFFERS.length;i++){var o=OFFERS[i];if(!o)continue;var b=pick(o);if(b&&b!==o.apply){o.apply=b;f++;}}return f;}catch(e){return 0;}}
+function fixR(){try{var L=document.querySelectorAll('.offer-apply-link');Array.prototype.forEach.call(L,function(l){var c=l.closest('.cardBig');if(!c)return;var h=c.querySelector('div[style*="font-size:14.5px"]');if(!h)return;var n=(h.textContent||'').trim();if(!n)return;var v=URL_MAP[n];if(!v)return;if((l.getAttribute('href')||'')!==v)l.setAttribute('href',v);});}catch(e){}}
+function inst(){document.addEventListener('click',function(e){var t=e.target;if(!t)return;var l=t.closest&&t.closest('.offer-apply-link');if(!l)return;var c=l.closest('.cardBig');if(!c)return;var h=c.querySelector('div[style*="font-size:14.5px"]');if(!h)return;var n=(h.textContent||'').trim();if(!n)return;var v=URL_MAP[n];if(!v)return;if((l.getAttribute('href')||'')!==v)l.setAttribute('href',v);},true);}
+function boot(){fix();inst();try{if(typeof renderOffers==='function')renderOffers();}catch(e){}setTimeout(fixR,300);setTimeout(fixR,1500);var ol=document.getElementById('offersList');if(ol){var mo=new MutationObserver(function(){setTimeout(fixR,50);});mo.observe(ol,{childList:true,subtree:true});}}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 setTimeout(boot,500);setTimeout(boot,1500);
 })();
 </script>
 
 <!-- ============================================================
-     V249 — Portfolio total propagation + delete sync + tab restore
-     Fixes 3 bugs:
-     1) Adding a membership balance didn't update Total Portfolio Value
-     2) Deleting a transaction sometimes stuck around / came back on refresh
-     3) Refresh always returned to home tab regardless of what you were on
+     V250 (2026-07-20) — THE REWARDS STUDIO REWRITE
+     Not a patch. A proper data layer.
+     
+     Fixes 3 architectural bugs:
+     (1) Portfolio total didn't update on membership change because
+         V122's renderVault() only fires when Vault subtab is active,
+         and the localStorage.setItem intercept chain was inconsistent.
+     (2) Transaction deletes came back because V245 writes to
+         walletIQ_v40_tx while V128 reads from walletiq_transactions.
+         Two engines, two source-of-truth files, no sync.
+     (3) Refresh returned to home because no tab persistence.
+     
+     Architecture:
+     - Unified Transaction Store: getTxs() merges all 5 tx keys with
+       dedupe by id. setTxs(arr) writes to ALL 5 keys atomically.
+     - Unified Membership Store: same pattern for walletiq_memberships.
+     - Portfolio calculator: single canonical function for total, this
+       month, YTD, vault value. Called by ALL renderers.
+     - Studio renderer: bulletproof update of #rhTotal, #rhVault,
+       #rhThisMonth, #rhYTD tiles. Runs on rAF + 2s safety tick.
+     - Tab persistence via URL hash: switchTab writes to history.
+       Refresh reads location.hash to restore state.
+     - Original setItem intercept: any write to tx or membership keys
+       triggers scheduleRender().
+     
+     Public API: window.V250 with getTxs, setTxs, deleteTx, upsertMem,
+     deleteMem, calcTotal, render, debug.
+     Rollback: delete [id=v250-script].
      ============================================================ -->
-<script id="v249-script">
-(function(){'use strict';
-function log(m){try{console.log('[V249]',m);}catch(e){}}
+<style id="v250-styles">
+.v250-tx-actions{position:absolute;right:8px;top:50%;transform:translateY(-50%);display:flex;gap:5px;z-index:2}
+.v250-tx-actions button{width:32px;height:32px;border-radius:50%;border:1px solid var(--border);background:var(--surface);color:var(--muted);font-size:14px;cursor:pointer;padding:0;display:grid;place-items:center;touch-action:manipulation;font-weight:900;font-family:inherit}
+.v250-tx-actions button:active{transform:scale(.88)}
+.v250-tx-actions button.v250-edit:hover{background:var(--accent-soft);color:var(--brand);border-color:var(--brand)}
+.v250-tx-actions button.v250-del:hover{background:var(--coral-soft);color:var(--coral);border-color:var(--coral)}
+#overviewRecent .tx-item{position:relative;padding-right:82px}
+#txList .tx-item .txbtns button{min-width:32px;min-height:32px;border-radius:8px;padding:4px 10px;font-size:14px;touch-action:manipulation;line-height:1}
+</style>
+<script id="v250-script">
+(function(){
+'use strict';
+var VERSION='V250';
+function log(){try{var a=Array.prototype.slice.call(arguments);a.unshift('['+VERSION+']');console.log.apply(console,a);}catch(e){}}
 
-/* ==== FIX 1: Membership save → propagate total EVERYWHERE ==== */
-/* When user adds/edits a membership balance, we need ALL of these to fire:
-   - V122 renderVaultV122() (updates #rhTotal, #rhVault + home summary)
-   - V128 reconciler (rebuild earnings from tx)
-   - V140 sync engine (renders across tabs)
-   - renderRewardsHero() (updates hero tiles)
-   The bug: V81's save just wrote localStorage and dispatched 'v82:refresh',
-   which didn't reliably trigger the V122 hero update on mobile Safari. */
-function forceFullRerender(reason){
-  try{log('force rerender: '+reason);}catch(e){}
-  // Fire in dependency order: reconciler → renderers → sync engine
-  try{if(typeof window.__v128Tick==='function')window.__v128Tick();}catch(e){}
-  try{if(typeof window.__v106Tick==='function')window.__v106Tick();}catch(e){}
-  try{if(typeof window.renderVaultV122==='function')window.renderVaultV122();}catch(e){}
-  try{if(typeof renderRewardsHero==='function')renderRewardsHero();}catch(e){}
-  try{if(typeof renderHomeVaultSummary==='function')renderHomeVaultSummary();}catch(e){}
-  try{if(typeof renderHomeCreditAlert==='function')renderHomeCreditAlert();}catch(e){}
-  try{if(typeof renderOverview==='function')renderOverview();}catch(e){}
-  try{if(window.__v140&&typeof window.__v140.sync==='function')window.__v140.sync();}catch(e){}
-  try{document.dispatchEvent(new CustomEvent('v82:refresh'));}catch(e){}
-}
-window.__v249ForceRerender=forceFullRerender;
+/* ============================================================
+   CONSTANTS: All 5 transaction storage keys used across engines
+   ============================================================ */
+var TX_KEYS=['walletIQ_v40_tx','walletiq_transactions','walletiq_v82_tx','walletiq_tx','transactions'];
+var MEM_KEY='walletiq_memberships';
+var HASH_TAB_ORDER=['home','cardsTab','offers','location','rewards'];
+var HASH_SUB_ORDER=['overview','tx','credits','offers','vault'];
 
-/* Wrap the V81 add-membership save button click.
-   V81 saves inside a #v81Save handler which we can't easily reach —
-   instead we intercept AT localStorage.setItem for walletiq_memberships. */
-function installMembershipSaveHook(){
-  try{
-    if(localStorage.setItem.__v249Wrapped)return;
-    var origSet=localStorage.setItem.bind(localStorage);
-    localStorage.setItem=function(k,v){
-      var r=origSet(k,v);
-      if(k==='walletiq_memberships'){
-        // Debounce: rAF then a second delayed pass to catch V128 reconciler updates
-        requestAnimationFrame(function(){forceFullRerender('membership write');});
-        setTimeout(function(){forceFullRerender('membership write +200ms');},200);
-      }
-      return r;
-    };
-    localStorage.setItem.__v249Wrapped=true;
-    log('membership save hook installed');
-  }catch(e){}
-}
+/* ============================================================
+   CARD → PROGRAM EARN TABLE (copied from V128 for consistency)
+   ============================================================ */
+var CARD_EARN={
+cobalt:{prog:'mr',rates:{dining:5,groceryAmex:5,streaming:3,transit:2,gas:2,base:1}},
+amexGold:{prog:'mr',rates:{dining:2,groceryAmex:2,transit:2,gas:2,travel:2,base:1}},
+amexPlatinum:{prog:'mr',rates:{travel:5,marriott:5,dining:2,base:1}},
+amexBusinessPlat:{prog:'mr',rates:{travel:1.25,dining:1.25,base:1.25}},
+amexAeroplan:{prog:'aeroplan',rates:{dining:2,gas:2,groceryAmex:1,base:1}},
+amexAeroReserve:{prog:'aeroplan',rates:{travel:3,dining:2,gas:2,base:1.25}},
+tdAero:{prog:'aeroplan',rates:{groceryAmex:2.25,gas:2.25,transit:2.25,dining:2.25,travel:3,base:1.5}},
+cibcAeroplan:{prog:'aeroplan',rates:{dining:2,gas:2,groceryAmex:1,base:1}},
+bonvoy:{prog:'bonvoy',rates:{marriott:5,dining:2,gas:2,base:2}},
+amexBonvoyBiz:{prog:'bonvoy',rates:{marriott:5,dining:2,gas:2,base:2}},
+rogers:{prog:'rogers',cashback:true,rates:{rogers:3,base:2}},
+scotiaPass:{prog:'scene',rates:{groceryAmex:3,groceryNo:3,dining:3,transit:3,travel:2,base:1}},
+scotiaGold:{prog:'scene',rates:{dining:6,groceryAmex:5,streaming:3,transit:3,gas:3,base:1}},
+scotiaPlat:{prog:'scene',rates:{dining:2,groceryAmex:2,transit:2,gas:2,shopping:2,base:2}},
+sceneVI:{prog:'scene',rates:{dining:2,groceryAmex:2,base:1}},
+scotiaCashbackVisa:{prog:'rogers',cashback:true,rates:{groceryAmex:4,groceryNo:4,loblaws:4,streaming:4,transit:2,gas:2,base:1}},
+rbcAvion:{prog:'avion',rates:{travel:2,dining:2,groceryAmex:1.25,base:1}},
+rbcION:{prog:'avion',rates:{groceryAmex:3,streaming:3,gas:1.5,transit:1.5,base:1}},
+rbcCashback:{prog:'rogers',cashback:true,rates:{groceryAmex:2,base:1}},
+cibcAventura:{prog:'aventura',rates:{travel:2,dining:2,groceryAmex:2,base:1}},
+cibcDividendVI:{prog:'rogers',cashback:true,rates:{groceryAmex:4,gas:4,transit:2,dining:2,base:1}},
+tdCash:{prog:'rogers',cashback:true,rates:{groceryAmex:3,groceryNo:3,loblaws:3,gas:3,transit:3,streaming:3,base:1}},
+bmoEclipse:{prog:'bmo',rates:{dining:5,groceryAmex:5,groceryNo:5,transit:5,base:1}},
+bmoCashback:{prog:'rogers',cashback:true,rates:{groceryAmex:5,transit:4,gas:3,streaming:2,base:1}},
+mbnaRewards:{prog:'mr',rates:{dining:5,groceryAmex:5,streaming:5,base:1}},
+pcMC:{prog:'pcoptimum',rates:{loblaws:45,groceryNo:45,gas:30,transit:30,base:10}},
+pcInsiders:{prog:'pcoptimum',rates:{loblaws:45,groceryNo:45,gas:30,transit:30,base:10}},
+amexSimplyCash:{prog:'rogers',cashback:true,rates:{gas:4,groceryAmex:4,base:1.25}},
+wsCashCard:{prog:'rogers',cashback:true,rates:{base:1}},
+wsInfinite1:{prog:'rogers',cashback:true,rates:{base:1}},
+wsInfinitePlus:{prog:'rogers',cashback:true,rates:{base:2}},
+wsInfinitePrivilege:{prog:'rogers',cashback:true,rates:{base:2}}
+};
 
-/* ==== FIX 2: Delete transactions — sync ALL storage keys ==== */
-/* The app writes tx to walletIQ_v40_tx (V245 engine).
-   V128 reconciler reads walletiq_transactions/walletiq_v82_tx.
-   V126 hero-log writes to walletiq_transactions too.
-   So deletes need to remove from ALL these keys atomically. */
-var TX_STORAGE_KEYS=['walletIQ_v40_tx','walletiq_transactions','walletiq_v82_tx','walletiq_tx','transactions'];
+/* ============================================================
+   PROGRAM METADATA: cpp = cents per point (except $-unit programs)
+   ============================================================ */
+var PROGRAMS={
+mr:{name:'Amex MR',cpp:1.5,unit:'pts'},
+aeroplan:{name:'Aeroplan',cpp:1.5,unit:'pts'},
+avion:{name:'RBC Avion',cpp:1.5,unit:'pts'},
+aventura:{name:'CIBC Aventura',cpp:1.5,unit:'pts'},
+scene:{name:'Scene+',cpp:1.0,unit:'pts'},
+bonvoy:{name:'Marriott Bonvoy',cpp:0.8,unit:'pts'},
+rogers:{name:'Rogers Cash',cpp:100,unit:'$'},
+bmo:{name:'BMO Rewards',cpp:0.71,unit:'pts'},
+pcoptimum:{name:'PC Optimum',cpp:0.1,unit:'pts'},
+airmilesdream:{name:'AIR MILES Dream',cpp:12.5,unit:'miles'},
+airmiles:{name:'AIR MILES Cash',cpp:10.5,unit:'miles'},
+hilton:{name:'Hilton Honors',cpp:0.5,unit:'pts'},
+ihg:{name:'IHG One Rewards',cpp:0.5,unit:'pts'},
+hyatt:{name:'World of Hyatt',cpp:1.7,unit:'pts'},
+westjet:{name:'WestJet',cpp:100,unit:'$'},
+baavios:{name:'BA Avios',cpp:1.6,unit:'Avios'},
+petropoints:{name:'Petro-Points',cpp:0.1,unit:'pts'},
+starbucks:{name:'Starbucks Stars',cpp:3.5,unit:'stars'},
+timrewards:{name:'Tim Hortons Rewards',cpp:0.1,unit:'pts'},
+shoppers:{name:'Shoppers Optimum',cpp:0.1,unit:'pts'},
+ctmoney:{name:'Canadian Tire Money',cpp:100,unit:'$'},
+bluerewards:{name:'BMO Blue Rewards',cpp:0.67,unit:'pts'}
+};
+var NAME_TO_KEY={};
+for(var pk in PROGRAMS){NAME_TO_KEY[PROGRAMS[pk].name.toLowerCase()]=pk;}
+NAME_TO_KEY['membership rewards']='mr';
+NAME_TO_KEY['marriott']='bonvoy';
+NAME_TO_KEY['pc optimum']='pcoptimum';
+NAME_TO_KEY['air miles dream']='airmilesdream';
+NAME_TO_KEY['air miles cash']='airmiles';
 
-function readTxArr(key){try{var r=localStorage.getItem(key);if(!r)return null;var p=JSON.parse(r);return Array.isArray(p)?p:null;}catch(e){return null;}}
-function writeTxArr(key,arr){try{localStorage.setItem(key,JSON.stringify(arr));}catch(e){}}
-
-/* Find a tx by id across all storage keys and remove it from every one */
-function deleteTxEverywhere(id){
-  if(!id)return false;
-  var anyDeleted=false;
-  TX_STORAGE_KEYS.forEach(function(key){
-    var arr=readTxArr(key);
-    if(!arr)return;
-    var filtered=arr.filter(function(t){return t&&t.id!==id;});
-    if(filtered.length!==arr.length){
-      writeTxArr(key,filtered);
-      anyDeleted=true;
-      log('deleted tx '+id+' from '+key);
-    }
-  });
-  // Also purge from any V244 WalletIQState if it manages tx keys
-  try{
-    if(window.WalletIQState&&window.WalletIQState.get&&window.WalletIQState.set){
-      TX_STORAGE_KEYS.forEach(function(key){
-        var arr=window.WalletIQState.get(key);
-        if(Array.isArray(arr)){
-          var f=arr.filter(function(t){return t&&t.id!==id;});
-          if(f.length!==arr.length)window.WalletIQState.set(key,f);
-        }
-      });
-    }
-  }catch(e){}
-  return anyDeleted;
-}
-window.deleteTxEverywhere=deleteTxEverywhere;
-/* Also expose as V247's deleteTxSilent name for backward compat */
-window.deleteTxSilent=deleteTxEverywhere;
-
-/* Wrap window.deleteTx (V245 confirm-modal flow) so its final delete
-   also fires deleteTxEverywhere before rerender */
-function wrapDeleteTx(){
-  try{
-    if(typeof window.deleteTx!=='function'||window.deleteTx.__v249Wrapped)return;
-    var orig=window.deleteTx;
-    window.deleteTx=function(id){
-      // Let the original run (shows modal + does its own delete)
-      var r=orig.apply(this,arguments);
-      // Then force sync all other storage keys just to be safe
-      setTimeout(function(){
-        deleteTxEverywhere(id);
-        forceFullRerender('after deleteTx');
-      },150);
-      return r;
-    };
-    window.deleteTx.__v249Wrapped=true;
-    log('deleteTx wrapped');
-  }catch(e){}
-}
-
-/* Also wrap saveTxData so every write propagates to ALL storage keys.
-   This keeps the app's various read paths in sync automatically. */
-function wrapSaveTxData(){
-  try{
-    if(typeof window.saveTxData!=='function'||window.saveTxData.__v249Wrapped)return;
-    var orig=window.saveTxData;
-    window.saveTxData=function(arr){
-      var r=orig.apply(this,arguments);
-      // Mirror to other tx keys so V128/V140 stay in sync
-      if(Array.isArray(arr)){
-        try{
-          writeTxArr('walletiq_transactions',arr);
-          writeTxArr('walletiq_v82_tx',arr);
-        }catch(e){}
-      }
-      return r;
-    };
-    window.saveTxData.__v249Wrapped=true;
-    log('saveTxData wrapped for multi-key sync');
-  }catch(e){}
-}
-
-/* Also mirror the initial write from V126 hero-log-purchase.
-   V126 saves to walletiq_transactions directly - we need V245's key too. */
-function installTxWriteMirror(){
-  try{
-    if(localStorage.setItem.__v249TxMirror)return;
-    var origSet=localStorage.setItem.bind(localStorage);
-    var lastOverride=localStorage.setItem;
-    localStorage.setItem=function(k,v){
-      var r=lastOverride(k,v);  // preserves earlier wrappers (V128, V246 mem hook)
-      // Mirror tx writes across all keys
-      if(k==='walletiq_transactions'){
-        try{
-          var parsed=JSON.parse(v);
-          if(Array.isArray(parsed)){
-            var existing=readTxArr('walletIQ_v40_tx')||[];
-            // Merge: keep V245's tx IDs that also exist in the new list;
-            // add new ones from parsed that aren't in existing
-            var byId={};
-            existing.forEach(function(t){if(t&&t.id)byId[t.id]=t;});
-            parsed.forEach(function(t){if(t&&t.id)byId[t.id]=t;});
-            var merged=Object.keys(byId).map(function(id){return byId[id];});
-            // If the walletiq_transactions list is SMALLER than existing (a delete happened),
-            // take just the intersection (only IDs present in the new parsed list)
-            if(parsed.length<existing.length){
-              var validIds={};parsed.forEach(function(t){if(t&&t.id)validIds[t.id]=1;});
-              merged=existing.filter(function(t){return t&&t.id&&validIds[t.id];})
-                     .concat(parsed.filter(function(t){return t&&t.id&&!existing.some(function(e){return e.id===t.id;});}));
-            }
-            origSet('walletIQ_v40_tx',JSON.stringify(merged));
-          }
-        }catch(e){}
-      }
-      return r;
-    };
-    localStorage.setItem.__v249TxMirror=true;
-    log('tx write mirror installed');
-  }catch(e){}
-}
-
-/* Enhance Recent Activity tx-items with 32px edit/delete buttons */
-function loadRecentActivityTx(){
-  // Try V245's tx first, fall back to walletiq_transactions
-  var arr=readTxArr('walletIQ_v40_tx');
-  if(!arr||arr.length===0)arr=readTxArr('walletiq_transactions');
-  return arr||[];
-}
-function findTxByFingerprint(merchant,amount){
-  var txs=loadRecentActivityTx();
-  var m=(merchant||'').trim().toLowerCase();
-  var a=parseFloat(amount)||0;
-  // Newest first — recent activity shows most recent
-  for(var i=txs.length-1;i>=0;i--){
-    var t=txs[i];if(!t)continue;
-    var tm=(t.merchant||'').trim().toLowerCase();
-    var ta=parseFloat(t.amount)||0;
-    if(tm===m&&Math.abs(ta-a)<0.005)return t;
+/* ============================================================
+   RAW STORAGE ACCESS: bypasses any setItem wrappers by using
+   the prototype method directly. Guarantees fresh reads/writes.
+   ============================================================ */
+var _origSetItem=null;
+function getRawSetItem(){
+ if(_origSetItem)return _origSetItem;
+ try{
+  var proto=Object.getPrototypeOf(localStorage);
+  if(proto&&typeof proto.setItem==='function'){
+   _origSetItem=proto.setItem.bind(localStorage);
+   return _origSetItem;
   }
-  return null;
+ }catch(e){}
+ _origSetItem=localStorage.setItem.bind(localStorage);
+ return _origSetItem;
+}
+function readRaw(k){try{var r=localStorage.getItem(k);if(!r)return null;return JSON.parse(r);}catch(e){return null;}}
+function writeRaw(k,v){
+ try{getRawSetItem()(k,JSON.stringify(v));}
+ catch(e){try{localStorage.setItem(k,JSON.stringify(v));}catch(e2){}}
+}
+
+/* ============================================================
+   UNIFIED TRANSACTION STORE
+   getTxs merges all 5 keys, dedupes by id, returns array.
+   setTxs writes the array to ALL 5 keys atomically.
+   ============================================================ */
+function getTxs(){
+ var byId={};var count=0;
+ for(var i=0;i<TX_KEYS.length;i++){
+  var arr=readRaw(TX_KEYS[i]);
+  if(Array.isArray(arr)){
+   for(var j=0;j<arr.length;j++){
+    var t=arr[j];
+    if(t&&t.id){byId[t.id]=t;count++;}
+   }
+  }
+ }
+ var result=[];for(var id in byId)result.push(byId[id]);
+ return result;
+}
+function setTxs(txs){
+ if(!Array.isArray(txs))return;
+ // Sanitize: keep only txs with ids
+ var clean=txs.filter(function(t){return t&&t.id;});
+ // Write to ALL keys with fresh JSON each time so no engine has stale
+ for(var i=0;i<TX_KEYS.length;i++){writeRaw(TX_KEYS[i],clean);}
+ // Also nuke the auto-earnings cache so V128 re-reconciles from scratch
+ try{localStorage.removeItem('walletiq_auto_earnings');}catch(e){}
+ fireChanged('tx');
+}
+function deleteTx(id){
+ if(!id)return false;
+ var txs=getTxs();
+ var filtered=txs.filter(function(t){return t.id!==id;});
+ if(filtered.length===txs.length)return false;
+ setTxs(filtered);
+ return true;
+}
+function addTx(tx){
+ if(!tx)return;
+ if(!tx.id)tx.id='tx_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
+ setTxs(getTxs().concat([tx]));
+ return tx.id;
+}
+
+/* ============================================================
+   UNIFIED MEMBERSHIP STORE
+   ============================================================ */
+function getMems(){
+ var arr=readRaw(MEM_KEY);
+ return Array.isArray(arr)?arr:[];
+}
+function setMems(mems){
+ if(!Array.isArray(mems))return;
+ writeRaw(MEM_KEY,mems);
+ fireChanged('mem');
+}
+function canonMemKey(m){
+ if(!m)return null;
+ var k=(m.key||'').toString().toLowerCase();
+ if(PROGRAMS[k])return k;
+ var n=(m.name||'').toString().toLowerCase().trim();
+ if(NAME_TO_KEY[n])return NAME_TO_KEY[n];
+ return m.key||null;
+}
+function upsertMem(mem){
+ if(!mem)return;
+ var mems=getMems();
+ var target=canonMemKey(mem);
+ var idx=-1;
+ for(var i=0;i<mems.length;i++){if(canonMemKey(mems[i])===target){idx=i;break;}}
+ if(idx>=0)mems[idx]=mem;else mems.push(mem);
+ setMems(mems);
+}
+function deleteMem(keyOrName){
+ var mems=getMems();
+ var k=String(keyOrName||'').toLowerCase();
+ var filtered=mems.filter(function(m){
+  var mk=(m.key||'').toLowerCase();
+  var mn=(m.name||'').toLowerCase();
+  return mk!==k&&mn!==k;
+ });
+ setMems(filtered);
+}
+
+/* ============================================================
+   PORTFOLIO CALCULATION
+   memberValue: bal * cpp / 100 (unit is dollars regardless of cpp scale)
+   For $-unit programs (rogers, westjet, ctmoney) cpp=100 so value=bal.
+   ============================================================ */
+function memberValue(mem){
+ if(!mem)return 0;
+ var bal=Number(mem.balance||0);
+ if(bal<=0)return 0;
+ var canon=canonMemKey(mem);
+ var cpp=(mem.cpp!=null)?Number(mem.cpp):(PROGRAMS[canon]?PROGRAMS[canon].cpp:0);
+ if(cpp<=0)return 0;
+ return (bal*cpp)/100;
+}
+function calcTotal(){
+ var mems=getMems();
+ var total=0;
+ for(var i=0;i<mems.length;i++)total+=memberValue(mems[i]);
+ return total;
+}
+function txEarnings(tx){
+ if(!tx||tx.historical)return null;
+ var cardKey=tx.card||tx.cardKey||tx.c;
+ if(!cardKey)return null;
+ var earn=CARD_EARN[cardKey];
+ if(!earn)return null;
+ var amt=parseFloat(tx.amount||tx.amt)||0;
+ if(amt<=0)return null;
+ var cat=tx.category||tx.cat||'base';
+ // Try to resolve category from merchant if not set
+ if(cat==='base'||cat==='other'){
+  try{if(typeof window.resolveCategory==='function')cat=window.resolveCategory(tx.merchant||'')||'base';}catch(e){}
+ }
+ var rate=(earn.rates[cat]!=null)?earn.rates[cat]:(earn.rates.base||0);
+ if(rate<=0)return null;
+ var points=earn.cashback?(amt*rate)/100:amt*rate;
+ var prog=PROGRAMS[earn.prog];
+ if(!prog)return null;
+ var dollarValue=(points*prog.cpp)/100;
+ return {prog:earn.prog,points:points,dollarValue:dollarValue,cat:cat};
+}
+function calcMonthlyEarnings(monthOffset){
+ monthOffset=monthOffset||0;
+ var now=new Date();
+ var target=new Date(now.getFullYear(),now.getMonth()+monthOffset,1);
+ var ty=target.getFullYear(),tm=target.getMonth();
+ var txs=getTxs();
+ var total=0;
+ for(var i=0;i<txs.length;i++){
+  var tx=txs[i];
+  var d=new Date(tx.date||tx.d);
+  if(isNaN(d.getTime())||d.getFullYear()!==ty||d.getMonth()!==tm)continue;
+  var e=txEarnings(tx);
+  if(e)total+=e.dollarValue;
+ }
+ return total;
+}
+function calcYTDEarnings(){
+ var now=new Date();
+ var ty=now.getFullYear();
+ var txs=getTxs();
+ var total=0;
+ for(var i=0;i<txs.length;i++){
+  var tx=txs[i];
+  var d=new Date(tx.date||tx.d);
+  if(isNaN(d.getTime())||d.getFullYear()!==ty)continue;
+  var e=txEarnings(tx);
+  if(e)total+=e.dollarValue;
+ }
+ return total;
+}
+function calcPortfolio(){
+ return {
+  total:calcTotal(),
+  vault:calcTotal(),
+  thisMonth:calcMonthlyEarnings(0),
+  lastMonth:calcMonthlyEarnings(-1),
+  ytd:calcYTDEarnings()
+ };
+}
+
+/* ============================================================
+   BULLETPROOF RENDER
+   Reads state fresh every call. Updates ALL 5 hero tiles.
+   Also updates home vault summary if the element exists.
+   ============================================================ */
+function fmt(n){
+ if(!isFinite(n)||n<0)n=0;
+ // Match V245's rendering: whole dollars for hero, comma-separated
+ var rounded=Math.round(n);
+ return '$'+rounded.toLocaleString('en-CA');
+}
+function safeSetText(id,txt){
+ var el=document.getElementById(id);
+ if(!el)return false;
+ if(el.textContent!==txt){el.textContent=txt;}
+ return true;
+}
+function render(){
+ var p=calcPortfolio();
+ safeSetText('rhTotal',fmt(p.total));
+ safeSetText('rhVault',fmt(p.vault));
+ safeSetText('rhThisMonth',fmt(p.thisMonth));
+ safeSetText('rhYTD',fmt(p.ytd));
+ // Also refresh V122's home summary + vault view IF they're already
+ // rendered elsewhere in the DOM.
+ try{if(typeof window.renderVaultV122==='function')window.renderVaultV122();}catch(e){}
+ try{if(typeof window.renderHomeVaultSummary==='function')window.renderHomeVaultSummary();}catch(e){}
+}
+
+var _renderScheduled=false;
+function scheduleRender(reason){
+ if(_renderScheduled)return;
+ _renderScheduled=true;
+ requestAnimationFrame(function(){
+  _renderScheduled=false;
+  try{render();}catch(e){log('render err',e);}
+ });
+}
+function fireChanged(reason){
+ log('fireChanged:',reason);
+ scheduleRender(reason);
+ // Fire legacy events + renderers so anything listening also updates
+ try{document.dispatchEvent(new CustomEvent('walletiq:changed',{detail:{reason:reason}}));}catch(e){}
+ try{document.dispatchEvent(new CustomEvent('v82:refresh'));}catch(e){}
+ // Delayed second pass to catch downstream engine updates (V128, V140)
+ setTimeout(function(){
+  try{if(typeof window.__v128Tick==='function')window.__v128Tick();}catch(e){}
+  scheduleRender('delayed');
+ },250);
+}
+
+/* ============================================================
+   LOCALSTORAGE INTERCEPT
+   Single intercept installed at boot. Fires scheduleRender on
+   any write to tx or membership keys.
+   ============================================================ */
+function installStorageIntercept(){
+ try{
+  var current=localStorage.setItem;
+  if(current.__v250)return;
+  var prev=current.bind(localStorage);
+  var newSet=function(k,v){
+   var r=prev(k,v);
+   if(k===MEM_KEY||TX_KEYS.indexOf(k)>=0){
+    scheduleRender('setItem:'+k);
+    // Also do a delayed pass after engine ticks complete
+    setTimeout(function(){scheduleRender('setItem+300:'+k);},300);
+   }
+   return r;
+  };
+  newSet.__v250=true;
+  localStorage.setItem=newSet;
+  log('setItem intercept installed');
+ }catch(e){log('setItem intercept err',e);}
+}
+
+/* ============================================================
+   WRAP V245 saveTxData + deleteTx
+   saveTxData: after original save, mirror to all 5 tx keys.
+   deleteTx: after original delete, purge from all 5 tx keys.
+   ============================================================ */
+function wrapLegacyFunctions(){
+ // Wrap saveTxData
+ try{
+  if(typeof window.saveTxData==='function'&&!window.saveTxData.__v250){
+   var origSave=window.saveTxData;
+   window.saveTxData=function(txs){
+    var r=origSave.apply(this,arguments);
+    // Mirror to all keys
+    if(Array.isArray(txs)){
+     for(var i=0;i<TX_KEYS.length;i++){
+      if(TX_KEYS[i]!=='walletIQ_v40_tx'){writeRaw(TX_KEYS[i],txs);}
+     }
+     try{localStorage.removeItem('walletiq_auto_earnings');}catch(e){}
+     fireChanged('saveTxData');
+    }
+    return r;
+   };
+   window.saveTxData.__v250=true;
+   log('saveTxData wrapped');
+  }
+ }catch(e){log('wrap saveTxData err',e);}
+ // Wrap deleteTx: after original runs (which shows a confirm modal
+ // and does its own delete), we forcibly purge from ALL keys.
+ try{
+  if(typeof window.deleteTx==='function'&&!window.deleteTx.__v250){
+   var origDel=window.deleteTx;
+   window.deleteTx=function(id){
+    var r=origDel.apply(this,arguments);
+    setTimeout(function(){
+     if(id){
+      var filtered=getTxs().filter(function(t){return t.id!==id;});
+      setTxs(filtered);
+     }
+    },150);
+    return r;
+   };
+   window.deleteTx.__v250=true;
+   log('deleteTx wrapped');
+  }
+ }catch(e){log('wrap deleteTx err',e);}
+ // Wrap clearAllTx
+ try{
+  if(typeof window.clearAllTx==='function'&&!window.clearAllTx.__v250){
+   var origClear=window.clearAllTx;
+   window.clearAllTx=function(){
+    var r=origClear.apply(this,arguments);
+    setTimeout(function(){setTxs([]);},150);
+    return r;
+   };
+   window.clearAllTx.__v250=true;
+  }
+ }catch(e){}
+}
+
+/* ============================================================
+   TAB PERSISTENCE via URL hash
+   #home, #cardsTab, #offers, #location, #rewards, #rewards/vault
+   ============================================================ */
+function saveTabToHash(tab,sub){
+ try{
+  var h='#'+tab;
+  if(tab==='rewards'&&sub&&HASH_SUB_ORDER.indexOf(sub)>=0)h+='/'+sub;
+  if(location.hash!==h)history.replaceState(null,'',h);
+ }catch(e){}
+}
+function readTabFromHash(){
+ var h=(location.hash||'').replace(/^#/,'');
+ var parts=h.split('/');
+ var tab=parts[0]||'';
+ var sub=parts[1]||'';
+ if(HASH_TAB_ORDER.indexOf(tab)<0)return null;
+ return {tab:tab,sub:sub};
+}
+function restoreFromHash(){
+ var state=readTabFromHash();
+ if(!state)return;
+ if(state.tab==='home')return; // home is the default; no-op
+ setTimeout(function(){
+  try{
+   if(typeof window.switchTab==='function'){window.switchTab(state.tab);}
+   if(state.tab==='rewards'&&state.sub){
+    setTimeout(function(){
+     try{if(typeof window.switchRewardsView==='function')window.switchRewardsView(state.sub);}catch(e){}
+    },150);
+   }
+  }catch(e){log('restoreFromHash err',e);}
+ },150);
+}
+function installTabPersistence(){
+ try{
+  if(typeof window.switchTab==='function'&&!window.switchTab.__v250Tab){
+   var origST=window.switchTab;
+   window.switchTab=function(tab){
+    var r=origST.apply(this,arguments);
+    saveTabToHash(tab,null);
+    return r;
+   };
+   window.switchTab.__v250Tab=true;
+  }
+  if(typeof window.switchRewardsView==='function'&&!window.switchRewardsView.__v250Tab){
+   var origSV=window.switchRewardsView;
+   window.switchRewardsView=function(view){
+    var r=origSV.apply(this,arguments);
+    saveTabToHash('rewards',view);
+    return r;
+   };
+   window.switchRewardsView.__v250Tab=true;
+  }
+ }catch(e){log('installTabPersistence err',e);}
+}
+
+/* ============================================================
+   RECENT ACTIVITY: 32px edit + delete buttons
+   Uses V250's deleteTx which purges from all 5 keys.
+   ============================================================ */
+function findTxByFingerprint(merchant,amount){
+ var txs=getTxs();
+ var m=(merchant||'').trim().toLowerCase();
+ var a=parseFloat(amount)||0;
+ // Sort by date desc so we match the newest
+ txs.sort(function(x,y){return (y.date||'').localeCompare(x.date||'');});
+ for(var i=0;i<txs.length;i++){
+  var t=txs[i];if(!t)continue;
+  var tm=(t.merchant||'').trim().toLowerCase();
+  var ta=parseFloat(t.amount)||0;
+  if(tm===m&&Math.abs(ta-a)<0.005)return t;
+ }
+ return null;
 }
 function enhanceRecentActivity(){
-  try{
-    var container=document.getElementById('overviewRecent');
-    if(!container)return;
-    var items=container.querySelectorAll('.tx-item');
-    if(!items.length)return;
-    Array.prototype.forEach.call(items,function(item){
-      if(item.querySelector('.v247-tx-actions'))return;
-      var merchEl=item.querySelector('.txmerch');
-      var amtEl=item.querySelector('.txamt');
-      if(!merchEl||!amtEl)return;
-      var merchant=merchEl.textContent.trim();
-      var amount=parseFloat((amtEl.textContent||'').replace(/[^\d.-]/g,''))||0;
-      var actions=document.createElement('div');
-      actions.className='v247-tx-actions';
-      actions.innerHTML='<button type="button" class="v247-edit" title="Edit">\u270F</button><button type="button" class="v247-del" title="Delete">\u00D7</button>';
-      actions.querySelector('.v247-edit').addEventListener('click',function(e){
-        e.stopPropagation();
-        var tx=findTxByFingerprint(merchant,amount);
-        if(tx&&tx.id&&typeof editTx==='function'){editTx(tx.id);}
-        else{try{switchTab('rewards');if(typeof switchRewardsView==='function')switchRewardsView('tx');}catch(e2){}}
-      });
-      actions.querySelector('.v247-del').addEventListener('click',function(e){
-        e.stopPropagation();
-        var tx=findTxByFingerprint(merchant,amount);
-        if(!tx||!tx.id){
-          alert('Could not locate this transaction. Try Activity tab.');
-          return;
-        }
-        if(!confirm('Delete this purchase?\n\n'+merchant+' \u2014 $'+amount.toFixed(2)))return;
-        // Delete from ALL storage keys
-        deleteTxEverywhere(tx.id);
-        // Full rerender cascade
-        forceFullRerender('recent activity delete');
-        // Immediate optimistic DOM removal
-        try{item.style.opacity='0';item.style.transition='opacity .18s ease';setTimeout(function(){if(item.parentNode)item.parentNode.removeChild(item);},200);}catch(e2){}
-      });
-      item.appendChild(actions);
-    });
-  }catch(e){}
-}
-function installRecentActivityEnhancement(){
-  try{
-    var container=document.getElementById('overviewRecent');
-    if(container){
-      var mo=new MutationObserver(function(){setTimeout(enhanceRecentActivity,50);});
-      mo.observe(container,{childList:true,subtree:true});
-    }
-  }catch(e){}
-  setTimeout(enhanceRecentActivity,600);
-  setTimeout(enhanceRecentActivity,1800);
+ try{
+  var container=document.getElementById('overviewRecent');
+  if(!container)return;
+  var items=container.querySelectorAll('.tx-item');
+  Array.prototype.forEach.call(items,function(item){
+   if(item.querySelector('.v250-tx-actions'))return;
+   var merchEl=item.querySelector('.txmerch');
+   var amtEl=item.querySelector('.txamt');
+   if(!merchEl||!amtEl)return;
+   var merchant=merchEl.textContent.trim();
+   var amount=parseFloat((amtEl.textContent||'').replace(/[^\d.-]/g,''))||0;
+   var actions=document.createElement('div');
+   actions.className='v250-tx-actions';
+   actions.innerHTML='<button type="button" class="v250-edit" title="Edit">\u270F</button><button type="button" class="v250-del" title="Delete">\u00D7</button>';
+   actions.querySelector('.v250-edit').addEventListener('click',function(e){
+    e.stopPropagation();
+    var tx=findTxByFingerprint(merchant,amount);
+    if(tx&&tx.id&&typeof window.editTx==='function'){window.editTx(tx.id);}
+    else{try{window.switchTab('rewards');if(typeof window.switchRewardsView==='function')window.switchRewardsView('tx');}catch(e2){}}
+   });
+   actions.querySelector('.v250-del').addEventListener('click',function(e){
+    e.stopPropagation();
+    var tx=findTxByFingerprint(merchant,amount);
+    if(!tx||!tx.id){alert('Could not locate this transaction.');return;}
+    if(!confirm('Delete this purchase?\n\n'+merchant+' \u2014 $'+amount.toFixed(2)))return;
+    // Optimistic UI: fade out
+    item.style.opacity='0';
+    item.style.transition='opacity .18s ease';
+    setTimeout(function(){if(item.parentNode)item.parentNode.removeChild(item);},200);
+    // Actual delete: writes to ALL 5 keys and fires render
+    deleteTx(tx.id);
+   });
+   item.appendChild(actions);
+  });
+ }catch(e){log('enhanceRecentActivity err',e);}
 }
 
-/* ==== FIX 3: Tab persistence across refreshes ==== */
-var K_TAB='walletiq_v249_active_tab';
-var K_SUBTAB='walletiq_v249_active_subtab';
-var VALID_TABS={home:1,cardsTab:1,offers:1,location:1,rewards:1};
-var VALID_SUBTABS={overview:1,tx:1,credits:1,offers:1,vault:1};
-
-function saveActiveTab(tab){
-  if(!tab||!VALID_TABS[tab])return;
-  try{localStorage.setItem(K_TAB,tab);}catch(e){}
-}
-function saveActiveSubtab(sub){
-  if(!sub||!VALID_SUBTABS[sub])return;
-  try{localStorage.setItem(K_SUBTAB,sub);}catch(e){}
-}
-function loadActiveTab(){try{var t=localStorage.getItem(K_TAB);return VALID_TABS[t]?t:null;}catch(e){return null;}}
-function loadActiveSubtab(){try{var s=localStorage.getItem(K_SUBTAB);return VALID_SUBTABS[s]?s:null;}catch(e){return null;}}
-
-function installTabPersistence(){
-  try{
-    // Wrap switchTab to save the tab
-    if(typeof window.switchTab==='function'&&!window.switchTab.__v249TabWrap){
-      var orig=window.switchTab;
-      window.switchTab=function(tab){
-        var r=orig.apply(this,arguments);
-        saveActiveTab(tab);
-        // If leaving rewards, clear subtab
-        if(tab!=='rewards'){try{localStorage.removeItem(K_SUBTAB);}catch(e){}}
-        return r;
-      };
-      window.switchTab.__v249TabWrap=true;
-    }
-    // Wrap switchRewardsView similarly
-    if(typeof window.switchRewardsView==='function'&&!window.switchRewardsView.__v249TabWrap){
-      var origSV=window.switchRewardsView;
-      window.switchRewardsView=function(view){
-        var r=origSV.apply(this,arguments);
-        saveActiveSubtab(view);
-        return r;
-      };
-      window.switchRewardsView.__v249TabWrap=true;
-    }
-  }catch(e){}
-}
-
-function restoreLastTab(){
-  var savedTab=loadActiveTab();
-  if(!savedTab||savedTab==='home')return; // home is default, no need
-  try{
-    if(typeof window.switchTab==='function'){
-      // Delay slightly so V245 initWalletIQ completes first
-      setTimeout(function(){
-        try{window.switchTab(savedTab);}catch(e){}
-        if(savedTab==='rewards'){
-          var savedSub=loadActiveSubtab();
-          if(savedSub&&savedSub!=='overview'){
-            setTimeout(function(){
-              try{if(typeof switchRewardsView==='function')switchRewardsView(savedSub);}catch(e){}
-            },200);
-          }
-        }
-      },100);
-    }
-  }catch(e){}
-}
-
-/* ==== BOOT ==== */
+/* ============================================================
+   BOOT — the order matters
+   ============================================================ */
 function boot(){
-  installMembershipSaveHook();
-  wrapDeleteTx();
-  wrapSaveTxData();
-  installTxWriteMirror();
-  installRecentActivityEnhancement();
-  installTabPersistence();
-  restoreLastTab();
-  log('boot complete');
+ installStorageIntercept();
+ wrapLegacyFunctions();
+ installTabPersistence();
+ // Restore hash-based tab BEFORE first render
+ restoreFromHash();
+ // Initial render
+ scheduleRender('boot');
+ // Attach observers for Recent Activity enhancement
+ try{
+  var container=document.getElementById('overviewRecent');
+  if(container&&!container.__v250Obs){
+   var mo=new MutationObserver(function(){setTimeout(enhanceRecentActivity,50);});
+   mo.observe(container,{childList:true,subtree:true});
+   container.__v250Obs=true;
+  }
+ }catch(e){}
+ setTimeout(enhanceRecentActivity,500);
+ setTimeout(enhanceRecentActivity,1500);
+ // Watch hero elements — if they get overwritten to $0 by a stale render,
+ // we'll notice next tick and correct them.
+ // Also listen to the app's own custom events.
+ document.addEventListener('v82:refresh',function(){scheduleRender('v82:refresh');});
+ // Cross-tab sync via storage event
+ window.addEventListener('storage',function(e){
+  if(!e||!e.key)return;
+  if(e.key===MEM_KEY||TX_KEYS.indexOf(e.key)>=0){scheduleRender('storage:'+e.key);}
+ });
+ // Safety net: every 2 seconds, ensure the render is up to date
+ setInterval(function(){scheduleRender('tick');},2500);
+ log('boot complete');
 }
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);
-else boot();
+if(document.readyState==='loading'){
+ document.addEventListener('DOMContentLoaded',boot);
+}else{
+ boot();
+}
 // Multi-pass boot to catch late-loading engines
-setTimeout(boot,300);
-setTimeout(boot,1000);
-setTimeout(boot,2500);
+setTimeout(boot,400);
+setTimeout(boot,1200);
+setTimeout(boot,3000);
 
-window.__v249={
-  version:'V249',
-  forceRerender:forceFullRerender,
-  deleteTxEverywhere:deleteTxEverywhere,
-  saveActiveTab:saveActiveTab,
-  loadActiveTab:loadActiveTab
+/* ============================================================
+   PUBLIC API for debugging + external use
+   ============================================================ */
+window.V250={
+ version:VERSION,
+ getTxs:getTxs,
+ setTxs:setTxs,
+ deleteTx:deleteTx,
+ addTx:addTx,
+ getMems:getMems,
+ setMems:setMems,
+ upsertMem:upsertMem,
+ deleteMem:deleteMem,
+ calcTotal:calcTotal,
+ calcPortfolio:calcPortfolio,
+ render:render,
+ debug:function(){
+  var p=calcPortfolio();
+  var counts={};
+  for(var i=0;i<TX_KEYS.length;i++){
+   var arr=readRaw(TX_KEYS[i]);
+   counts[TX_KEYS[i]]=Array.isArray(arr)?arr.length:0;
+  }
+  return {portfolio:p,txs:{merged:getTxs().length,byKey:counts},memberships:getMems()};
+ }
 };
+// Backward-compat aliases used by older patches
+window.deleteTxSilent=deleteTx;
+window.deleteTxEverywhere=deleteTx;
+window.__v249ForceRerender=function(){scheduleRender('external');};
 })();
 </script>
 
