@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- REWARDS STUDIO REBUILD (2026-07-21) - Complete replacement of memberships + activity + hero tiles + log purchase. One module, one data path, one render. Kills legacy V106/V128/V139/V140 reconcilers. Migrates data on first boot. Debug: window.RS.debug() in console. Rollback: delete <script id="rs-script"> block. -->
+<!-- EMOJI PATCH (2026-07-21) - Card emojis are now one-per-issuer (bank/company aligned) instead of random per-card. Rollback: delete [id=emoji-patch]. -->
+<!-- REWARDS STUDIO REBUILD rev2 (2026-07-21) - Full program cards with redemption ladder for every membership. Rollback: delete [id=rs-script]. -->
 <!-- V245 (2026-07-20) - RELEASE 2: THE TRANSACTION ENGINE. Builds on V244 WalletIQState foundation. Makes Log Purchase -> See Points Grow bulletproof: (1) CleanSaveFlow wraps saveTxFromModal - computes earnings for flash toast, clears home search, forces recompute + unified rerender. (2) CleanDeleteFlow hijacks V179 confirm modal Delete button at CAPTURE phase, directly deletes from all 3 tx keys via V244 transaction() (atomic), fires unified rerender. (3) EarningsRecalculator subscribes to WalletIQState.onChange for tx keys - when tx storage changes, triggers V128 reconcile + V140 sync + V242 patchNow immediately (no waiting for setInterval polling). (4) UnifiedRerender runs all render pipelines in correct order (state engines first, then UI). (5) Flash toast confirms save (+$X earned) and delete (X removed) with 2.2s auto-dismiss. Zero features removed. Rollback: delete [id^=v245-]. -->
 <!-- V244 (2026-07-18) - RELEASE 1: THE STATE FREEZE. Foundation for consolidation plan. Installs a single window.WalletIQState manager that owns all writes to 6 critical storage keys (walletiq_v13_wallet, walletiq_memberships, walletiq_transactions, walletiq_tx_v13, walletiq_tx, walletiq_auto_earnings). Four protection layers: (1) djb2 hash dedup - identical writes silently skip, killing flicker cascades from 11 sync engines. (2) Preservation rules per key - manual entries flagged __v234Manual or __v244Manual survive any auto-engine rewrite; user-created transactions cant be silently deleted; wallet cant be wiped to empty without explicit flag. (3) Debounce coalescer - rapid writes to same key within 50ms collapse to one final write. (4) Change event bus - dispatch walletiq:statechange with key detail, single subscription point replacing 11 polling loops. Zero features removed. Every prior patch keeps working. Public API for Releases 2-4: get/set/delete/onChange/onKey/transaction/audit/history/dump. V231-V233 storage guards are now redundant but harmless (V244 sits above them). Rollback: delete [id^=v244-]. -->
 <!-- V224 (2026-07-15): V222 + vault flicker kill added back. V222 wraps window.renderOffers so category filters trigger re-tag + re-apply. V224 also installs djb2 hash intercept on #v122-vault innerHTML setter to kill V183 vaultObs feedback loop (identical writes silently skip -> no cascade -> no flicker). Also wraps renderVaultV122 with rAF-coalesce. -->
@@ -67,7 +68,7 @@
 <meta http-equiv="Expires" content="0">
 
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>Wallet IQ (Rewards Rebuild)</title>
+<title>Wallet IQ</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Wallet IQ">
@@ -36165,35 +36166,135 @@ body.dark .v245-flash{background:linear-gradient(135deg,#7ec894 0%,#5ea87a 100%)
   }
 })();</script>
 <!-- ============================================================
-     REWARDS STUDIO REBUILD (2026-07-21)
+     ISSUER-BASED CARD EMOJIS (2026-07-21)
      
-     One module owns: log purchase, activity list, memberships,
-     hero tiles, home summary. All four are the same feature.
+     Replaces the random per-card emojis with one canonical
+     emoji per ISSUER. All Amex cards get the same emoji, all
+     RBC cards get the same emoji, etc. Applied to CARDS_DB
+     at boot so onboarding, My Wallet, recommendation hero,
+     everything reads the patched value.
+     ============================================================ -->
+<script id="emoji-patch">
+(function(){
+'use strict';
+
+// One emoji per issuer, aligned with the bank/company brand color or logo.
+var ISSUER_EMOJI = {
+  // Big banks (Canadian brand colors)
+  'Amex':          '\uD83D\uDFE6', // 🟦 blue (Amex blue box)
+  'Scotia':        '\uD83D\uDFE5', // 🟥 red (Scotia red)
+  'RBC':           '\uD83D\uDFE8', // 🟨 yellow (RBC's iconic yellow)
+  'CIBC':          '\uD83D\uDFE5', // 🟥 red (CIBC red)
+  'BMO':           '\uD83D\uDFE6', // 🟦 blue (BMO blue)
+  'TD':            '\uD83D\uDFE9', // 🟩 green (TD green)
+  'National Bank': '\uD83D\uDFE5', // 🟥 red (National Bank red)
+  'Desjardins':    '\uD83D\uDFE9', // 🟩 green (Desjardins green)
+  'HSBC':          '\uD83D\uDFE5', // 🟥 red hexagon
+  'Laurentian':    '\uD83D\uDFE6', // 🟦 blue
+
+  // Fintech / non-bank issuers
+  'MBNA':          '\uD83D\uDFE7', // 🟧 orange (MBNA orange)
+  'Tangerine':     '\uD83C\uDF4A', // 🍊 literal tangerine
+  'Rogers':        '\uD83D\uDCF1', // 📱 phone (telecom)
+  'PC Financial':  '\uD83D\uDED2', // 🛒 groceries (PC Optimum)
+  'Wealthsimple':  '\uD83D\uDFEA', // 🟪 purple/black brand
+  'Simplii':       '\uD83D\uDC9A', // 💚 green
+  'Neo':           '\u26AB',       // ⚫ black
+  'Brim':          '\uD83D\uDC8E', // 💎 (Brim is diamond-shaped logo)
+  'Home Trust':    '\uD83C\uDFE0', // 🏠 house
+  'KOHO':          '\uD83D\uDC9C', // 💜 purple (KOHO brand)
+  'EQ Bank':       '\u2696\uFE0F', // ⚖️ balance/equal (EQ = equity)
+
+  // Retail / co-branded
+  'Canadian Tire': '\uD83D\uDD3A', // 🔺 red triangle (CT logo shape)
+  'Capital One':   '\uD83D\uDFE5', // 🟥 red
+  'Walmart':       '\u2B50',       // ⭐ star (Walmart spark)
+
+  // Credit unions (regional)
+  'Coast Capital': '\uD83C\uDF0A', // 🌊 wave
+  'Meridian':      '\uD83D\uDFE9', // 🟩 green
+  'Servus':        '\uD83D\uDFE8', // 🟨 yellow
+  'Vancity':       '\uD83D\uDFE9'  // 🟩 green
+};
+
+function patchCardEmojis() {
+  try {
+    if (typeof CARDS_DB === 'undefined') return 0;
+    var changed = 0;
+    for (var k in CARDS_DB) {
+      var c = CARDS_DB[k];
+      if (!c || !c.iss) continue;
+      var iss = c.iss;
+      var target = ISSUER_EMOJI[iss];
+      if (!target) {
+        // Fuzzy substring match as fallback
+        var lower = iss.toLowerCase();
+        for (var iss2 in ISSUER_EMOJI) {
+          if (lower.indexOf(iss2.toLowerCase()) >= 0) {
+            target = ISSUER_EMOJI[iss2];
+            break;
+          }
+        }
+      }
+      if (target && c.e !== target) {
+        c.e = target;
+        changed++;
+      }
+    }
+    try { console.log('[EmojiPatch] Replaced ' + changed + ' card emojis with issuer-canonical set'); } catch(e) {}
+    return changed;
+  } catch(e) {
+    try { console.warn('[EmojiPatch] err:', e); } catch(e2) {}
+    return 0;
+  }
+}
+
+// Re-render any card lists that may already be visible
+function rerenderCardLists() {
+  try { if (typeof window.renderCards === 'function') window.renderCards(); } catch(e) {}
+  try { if (typeof window.renderOnboardCards === 'function') window.renderOnboardCards(); } catch(e) {}
+  try { if (typeof window.RS === 'object' && typeof window.RS.render === 'function') window.RS.render(); } catch(e) {}
+}
+
+// Apply as early as possible
+patchCardEmojis();
+
+// Also apply on DOMContentLoaded in case CARDS_DB was loaded async
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', function() {
+    patchCardEmojis();
+    rerenderCardLists();
+  });
+} else {
+  rerenderCardLists();
+}
+
+// Safety net: apply a few times over the first 2 seconds to catch late renders
+setTimeout(function() { patchCardEmojis(); rerenderCardLists(); }, 300);
+setTimeout(function() { patchCardEmojis(); rerenderCardLists(); }, 1500);
+
+// Public API for debugging
+window.__emojiPatch = {
+  apply: patchCardEmojis,
+  rerender: rerenderCardLists,
+  ISSUER_EMOJI: ISSUER_EMOJI
+};
+})();
+</script>
+
+<!-- ============================================================
+     REWARDS STUDIO REBUILD v2 (2026-07-21 rev2)
      
-     Storage:  wiq2.tx, wiq2.mem  (nothing else in this feature)
-     Reads:    only wiq2.tx and wiq2.mem
-     Writes:   only wiq2.tx and wiq2.mem
-     Renders:  #rhTotal, #rhVault, #rhThisMonth, #rhYTD, #rhMissed,
-               #txList, #txEmpty, #txHeader, #monthPills,
-               #v122-vault, #homeVaultSummary, #overviewRecent
+     Fix from v1: no more wallet/extras split. Every membership
+     gets the full program-card view with redemption ladder,
+     card pills, monthly deltas, edit/delete.
      
-     Kills legacy: V106, V128, V139, V140 auto-accrual engines
-                   are neutered at their tick/reconcile functions.
-                   V122 vault renderer is replaced by our own.
-                   V245 tx renderers (renderTxList, renderRewardsHero,
-                   renderOverview) are replaced.
-     
-     Migration:    Once on first load, reads legacy walletIQ_v40_tx +
-                   walletiq_memberships, writes to wiq2.*, sets flag.
-                   Baseline = current stored balance (user's confirmed
-                   number at time of migration). Future logged
-                   purchases accrue on top.
-     
-     Debug: window.RS.debug()  in console
-     Rollback: delete <script id="rs-script"> from HTML
+     Storage:  wiq2.tx, wiq2.mem
+     Debug:    window.RS.debug()
+     Reset:    window.RS.reset()
+     Rollback: delete <script id="rs-script">
      ============================================================ -->
 <style id="rs-styles">
-/* Custom edit-membership modal */
 .rs-edit-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:260;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;transition:opacity .18s ease}
 .rs-edit-overlay.show{opacity:1}
 .rs-edit-modal{background:var(--surface);border-radius:22px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.3);transform:translateY(20px);transition:transform .22s cubic-bezier(.2,.9,.3,1.2);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
@@ -36215,16 +36316,13 @@ body.dark .v245-flash{background:linear-gradient(135deg,#7ec894 0%,#5ea87a 100%)
 body.dark .rs-edit-modal{background:var(--surface)}
 body.dark .rs-edit-input{background:var(--surface-2);color:var(--ink)}
 body.dark .rs-edit-save{background:var(--brand);color:#0f0d1a}
-/* Kill V86 hidden-note ghost banner */
 .v86-hidden-note{display:none !important}
 </style>
 <script id="rs-script">
 (function(){
 'use strict';
 
-// ============================================================
-// 1. KILL SWITCHES  neuter legacy reconcilers
-// ============================================================
+// KILL LEGACY
 try {
   window.__v106Disabled = true;
   window.__v128Disabled = true;
@@ -36241,9 +36339,7 @@ try {
   }
 } catch(e) {}
 
-// ============================================================
-// 2. CONFIG  card > program earn rates, program metadata
-// ============================================================
+// CARD EARN RATES
 var CARD_EARN = {
   cobalt:{prog:'mr',rates:{dining:5,groceryAmex:5,streaming:3,transit:2,gas:2,base:1}},
   amexGold:{prog:'mr',rates:{dining:2,groceryAmex:2,transit:2,gas:2,travel:2,base:1}},
@@ -36279,61 +36375,128 @@ var CARD_EARN = {
   wsInfinitePrivilege:{prog:'rogers',cashback:true,rates:{base:2}}
 };
 
+// PROGRAM METADATA + REDEMPTION LADDERS
 var PROGRAMS = {
-  mr:            {name:'Amex MR',              icon:'\uD83D\uDCB3', unit:'pts',   cpp:1.5,  bestCpp:2.0,  bestLabel:'Aeroplan transfer'},
-  aeroplan:      {name:'Aeroplan',             icon:'\u2708\uFE0F', unit:'pts',   cpp:1.5,  bestCpp:2.2,  bestLabel:'Sweet-spot flights'},
-  bonvoy:        {name:'Marriott Bonvoy',      icon:'\uD83C\uDFE8', unit:'pts',   cpp:0.8,  bestCpp:1.3,  bestLabel:'Off-peak hotel night'},
-  rogers:        {name:'Rogers Cash',          icon:'\uD83D\uDCF1', unit:'$',     cpp:100,  bestCpp:150,  bestLabel:'Rogers/Fido bill'},
-  scene:         {name:'Scene+',               icon:'\uD83C\uDFAC', unit:'pts',   cpp:1.0,  bestCpp:1.25, bestLabel:'Cineplex tickets'},
-  avion:         {name:'RBC Avion',            icon:'\u2708\uFE0F', unit:'pts',   cpp:1.5,  bestCpp:2.0,  bestLabel:'Air Travel Redemption'},
-  aventura:      {name:'CIBC Aventura',        icon:'\u2708\uFE0F', unit:'pts',   cpp:1.5,  bestCpp:1.5,  bestLabel:'Aventura Travel'},
-  bmo:           {name:'BMO Rewards',          icon:'\uD83D\uDD35', unit:'pts',   cpp:0.71, bestCpp:0.71, bestLabel:'Travel via BMO'},
-  pcoptimum:     {name:'PC Optimum',           icon:'\uD83D\uDED2', unit:'pts',   cpp:0.1,  bestCpp:0.1,  bestLabel:'Redeem at checkout'},
-  airmilesdream: {name:'AIR MILES Dream',      icon:'\uD83C\uDF0D', unit:'miles', cpp:12.5, bestCpp:12.5, bestLabel:'Flights (Dream)'},
-  airmiles:      {name:'AIR MILES Cash',       icon:'\uD83C\uDF0D', unit:'miles', cpp:10.5, bestCpp:10.5, bestLabel:'Cash at checkout'},
-  hilton:        {name:'Hilton Honors',        icon:'\uD83C\uDFE8', unit:'pts',   cpp:0.5,  bestCpp:0.5,  bestLabel:'Standard nights'},
-  ihg:           {name:'IHG One Rewards',      icon:'\uD83C\uDFE8', unit:'pts',   cpp:0.5,  bestCpp:0.5,  bestLabel:'Standard nights'},
-  hyatt:         {name:'World of Hyatt',       icon:'\uD83C\uDFE8', unit:'pts',   cpp:1.7,  bestCpp:1.7,  bestLabel:'Category redemptions'},
-  westjet:       {name:'WestJet Rewards',      icon:'\u2708\uFE0F', unit:'$',     cpp:100,  bestCpp:100,  bestLabel:'WestJet flights'},
-  baavios:       {name:'BA Avios',             icon:'\u2708\uFE0F', unit:'Avios', cpp:1.6,  bestCpp:1.6,  bestLabel:'Short-haul flights'},
-  petropoints:   {name:'Petro-Points',         icon:'\u26FD',       unit:'pts',   cpp:0.1,  bestCpp:0.1,  bestLabel:'Fuel at Petro-Can'},
-  starbucks:     {name:'Starbucks Stars',      icon:'\u2615',       unit:'stars', cpp:3.5,  bestCpp:3.5,  bestLabel:'Handcrafted drink'},
-  timrewards:    {name:'Tim Hortons Rewards',  icon:'\u2615',       unit:'pts',   cpp:0.1,  bestCpp:0.1,  bestLabel:'Free drink/bakery'},
-  shoppers:      {name:'Shoppers Optimum',     icon:'\uD83D\uDC8A', unit:'pts',   cpp:0.1,  bestCpp:0.1,  bestLabel:'Redeem at checkout'},
-  ctmoney:       {name:'Canadian Tire Money',  icon:'\uD83D\uDD34', unit:'CT$',   cpp:100,  bestCpp:100,  bestLabel:'CT purchases'},
-  bluerewards:   {name:'Blue Rewards',         icon:'\uD83D\uDD35', unit:'pts',   cpp:0.67, bestCpp:0.67, bestLabel:'BMO Travel'}
+  mr: {name:'Amex MR', icon:'\uD83D\uDCB3', unit:'pts', cpp:1.5, bestCpp:2.0, bestLabel:'Aeroplan transfer',
+    redemptions:[
+      {lbl:'\u2192 Aeroplan transfer', cpp:2.0, best:true},
+      {lbl:'\u2192 Marriott Bonvoy', cpp:1.0},
+      {lbl:'Statement credit', cpp:0.7}
+    ]},
+  aeroplan: {name:'Aeroplan', icon:'\u2708\uFE0F', unit:'pts', cpp:1.5, bestCpp:2.2, bestLabel:'Sweet-spot flights',
+    redemptions:[
+      {lbl:'Sweet-spot flights', cpp:2.2, best:true},
+      {lbl:'Standard flights', cpp:1.5},
+      {lbl:'Merchandise', cpp:0.7}
+    ]},
+  bonvoy: {name:'Marriott Bonvoy', icon:'\uD83C\uDFE8', unit:'pts', cpp:0.8, bestCpp:1.3, bestLabel:'Off-peak night',
+    redemptions:[
+      {lbl:'Cat 3 off-peak night', cpp:1.3, best:true},
+      {lbl:'Standard hotel night', cpp:0.8},
+      {lbl:'Cash/gift cards', cpp:0.4}
+    ]},
+  rogers: {name:'Rogers Cash', icon:'\uD83D\uDCF1', unit:'$', cpp:100, bestCpp:150, bestLabel:'Rogers/Fido bill',
+    redemptions:[
+      {lbl:'Rogers/Fido bill (1.5x)', cpp:150, best:true},
+      {lbl:'Any statement credit', cpp:100}
+    ]},
+  scene: {name:'Scene+', icon:'\uD83C\uDFAC', unit:'pts', cpp:1.0, bestCpp:1.25, bestLabel:'Cineplex',
+    redemptions:[
+      {lbl:'Cineplex tickets', cpp:1.25, best:true},
+      {lbl:'Sobeys groceries', cpp:1.0},
+      {lbl:'Statement credit', cpp:1.0}
+    ]},
+  avion: {name:'RBC Avion', icon:'\u2708\uFE0F', unit:'pts', cpp:1.5, bestCpp:2.0, bestLabel:'Air Travel Redemption',
+    redemptions:[
+      {lbl:'Air Travel Redemption', cpp:2.0, best:true},
+      {lbl:'Merchandise', cpp:0.83},
+      {lbl:'Statement credit', cpp:0.5}
+    ]},
+  aventura: {name:'CIBC Aventura', icon:'\u2708\uFE0F', unit:'pts', cpp:1.5, bestCpp:1.5, bestLabel:'Aventura Travel',
+    redemptions:[
+      {lbl:'Aventura Travel booking', cpp:1.5, best:true},
+      {lbl:'Merchandise', cpp:0.83},
+      {lbl:'Cash redemption', cpp:0.7}
+    ]},
+  bmo: {name:'BMO Rewards', icon:'\uD83D\uDD35', unit:'pts', cpp:0.71, bestCpp:0.71, bestLabel:'Travel via BMO',
+    redemptions:[
+      {lbl:'Travel via BMO', cpp:0.71, best:true},
+      {lbl:'Merchandise', cpp:0.5}
+    ]},
+  pcoptimum: {name:'PC Optimum', icon:'\uD83D\uDED2', unit:'pts', cpp:0.1, bestCpp:0.1, bestLabel:'Loblaw/Shoppers',
+    redemptions:[{lbl:'Loblaw/Shoppers checkout', cpp:0.1, best:true}]},
+  airmilesdream: {name:'AIR MILES Dream', icon:'\uD83C\uDF0D', unit:'miles', cpp:12.5, bestCpp:12.5, bestLabel:'Flights',
+    redemptions:[
+      {lbl:'Flights via Dream', cpp:12.5, best:true},
+      {lbl:'Merchandise', cpp:8.0}
+    ]},
+  airmiles: {name:'AIR MILES Cash', icon:'\uD83C\uDF0D', unit:'miles', cpp:10.5, bestCpp:10.5, bestLabel:'Cash',
+    redemptions:[{lbl:'Cash at checkout', cpp:10.5, best:true}]},
+  hilton: {name:'Hilton Honors', icon:'\uD83C\uDFE8', unit:'pts', cpp:0.5, bestCpp:0.6, bestLabel:'Points+Cash',
+    redemptions:[
+      {lbl:'Points + Cash', cpp:0.6, best:true},
+      {lbl:'Standard nights', cpp:0.5}
+    ]},
+  ihg: {name:'IHG One Rewards', icon:'\uD83C\uDFE8', unit:'pts', cpp:0.5, bestCpp:0.9, bestLabel:'PointBreaks',
+    redemptions:[
+      {lbl:'PointBreaks', cpp:0.9, best:true},
+      {lbl:'Standard night', cpp:0.5}
+    ]},
+  hyatt: {name:'World of Hyatt', icon:'\uD83C\uDFE8', unit:'pts', cpp:1.7, bestCpp:2.4, bestLabel:'Cat 1-4 off-peak',
+    redemptions:[
+      {lbl:'Cat 1-4 off-peak', cpp:2.4, best:true},
+      {lbl:'Standard night', cpp:1.7}
+    ]},
+  westjet: {name:'WestJet Rewards', icon:'\u2708\uFE0F', unit:'WJ$', cpp:100, bestCpp:100, bestLabel:'WestJet flights',
+    redemptions:[{lbl:'WestJet flights', cpp:100, best:true}]},
+  baavios: {name:'BA Avios', icon:'\u2708\uFE0F', unit:'Avios', cpp:1.6, bestCpp:2.2, bestLabel:'Short-haul',
+    redemptions:[
+      {lbl:'Short-haul redemptions', cpp:2.2, best:true},
+      {lbl:'Long-haul economy', cpp:1.6}
+    ]},
+  petropoints: {name:'Petro-Points', icon:'\u26FD', unit:'pts', cpp:0.1, bestCpp:0.1, bestLabel:'Petro-Canada fuel',
+    redemptions:[{lbl:'Fuel at Petro-Canada', cpp:0.1, best:true}]},
+  starbucks: {name:'Starbucks Stars', icon:'\u2615', unit:'stars', cpp:3.5, bestCpp:5.0, bestLabel:'Handcrafted drink',
+    redemptions:[
+      {lbl:'Handcrafted drink', cpp:5.0, best:true},
+      {lbl:'Brewed coffee', cpp:3.5}
+    ]},
+  timrewards: {name:'Tim Hortons Rewards', icon:'\u2615', unit:'pts', cpp:0.1, bestCpp:0.1, bestLabel:'Free drink',
+    redemptions:[{lbl:'Free drink / bakery', cpp:0.1, best:true}]},
+  shoppers: {name:'Shoppers Optimum', icon:'\uD83D\uDC8A', unit:'pts', cpp:0.1, bestCpp:0.1, bestLabel:'Checkout',
+    redemptions:[{lbl:'Redeem at checkout', cpp:0.1, best:true}]},
+  ctmoney: {name:'Canadian Tire Money', icon:'\uD83D\uDD34', unit:'CT$', cpp:100, bestCpp:100, bestLabel:'CT purchases',
+    redemptions:[{lbl:'Any CT purchase', cpp:100, best:true}]},
+  bluerewards: {name:'Blue Rewards', icon:'\uD83D\uDD35', unit:'pts', cpp:0.67, bestCpp:0.67, bestLabel:'BMO Travel',
+    redemptions:[{lbl:'BMO Travel', cpp:0.67, best:true}]}
 };
 
-// ============================================================
-// 3. HELPERS
-// ============================================================
-function log() {
-  try { var a = ['[RS]'].concat(Array.prototype.slice.call(arguments)); console.log.apply(console, a); } catch(e) {}
-}
-function readJSON(key, fb) {
-  try { var r = localStorage.getItem(key); if (r == null) return fb; var p = JSON.parse(r); return p == null ? fb : p; }
-  catch(e) { return fb; }
-}
-function writeJSON(key, value) {
-  try { localStorage.setItem(key, JSON.stringify(value)); } catch(e) {}
-}
+// HELPERS
+function log() { try { var a = ['[RS]'].concat(Array.prototype.slice.call(arguments)); console.log.apply(console, a); } catch(e){} }
+function readJSON(k, fb) { try { var r = localStorage.getItem(k); if (r == null) return fb; var p = JSON.parse(r); return p == null ? fb : p; } catch(e){ return fb; } }
+function writeJSON(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
 function canonKey(mem) {
   if (!mem) return null;
   var k = String(mem.key || '').toLowerCase().trim();
   if (PROGRAMS[k]) return k;
   var n = String(mem.name || '').toLowerCase().trim();
-  var nameMap = {
-    'amex mr':'mr','amex membership rewards':'mr','membership rewards':'mr',
+  var map = {
+    'amex mr':'mr','amex membership rewards':'mr','membership rewards':'mr','mr':'mr',
     'marriott bonvoy':'bonvoy','marriott':'bonvoy','bonvoy':'bonvoy',
     'pc optimum':'pcoptimum','pc opt':'pcoptimum',
     'air miles dream':'airmilesdream','air miles':'airmiles',
     'rogers cash':'rogers','rogers':'rogers',
     'rbc avion':'avion','scene+':'scene','scene':'scene',
-    'cibc aventura':'aventura','bmo rewards':'bmo'
+    'cibc aventura':'aventura','bmo rewards':'bmo',
+    'petro points':'petropoints','petro-points':'petropoints',
+    'amex member':'mr','amex member rewards':'mr'
   };
-  if (nameMap[n]) return nameMap[n];
-  for (var pk in PROGRAMS) {
-    if (PROGRAMS[pk].name.toLowerCase() === n) return pk;
+  if (map[n]) return map[n];
+  for (var pk in PROGRAMS) if (PROGRAMS[pk].name.toLowerCase() === n) return pk;
+  // Fuzzy: strip non-alnum and try again
+  var nAlpha = n.replace(/[^a-z0-9]/g,'');
+  for (var pk2 in PROGRAMS) {
+    if (PROGRAMS[pk2].name.toLowerCase().replace(/[^a-z0-9]/g,'') === nAlpha) return pk2;
   }
   return k || null;
 }
@@ -36342,18 +36505,11 @@ function fmtMoney(n) { if (!isFinite(n)) n = 0; return '$' + n.toLocaleString('e
 function fmtInt(n) { if (!isFinite(n)) n = 0; return Math.round(n).toLocaleString('en-CA'); }
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) { return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]; }); }
 
-// ============================================================
-// 4. MIGRATION  runs once, sets flag
-// ============================================================
+// MIGRATION
 function migrate() {
   if (localStorage.getItem('wiq.migrated_v2') === '1') return;
-
-  // === MIGRATE TRANSACTIONS ===
-  // Sources (in priority order): wiq.tx (V300), walletIQ_v40_tx (V245), then legacy fallbacks
-  var txSrc = null;
-  var candidates = ['wiq.tx', 'walletIQ_v40_tx', 'walletiq_transactions', 'walletiq_v82_tx', 'walletiq_tx', 'transactions'];
-  var seen = {};
-  var merged = [];
+  var candidates = ['wiq.tx','walletIQ_v40_tx','walletiq_transactions','walletiq_v82_tx','walletiq_tx','transactions'];
+  var seen = {}, merged = [];
   for (var i = 0; i < candidates.length; i++) {
     var arr = readJSON(candidates[i], null);
     if (!Array.isArray(arr)) continue;
@@ -36366,52 +36522,27 @@ function migrate() {
       merged.push(t);
     }
   }
-  // Enrich with loggedAt = tx.date parsed OR 0 (any pre-baseline tx wont count)
   var newTxs = merged.map(function(t) {
-    var loggedAt = t.loggedAt;
-    if (!loggedAt) {
-      var d = new Date(t.date);
-      loggedAt = isNaN(d.getTime()) ? 0 : d.getTime();
-    }
-    return {
-      id: t.id,
-      date: t.date,
-      merchant: t.merchant || '',
-      amount: parseFloat(t.amount) || 0,
-      card: t.card || t.cardKey || 'other',
-      loggedAt: loggedAt,
-      historical: !!t.historical
-    };
+    var la = t.loggedAt;
+    if (!la) { var d = new Date(t.date); la = isNaN(d.getTime()) ? 0 : d.getTime(); }
+    return { id:t.id, date:t.date, merchant:t.merchant||'', amount:parseFloat(t.amount)||0, card:t.card||t.cardKey||'other', loggedAt:la, historical:!!t.historical };
   });
   writeJSON('wiq2.tx', newTxs);
 
-  // === MIGRATE MEMBERSHIPS ===
-  // Priority: wiq.mem (V300, has manualBaseline) > walletiq_memberships (V122/V81, has balance)
-  var memSrc = null;
-  var v300Mem = readJSON('wiq.mem', null);
-  if (Array.isArray(v300Mem) && v300Mem.length > 0) {
-    memSrc = v300Mem;
-  } else {
+  var memSrc = readJSON('wiq.mem', null);
+  if (!Array.isArray(memSrc) || memSrc.length === 0) {
     memSrc = readJSON('walletiq_memberships', []);
     if (!Array.isArray(memSrc)) memSrc = [];
   }
-
   var now = Date.now();
-  var newMems = [];
-  var seenKeys = {};
+  var newMems = [], seenKeys = {};
   for (var k = 0; k < memSrc.length; k++) {
     var m = memSrc[k];
     if (!m) continue;
     var key = canonKey(m);
     if (!key || seenKeys[key]) continue;
     seenKeys[key] = 1;
-    // Baseline = user's confirmed balance at migration time
-    var baseline;
-    if (m.manualBaseline != null) {
-      baseline = Number(m.manualBaseline);
-    } else {
-      baseline = Number(m.balance) || 0;
-    }
+    var baseline = m.manualBaseline != null ? Number(m.manualBaseline) : (Number(m.balance) || 0);
     var meta = PROGRAMS[key] || {};
     newMems.push({
       key: key,
@@ -36422,95 +36553,60 @@ function migrate() {
       bestCpp: meta.bestCpp || (m.cpp != null ? Number(m.cpp) : 0),
       bestLabel: meta.bestLabel || 'Best rate',
       manualBaseline: baseline,
-      baselineSetAt: now  // As of now, so no historical tx double-count
+      baselineSetAt: now
     });
   }
   writeJSON('wiq2.mem', newMems);
 
-  // === WIPE GHOST STATE ===
-  // These caused the "1 leak hidden" banner and ghost activity
-  try { localStorage.removeItem('walletiq_v82_leak_dismissed'); } catch(e) {}
-  try { localStorage.removeItem('walletiq_v82_sub_dismissed'); } catch(e) {}
-  try { localStorage.removeItem('walletiq_auto_earnings'); } catch(e) {}
-  try { localStorage.removeItem('walletiq_applied_txs'); } catch(e) {}
+  try { localStorage.removeItem('walletiq_v82_leak_dismissed'); } catch(e){}
+  try { localStorage.removeItem('walletiq_v82_sub_dismissed'); } catch(e){}
+  try { localStorage.removeItem('walletiq_auto_earnings'); } catch(e){}
+  try { localStorage.removeItem('walletiq_applied_txs'); } catch(e){}
 
   localStorage.setItem('wiq.migrated_v2', '1');
   log('Migrated', newTxs.length, 'transactions and', newMems.length, 'memberships');
 }
 
-// ============================================================
-// 5. STORE  the only write path
-// ============================================================
+// STORE
 var listeners = [];
-function fire() {
-  for (var i = 0; i < listeners.length; i++) {
-    try { listeners[i](); } catch(e) { log('listener err:', e); }
-  }
-}
-
+function fire() { for (var i = 0; i < listeners.length; i++) { try { listeners[i](); } catch(e){ log('listener err:', e); } } }
 var Store = {
   onChange: function(fn) { listeners.push(fn); },
-
-  getTxs: function() {
-    var v = readJSON('wiq2.tx', []);
-    return Array.isArray(v) ? v : [];
-  },
-
-  getMems: function() {
-    var v = readJSON('wiq2.mem', []);
-    return Array.isArray(v) ? v : [];
-  },
-
+  getTxs: function() { var v = readJSON('wiq2.tx', []); return Array.isArray(v) ? v : []; },
+  getMems: function() { var v = readJSON('wiq2.mem', []); return Array.isArray(v) ? v : []; },
   addTx: function(tx) {
     if (!tx) return null;
     if (!tx.id) tx.id = 'tx_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
     if (!tx.loggedAt) tx.loggedAt = Date.now();
     var txs = this.getTxs();
-    txs.push({
-      id: tx.id,
-      date: tx.date || new Date().toISOString().slice(0, 10),
-      merchant: tx.merchant || '',
-      amount: parseFloat(tx.amount) || 0,
-      card: tx.card || 'other',
-      loggedAt: tx.loggedAt,
-      historical: !!tx.historical
-    });
+    txs.push({ id:tx.id, date:tx.date||new Date().toISOString().slice(0,10), merchant:tx.merchant||'', amount:parseFloat(tx.amount)||0, card:tx.card||'other', loggedAt:tx.loggedAt, historical:!!tx.historical });
     writeJSON('wiq2.tx', txs);
     fire();
     log('addTx', tx.id, tx.merchant, '$' + tx.amount);
     return tx.id;
   },
-
   deleteTx: function(id) {
     if (!id) return;
     var before = this.getTxs().length;
     var txs = this.getTxs().filter(function(t) { return t && t.id !== id; });
-    if (txs.length === before) return;  // nothing removed
+    if (txs.length === before) return;
     writeJSON('wiq2.tx', txs);
     fire();
     log('deleteTx', id);
   },
-
   updateTx: function(id, patch) {
     if (!id || !patch) return;
     var txs = this.getTxs();
     for (var i = 0; i < txs.length; i++) {
       if (txs[i] && txs[i].id === id) {
-        for (var k in patch) { if (patch.hasOwnProperty(k)) txs[i][k] = patch[k]; }
+        for (var k in patch) if (patch.hasOwnProperty(k)) txs[i][k] = patch[k];
         writeJSON('wiq2.tx', txs);
         fire();
-        log('updateTx', id);
         return;
       }
     }
   },
-
-  clearAllTxs: function() {
-    writeJSON('wiq2.tx', []);
-    fire();
-    log('clearAllTxs');
-  },
-
+  clearAllTxs: function() { writeJSON('wiq2.tx', []); fire(); log('clearAllTxs'); },
   saveMem: function(mem) {
     if (!mem) return;
     var key = canonKey(mem);
@@ -36518,7 +36614,6 @@ var Store = {
     var mems = this.getMems();
     var meta = PROGRAMS[key] || {};
     var incoming = mem.balance != null ? Number(mem.balance) : (mem.manualBaseline != null ? Number(mem.manualBaseline) : 0);
-    // baselineSetAt = now, so old tx wont double-count
     var newEntry = {
       key: key,
       name: mem.name || meta.name || key,
@@ -36532,18 +36627,13 @@ var Store = {
     };
     var found = false;
     for (var i = 0; i < mems.length; i++) {
-      if (canonKey(mems[i]) === key) {
-        mems[i] = newEntry;
-        found = true;
-        break;
-      }
+      if (canonKey(mems[i]) === key) { mems[i] = newEntry; found = true; break; }
     }
     if (!found) mems.push(newEntry);
     writeJSON('wiq2.mem', mems);
     fire();
     log('saveMem', key, 'baseline=' + incoming);
   },
-
   deleteMem: function(keyOrName) {
     var target = String(keyOrName || '').toLowerCase();
     var before = this.getMems().length;
@@ -36559,9 +36649,7 @@ var Store = {
   }
 };
 
-// ============================================================
-// 6. CALC  everything derived on demand, never stored
-// ============================================================
+// CALC
 var Calc = {
   txEarnings: function(tx) {
     if (!tx || tx.historical) return null;
@@ -36573,17 +36661,13 @@ var Calc = {
     if (amt <= 0) return null;
     var cat = tx.category || tx.cat || 'base';
     if ((cat === 'base' || cat === 'other') && typeof window.resolveCategory === 'function') {
-      try {
-        var r = window.resolveCategory(tx.merchant || '');
-        if (r) cat = r;
-      } catch(e) {}
+      try { var r = window.resolveCategory(tx.merchant || ''); if (r) cat = r; } catch(e) {}
     }
     var rate = earn.rates[cat] != null ? earn.rates[cat] : (earn.rates.base || 0);
     if (rate <= 0) return null;
     var points = earn.cashback ? (amt * rate) / 100 : amt * rate;
-    return { program: earn.prog, points: points, rate: rate, category: cat, cashback: !!earn.cashback };
+    return { program: earn.prog, points: points, rate: rate, category: cat };
   },
-
   autoAccrualForKey: function(programKey, sinceMs) {
     if (!programKey) return 0;
     var since = sinceMs || 0;
@@ -36598,22 +36682,13 @@ var Calc = {
     }
     return sum;
   },
-
   displayedBalance: function(memOrKey) {
     var mem, key, since;
-    if (typeof memOrKey === 'string') {
-      key = memOrKey;
-      mem = null;
-      since = 0;
-    } else {
-      mem = memOrKey;
-      key = canonKey(mem);
-      since = Number(mem.baselineSetAt) || 0;
-    }
+    if (typeof memOrKey === 'string') { key = memOrKey; mem = null; since = 0; }
+    else { mem = memOrKey; key = canonKey(mem); since = Number(mem.baselineSetAt) || 0; }
     var baseline = mem ? (Number(mem.manualBaseline) || 0) : 0;
     return baseline + this.autoAccrualForKey(key, since);
   },
-
   memberValue: function(memOrKey) {
     var mem, key;
     if (typeof memOrKey === 'string') { key = memOrKey; mem = null; }
@@ -36628,10 +36703,13 @@ var Calc = {
     else return 0;
     return (bal * cpp) / 100;
   },
-
+  memberValueAtCpp: function(memOrKey, cpp) {
+    var bal = this.displayedBalance(memOrKey);
+    if (bal <= 0 || !(cpp > 0)) return 0;
+    return (bal * cpp) / 100;
+  },
   portfolioTotal: function() {
-    var total = 0;
-    var seen = {};
+    var total = 0, seen = {};
     var mems = Store.getMems();
     for (var i = 0; i < mems.length; i++) {
       var k = canonKey(mems[i]);
@@ -36641,7 +36719,6 @@ var Calc = {
     }
     return total;
   },
-
   monthlyEarnings: function(offset) {
     offset = offset || 0;
     var now = new Date();
@@ -36662,7 +36739,6 @@ var Calc = {
     }
     return total;
   },
-
   ytdEarnings: function() {
     var ty = new Date().getFullYear();
     var total = 0;
@@ -36680,10 +36756,8 @@ var Calc = {
     }
     return total;
   },
-
-  // Which programs does the users wallet earn on?
   walletProgramMap: function() {
-    var map = {};  // programKey -> [cardKeys]
+    var map = {};
     try {
       if (window.userWallet && window.userWallet.size > 0) {
         var it = window.userWallet.values();
@@ -36703,48 +36777,35 @@ var Calc = {
   }
 };
 
-// ============================================================
-// 7. RENDER
-// ============================================================
+// RENDER
 var currentMonth = 'all';
 
-function setText(id, txt) {
-  var el = document.getElementById(id);
-  if (el && el.textContent !== txt) el.textContent = txt;
-}
+function setText(id, txt) { var el = document.getElementById(id); if (el && el.textContent !== txt) el.textContent = txt; }
 
 function renderHero() {
-  var total = Calc.portfolioTotal();
-  var thisMonth = Calc.monthlyEarnings(0);
-  var ytd = Calc.ytdEarnings();
-  setText('rhTotal', fmt(total));
-  setText('rhVault', fmt(total));
-  setText('rhThisMonth', fmt(thisMonth));
-  setText('rhYTD', fmt(ytd));
-  setText('rhMissed', '$0');  // No longer tracking missed
+  setText('rhTotal', fmt(Calc.portfolioTotal()));
+  setText('rhVault', fmt(Calc.portfolioTotal()));
+  setText('rhThisMonth', fmt(Calc.monthlyEarnings(0)));
+  setText('rhYTD', fmt(Calc.ytdEarnings()));
+  setText('rhMissed', '$0');
 }
 
 function renderMonthPills() {
   var el = document.getElementById('monthPills');
   if (!el) return;
   var txs = Store.getTxs();
-  var months = ['all'];
   var monthSet = {};
   for (var i = 0; i < txs.length; i++) {
     var t = txs[i];
     if (!t || !t.date) continue;
     var ym = String(t.date).substring(0, 7);
-    if (ym && !monthSet[ym]) { monthSet[ym] = 1; months.push(ym); }
+    if (ym) monthSet[ym] = 1;
   }
-  // Sort months (all first, then descending)
-  var monthList = Object.keys(monthSet).sort().reverse();
-  var final = ['all'].concat(monthList);
+  var final = ['all'].concat(Object.keys(monthSet).sort().reverse());
   el.innerHTML = final.map(function(m) {
     var label = m === 'all' ? 'All time' : new Date(m + '-01').toLocaleDateString('en-CA', {year:'numeric', month:'short'});
-    var on = m === currentMonth ? ' on' : '';
-    return '<button class="month-pill' + on + '" data-month="' + esc(m) + '">' + esc(label) + '</button>';
+    return '<button class="month-pill' + (m === currentMonth ? ' on' : '') + '" data-month="' + esc(m) + '">' + esc(label) + '</button>';
   }).join('');
-  // Wire clicks
   Array.prototype.forEach.call(el.querySelectorAll('.month-pill'), function(btn) {
     btn.addEventListener('click', function() {
       currentMonth = btn.getAttribute('data-month');
@@ -36763,9 +36824,7 @@ function renderActivity() {
   var txs = allTxs.filter(function(t) {
     if (currentMonth === 'all') return true;
     return t.date && String(t.date).startsWith(currentMonth);
-  }).sort(function(a, b) {
-    return String(b.date || '').localeCompare(String(a.date || ''));
-  });
+  }).sort(function(a, b) { return String(b.date || '').localeCompare(String(a.date || '')); });
   if (txs.length === 0) {
     el.innerHTML = '';
     if (empty) empty.style.display = 'block';
@@ -36774,7 +36833,6 @@ function renderActivity() {
   }
   if (empty) empty.style.display = 'none';
   if (header) header.textContent = txs.length + ' transaction' + (txs.length === 1 ? '' : 's');
-
   el.innerHTML = txs.map(function(t) {
     var card = (window.CARDS_DB || {})[t.card];
     var cardName = card ? card.n : (t.card === 'other' ? 'Other' : t.card);
@@ -36784,99 +36842,13 @@ function renderActivity() {
     var e = Calc.txEarnings(t);
     var earned = e ? (e.points * ((PROGRAMS[e.program] || {}).cpp || 0)) / 100 : 0;
     return '<div class="tx-item">' +
-      '<div class="txmain">' +
-        '<div class="txmerch">' + esc(t.merchant) + '</div>' +
-        '<div class="txmeta">' + esc(dateStr) + ' \u00B7 ' + esc(cardEmoji) + ' ' + esc(cardName) + '</div>' +
-      '</div>' +
-      '<div class="txright">' +
-        '<div class="txamt">$' + (Number(t.amount) || 0).toFixed(2) + '</div>' +
+      '<div class="txmain"><div class="txmerch">' + esc(t.merchant) + '</div>' +
+      '<div class="txmeta">' + esc(dateStr) + ' \u00B7 ' + esc(cardEmoji) + ' ' + esc(cardName) + '</div></div>' +
+      '<div class="txright"><div class="txamt">$' + (Number(t.amount) || 0).toFixed(2) + '</div>' +
         (earned > 0 ? '<div class="txrew">+$' + earned.toFixed(2) + '</div>' : '') +
-        '<div class="txbtns">' +
-          '<button data-rs-edit-tx="' + esc(t.id) + '" title="Edit">\u270F</button>' +
-          '<button data-rs-del-tx="' + esc(t.id) + '" title="Delete">\u00D7</button>' +
-        '</div>' +
-      '</div>' +
-    '</div>';
+        '<div class="txbtns"><button data-rs-edit-tx="' + esc(t.id) + '">\u270F</button>' +
+        '<button data-rs-del-tx="' + esc(t.id) + '">\u00D7</button></div></div></div>';
   }).join('');
-}
-
-function renderVault() {
-  var host = document.getElementById('v122-vault');
-  if (!host) return;
-  var mems = Store.getMems();
-  var walletMap = Calc.walletProgramMap();
-  var walletCards = 0;
-  try { if (window.userWallet) walletCards = window.userWallet.size; } catch(e) {}
-
-  if (walletCards === 0 && mems.length === 0) {
-    host.innerHTML = '<div class="v122-empty"><div class="big">\uD83D\uDCB3</div><h3>No cards in your wallet yet</h3><p>Add credit cards to your wallet, or add memberships below to start tracking rewards.</p><button type="button" onclick="if(typeof showOnboarding===\'function\')showOnboarding()">Set up wallet</button><div style="margin-top:12px"><button type="button" class="v81-add-btn" data-rs-add-mem="1">\u2795 Add membership</button></div></div>';
-    return;
-  }
-
-  // Group memberships: wallet-earners first, extras after
-  var walletMems = [];
-  var extraMems = [];
-  for (var i = 0; i < mems.length; i++) {
-    var k = canonKey(mems[i]);
-    if (walletMap[k] && walletMap[k].length > 0) walletMems.push(mems[i]);
-    else extraMems.push(mems[i]);
-  }
-  // Sort by displayed balance descending
-  var sortByValue = function(a, b) { return Calc.memberValue(b) - Calc.memberValue(a); };
-  walletMems.sort(sortByValue);
-  extraMems.sort(sortByValue);
-
-  var total = Calc.portfolioTotal();
-  var thisMonth = Calc.monthlyEarnings(0);
-
-  var html = '';
-  // Hero
-  html += '<div class="v122-hero">' +
-    '<div class="v122-hero-label">\u2728 Wallet Rewards Portfolio</div>' +
-    '<div class="v122-hero-total">' + fmtMoney(total) + '</div>' +
-    '<div class="v122-hero-sub">' + mems.length + ' program' + (mems.length === 1 ? '' : 's') +
-      (thisMonth > 0 ? ' \u00B7 <span class="v122-hero-earned">+' + fmtMoney(thisMonth) + ' this month</span>' : '') +
-    '</div>' +
-  '</div>';
-
-  // Wallet memberships section
-  if (walletMems.length > 0) {
-    html += '<div class="v122-section-head">' +
-      '<div class="v122-section-title">Wallet Memberships</div>' +
-      '<div class="v122-section-count">' + walletMems.length + '</div>' +
-    '</div>' +
-    '<div class="v122-progs">' + walletMems.map(function(m){ return progCard(m, walletMap); }).join('') + '</div>';
-  }
-
-  // Add membership button
-  html += '<button type="button" class="v81-add-btn" style="margin-top:12px" data-rs-add-mem="1">\u2795 Add membership</button>';
-
-  // Extras (collapsible)
-  if (extraMems.length > 0) {
-    html += '<div class="v122-extras">' +
-      '<button type="button" class="v122-extras-toggle" data-rs-toggle-extras="1">' +
-        '<span class="v122-extras-chev">\u25B8</span>' +
-        '<span class="v122-extras-lbl">Extra memberships</span>' +
-        '<span class="v122-extras-count">' + extraMems.length + '</span>' +
-      '</button>' +
-      '<div class="v122-extras-body" id="rs-extras-body">' +
-        extraMems.map(function(m) {
-          var k = canonKey(m);
-          var bal = Calc.displayedBalance(m);
-          var val = Calc.memberValue(m);
-          return '<div class="v122-extra-row">' +
-            '<span class="v122-extra-emo">' + esc(m.emoji || '\u2B50') + '</span>' +
-            '<span class="v122-extra-name">' + esc(m.name) + '</span>' +
-            '<span class="v122-extra-bal">' + fmtInt(bal) + ' ' + esc(m.unit || 'pts') + '</span>' +
-            '<span class="v122-extra-val">' + fmtMoney(val) + '</span>' +
-            '<button class="v122-extra-del" data-rs-del-mem="' + esc(k) + '" title="Remove">\u00D7</button>' +
-          '</div>';
-        }).join('') +
-      '</div>' +
-    '</div>';
-  }
-
-  host.innerHTML = html;
 }
 
 function progCard(m, walletMap) {
@@ -36885,8 +36857,10 @@ function progCard(m, walletMap) {
   var val = Calc.memberValue(m);
   var meta = PROGRAMS[key] || {};
   var cards = walletMap[key] || [];
+  var since = Number(m.baselineSetAt) || 0;
+
+  // this-month / last-month points for this program
   var thisMonth = 0, lastMonth = 0;
-  // Points earned this program this month vs last
   var txs = Store.getTxs();
   var now = new Date();
   var curYm = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
@@ -36895,7 +36869,7 @@ function progCard(m, walletMap) {
   for (var i = 0; i < txs.length; i++) {
     var t = txs[i];
     if (!t || !t.date) continue;
-    if ((t.loggedAt || 0) < (Number(m.baselineSetAt) || 0)) continue;
+    if ((t.loggedAt || 0) < since) continue;
     var e = Calc.txEarnings(t);
     if (!e || e.program !== key) continue;
     var ym = String(t.date).substring(0, 7);
@@ -36916,15 +36890,24 @@ function progCard(m, walletMap) {
     ? 'Earned by ' + cards.length + ' card' + (cards.length === 1 ? '' : 's') + ' in your wallet'
     : 'Manually tracked';
 
-  var isEmpty = bal <= 0;
+  // Redemption ladder
+  var redemptions = meta.redemptions || [{lbl: meta.bestLabel || 'Best rate', cpp: meta.bestCpp || meta.cpp || 0, best: true}];
+  var redeemHtml = redemptions.map(function(r) {
+    var v = Calc.memberValueAtCpp(m, r.cpp);
+    return '<div class="v122-redeem-row' + (r.best ? ' best' : '') + '">' +
+      (r.best ? '<span class="v122-redeem-star">\u2605</span>' : '<span class="v122-redeem-star-empty"></span>') +
+      '<span class="v122-redeem-lbl">' + esc(r.lbl) + '</span>' +
+      '<span class="v122-redeem-cpp">' + (r.cpp < 10 ? r.cpp.toFixed(2) + '\u00A2' : r.cpp.toFixed(0) + '\u00A2') + '</span>' +
+      '<span class="v122-redeem-v">' + fmtMoney(v) + '</span>' +
+    '</div>';
+  }).join('');
 
+  var isEmpty = bal <= 0;
   return '<div class="v122-prog-card' + (isEmpty ? ' empty' : '') + '">' +
     '<div class="v122-prog-head">' +
       '<div class="v122-prog-emo">' + esc(m.emoji || '\u2B50') + '</div>' +
-      '<div>' +
-        '<div class="v122-prog-name">' + esc(m.name) + '</div>' +
-        '<div class="v122-prog-sub">' + esc(subtext) + '</div>' +
-      '</div>' +
+      '<div><div class="v122-prog-name">' + esc(m.name) + '</div>' +
+      '<div class="v122-prog-sub">' + esc(subtext) + '</div></div>' +
     '</div>' +
     '<div class="v122-prog-bal">' +
       '<div class="v122-prog-bal-line">' +
@@ -36940,10 +36923,51 @@ function progCard(m, walletMap) {
       '<div class="v122-month-item"><div class="l">This month</div><div class="v">' + (thisMonth > 0 ? '<span class="v122-delta-plus">+' + fmtInt(thisMonth) + ' ' + esc(m.unit || 'pts') + '</span>' : '<span class="v122-delta-zero">\u2014</span>') + '</div></div>' +
       '<div class="v122-month-item"><div class="l">Last month</div><div class="v">' + (lastMonth > 0 ? '<span class="v122-delta-plus">+' + fmtInt(lastMonth) + ' ' + esc(m.unit || 'pts') + '</span>' : '<span class="v122-delta-zero">\u2014</span>') + '</div></div>' +
     '</div>' +
+    '<div class="v122-prog-redeem-title">Redemption ladder</div>' +
+    '<div class="v122-prog-redeem">' + redeemHtml + '</div>' +
     '<button type="button" class="v122-prog-edit" data-rs-edit-mem="' + esc(key) + '">' +
       (isEmpty ? '\u2795 Set starting balance' : 'Edit balance') +
     '</button>' +
   '</div>';
+}
+
+function renderVault() {
+  var host = document.getElementById('v122-vault');
+  if (!host) return;
+  var mems = Store.getMems();
+  var walletCards = 0;
+  try { if (window.userWallet) walletCards = window.userWallet.size; } catch(e){}
+
+  if (walletCards === 0 && mems.length === 0) {
+    host.innerHTML = '<div class="v122-empty"><div class="big">\uD83D\uDCB3</div><h3>No memberships yet</h3><p>Add your first loyalty membership to start tracking rewards.</p><button type="button" class="v81-add-btn" data-rs-add-mem="1">\u2795 Add membership</button></div>';
+    return;
+  }
+
+  var walletMap = Calc.walletProgramMap();
+
+  // ONE list, sorted by displayed value desc, all get full card treatment
+  var sorted = mems.slice().sort(function(a, b) { return Calc.memberValue(b) - Calc.memberValue(a); });
+
+  var total = Calc.portfolioTotal();
+  var thisMonth = Calc.monthlyEarnings(0);
+
+  var html = '';
+  html += '<div class="v122-hero">' +
+    '<div class="v122-hero-label">\u2728 Wallet Rewards Portfolio</div>' +
+    '<div class="v122-hero-total">' + fmtMoney(total) + '</div>' +
+    '<div class="v122-hero-sub">' + mems.length + ' program' + (mems.length === 1 ? '' : 's') +
+      (thisMonth > 0 ? ' \u00B7 <span class="v122-hero-earned">+' + fmtMoney(thisMonth) + ' this month</span>' : '') +
+    '</div>' +
+  '</div>';
+
+  html += '<div class="v122-section-head">' +
+    '<div class="v122-section-title">Memberships</div>' +
+    '<div class="v122-section-count">' + mems.length + '</div>' +
+  '</div>';
+  html += '<div class="v122-progs">' + sorted.map(function(m){ return progCard(m, walletMap); }).join('') + '</div>';
+  html += '<button type="button" class="v81-add-btn" style="margin-top:12px" data-rs-add-mem="1">\u2795 Add membership</button>';
+
+  host.innerHTML = html;
 }
 
 function renderHomeSummary() {
@@ -36951,7 +36975,7 @@ function renderHomeSummary() {
   if (!host) return;
   var mems = Store.getMems();
   var walletCards = 0;
-  try { if (window.userWallet) walletCards = window.userWallet.size; } catch(e) {}
+  try { if (window.userWallet) walletCards = window.userWallet.size; } catch(e){}
   if (mems.length === 0 && walletCards === 0) {
     host.style.display = 'none';
     host.innerHTML = '';
@@ -36971,14 +36995,10 @@ function renderHomeSummary() {
     '</div>';
   }).join('');
   host.innerHTML = '<div class="v122-home-card" data-rs-go-vault="1">' +
-    '<div class="v122-home-head">' +
-      '<div class="v122-home-label">\uD83C\uDFAF Rewards Portfolio</div>' +
-      '<div class="v122-home-arrow">\u203A</div>' +
-    '</div>' +
+    '<div class="v122-home-head"><div class="v122-home-label">\uD83C\uDFAF Rewards Portfolio</div><div class="v122-home-arrow">\u203A</div></div>' +
     '<div class="v122-home-total">' + fmtMoney(total) + '</div>' +
     '<div class="v122-home-sub">across ' + mems.length + ' program' + (mems.length === 1 ? '' : 's') +
-      (thisMonth > 0 ? ' \u00B7 <span class="v122-home-earned">+' + fmtMoney(thisMonth) + ' this month</span>' : '') +
-    '</div>' +
+      (thisMonth > 0 ? ' \u00B7 <span class="v122-home-earned">+' + fmtMoney(thisMonth) + ' this month</span>' : '') + '</div>' +
     (top3Html ? '<div class="v122-home-progs">' + top3Html + '</div>' : '') +
   '</div>';
 }
@@ -36986,9 +37006,7 @@ function renderHomeSummary() {
 function renderOverviewRecent() {
   var el = document.getElementById('overviewRecent');
   if (!el) return;
-  var txs = Store.getTxs().slice().sort(function(a, b) {
-    return String(b.date || '').localeCompare(String(a.date || ''));
-  }).slice(0, 5);
+  var txs = Store.getTxs().slice().sort(function(a, b) { return String(b.date || '').localeCompare(String(a.date || '')); }).slice(0, 5);
   if (txs.length === 0) {
     el.innerHTML = '<div style="font-size:12px;color:var(--muted);font-weight:700;text-align:center;padding:12px;font-style:italic">No transactions yet. Add your first purchase to start tracking.</div>';
     return;
@@ -37000,27 +37018,18 @@ function renderOverviewRecent() {
     try { dateStr = new Date(t.date).toLocaleDateString('en-CA', {month:'short', day:'numeric'}); } catch(e) {}
     var e = Calc.txEarnings(t);
     var earned = e ? (e.points * ((PROGRAMS[e.program] || {}).cpp || 0)) / 100 : 0;
-    return '<div class="tx-item"><div class="txmain">' +
-      '<div class="txmerch">' + esc(t.merchant) + '</div>' +
-      '<div class="txmeta">' + esc(dateStr) + ' \u00B7 ' + esc(cardName) + '</div>' +
-    '</div>' +
-    '<div class="txright"><div class="txamt">$' + (Number(t.amount) || 0).toFixed(2) + '</div>' +
-      (earned > 0 ? '<div class="txrew">+$' + earned.toFixed(2) + '</div>' : '') +
-    '</div>' +
-    '</div>';
+    return '<div class="tx-item"><div class="txmain"><div class="txmerch">' + esc(t.merchant) + '</div>' +
+      '<div class="txmeta">' + esc(dateStr) + ' \u00B7 ' + esc(cardName) + '</div></div>' +
+      '<div class="txright"><div class="txamt">$' + (Number(t.amount) || 0).toFixed(2) + '</div>' +
+      (earned > 0 ? '<div class="txrew">+$' + earned.toFixed(2) + '</div>' : '') + '</div></div>';
   }).join('') + '</div>';
 }
 
 function clearGhosts() {
-  // Wipe the "1 leak hidden" banner and any subscription cards
-  var missed = document.getElementById('overviewMissed');
-  if (missed) missed.innerHTML = '';
-  var subs = document.getElementById('overviewSubs');
-  if (subs) subs.innerHTML = '';
-  var tip = document.getElementById('overviewTip');
-  if (tip) tip.innerHTML = '';
-  var hiddenNote = document.querySelector('.v86-hidden-note');
-  if (hiddenNote) hiddenNote.remove();
+  var missed = document.getElementById('overviewMissed'); if (missed) missed.innerHTML = '';
+  var subs = document.getElementById('overviewSubs'); if (subs) subs.innerHTML = '';
+  var tip = document.getElementById('overviewTip'); if (tip) tip.innerHTML = '';
+  var hiddenNote = document.querySelector('.v86-hidden-note'); if (hiddenNote) hiddenNote.remove();
   var orphanBanner = document.getElementById('txOrphanBanner');
   if (orphanBanner) { orphanBanner.innerHTML = ''; orphanBanner.style.display = 'none'; }
 }
@@ -37039,19 +37048,16 @@ function scheduleRender() {
       renderHomeSummary();
       renderOverviewRecent();
       clearGhosts();
-    } catch(e) { try { console.error('[RS] render err:', e); } catch(e2) {} }
+    } catch(e) { try { console.error('[RS] render err:', e); } catch(e2){} }
   });
 }
 
-// ============================================================
-// 8. UI ACTIONS
-// ============================================================
+// UI ACTIONS
 var editingTxId = null;
 
 function openAddTxModal(txId) {
   editingTxId = txId || null;
   window.editingTxId = editingTxId;
-  // Populate card select from userWallet
   var sel = document.getElementById('txCard');
   if (!sel) return;
   sel.innerHTML = '';
@@ -37076,12 +37082,10 @@ function openAddTxModal(txId) {
   otherOpt.value = 'other';
   otherOpt.textContent = '\uD83D\uDCB3 Other card';
   sel.appendChild(otherOpt);
-
   var title = document.getElementById('addTxTitle');
   var dateEl = document.getElementById('txDate');
   var merchantEl = document.getElementById('txMerchant');
   var amountEl = document.getElementById('txAmount');
-
   if (txId) {
     var tx = Store.getTxs().filter(function(t){ return t && t.id === txId; })[0];
     if (tx) {
@@ -37114,16 +37118,13 @@ function saveTxFromModal() {
   var amountEl = document.getElementById('txAmount');
   var cardEl = document.getElementById('txCard');
   if (!dateEl || !merchantEl || !amountEl || !cardEl) return;
-
   var date = dateEl.value;
   var merchant = String(merchantEl.value || '').trim();
   var amount = parseFloat(amountEl.value) || 0;
   var card = cardEl.value;
-
   if (!merchant) { alert('Please enter a merchant'); return; }
   if (amount <= 0) { alert('Please enter a valid amount'); return; }
   if (!card) { alert('Please select a card'); return; }
-
   if (editingTxId) {
     Store.updateTx(editingTxId, { date:date, merchant:merchant, amount:amount, card:card });
   } else {
@@ -37138,10 +37139,7 @@ function deleteTxAction(id) {
   Store.deleteTx(id);
 }
 
-function editTxAction(id) {
-  openAddTxModal(id);
-}
-
+function editTxAction(id) { openAddTxModal(id); }
 function clearAllTxAction() {
   if (!confirm('Delete ALL transactions? This cannot be undone.')) return;
   Store.clearAllTxs();
@@ -37161,28 +37159,17 @@ function saveHeroLogPurchase() {
   }
   var merchant = String(merchantEl.value || '').trim();
   var cardKey = cardEl.value;
-  // Respect V70/V126 chosen alternate
   try {
     if (window.__v70 && window.__v70.chosenCardKey) cardKey = window.__v70.chosenCardKey;
     else if (window.__v126 && window.__v126.chosenCardKey) cardKey = window.__v126.chosenCardKey;
   } catch(e) {}
   if (!merchant || !cardKey) return;
-
-  Store.addTx({
-    date: new Date().toISOString().slice(0, 10),
-    merchant: merchant,
-    amount: amt,
-    card: cardKey,
-    loggedAt: Date.now()
-  });
-
-  // Close the form
+  Store.addTx({ date: new Date().toISOString().slice(0, 10), merchant: merchant, amount: amt, card: cardKey, loggedAt: Date.now() });
   var form = document.getElementById('heroLogForm');
   if (form) form.classList.remove('show');
   amtEl.value = '';
   var preview = document.getElementById('heroLogPreview');
   if (preview) { preview.classList.remove('show'); preview.textContent = ''; }
-  // Flash toast
   try {
     var card = (window.CARDS_DB || {})[cardKey];
     var flash = document.createElement('div');
@@ -37193,14 +37180,11 @@ function saveHeroLogPurchase() {
   } catch(e) {}
 }
 
-// -------- Membership edit modal (our own) --------
 function openEditMemModal(progKey) {
   if (!progKey) return;
   var mems = Store.getMems();
   var mem = null;
-  for (var i = 0; i < mems.length; i++) {
-    if (canonKey(mems[i]) === progKey) { mem = mems[i]; break; }
-  }
+  for (var i = 0; i < mems.length; i++) { if (canonKey(mems[i]) === progKey) { mem = mems[i]; break; } }
   var meta = PROGRAMS[progKey] || {};
   var name = mem ? mem.name : (meta.name || progKey);
   var emoji = mem ? mem.emoji : (meta.icon || '\u2B50');
@@ -37208,7 +37192,6 @@ function openEditMemModal(progKey) {
   var currentBal = mem ? Calc.displayedBalance(mem) : 0;
   var bestCpp = mem ? (mem.bestCpp || meta.bestCpp || meta.cpp || 0) : (meta.bestCpp || meta.cpp || 0);
   var bestLabel = mem ? (mem.bestLabel || meta.bestLabel || 'best rate') : (meta.bestLabel || 'best rate');
-
   var overlay = document.createElement('div');
   overlay.className = 'rs-edit-overlay';
   overlay.innerHTML = '<div class="rs-edit-modal">' +
@@ -37230,23 +37213,19 @@ function openEditMemModal(progKey) {
   '</div>';
   document.body.appendChild(overlay);
   setTimeout(function() { overlay.classList.add('show'); }, 10);
-
   var input = overlay.querySelector('#rs-edit-input');
   var hint = overlay.querySelector('#rs-edit-hint');
   function upd() {
     var b = parseFloat(input.value) || 0;
-    if (b > 0 && bestCpp > 0) {
-      hint.textContent = '\u2248 ' + fmtMoney((b * bestCpp) / 100) + ' at ' + bestLabel;
-    } else { hint.textContent = ''; }
+    if (b > 0 && bestCpp > 0) hint.textContent = '\u2248 ' + fmtMoney((b * bestCpp) / 100) + ' at ' + bestLabel;
+    else hint.textContent = '';
   }
   input.addEventListener('input', upd);
   upd();
-
   function close() {
     overlay.classList.remove('show');
     setTimeout(function() { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); }, 220);
   }
-
   overlay.addEventListener('click', function(e) {
     var t = e.target;
     if (!t) return;
@@ -37254,59 +37233,29 @@ function openEditMemModal(progKey) {
     if (t === overlay) { close(); return; }
     if (t.getAttribute && t.getAttribute('data-save')) {
       var newBal = parseFloat(input.value);
-      if (!isFinite(newBal) || newBal < 0) {
-        input.focus();
-        input.style.borderColor = 'var(--coral, #d94b4b)';
-        setTimeout(function() { input.style.borderColor = ''; }, 1500);
-        return;
-      }
-      Store.saveMem({
-        key: progKey,
-        name: name,
-        emoji: emoji,
-        unit: unit,
-        cpp: meta.cpp,
-        balance: newBal
-      });
+      if (!isFinite(newBal) || newBal < 0) { input.focus(); return; }
+      Store.saveMem({ key: progKey, name: name, emoji: emoji, unit: unit, cpp: meta.cpp, balance: newBal });
       close();
       return;
     }
     if (t.getAttribute && t.getAttribute('data-delete')) {
-      if (confirm('Delete this membership? Your baseline of ' + fmtInt(currentBal) + ' ' + unit + ' will be lost.')) {
-        Store.deleteMem(progKey);
-        close();
-      }
+      if (confirm('Delete this membership?')) { Store.deleteMem(progKey); close(); }
       return;
     }
   });
-
   var escHandler = function(e) {
-    if (e.key === 'Escape') {
-      close();
-      document.removeEventListener('keydown', escHandler);
-    }
+    if (e.key === 'Escape') { close(); document.removeEventListener('keydown', escHandler); }
   };
   document.addEventListener('keydown', escHandler);
-
   setTimeout(function() { if (input) { input.focus(); input.select(); } }, 260);
 }
 
-// -------- Route Add Membership through V81's modal, but intercept its Save --------
 function openAddMemModal() {
-  try {
-    if (typeof window.__v81OpenAddMembership === 'function') {
-      window.__v81OpenAddMembership();
-      return;
-    }
-  } catch(e) {}
-  alert('Add-membership dialog not available. Reload the page and try again.');
+  try { if (typeof window.__v81OpenAddMembership === 'function') { window.__v81OpenAddMembership(); return; } } catch(e) {}
+  alert('Add-membership dialog not available.');
 }
 
-// ============================================================
-// 9. GLOBAL OVERRIDES  point legacy code at our implementation
-// ============================================================
 function installOverrides() {
-  // Data path
   window.saveHeroLogPurchase = saveHeroLogPurchase;
   window.__v126SaveLog = saveHeroLogPurchase;
   window.openAddTxModal = openAddTxModal;
@@ -37316,9 +37265,7 @@ function installOverrides() {
   window.editTx = editTxAction;
   window.clearAllTx = clearAllTxAction;
   window.setMonth = function(m) { currentMonth = m; renderMonthPills(); renderActivity(); };
-
-  // Render path (route legacy render function names to ours)
-  window.renderVault = function(){};  // V245's POINT_PROGRAMS-based renderer
+  window.renderVault = function(){};
   window.renderVaultV122 = function(){ renderVault(); renderHomeSummary(); };
   window.renderRewardsHero = renderHero;
   window.renderTxList = renderActivity;
@@ -37327,110 +37274,46 @@ function installOverrides() {
   window.renderMissedSummary = function() { clearGhosts(); };
   window.renderSubscriptions = function() { clearGhosts(); };
   window.renderHomeVaultSummary = renderHomeSummary;
-
-  // Wrap switchTab and switchRewardsView to re-render on tab change
   try {
     if (typeof window.switchTab === 'function' && !window.switchTab.__rsWrap) {
       var origST = window.switchTab;
-      window.switchTab = function() {
-        var r = origST.apply(this, arguments);
-        setTimeout(scheduleRender, 30);
-        return r;
-      };
+      window.switchTab = function() { var r = origST.apply(this, arguments); setTimeout(scheduleRender, 30); return r; };
       window.switchTab.__rsWrap = true;
     }
     if (typeof window.switchRewardsView === 'function' && !window.switchRewardsView.__rsWrap) {
       var origSV = window.switchRewardsView;
-      window.switchRewardsView = function() {
-        var r = origSV.apply(this, arguments);
-        setTimeout(scheduleRender, 30);
-        return r;
-      };
-      window.switchRewardsView = window.switchRewardsView;
+      window.switchRewardsView = function() { var r = origSV.apply(this, arguments); setTimeout(scheduleRender, 30); return r; };
       window.switchRewardsView.__rsWrap = true;
     }
   } catch(e) {}
 }
 
-// ============================================================
-// 10. EVENT INTERCEPTORS  capture phase, prevents legacy handlers
-// ============================================================
 function installEventInterceptors() {
   document.addEventListener('click', function(e) {
     var t = e.target;
     if (!t) return;
-
-    // ---- V81 memberships modal Save button ----
-    // V81 uses #v81Save. Intercept BEFORE its handler runs.
     if (t.id === 'v81Save' || (t.closest && t.closest('#v81Save'))) {
       e.stopImmediatePropagation();
       e.preventDefault();
       handleV81Save();
       return;
     }
-
-    // ---- Our activity list edit/delete buttons ----
     var editBtn = t.closest && t.closest('[data-rs-edit-tx]');
-    if (editBtn) {
-      e.stopImmediatePropagation();
-      editTxAction(editBtn.getAttribute('data-rs-edit-tx'));
-      return;
-    }
+    if (editBtn) { e.stopImmediatePropagation(); editTxAction(editBtn.getAttribute('data-rs-edit-tx')); return; }
     var delBtn = t.closest && t.closest('[data-rs-del-tx]');
-    if (delBtn) {
-      e.stopImmediatePropagation();
-      deleteTxAction(delBtn.getAttribute('data-rs-del-tx'));
-      return;
-    }
-
-    // ---- Our memberships list edit/delete/add buttons ----
+    if (delBtn) { e.stopImmediatePropagation(); deleteTxAction(delBtn.getAttribute('data-rs-del-tx')); return; }
     var editMem = t.closest && t.closest('[data-rs-edit-mem]');
-    if (editMem) {
-      e.stopImmediatePropagation();
-      openEditMemModal(editMem.getAttribute('data-rs-edit-mem'));
-      return;
-    }
+    if (editMem) { e.stopImmediatePropagation(); openEditMemModal(editMem.getAttribute('data-rs-edit-mem')); return; }
     var delMem = t.closest && t.closest('[data-rs-del-mem]');
-    if (delMem) {
-      e.stopImmediatePropagation();
-      var k = delMem.getAttribute('data-rs-del-mem');
-      if (confirm('Delete this membership?')) Store.deleteMem(k);
-      return;
-    }
+    if (delMem) { e.stopImmediatePropagation(); var k = delMem.getAttribute('data-rs-del-mem'); if (confirm('Delete this membership?')) Store.deleteMem(k); return; }
     var addMem = t.closest && t.closest('[data-rs-add-mem]');
-    if (addMem) {
-      e.stopImmediatePropagation();
-      openAddMemModal();
-      return;
-    }
-
-    // ---- Extras toggle ----
-    var extToggle = t.closest && t.closest('[data-rs-toggle-extras]');
-    if (extToggle) {
-      e.stopImmediatePropagation();
-      var body = document.getElementById('rs-extras-body');
-      var chev = extToggle.querySelector('.v122-extras-chev');
-      if (body) {
-        var open = body.classList.toggle('show');
-        if (chev) chev.textContent = open ? '\u25BE' : '\u25B8';
-      }
-      return;
-    }
-
-    // ---- Home summary card > jump to Points tab ----
+    if (addMem) { e.stopImmediatePropagation(); openAddMemModal(); return; }
     var goVault = t.closest && t.closest('[data-rs-go-vault]');
     if (goVault) {
       e.stopImmediatePropagation();
-      try {
-        if (typeof window.switchTab === 'function') window.switchTab('rewards');
-        setTimeout(function() {
-          if (typeof window.switchRewardsView === 'function') window.switchRewardsView('vault');
-        }, 100);
-      } catch(err) {}
+      try { if (typeof window.switchTab === 'function') window.switchTab('rewards'); setTimeout(function() { if (typeof window.switchRewardsView === 'function') window.switchRewardsView('vault'); }, 100); } catch(err) {}
       return;
     }
-
-    // ---- V122 legacy edit button (in case V122 renders before we override) ----
     var v122Edit = t.closest && t.closest('.v122-prog-edit');
     if (v122Edit && !v122Edit.hasAttribute('data-rs-edit-mem')) {
       e.stopImmediatePropagation();
@@ -37438,7 +37321,7 @@ function installEventInterceptors() {
       if (prog) openEditMemModal(prog);
       return;
     }
-  }, true);  // CAPTURE phase = runs before target listeners
+  }, true);
 }
 
 function handleV81Save() {
@@ -37460,50 +37343,25 @@ function handleV81Save() {
     var cu = document.getElementById('v81CustUnit');
     var cc = document.getElementById('v81CustCpp');
     var name = cn ? String(cn.value || '').trim() : '';
-    if (!name) {
-      if (cn) { cn.focus(); cn.style.borderColor = 'var(--coral, #d94b4b)'; }
-      return;
-    }
-    mem = {
-      key: 'custom_' + Date.now(),
-      name: name,
-      emoji: ce ? (ce.value || '\u2B50').trim() : '\u2B50',
-      unit: cu ? (cu.value || 'pts').trim() : 'pts',
-      cpp: cc ? (parseFloat(cc.value) || 0) : 0,
-      balance: balance
-    };
+    if (!name) { if (cn) { cn.focus(); cn.style.borderColor = 'var(--coral, #d94b4b)'; } return; }
+    mem = { key: 'custom_' + Date.now(), name: name, emoji: ce ? (ce.value || '\u2B50').trim() : '\u2B50', unit: cu ? (cu.value || 'pts').trim() : 'pts', cpp: cc ? (parseFloat(cc.value) || 0) : 0, balance: balance };
   } else {
     var meta = PROGRAMS[progValue] || {};
-    mem = {
-      key: progValue,
-      name: meta.name || progValue,
-      emoji: meta.icon || '\u2B50',
-      unit: meta.unit || 'pts',
-      cpp: meta.cpp || 0,
-      balance: balance
-    };
+    mem = { key: progValue, name: meta.name || progValue, emoji: meta.icon || '\u2B50', unit: meta.unit || 'pts', cpp: meta.cpp || 0, balance: balance };
   }
   Store.saveMem(mem);
-  // Close V81's modal
   var modal = document.getElementById('v81Modal');
   if (modal) modal.classList.remove('show');
-  // Reset V81's inputs so next open starts fresh
   if (bal) bal.value = '';
 }
 
-// ============================================================
-// 11. STORAGE EVENT (cross-tab)
-// ============================================================
 window.addEventListener('storage', function(e) {
   if (!e || !e.key) return;
   if (e.key === 'wiq2.tx' || e.key === 'wiq2.mem') scheduleRender();
 });
 
-// ============================================================
-// 12. PUBLIC API + BOOT
-// ============================================================
 window.RS = {
-  version: 'rebuild-2026-07-21',
+  version: 'rebuild-rev2-2026-07-21',
   Store: Store,
   Calc: Calc,
   PROGRAMS: PROGRAMS,
@@ -37512,12 +37370,7 @@ window.RS = {
   debug: function() {
     var mems = Store.getMems();
     return {
-      portfolio: {
-        total: Calc.portfolioTotal(),
-        thisMonth: Calc.monthlyEarnings(0),
-        lastMonth: Calc.monthlyEarnings(-1),
-        ytd: Calc.ytdEarnings()
-      },
+      portfolio: { total: Calc.portfolioTotal(), thisMonth: Calc.monthlyEarnings(0), lastMonth: Calc.monthlyEarnings(-1), ytd: Calc.ytdEarnings() },
       txCount: Store.getTxs().length,
       memberships: mems.map(function(m) {
         var k = canonKey(m);
@@ -37534,10 +37387,10 @@ window.RS = {
     };
   },
   reset: function() {
-    if (!confirm('Reset all Rewards Studio data (tx and memberships)? This is destructive.')) return;
-    try { localStorage.removeItem('wiq2.tx'); } catch(e) {}
-    try { localStorage.removeItem('wiq2.mem'); } catch(e) {}
-    try { localStorage.removeItem('wiq.migrated_v2'); } catch(e) {}
+    if (!confirm('Reset all Rewards Studio data? This deletes tx and memberships.')) return;
+    try { localStorage.removeItem('wiq2.tx'); } catch(e){}
+    try { localStorage.removeItem('wiq2.mem'); } catch(e){}
+    try { localStorage.removeItem('wiq.migrated_v2'); } catch(e){}
     location.reload();
   }
 };
@@ -37551,14 +37404,11 @@ function boot() {
   scheduleRender();
   setTimeout(scheduleRender, 300);
   setTimeout(scheduleRender, 1500);
-  log('Rewards Studio active. Portfolio =', fmt(Calc.portfolioTotal()), 'from', Store.getMems().length, 'memberships and', Store.getTxs().length, 'txs.');
+  log('Rewards Studio rev2 active. Portfolio =', fmt(Calc.portfolioTotal()), 'from', Store.getMems().length, 'memberships and', Store.getTxs().length, 'txs.');
 }
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', boot);
-} else {
-  boot();
-}
+if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', boot); }
+else { boot(); }
 })();
 </script>
 
