@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- V300 (2026-07-21) - THE REWARDS STUDIO REBUILD. Not a patch. Kills 6 competing engines (V106, V128, V139, V140, V244 state, V245 clean flows) and installs one canonical store + one render path. Balance is never stored — computed as manualBaseline + autoAccrualFromTx. Delete a tx and displayed balance drops. No caches, no reconcilers, no polling. Public API: window.V300. Migrates existing data on first boot (writes wiq.migrated_v1 flag). Rollback: delete [id=v300-script]. -->
+<!-- REWARDS STUDIO REBUILD (2026-07-21) - Complete replacement of memberships + activity + hero tiles + log purchase. One module, one data path, one render. Kills legacy V106/V128/V139/V140 reconcilers. Migrates data on first boot. Debug: window.RS.debug() in console. Rollback: delete <script id="rs-script"> block. -->
 <!-- V245 (2026-07-20) - RELEASE 2: THE TRANSACTION ENGINE. Builds on V244 WalletIQState foundation. Makes Log Purchase -> See Points Grow bulletproof: (1) CleanSaveFlow wraps saveTxFromModal - computes earnings for flash toast, clears home search, forces recompute + unified rerender. (2) CleanDeleteFlow hijacks V179 confirm modal Delete button at CAPTURE phase, directly deletes from all 3 tx keys via V244 transaction() (atomic), fires unified rerender. (3) EarningsRecalculator subscribes to WalletIQState.onChange for tx keys - when tx storage changes, triggers V128 reconcile + V140 sync + V242 patchNow immediately (no waiting for setInterval polling). (4) UnifiedRerender runs all render pipelines in correct order (state engines first, then UI). (5) Flash toast confirms save (+$X earned) and delete (X removed) with 2.2s auto-dismiss. Zero features removed. Rollback: delete [id^=v245-]. -->
 <!-- V244 (2026-07-18) - RELEASE 1: THE STATE FREEZE. Foundation for consolidation plan. Installs a single window.WalletIQState manager that owns all writes to 6 critical storage keys (walletiq_v13_wallet, walletiq_memberships, walletiq_transactions, walletiq_tx_v13, walletiq_tx, walletiq_auto_earnings). Four protection layers: (1) djb2 hash dedup - identical writes silently skip, killing flicker cascades from 11 sync engines. (2) Preservation rules per key - manual entries flagged __v234Manual or __v244Manual survive any auto-engine rewrite; user-created transactions cant be silently deleted; wallet cant be wiped to empty without explicit flag. (3) Debounce coalescer - rapid writes to same key within 50ms collapse to one final write. (4) Change event bus - dispatch walletiq:statechange with key detail, single subscription point replacing 11 polling loops. Zero features removed. Every prior patch keeps working. Public API for Releases 2-4: get/set/delete/onChange/onKey/transaction/audit/history/dump. V231-V233 storage guards are now redundant but harmless (V244 sits above them). Rollback: delete [id^=v244-]. -->
 <!-- V224 (2026-07-15): V222 + vault flicker kill added back. V222 wraps window.renderOffers so category filters trigger re-tag + re-apply. V224 also installs djb2 hash intercept on #v122-vault innerHTML setter to kill V183 vaultObs feedback loop (identical writes silently skip -> no cascade -> no flicker). Also wraps renderVaultV122 with rAF-coalesce. -->
@@ -67,7 +67,7 @@
 <meta http-equiv="Expires" content="0">
 
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>Wallet IQ V300</title>
+<title>Wallet IQ (Rewards Rebuild)</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Wallet IQ">
@@ -36165,27 +36165,65 @@ body.dark .v245-flash{background:linear-gradient(135deg,#7ec894 0%,#5ea87a 100%)
   }
 })();</script>
 <!-- ============================================================
-     V300 (2026-07-21) — THE REWARDS STUDIO REBUILD
+     REWARDS STUDIO REBUILD (2026-07-21)
      
-     Not a patch. A complete replacement of the data layer.
+     One module owns: log purchase, activity list, memberships,
+     hero tiles, home summary. All four are the same feature.
      
-     Kills 6 competing engines (V106, V128, V139, V140, V244 state,
-     V245 clean flows) and installs one canonical store + one render
-     path. Balance is never a stored number — it's computed on demand
-     as manualBaseline + autoAccrualFromTxList. Delete a tx and the
-     displayed balance drops because the derivation shrinks. No caches
-     to fight over. No reconcilers. No setInterval polling.
+     Storage:  wiq2.tx, wiq2.mem  (nothing else in this feature)
+     Reads:    only wiq2.tx and wiq2.mem
+     Writes:   only wiq2.tx and wiq2.mem
+     Renders:  #rhTotal, #rhVault, #rhThisMonth, #rhYTD, #rhMissed,
+               #txList, #txEmpty, #txHeader, #monthPills,
+               #v122-vault, #homeVaultSummary, #overviewRecent
      
-     Public API: window.V300 with Store, Calc, render, PROGRAMS.
-     Debug: V300.Calc.portfolioTotal(), V300.Store.getTxs(), etc.
-     Rollback: delete <script id="v300-script"> and V300 disappears.
+     Kills legacy: V106, V128, V139, V140 auto-accrual engines
+                   are neutered at their tick/reconcile functions.
+                   V122 vault renderer is replaced by our own.
+                   V245 tx renderers (renderTxList, renderRewardsHero,
+                   renderOverview) are replaced.
+     
+     Migration:    Once on first load, reads legacy walletIQ_v40_tx +
+                   walletiq_memberships, writes to wiq2.*, sets flag.
+                   Baseline = current stored balance (user's confirmed
+                   number at time of migration). Future logged
+                   purchases accrue on top.
+     
+     Debug: window.RS.debug()  in console
+     Rollback: delete <script id="rs-script"> from HTML
      ============================================================ -->
-<script id="v300-script">
+<style id="rs-styles">
+/* Custom edit-membership modal */
+.rs-edit-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:260;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;transition:opacity .18s ease}
+.rs-edit-overlay.show{opacity:1}
+.rs-edit-modal{background:var(--surface);border-radius:22px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.3);transform:translateY(20px);transition:transform .22s cubic-bezier(.2,.9,.3,1.2);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.rs-edit-overlay.show .rs-edit-modal{transform:translateY(0)}
+.rs-edit-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--border)}
+.rs-edit-title{font-size:16px;font-weight:900;letter-spacing:-.02em;color:var(--ink);display:flex;align-items:center;gap:8px}
+.rs-edit-close{background:transparent;border:none;font-size:24px;color:var(--muted);cursor:pointer;padding:0 6px;line-height:1;font-weight:900;font-family:inherit}
+.rs-edit-body{padding:18px}
+.rs-edit-lbl{display:block;font-size:11px;font-weight:900;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px}
+.rs-edit-input{width:100%;padding:14px 16px;border:1.5px solid var(--border);border-radius:14px;font-size:22px;font-weight:900;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--surface);color:var(--ink);outline:none;box-sizing:border-box}
+.rs-edit-input:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+.rs-edit-hint{margin-top:8px;font-size:13px;font-weight:900;color:var(--green);font-family:ui-monospace,monospace;min-height:16px}
+.rs-edit-note{margin-top:12px;padding:10px 12px;background:var(--accent-soft);border-radius:10px;font-size:11.5px;color:var(--ink);font-weight:750;line-height:1.45}
+.rs-edit-actions{display:flex;gap:8px;padding:14px 18px;border-top:1px solid var(--border)}
+.rs-edit-actions button{flex:1;padding:12px;border-radius:12px;font-family:inherit;font-weight:900;font-size:13px;cursor:pointer;border:none}
+.rs-edit-cancel{background:var(--surface);border:1.5px solid var(--border) !important;color:var(--ink)}
+.rs-edit-save{background:var(--brand);color:#fff;box-shadow:0 4px 12px rgba(37,99,235,.22)}
+.rs-edit-delete{background:transparent;color:var(--coral);border:1.5px solid var(--coral) !important;flex:0 0 auto;padding:12px 16px}
+body.dark .rs-edit-modal{background:var(--surface)}
+body.dark .rs-edit-input{background:var(--surface-2);color:var(--ink)}
+body.dark .rs-edit-save{background:var(--brand);color:#0f0d1a}
+/* Kill V86 hidden-note ghost banner */
+.v86-hidden-note{display:none !important}
+</style>
+<script id="rs-script">
 (function(){
 'use strict';
 
 // ============================================================
-// 1. KILL SWITCHES — silence legacy reconcilers before they tick
+// 1. KILL SWITCHES  neuter legacy reconcilers
 // ============================================================
 try {
   window.__v106Disabled = true;
@@ -36195,11 +36233,16 @@ try {
   window.__v106Tick = function(){};
   window.__v128Tick = function(){};
   if (window.__v128) { window.__v128.reconcile = function(){}; window.__v128.ready = false; }
-  if (window.__v140) { window.__v140.sync = function(){}; window.__v140.reconcile = function(){}; window.__v140.scheduleSync = function(){}; }
+  if (window.__v140) {
+    window.__v140.sync = function(){};
+    window.__v140.reconcile = function(){};
+    window.__v140.scheduleSync = function(){};
+    window.__v140.render = function(){};
+  }
 } catch(e) {}
 
 // ============================================================
-// 2. CONFIG — card → program earn rates, program metadata
+// 2. CONFIG  card > program earn rates, program metadata
 // ============================================================
 var CARD_EARN = {
   cobalt:{prog:'mr',rates:{dining:5,groceryAmex:5,streaming:3,transit:2,gas:2,base:1}},
@@ -36236,165 +36279,203 @@ var CARD_EARN = {
   wsInfinitePrivilege:{prog:'rogers',cashback:true,rates:{base:2}}
 };
 
-// bestCpp used for portfolio value calc. cpp used for monthly earning value.
 var PROGRAMS = {
-  mr:            {name:'Amex MR',       icon:'\uD83D\uDD35', unit:'pts',   cpp:1.5,  bestCpp:2.0},
-  aeroplan:      {name:'Aeroplan',      icon:'\u2708\uFE0F', unit:'pts',   cpp:1.5,  bestCpp:2.2},
-  bonvoy:        {name:'Marriott Bonvoy', icon:'\uD83C\uDFE8', unit:'pts', cpp:0.8,  bestCpp:1.3},
-  rogers:        {name:'Rogers Cash',   icon:'\uD83D\uDCF1', unit:'$',     cpp:100,  bestCpp:150},
-  scene:         {name:'Scene+',        icon:'\uD83C\uDFAC', unit:'pts',   cpp:1.0,  bestCpp:1.25},
-  avion:         {name:'RBC Avion',     icon:'\u2708\uFE0F', unit:'pts',   cpp:1.5,  bestCpp:2.0},
-  aventura:      {name:'CIBC Aventura', icon:'\u2708\uFE0F', unit:'pts',   cpp:1.5,  bestCpp:1.5},
-  bmo:           {name:'BMO Rewards',   icon:'\uD83D\uDD35', unit:'pts',   cpp:0.71, bestCpp:0.71},
-  pcoptimum:     {name:'PC Optimum',    icon:'\uD83D\uDED2', unit:'pts',   cpp:0.1,  bestCpp:0.1},
-  airmilesdream: {name:'AIR MILES Dream', icon:'\uD83C\uDF0D', unit:'miles', cpp:12.5, bestCpp:12.5}
+  mr:            {name:'Amex MR',              icon:'\uD83D\uDCB3', unit:'pts',   cpp:1.5,  bestCpp:2.0,  bestLabel:'Aeroplan transfer'},
+  aeroplan:      {name:'Aeroplan',             icon:'\u2708\uFE0F', unit:'pts',   cpp:1.5,  bestCpp:2.2,  bestLabel:'Sweet-spot flights'},
+  bonvoy:        {name:'Marriott Bonvoy',      icon:'\uD83C\uDFE8', unit:'pts',   cpp:0.8,  bestCpp:1.3,  bestLabel:'Off-peak hotel night'},
+  rogers:        {name:'Rogers Cash',          icon:'\uD83D\uDCF1', unit:'$',     cpp:100,  bestCpp:150,  bestLabel:'Rogers/Fido bill'},
+  scene:         {name:'Scene+',               icon:'\uD83C\uDFAC', unit:'pts',   cpp:1.0,  bestCpp:1.25, bestLabel:'Cineplex tickets'},
+  avion:         {name:'RBC Avion',            icon:'\u2708\uFE0F', unit:'pts',   cpp:1.5,  bestCpp:2.0,  bestLabel:'Air Travel Redemption'},
+  aventura:      {name:'CIBC Aventura',        icon:'\u2708\uFE0F', unit:'pts',   cpp:1.5,  bestCpp:1.5,  bestLabel:'Aventura Travel'},
+  bmo:           {name:'BMO Rewards',          icon:'\uD83D\uDD35', unit:'pts',   cpp:0.71, bestCpp:0.71, bestLabel:'Travel via BMO'},
+  pcoptimum:     {name:'PC Optimum',           icon:'\uD83D\uDED2', unit:'pts',   cpp:0.1,  bestCpp:0.1,  bestLabel:'Redeem at checkout'},
+  airmilesdream: {name:'AIR MILES Dream',      icon:'\uD83C\uDF0D', unit:'miles', cpp:12.5, bestCpp:12.5, bestLabel:'Flights (Dream)'},
+  airmiles:      {name:'AIR MILES Cash',       icon:'\uD83C\uDF0D', unit:'miles', cpp:10.5, bestCpp:10.5, bestLabel:'Cash at checkout'},
+  hilton:        {name:'Hilton Honors',        icon:'\uD83C\uDFE8', unit:'pts',   cpp:0.5,  bestCpp:0.5,  bestLabel:'Standard nights'},
+  ihg:           {name:'IHG One Rewards',      icon:'\uD83C\uDFE8', unit:'pts',   cpp:0.5,  bestCpp:0.5,  bestLabel:'Standard nights'},
+  hyatt:         {name:'World of Hyatt',       icon:'\uD83C\uDFE8', unit:'pts',   cpp:1.7,  bestCpp:1.7,  bestLabel:'Category redemptions'},
+  westjet:       {name:'WestJet Rewards',      icon:'\u2708\uFE0F', unit:'$',     cpp:100,  bestCpp:100,  bestLabel:'WestJet flights'},
+  baavios:       {name:'BA Avios',             icon:'\u2708\uFE0F', unit:'Avios', cpp:1.6,  bestCpp:1.6,  bestLabel:'Short-haul flights'},
+  petropoints:   {name:'Petro-Points',         icon:'\u26FD',       unit:'pts',   cpp:0.1,  bestCpp:0.1,  bestLabel:'Fuel at Petro-Can'},
+  starbucks:     {name:'Starbucks Stars',      icon:'\u2615',       unit:'stars', cpp:3.5,  bestCpp:3.5,  bestLabel:'Handcrafted drink'},
+  timrewards:    {name:'Tim Hortons Rewards',  icon:'\u2615',       unit:'pts',   cpp:0.1,  bestCpp:0.1,  bestLabel:'Free drink/bakery'},
+  shoppers:      {name:'Shoppers Optimum',     icon:'\uD83D\uDC8A', unit:'pts',   cpp:0.1,  bestCpp:0.1,  bestLabel:'Redeem at checkout'},
+  ctmoney:       {name:'Canadian Tire Money',  icon:'\uD83D\uDD34', unit:'CT$',   cpp:100,  bestCpp:100,  bestLabel:'CT purchases'},
+  bluerewards:   {name:'Blue Rewards',         icon:'\uD83D\uDD35', unit:'pts',   cpp:0.67, bestCpp:0.67, bestLabel:'BMO Travel'}
 };
 
 // ============================================================
 // 3. HELPERS
 // ============================================================
 function log() {
-  try { var a = Array.prototype.slice.call(arguments); a.unshift('[V300]'); console.log.apply(console, a); } catch(e) {}
+  try { var a = ['[RS]'].concat(Array.prototype.slice.call(arguments)); console.log.apply(console, a); } catch(e) {}
 }
-function readJSON(k, fb) {
-  try { var r = localStorage.getItem(k); if (!r) return fb; var p = JSON.parse(r); return p == null ? fb : p; }
+function readJSON(key, fb) {
+  try { var r = localStorage.getItem(key); if (r == null) return fb; var p = JSON.parse(r); return p == null ? fb : p; }
   catch(e) { return fb; }
 }
-function writeJSON(k, v) {
-  try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) {}
+function writeJSON(key, value) {
+  try { localStorage.setItem(key, JSON.stringify(value)); } catch(e) {}
 }
-function canonKey(m) {
-  if (!m) return null;
-  var k = (m.key || '').toString().toLowerCase();
+function canonKey(mem) {
+  if (!mem) return null;
+  var k = String(mem.key || '').toLowerCase().trim();
   if (PROGRAMS[k]) return k;
-  var n = (m.name || '').toString().toLowerCase().trim();
+  var n = String(mem.name || '').toLowerCase().trim();
   var nameMap = {
-    'amex mr':'mr', 'amex membership rewards':'mr', 'membership rewards':'mr',
-    'marriott bonvoy':'bonvoy', 'marriott':'bonvoy', 'bonvoy':'bonvoy',
-    'pc optimum':'pcoptimum',
-    'air miles dream':'airmilesdream', 'air miles':'airmilesdream',
-    'rogers cash':'rogers'
+    'amex mr':'mr','amex membership rewards':'mr','membership rewards':'mr',
+    'marriott bonvoy':'bonvoy','marriott':'bonvoy','bonvoy':'bonvoy',
+    'pc optimum':'pcoptimum','pc opt':'pcoptimum',
+    'air miles dream':'airmilesdream','air miles':'airmiles',
+    'rogers cash':'rogers','rogers':'rogers',
+    'rbc avion':'avion','scene+':'scene','scene':'scene',
+    'cibc aventura':'aventura','bmo rewards':'bmo'
   };
   if (nameMap[n]) return nameMap[n];
   for (var pk in PROGRAMS) {
     if (PROGRAMS[pk].name.toLowerCase() === n) return pk;
   }
-  return m.key || null;
+  return k || null;
 }
+function fmt(n) { if (!isFinite(n) || n < 0) n = 0; return '$' + Math.round(n).toLocaleString('en-CA'); }
+function fmtMoney(n) { if (!isFinite(n)) n = 0; return '$' + n.toLocaleString('en-CA', {minimumFractionDigits:2, maximumFractionDigits:2}); }
+function fmtInt(n) { if (!isFinite(n)) n = 0; return Math.round(n).toLocaleString('en-CA'); }
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) { return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]; }); }
 
 // ============================================================
-// 4. MIGRATION — runs once, ever
+// 4. MIGRATION  runs once, sets flag
 // ============================================================
 function migrate() {
-  if (localStorage.getItem('wiq.migrated_v1')) return;
+  if (localStorage.getItem('wiq.migrated_v2') === '1') return;
 
-  // Merge tx from all 5 legacy keys, dedupe by id
-  var TX_KEYS = ['walletIQ_v40_tx', 'walletiq_transactions', 'walletiq_v82_tx', 'walletiq_tx', 'transactions'];
+  // === MIGRATE TRANSACTIONS ===
+  // Sources (in priority order): wiq.tx (V300), walletIQ_v40_tx (V245), then legacy fallbacks
+  var txSrc = null;
+  var candidates = ['wiq.tx', 'walletIQ_v40_tx', 'walletiq_transactions', 'walletiq_v82_tx', 'walletiq_tx', 'transactions'];
   var seen = {};
   var merged = [];
-  for (var i = 0; i < TX_KEYS.length; i++) {
-    var arr = readJSON(TX_KEYS[i], null);
+  for (var i = 0; i < candidates.length; i++) {
+    var arr = readJSON(candidates[i], null);
     if (!Array.isArray(arr)) continue;
     for (var j = 0; j < arr.length; j++) {
       var t = arr[j];
       if (!t) continue;
-      // Generate id if missing
-      if (!t.id) t.id = 'tx_migrated_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+      if (!t.id) t.id = 'tx_mig_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
       if (seen[t.id]) continue;
       seen[t.id] = 1;
       merged.push(t);
     }
   }
-  writeJSON('wiq.tx', merged);
-
-  // Migrate memberships — strip auto flags, keep manual baseline
-  var oldMems = readJSON('walletiq_memberships', []);
-  var newMems = [];
-  if (Array.isArray(oldMems)) {
-    var seenKeys = {};
-    for (var k = 0; k < oldMems.length; k++) {
-      var m = oldMems[k];
-      if (!m) continue;
-      var key = canonKey(m);
-      if (!key || seenKeys[key]) continue;
-      // Auto-only entries get skipped — V300 will recompute their balance from tx
-      if ((m.__v106Auto || m.__v128Auto || m.__v140Auto) && m.__v128ManualBaseline == null && m.__v106ManualBaseline == null) continue;
-      seenKeys[key] = 1;
-      // Extract manual baseline: prefer explicit baseline field, fallback to current balance
-      var baseline = m.__v128ManualBaseline != null ? m.__v128ManualBaseline
-                   : m.__v106ManualBaseline != null ? m.__v106ManualBaseline
-                   : (Number(m.balance) || 0);
-      var meta = PROGRAMS[key] || {};
-      newMems.push({
-        key: key,
-        name: m.name || meta.name || key,
-        emoji: m.emoji || meta.icon || '\u2B50',
-        unit: m.unit || meta.unit || 'pts',
-        cpp: m.cpp != null ? m.cpp : (meta.cpp || 0),
-        manualBaseline: baseline
-      });
+  // Enrich with loggedAt = tx.date parsed OR 0 (any pre-baseline tx wont count)
+  var newTxs = merged.map(function(t) {
+    var loggedAt = t.loggedAt;
+    if (!loggedAt) {
+      var d = new Date(t.date);
+      loggedAt = isNaN(d.getTime()) ? 0 : d.getTime();
     }
-  }
-  writeJSON('wiq.mem', newMems);
+    return {
+      id: t.id,
+      date: t.date,
+      merchant: t.merchant || '',
+      amount: parseFloat(t.amount) || 0,
+      card: t.card || t.cardKey || 'other',
+      loggedAt: loggedAt,
+      historical: !!t.historical
+    };
+  });
+  writeJSON('wiq2.tx', newTxs);
 
-  localStorage.setItem('wiq.migrated_v1', '1');
-  log('Migrated', merged.length, 'transactions,', newMems.length, 'memberships.');
+  // === MIGRATE MEMBERSHIPS ===
+  // Priority: wiq.mem (V300, has manualBaseline) > walletiq_memberships (V122/V81, has balance)
+  var memSrc = null;
+  var v300Mem = readJSON('wiq.mem', null);
+  if (Array.isArray(v300Mem) && v300Mem.length > 0) {
+    memSrc = v300Mem;
+  } else {
+    memSrc = readJSON('walletiq_memberships', []);
+    if (!Array.isArray(memSrc)) memSrc = [];
+  }
+
+  var now = Date.now();
+  var newMems = [];
+  var seenKeys = {};
+  for (var k = 0; k < memSrc.length; k++) {
+    var m = memSrc[k];
+    if (!m) continue;
+    var key = canonKey(m);
+    if (!key || seenKeys[key]) continue;
+    seenKeys[key] = 1;
+    // Baseline = user's confirmed balance at migration time
+    var baseline;
+    if (m.manualBaseline != null) {
+      baseline = Number(m.manualBaseline);
+    } else {
+      baseline = Number(m.balance) || 0;
+    }
+    var meta = PROGRAMS[key] || {};
+    newMems.push({
+      key: key,
+      name: m.name || meta.name || key,
+      emoji: m.emoji || meta.icon || '\u2B50',
+      unit: m.unit || meta.unit || 'pts',
+      cpp: m.cpp != null ? Number(m.cpp) : (meta.cpp || 0),
+      bestCpp: meta.bestCpp || (m.cpp != null ? Number(m.cpp) : 0),
+      bestLabel: meta.bestLabel || 'Best rate',
+      manualBaseline: baseline,
+      baselineSetAt: now  // As of now, so no historical tx double-count
+    });
+  }
+  writeJSON('wiq2.mem', newMems);
+
+  // === WIPE GHOST STATE ===
+  // These caused the "1 leak hidden" banner and ghost activity
+  try { localStorage.removeItem('walletiq_v82_leak_dismissed'); } catch(e) {}
+  try { localStorage.removeItem('walletiq_v82_sub_dismissed'); } catch(e) {}
+  try { localStorage.removeItem('walletiq_auto_earnings'); } catch(e) {}
+  try { localStorage.removeItem('walletiq_applied_txs'); } catch(e) {}
+
+  localStorage.setItem('wiq.migrated_v2', '1');
+  log('Migrated', newTxs.length, 'transactions and', newMems.length, 'memberships');
 }
 
 // ============================================================
-// 5. STORE — the only write path
+// 5. STORE  the only write path
 // ============================================================
 var listeners = [];
 function fire() {
   for (var i = 0; i < listeners.length; i++) {
-    try { listeners[i](); } catch(e) { try { console.warn('[V300] listener err:', e); } catch(e2) {} }
+    try { listeners[i](); } catch(e) { log('listener err:', e); }
   }
-}
-
-// Mirror wiq.tx to legacy keys so V245's renderTxList (which reads walletIQ_v40_tx) still works.
-// Uses raw prototype setItem to bypass any wrapped setItem chain.
-var _rawSet = null;
-function rawSetItem() {
-  if (_rawSet) return _rawSet;
-  try {
-    var proto = Object.getPrototypeOf(localStorage);
-    if (proto && typeof proto.setItem === 'function') {
-      _rawSet = proto.setItem.bind(localStorage);
-      return _rawSet;
-    }
-  } catch(e) {}
-  _rawSet = function(k, v) { localStorage.setItem(k, v); };
-  return _rawSet;
-}
-function mirrorTxToLegacy(txs) {
-  var raw = rawSetItem();
-  var json = JSON.stringify(txs);
-  try { raw('walletIQ_v40_tx', json); } catch(e) {}
-  try { raw('walletiq_transactions', json); } catch(e) {}
-  try { raw('walletiq_v82_tx', json); } catch(e) {}
-  try { raw('walletiq_tx', json); } catch(e) {}
 }
 
 var Store = {
   onChange: function(fn) { listeners.push(fn); },
 
   getTxs: function() {
-    var v = readJSON('wiq.tx', []);
+    var v = readJSON('wiq2.tx', []);
     return Array.isArray(v) ? v : [];
   },
 
   getMems: function() {
-    var v = readJSON('wiq.mem', []);
+    var v = readJSON('wiq2.mem', []);
     return Array.isArray(v) ? v : [];
   },
 
   addTx: function(tx) {
     if (!tx) return null;
     if (!tx.id) tx.id = 'tx_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+    if (!tx.loggedAt) tx.loggedAt = Date.now();
     var txs = this.getTxs();
-    txs.push(tx);
-    writeJSON('wiq.tx', txs);
-    mirrorTxToLegacy(txs);
+    txs.push({
+      id: tx.id,
+      date: tx.date || new Date().toISOString().slice(0, 10),
+      merchant: tx.merchant || '',
+      amount: parseFloat(tx.amount) || 0,
+      card: tx.card || 'other',
+      loggedAt: tx.loggedAt,
+      historical: !!tx.historical
+    });
+    writeJSON('wiq2.tx', txs);
     fire();
     log('addTx', tx.id, tx.merchant, '$' + tx.amount);
     return tx.id;
@@ -36402,9 +36483,10 @@ var Store = {
 
   deleteTx: function(id) {
     if (!id) return;
+    var before = this.getTxs().length;
     var txs = this.getTxs().filter(function(t) { return t && t.id !== id; });
-    writeJSON('wiq.tx', txs);
-    mirrorTxToLegacy(txs);
+    if (txs.length === before) return;  // nothing removed
+    writeJSON('wiq2.tx', txs);
     fire();
     log('deleteTx', id);
   },
@@ -36415,8 +36497,7 @@ var Store = {
     for (var i = 0; i < txs.length; i++) {
       if (txs[i] && txs[i].id === id) {
         for (var k in patch) { if (patch.hasOwnProperty(k)) txs[i][k] = patch[k]; }
-        writeJSON('wiq.tx', txs);
-        mirrorTxToLegacy(txs);
+        writeJSON('wiq2.tx', txs);
         fire();
         log('updateTx', id);
         return;
@@ -36425,8 +36506,7 @@ var Store = {
   },
 
   clearAllTxs: function() {
-    writeJSON('wiq.tx', []);
-    mirrorTxToLegacy([]);
+    writeJSON('wiq2.tx', []);
     fire();
     log('clearAllTxs');
   },
@@ -36436,103 +36516,116 @@ var Store = {
     var key = canonKey(mem);
     if (!key) return;
     var mems = this.getMems();
+    var meta = PROGRAMS[key] || {};
+    var incoming = mem.balance != null ? Number(mem.balance) : (mem.manualBaseline != null ? Number(mem.manualBaseline) : 0);
+    // baselineSetAt = now, so old tx wont double-count
+    var newEntry = {
+      key: key,
+      name: mem.name || meta.name || key,
+      emoji: mem.emoji || meta.icon || '\u2B50',
+      unit: mem.unit || meta.unit || 'pts',
+      cpp: mem.cpp != null ? Number(mem.cpp) : (meta.cpp || 0),
+      bestCpp: meta.bestCpp || (mem.cpp != null ? Number(mem.cpp) : 0),
+      bestLabel: meta.bestLabel || 'Best rate',
+      manualBaseline: incoming,
+      baselineSetAt: Date.now()
+    };
     var found = false;
-    var newBalance = mem.manualBaseline != null ? Number(mem.manualBaseline) : Number(mem.balance || 0);
     for (var i = 0; i < mems.length; i++) {
       if (canonKey(mems[i]) === key) {
-        mems[i] = {
-          key: key,
-          name: mem.name || mems[i].name,
-          emoji: mem.emoji || mems[i].emoji,
-          unit: mem.unit || mems[i].unit,
-          cpp: mem.cpp != null ? mem.cpp : mems[i].cpp,
-          manualBaseline: newBalance
-        };
+        mems[i] = newEntry;
         found = true;
         break;
       }
     }
-    if (!found) {
-      var meta = PROGRAMS[key] || {};
-      mems.push({
-        key: key,
-        name: mem.name || meta.name || key,
-        emoji: mem.emoji || meta.icon || '\u2B50',
-        unit: mem.unit || meta.unit || 'pts',
-        cpp: mem.cpp != null ? mem.cpp : (meta.cpp || 0),
-        manualBaseline: newBalance
-      });
-    }
-    writeJSON('wiq.mem', mems);
+    if (!found) mems.push(newEntry);
+    writeJSON('wiq2.mem', mems);
     fire();
-    log('saveMem', key, newBalance);
+    log('saveMem', key, 'baseline=' + incoming);
   },
 
   deleteMem: function(keyOrName) {
     var target = String(keyOrName || '').toLowerCase();
+    var before = this.getMems().length;
     var mems = this.getMems().filter(function(m) {
       var k = canonKey(m);
-      return k !== target && (m.name || '').toLowerCase() !== target;
+      var n = String(m.name || '').toLowerCase();
+      return k !== target && n !== target;
     });
-    writeJSON('wiq.mem', mems);
+    if (mems.length === before) return;
+    writeJSON('wiq2.mem', mems);
     fire();
     log('deleteMem', keyOrName);
   }
 };
 
 // ============================================================
-// 6. CALC — everything derived on demand, never stored
+// 6. CALC  everything derived on demand, never stored
 // ============================================================
 var Calc = {
   txEarnings: function(tx) {
     if (!tx || tx.historical) return null;
-    var cardKey = tx.card || tx.cardKey || tx.c;
-    if (!cardKey) return null;
+    var cardKey = tx.card || tx.cardKey;
+    if (!cardKey || cardKey === 'other') return null;
     var earn = CARD_EARN[cardKey];
     if (!earn) return null;
-    var amt = parseFloat(tx.amount || tx.amt) || 0;
+    var amt = parseFloat(tx.amount) || 0;
     if (amt <= 0) return null;
     var cat = tx.category || tx.cat || 'base';
     if ((cat === 'base' || cat === 'other') && typeof window.resolveCategory === 'function') {
-      try { var r = window.resolveCategory(tx.merchant || ''); if (r) cat = r; } catch(e) {}
+      try {
+        var r = window.resolveCategory(tx.merchant || '');
+        if (r) cat = r;
+      } catch(e) {}
     }
     var rate = earn.rates[cat] != null ? earn.rates[cat] : (earn.rates.base || 0);
     if (rate <= 0) return null;
     var points = earn.cashback ? (amt * rate) / 100 : amt * rate;
-    return { program: earn.prog, points: points, cashback: !!earn.cashback };
+    return { program: earn.prog, points: points, rate: rate, category: cat, cashback: !!earn.cashback };
   },
 
-  autoAccrual: function(programKey) {
+  autoAccrualForKey: function(programKey, sinceMs) {
     if (!programKey) return 0;
+    var since = sinceMs || 0;
     var sum = 0;
     var txs = Store.getTxs();
     for (var i = 0; i < txs.length; i++) {
-      var e = this.txEarnings(txs[i]);
+      var t = txs[i];
+      if (!t) continue;
+      if ((t.loggedAt || 0) < since) continue;
+      var e = this.txEarnings(t);
       if (e && e.program === programKey) sum += e.points;
     }
     return sum;
   },
 
   displayedBalance: function(memOrKey) {
-    var mem, key;
+    var mem, key, since;
     if (typeof memOrKey === 'string') {
       key = memOrKey;
       mem = null;
+      since = 0;
     } else {
       mem = memOrKey;
       key = canonKey(mem);
+      since = Number(mem.baselineSetAt) || 0;
     }
     var baseline = mem ? (Number(mem.manualBaseline) || 0) : 0;
-    return baseline + this.autoAccrual(key);
+    return baseline + this.autoAccrualForKey(key, since);
   },
 
   memberValue: function(memOrKey) {
-    var key = typeof memOrKey === 'string' ? memOrKey : canonKey(memOrKey);
-    var meta = PROGRAMS[key];
-    if (!meta) return 0;
+    var mem, key;
+    if (typeof memOrKey === 'string') { key = memOrKey; mem = null; }
+    else { mem = memOrKey; key = canonKey(mem); }
     var bal = this.displayedBalance(memOrKey);
     if (bal <= 0) return 0;
-    var cpp = meta.bestCpp || meta.cpp || 0;
+    var meta = PROGRAMS[key];
+    var cpp;
+    if (mem && mem.bestCpp != null && mem.bestCpp > 0) cpp = Number(mem.bestCpp);
+    else if (meta) cpp = meta.bestCpp || meta.cpp || 0;
+    else if (mem && mem.cpp != null) cpp = Number(mem.cpp);
+    else return 0;
     return (bal * cpp) / 100;
   },
 
@@ -36545,14 +36638,6 @@ var Calc = {
       if (!k || seen[k]) continue;
       seen[k] = 1;
       total += this.memberValue(mems[i]);
-    }
-    // Credit programs earning from tx but with no membership row
-    var txs = Store.getTxs();
-    for (var j = 0; j < txs.length; j++) {
-      var e = this.txEarnings(txs[j]);
-      if (!e || seen[e.program]) continue;
-      seen[e.program] = 1;
-      total += this.memberValue(e.program);
     }
     return total;
   },
@@ -36594,312 +36679,879 @@ var Calc = {
       total += (e.points * meta.cpp) / 100;
     }
     return total;
+  },
+
+  // Which programs does the users wallet earn on?
+  walletProgramMap: function() {
+    var map = {};  // programKey -> [cardKeys]
+    try {
+      if (window.userWallet && window.userWallet.size > 0) {
+        var it = window.userWallet.values();
+        var v = it.next();
+        while (!v.done) {
+          var cardKey = v.value;
+          var e = CARD_EARN[cardKey];
+          if (e) {
+            if (!map[e.prog]) map[e.prog] = [];
+            map[e.prog].push(cardKey);
+          }
+          v = it.next();
+        }
+      }
+    } catch(err) {}
+    return map;
   }
 };
 
 // ============================================================
-// 7. RENDER — one path, coalesced by rAF
+// 7. RENDER
 // ============================================================
-function fmt(n) {
-  if (!isFinite(n) || n < 0) n = 0;
-  return '$' + Math.round(n).toLocaleString('en-CA');
-}
+var currentMonth = 'all';
+
 function setText(id, txt) {
   var el = document.getElementById(id);
   if (el && el.textContent !== txt) el.textContent = txt;
 }
 
-// Sync current displayed balances into walletiq_memberships so V122 vault
-// renderer + home summary + activity list show live numbers.
-function syncMembershipsForDisplay() {
-  var mems = Store.getMems();
-  var displayMems = [];
-  var seen = {};
-  for (var i = 0; i < mems.length; i++) {
-    var m = mems[i];
-    var k = canonKey(m);
-    if (!k || seen[k]) continue;
-    seen[k] = 1;
-    var bal = Calc.displayedBalance(m);
-    displayMems.push({
-      key: k,
-      name: m.name,
-      emoji: m.emoji,
-      unit: m.unit,
-      cpp: m.cpp,
-      balance: bal
-    });
-  }
-  // Add virtual entries for programs auto-earning but with no membership row yet
-  var txs = Store.getTxs();
-  for (var j = 0; j < txs.length; j++) {
-    var e = Calc.txEarnings(txs[j]);
-    if (!e || seen[e.program]) continue;
-    seen[e.program] = 1;
-    var meta = PROGRAMS[e.program];
-    if (!meta) continue;
-    var autoBal = Calc.autoAccrual(e.program);
-    if (autoBal <= 0) continue;
-    displayMems.push({
-      key: e.program,
-      name: meta.name,
-      emoji: meta.icon,
-      unit: meta.unit,
-      cpp: meta.cpp,
-      balance: autoBal
-    });
-  }
-  // Write using raw setItem to avoid triggering V81's intercept
-  try {
-    rawSetItem()('walletiq_memberships', JSON.stringify(displayMems));
-  } catch(e) {}
-}
-
-var renderScheduled = false;
-function render() {
+function renderHero() {
   var total = Calc.portfolioTotal();
   var thisMonth = Calc.monthlyEarnings(0);
   var ytd = Calc.ytdEarnings();
-
-  // Rewards Studio hero tiles
   setText('rhTotal', fmt(total));
   setText('rhVault', fmt(total));
   setText('rhThisMonth', fmt(thisMonth));
   setText('rhYTD', fmt(ytd));
-
-  // Sync memberships so downstream renderers see current balances
-  syncMembershipsForDisplay();
-
-  // Trigger downstream renderers (they now read consistent data)
-  try { if (typeof window.renderVaultV122 === 'function') window.renderVaultV122(); } catch(e) {}
-  try { if (typeof window.renderTxList === 'function') window.renderTxList(); } catch(e) {}
-  try { if (typeof window.renderOverview === 'function') window.renderOverview(); } catch(e) {}
-  try { if (typeof window.renderHomeVaultSummary === 'function') window.renderHomeVaultSummary(); } catch(e) {}
-  try { if (typeof window.buildMonthPills === 'function') window.buildMonthPills(); } catch(e) {}
+  setText('rhMissed', '$0');  // No longer tracking missed
 }
 
+function renderMonthPills() {
+  var el = document.getElementById('monthPills');
+  if (!el) return;
+  var txs = Store.getTxs();
+  var months = ['all'];
+  var monthSet = {};
+  for (var i = 0; i < txs.length; i++) {
+    var t = txs[i];
+    if (!t || !t.date) continue;
+    var ym = String(t.date).substring(0, 7);
+    if (ym && !monthSet[ym]) { monthSet[ym] = 1; months.push(ym); }
+  }
+  // Sort months (all first, then descending)
+  var monthList = Object.keys(monthSet).sort().reverse();
+  var final = ['all'].concat(monthList);
+  el.innerHTML = final.map(function(m) {
+    var label = m === 'all' ? 'All time' : new Date(m + '-01').toLocaleDateString('en-CA', {year:'numeric', month:'short'});
+    var on = m === currentMonth ? ' on' : '';
+    return '<button class="month-pill' + on + '" data-month="' + esc(m) + '">' + esc(label) + '</button>';
+  }).join('');
+  // Wire clicks
+  Array.prototype.forEach.call(el.querySelectorAll('.month-pill'), function(btn) {
+    btn.addEventListener('click', function() {
+      currentMonth = btn.getAttribute('data-month');
+      renderMonthPills();
+      renderActivity();
+    });
+  });
+}
+
+function renderActivity() {
+  var el = document.getElementById('txList');
+  var empty = document.getElementById('txEmpty');
+  var header = document.getElementById('txHeader');
+  if (!el) return;
+  var allTxs = Store.getTxs();
+  var txs = allTxs.filter(function(t) {
+    if (currentMonth === 'all') return true;
+    return t.date && String(t.date).startsWith(currentMonth);
+  }).sort(function(a, b) {
+    return String(b.date || '').localeCompare(String(a.date || ''));
+  });
+  if (txs.length === 0) {
+    el.innerHTML = '';
+    if (empty) empty.style.display = 'block';
+    if (header) header.textContent = 'Transactions';
+    return;
+  }
+  if (empty) empty.style.display = 'none';
+  if (header) header.textContent = txs.length + ' transaction' + (txs.length === 1 ? '' : 's');
+
+  el.innerHTML = txs.map(function(t) {
+    var card = (window.CARDS_DB || {})[t.card];
+    var cardName = card ? card.n : (t.card === 'other' ? 'Other' : t.card);
+    var cardEmoji = card ? card.e : '\uD83D\uDCB3';
+    var dateStr = '';
+    try { dateStr = new Date(t.date).toLocaleDateString('en-CA', {month:'short', day:'numeric'}); } catch(e) {}
+    var e = Calc.txEarnings(t);
+    var earned = e ? (e.points * ((PROGRAMS[e.program] || {}).cpp || 0)) / 100 : 0;
+    return '<div class="tx-item">' +
+      '<div class="txmain">' +
+        '<div class="txmerch">' + esc(t.merchant) + '</div>' +
+        '<div class="txmeta">' + esc(dateStr) + ' \u00B7 ' + esc(cardEmoji) + ' ' + esc(cardName) + '</div>' +
+      '</div>' +
+      '<div class="txright">' +
+        '<div class="txamt">$' + (Number(t.amount) || 0).toFixed(2) + '</div>' +
+        (earned > 0 ? '<div class="txrew">+$' + earned.toFixed(2) + '</div>' : '') +
+        '<div class="txbtns">' +
+          '<button data-rs-edit-tx="' + esc(t.id) + '" title="Edit">\u270F</button>' +
+          '<button data-rs-del-tx="' + esc(t.id) + '" title="Delete">\u00D7</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function renderVault() {
+  var host = document.getElementById('v122-vault');
+  if (!host) return;
+  var mems = Store.getMems();
+  var walletMap = Calc.walletProgramMap();
+  var walletCards = 0;
+  try { if (window.userWallet) walletCards = window.userWallet.size; } catch(e) {}
+
+  if (walletCards === 0 && mems.length === 0) {
+    host.innerHTML = '<div class="v122-empty"><div class="big">\uD83D\uDCB3</div><h3>No cards in your wallet yet</h3><p>Add credit cards to your wallet, or add memberships below to start tracking rewards.</p><button type="button" onclick="if(typeof showOnboarding===\'function\')showOnboarding()">Set up wallet</button><div style="margin-top:12px"><button type="button" class="v81-add-btn" data-rs-add-mem="1">\u2795 Add membership</button></div></div>';
+    return;
+  }
+
+  // Group memberships: wallet-earners first, extras after
+  var walletMems = [];
+  var extraMems = [];
+  for (var i = 0; i < mems.length; i++) {
+    var k = canonKey(mems[i]);
+    if (walletMap[k] && walletMap[k].length > 0) walletMems.push(mems[i]);
+    else extraMems.push(mems[i]);
+  }
+  // Sort by displayed balance descending
+  var sortByValue = function(a, b) { return Calc.memberValue(b) - Calc.memberValue(a); };
+  walletMems.sort(sortByValue);
+  extraMems.sort(sortByValue);
+
+  var total = Calc.portfolioTotal();
+  var thisMonth = Calc.monthlyEarnings(0);
+
+  var html = '';
+  // Hero
+  html += '<div class="v122-hero">' +
+    '<div class="v122-hero-label">\u2728 Wallet Rewards Portfolio</div>' +
+    '<div class="v122-hero-total">' + fmtMoney(total) + '</div>' +
+    '<div class="v122-hero-sub">' + mems.length + ' program' + (mems.length === 1 ? '' : 's') +
+      (thisMonth > 0 ? ' \u00B7 <span class="v122-hero-earned">+' + fmtMoney(thisMonth) + ' this month</span>' : '') +
+    '</div>' +
+  '</div>';
+
+  // Wallet memberships section
+  if (walletMems.length > 0) {
+    html += '<div class="v122-section-head">' +
+      '<div class="v122-section-title">Wallet Memberships</div>' +
+      '<div class="v122-section-count">' + walletMems.length + '</div>' +
+    '</div>' +
+    '<div class="v122-progs">' + walletMems.map(function(m){ return progCard(m, walletMap); }).join('') + '</div>';
+  }
+
+  // Add membership button
+  html += '<button type="button" class="v81-add-btn" style="margin-top:12px" data-rs-add-mem="1">\u2795 Add membership</button>';
+
+  // Extras (collapsible)
+  if (extraMems.length > 0) {
+    html += '<div class="v122-extras">' +
+      '<button type="button" class="v122-extras-toggle" data-rs-toggle-extras="1">' +
+        '<span class="v122-extras-chev">\u25B8</span>' +
+        '<span class="v122-extras-lbl">Extra memberships</span>' +
+        '<span class="v122-extras-count">' + extraMems.length + '</span>' +
+      '</button>' +
+      '<div class="v122-extras-body" id="rs-extras-body">' +
+        extraMems.map(function(m) {
+          var k = canonKey(m);
+          var bal = Calc.displayedBalance(m);
+          var val = Calc.memberValue(m);
+          return '<div class="v122-extra-row">' +
+            '<span class="v122-extra-emo">' + esc(m.emoji || '\u2B50') + '</span>' +
+            '<span class="v122-extra-name">' + esc(m.name) + '</span>' +
+            '<span class="v122-extra-bal">' + fmtInt(bal) + ' ' + esc(m.unit || 'pts') + '</span>' +
+            '<span class="v122-extra-val">' + fmtMoney(val) + '</span>' +
+            '<button class="v122-extra-del" data-rs-del-mem="' + esc(k) + '" title="Remove">\u00D7</button>' +
+          '</div>';
+        }).join('') +
+      '</div>' +
+    '</div>';
+  }
+
+  host.innerHTML = html;
+}
+
+function progCard(m, walletMap) {
+  var key = canonKey(m);
+  var bal = Calc.displayedBalance(m);
+  var val = Calc.memberValue(m);
+  var meta = PROGRAMS[key] || {};
+  var cards = walletMap[key] || [];
+  var thisMonth = 0, lastMonth = 0;
+  // Points earned this program this month vs last
+  var txs = Store.getTxs();
+  var now = new Date();
+  var curYm = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+  var lastDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  var lastYm = lastDate.getFullYear() + '-' + String(lastDate.getMonth() + 1).padStart(2, '0');
+  for (var i = 0; i < txs.length; i++) {
+    var t = txs[i];
+    if (!t || !t.date) continue;
+    if ((t.loggedAt || 0) < (Number(m.baselineSetAt) || 0)) continue;
+    var e = Calc.txEarnings(t);
+    if (!e || e.program !== key) continue;
+    var ym = String(t.date).substring(0, 7);
+    if (ym === curYm) thisMonth += e.points;
+    else if (ym === lastYm) lastMonth += e.points;
+  }
+
+  var cardsHtml = cards.map(function(ck) {
+    var c = (window.CARDS_DB || {})[ck];
+    if (!c) return '';
+    var short = String(c.n || ck).replace(/^Amex |^Scotia |^RBC |^BMO |^TD |^CIBC |^MBNA /, '')
+                                  .replace(/ Visa Infinite$| Mastercard$| Amex$/, '');
+    if (short.length > 18) short = short.substring(0, 16) + '\u2026';
+    return '<span class="v122-card-pill">' + esc(c.e || '\uD83D\uDCB3') + ' ' + esc(short) + '</span>';
+  }).join('');
+
+  var subtext = cards.length > 0
+    ? 'Earned by ' + cards.length + ' card' + (cards.length === 1 ? '' : 's') + ' in your wallet'
+    : 'Manually tracked';
+
+  var isEmpty = bal <= 0;
+
+  return '<div class="v122-prog-card' + (isEmpty ? ' empty' : '') + '">' +
+    '<div class="v122-prog-head">' +
+      '<div class="v122-prog-emo">' + esc(m.emoji || '\u2B50') + '</div>' +
+      '<div>' +
+        '<div class="v122-prog-name">' + esc(m.name) + '</div>' +
+        '<div class="v122-prog-sub">' + esc(subtext) + '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="v122-prog-bal">' +
+      '<div class="v122-prog-bal-line">' +
+        '<span class="v122-prog-bal-num">' + fmtInt(bal) + '</span>' +
+        '<span class="v122-prog-bal-unit">' + esc(m.unit || 'pts') + '</span>' +
+      '</div>' +
+      (bal > 0
+        ? '<div class="v122-prog-bal-val">\u2248 ' + fmtMoney(val) + ' <small>via ' + esc(meta.bestLabel || 'best rate') + '</small></div>'
+        : '<div class="v122-prog-bal-val" style="color:var(--muted)">No balance yet <small>\u2014 log a transaction to auto-accrue</small></div>') +
+    '</div>' +
+    (cardsHtml ? '<div class="v122-prog-cards">' + cardsHtml + '</div>' : '') +
+    '<div class="v122-prog-month">' +
+      '<div class="v122-month-item"><div class="l">This month</div><div class="v">' + (thisMonth > 0 ? '<span class="v122-delta-plus">+' + fmtInt(thisMonth) + ' ' + esc(m.unit || 'pts') + '</span>' : '<span class="v122-delta-zero">\u2014</span>') + '</div></div>' +
+      '<div class="v122-month-item"><div class="l">Last month</div><div class="v">' + (lastMonth > 0 ? '<span class="v122-delta-plus">+' + fmtInt(lastMonth) + ' ' + esc(m.unit || 'pts') + '</span>' : '<span class="v122-delta-zero">\u2014</span>') + '</div></div>' +
+    '</div>' +
+    '<button type="button" class="v122-prog-edit" data-rs-edit-mem="' + esc(key) + '">' +
+      (isEmpty ? '\u2795 Set starting balance' : 'Edit balance') +
+    '</button>' +
+  '</div>';
+}
+
+function renderHomeSummary() {
+  var host = document.getElementById('homeVaultSummary');
+  if (!host) return;
+  var mems = Store.getMems();
+  var walletCards = 0;
+  try { if (window.userWallet) walletCards = window.userWallet.size; } catch(e) {}
+  if (mems.length === 0 && walletCards === 0) {
+    host.style.display = 'none';
+    host.innerHTML = '';
+    return;
+  }
+  host.style.display = 'block';
+  var total = Calc.portfolioTotal();
+  var thisMonth = Calc.monthlyEarnings(0);
+  var top3 = mems.slice().sort(function(a, b) { return Calc.memberValue(b) - Calc.memberValue(a); }).slice(0, 3);
+  var top3Html = top3.filter(function(m) { return Calc.memberValue(m) > 0; }).map(function(m) {
+    var meta = PROGRAMS[canonKey(m)] || {};
+    return '<div class="v122-home-prog">' +
+      '<span class="v122-home-prog-emo">' + esc(m.emoji || meta.icon || '\u2B50') + '</span>' +
+      '<span class="v122-home-prog-name">' + esc(m.name) + '</span>' +
+      '<span class="v122-home-prog-bal">' + fmtInt(Calc.displayedBalance(m)) + ' ' + esc(m.unit || 'pts') + '</span>' +
+      '<span class="v122-home-prog-val">' + fmtMoney(Calc.memberValue(m)) + '</span>' +
+    '</div>';
+  }).join('');
+  host.innerHTML = '<div class="v122-home-card" data-rs-go-vault="1">' +
+    '<div class="v122-home-head">' +
+      '<div class="v122-home-label">\uD83C\uDFAF Rewards Portfolio</div>' +
+      '<div class="v122-home-arrow">\u203A</div>' +
+    '</div>' +
+    '<div class="v122-home-total">' + fmtMoney(total) + '</div>' +
+    '<div class="v122-home-sub">across ' + mems.length + ' program' + (mems.length === 1 ? '' : 's') +
+      (thisMonth > 0 ? ' \u00B7 <span class="v122-home-earned">+' + fmtMoney(thisMonth) + ' this month</span>' : '') +
+    '</div>' +
+    (top3Html ? '<div class="v122-home-progs">' + top3Html + '</div>' : '') +
+  '</div>';
+}
+
+function renderOverviewRecent() {
+  var el = document.getElementById('overviewRecent');
+  if (!el) return;
+  var txs = Store.getTxs().slice().sort(function(a, b) {
+    return String(b.date || '').localeCompare(String(a.date || ''));
+  }).slice(0, 5);
+  if (txs.length === 0) {
+    el.innerHTML = '<div style="font-size:12px;color:var(--muted);font-weight:700;text-align:center;padding:12px;font-style:italic">No transactions yet. Add your first purchase to start tracking.</div>';
+    return;
+  }
+  el.innerHTML = '<div class="tx-list">' + txs.map(function(t) {
+    var card = (window.CARDS_DB || {})[t.card];
+    var cardName = card ? card.n : (t.card === 'other' ? 'Other' : t.card);
+    var dateStr = '';
+    try { dateStr = new Date(t.date).toLocaleDateString('en-CA', {month:'short', day:'numeric'}); } catch(e) {}
+    var e = Calc.txEarnings(t);
+    var earned = e ? (e.points * ((PROGRAMS[e.program] || {}).cpp || 0)) / 100 : 0;
+    return '<div class="tx-item"><div class="txmain">' +
+      '<div class="txmerch">' + esc(t.merchant) + '</div>' +
+      '<div class="txmeta">' + esc(dateStr) + ' \u00B7 ' + esc(cardName) + '</div>' +
+    '</div>' +
+    '<div class="txright"><div class="txamt">$' + (Number(t.amount) || 0).toFixed(2) + '</div>' +
+      (earned > 0 ? '<div class="txrew">+$' + earned.toFixed(2) + '</div>' : '') +
+    '</div>' +
+    '</div>';
+  }).join('') + '</div>';
+}
+
+function clearGhosts() {
+  // Wipe the "1 leak hidden" banner and any subscription cards
+  var missed = document.getElementById('overviewMissed');
+  if (missed) missed.innerHTML = '';
+  var subs = document.getElementById('overviewSubs');
+  if (subs) subs.innerHTML = '';
+  var tip = document.getElementById('overviewTip');
+  if (tip) tip.innerHTML = '';
+  var hiddenNote = document.querySelector('.v86-hidden-note');
+  if (hiddenNote) hiddenNote.remove();
+  var orphanBanner = document.getElementById('txOrphanBanner');
+  if (orphanBanner) { orphanBanner.innerHTML = ''; orphanBanner.style.display = 'none'; }
+}
+
+var renderScheduled = false;
 function scheduleRender() {
   if (renderScheduled) return;
   renderScheduled = true;
   requestAnimationFrame(function() {
     renderScheduled = false;
-    try { render(); } catch(e) { try { console.error('[V300] render err:', e); } catch(e2) {} }
+    try {
+      renderHero();
+      renderMonthPills();
+      renderActivity();
+      renderVault();
+      renderHomeSummary();
+      renderOverviewRecent();
+      clearGhosts();
+    } catch(e) { try { console.error('[RS] render err:', e); } catch(e2) {} }
   });
 }
 
-Store.onChange(scheduleRender);
-
 // ============================================================
-// 8. UI HOOKS — route existing buttons through Store
+// 8. UI ACTIONS
 // ============================================================
-function installUIHooks() {
-  // Hero Log Purchase button — overrides V126's saveHeroLogPurchase
-  window.saveHeroLogPurchase = function() {
-    var amtEl = document.getElementById('heroLogAmount');
-    var merchantEl = document.getElementById('heroLogMerchant');
-    var cardEl = document.getElementById('heroLogCard');
-    if (!amtEl || !merchantEl || !cardEl) return;
-    var amt = parseFloat(amtEl.value);
-    if (!amt || amt <= 0) {
-      amtEl.focus();
-      amtEl.style.borderColor = 'var(--coral, #d94b4b)';
-      setTimeout(function() { amtEl.style.borderColor = ''; }, 1500);
-      return;
-    }
-    var merchant = (merchantEl.value || '').trim();
-    var cardKey = cardEl.value;
-    // Respect V70/V126 chosen alternate card override
+var editingTxId = null;
+
+function openAddTxModal(txId) {
+  editingTxId = txId || null;
+  window.editingTxId = editingTxId;
+  // Populate card select from userWallet
+  var sel = document.getElementById('txCard');
+  if (!sel) return;
+  sel.innerHTML = '';
+  if (window.userWallet && window.userWallet.size > 0) {
     try {
-      if (window.__v70 && window.__v70.chosenCardKey) cardKey = window.__v70.chosenCardKey;
-      else if (window.__v126 && window.__v126.chosenCardKey) cardKey = window.__v126.chosenCardKey;
-    } catch(e) {}
-    if (!merchant || !cardKey) return;
-    Store.addTx({
-      date: new Date().toISOString().slice(0, 10),
-      merchant: merchant,
-      amount: amt,
-      card: cardKey,
-      manual: true
-    });
-    // Close the form
-    var form = document.getElementById('heroLogForm');
-    if (form) form.classList.remove('show');
-    amtEl.value = '';
-    var preview = document.getElementById('heroLogPreview');
-    if (preview) { preview.classList.remove('show'); preview.textContent = ''; }
-    // Flash toast
-    try {
-      var flash = document.createElement('div');
-      flash.className = 'log-flash';
-      flash.textContent = '\u2713 Logged $' + amt.toFixed(2) + ' on ' + (window.CARDS_DB && window.CARDS_DB[cardKey] ? window.CARDS_DB[cardKey].n : cardKey);
-      document.body.appendChild(flash);
-      setTimeout(function() { if (flash.parentNode) flash.parentNode.removeChild(flash); }, 2500);
-    } catch(e) {}
-  };
-  window.__v126SaveLog = window.saveHeroLogPurchase;
-
-  // Add Purchase modal (Activity tab)
-  window.saveTxFromModal = function() {
-    var date = document.getElementById('txDate').value;
-    var merchant = (document.getElementById('txMerchant').value || '').trim();
-    var amount = parseFloat(document.getElementById('txAmount').value) || 0;
-    var card = document.getElementById('txCard').value;
-    if (!merchant) { alert('Please enter a merchant'); return; }
-    if (amount <= 0) { alert('Please enter an amount'); return; }
-    if (!card) { alert('Please select a card'); return; }
-    var editingId = window.editingTxId;
-    if (editingId) {
-      Store.updateTx(editingId, {date:date, merchant:merchant, amount:amount, card:card});
-      window.editingTxId = null;
-    } else {
-      Store.addTx({date:date, merchant:merchant, amount:amount, card:card});
-    }
-    if (typeof window.closeAddTxModal === 'function') window.closeAddTxModal();
-  };
-
-  // Delete from Activity list
-  window.deleteTx = function(id) {
-    if (!id) return;
-    if (!confirm('Delete this purchase?')) return;
-    Store.deleteTx(id);
-  };
-
-  // Clear all
-  window.clearAllTx = function() {
-    if (!confirm('Delete ALL transactions? This cannot be undone.')) return;
-    Store.clearAllTxs();
-  };
-
-  // Edit tx — reuse existing editTx which opens the modal
-  // (V245's openAddTxModal reads from walletIQ_v40_tx which we mirror to, so this still works)
-
-  // V81 membership modal intercept — when V81 writes to walletiq_memberships,
-  // extract new entries and route them into wiq.mem via Store.saveMem.
-  var origSetItem = localStorage.setItem;
-  if (!origSetItem.__v300Intercept) {
-    localStorage.setItem = function(key, value) {
-      var result;
-      try { result = origSetItem.call(localStorage, key, value); }
-      catch(e) { result = rawSetItem()(key, value); }
-      // Skip if we're the ones writing (via rawSetItem) — this branch only catches app-code writes
-      if (key === 'walletiq_memberships' && !V300._syncing) {
-        try {
-          var arr = JSON.parse(value);
-          if (Array.isArray(arr)) {
-            var existingKeys = {};
-            var currentMems = Store.getMems();
-            for (var i = 0; i < currentMems.length; i++) {
-              existingKeys[canonKey(currentMems[i])] = 1;
-            }
-            var newAdded = false;
-            for (var j = 0; j < arr.length; j++) {
-              var m = arr[j];
-              if (!m) continue;
-              var k = canonKey(m);
-              if (!k) continue;
-              if (existingKeys[k]) continue;
-              // New membership from V81 — route through Store
-              Store.saveMem({
-                key: k,
-                name: m.name,
-                emoji: m.emoji,
-                unit: m.unit,
-                cpp: m.cpp,
-                balance: Number(m.balance) || 0
-              });
-              newAdded = true;
-            }
-            // Also handle balance updates on existing memberships (V122 edit modal)
-            if (!newAdded) {
-              for (var kk = 0; kk < arr.length; kk++) {
-                var m2 = arr[kk];
-                if (!m2) continue;
-                var key2 = canonKey(m2);
-                if (!key2) continue;
-                // Find current mem
-                for (var cm = 0; cm < currentMems.length; cm++) {
-                  if (canonKey(currentMems[cm]) === key2) {
-                    var currentAuto = Calc.autoAccrual(key2);
-                    var incomingBalance = Number(m2.balance) || 0;
-                    // The incoming balance may be manual OR (manual + auto). We assume it's
-                    // the user's true stated balance from the edit modal, so treat as manual.
-                    // Auto will re-add on top on next render.
-                    var newBaseline = incomingBalance - currentAuto;
-                    if (newBaseline < 0) newBaseline = incomingBalance; // fallback if user typed a low number
-                    if (Math.abs(newBaseline - currentMems[cm].manualBaseline) > 0.5) {
-                      Store.saveMem({
-                        key: key2,
-                        name: m2.name,
-                        emoji: m2.emoji,
-                        unit: m2.unit,
-                        cpp: m2.cpp,
-                        manualBaseline: newBaseline
-                      });
-                    }
-                    break;
-                  }
-                }
-              }
-            }
-          }
-        } catch(e) {}
+      var it = window.userWallet.values();
+      var v = it.next();
+      while (!v.done) {
+        var k = v.value;
+        var c = (window.CARDS_DB || {})[k];
+        if (c) {
+          var opt = document.createElement('option');
+          opt.value = k;
+          opt.textContent = (c.e || '\uD83D\uDCB3') + ' ' + c.n;
+          sel.appendChild(opt);
+        }
+        v = it.next();
       }
-      return result;
-    };
-    localStorage.setItem.__v300Intercept = true;
+    } catch(e) {}
   }
+  var otherOpt = document.createElement('option');
+  otherOpt.value = 'other';
+  otherOpt.textContent = '\uD83D\uDCB3 Other card';
+  sel.appendChild(otherOpt);
+
+  var title = document.getElementById('addTxTitle');
+  var dateEl = document.getElementById('txDate');
+  var merchantEl = document.getElementById('txMerchant');
+  var amountEl = document.getElementById('txAmount');
+
+  if (txId) {
+    var tx = Store.getTxs().filter(function(t){ return t && t.id === txId; })[0];
+    if (tx) {
+      if (title) title.textContent = 'Edit purchase';
+      if (dateEl) dateEl.value = tx.date;
+      if (merchantEl) merchantEl.value = tx.merchant;
+      if (amountEl) amountEl.value = tx.amount;
+      sel.value = tx.card;
+    }
+  } else {
+    if (title) title.textContent = 'Add purchase';
+    if (dateEl) dateEl.value = new Date().toISOString().substring(0, 10);
+    if (merchantEl) merchantEl.value = '';
+    if (amountEl) amountEl.value = '';
+  }
+  var modal = document.getElementById('addTxModal');
+  if (modal) modal.classList.add('show');
 }
 
-// Cross-tab sync via storage event
+function closeAddTxModal() {
+  var modal = document.getElementById('addTxModal');
+  if (modal) modal.classList.remove('show');
+  editingTxId = null;
+  window.editingTxId = null;
+}
+
+function saveTxFromModal() {
+  var dateEl = document.getElementById('txDate');
+  var merchantEl = document.getElementById('txMerchant');
+  var amountEl = document.getElementById('txAmount');
+  var cardEl = document.getElementById('txCard');
+  if (!dateEl || !merchantEl || !amountEl || !cardEl) return;
+
+  var date = dateEl.value;
+  var merchant = String(merchantEl.value || '').trim();
+  var amount = parseFloat(amountEl.value) || 0;
+  var card = cardEl.value;
+
+  if (!merchant) { alert('Please enter a merchant'); return; }
+  if (amount <= 0) { alert('Please enter a valid amount'); return; }
+  if (!card) { alert('Please select a card'); return; }
+
+  if (editingTxId) {
+    Store.updateTx(editingTxId, { date:date, merchant:merchant, amount:amount, card:card });
+  } else {
+    Store.addTx({ date:date, merchant:merchant, amount:amount, card:card, loggedAt:Date.now() });
+  }
+  closeAddTxModal();
+}
+
+function deleteTxAction(id) {
+  if (!id) return;
+  if (!confirm('Delete this purchase?')) return;
+  Store.deleteTx(id);
+}
+
+function editTxAction(id) {
+  openAddTxModal(id);
+}
+
+function clearAllTxAction() {
+  if (!confirm('Delete ALL transactions? This cannot be undone.')) return;
+  Store.clearAllTxs();
+}
+
+function saveHeroLogPurchase() {
+  var amtEl = document.getElementById('heroLogAmount');
+  var merchantEl = document.getElementById('heroLogMerchant');
+  var cardEl = document.getElementById('heroLogCard');
+  if (!amtEl || !merchantEl || !cardEl) return;
+  var amt = parseFloat(amtEl.value);
+  if (!amt || amt <= 0) {
+    amtEl.focus();
+    amtEl.style.borderColor = 'var(--coral, #d94b4b)';
+    setTimeout(function() { amtEl.style.borderColor = ''; }, 1500);
+    return;
+  }
+  var merchant = String(merchantEl.value || '').trim();
+  var cardKey = cardEl.value;
+  // Respect V70/V126 chosen alternate
+  try {
+    if (window.__v70 && window.__v70.chosenCardKey) cardKey = window.__v70.chosenCardKey;
+    else if (window.__v126 && window.__v126.chosenCardKey) cardKey = window.__v126.chosenCardKey;
+  } catch(e) {}
+  if (!merchant || !cardKey) return;
+
+  Store.addTx({
+    date: new Date().toISOString().slice(0, 10),
+    merchant: merchant,
+    amount: amt,
+    card: cardKey,
+    loggedAt: Date.now()
+  });
+
+  // Close the form
+  var form = document.getElementById('heroLogForm');
+  if (form) form.classList.remove('show');
+  amtEl.value = '';
+  var preview = document.getElementById('heroLogPreview');
+  if (preview) { preview.classList.remove('show'); preview.textContent = ''; }
+  // Flash toast
+  try {
+    var card = (window.CARDS_DB || {})[cardKey];
+    var flash = document.createElement('div');
+    flash.className = 'log-flash';
+    flash.textContent = '\u2713 Logged $' + amt.toFixed(2) + ' on ' + (card ? card.n : cardKey);
+    document.body.appendChild(flash);
+    setTimeout(function() { if (flash.parentNode) flash.parentNode.removeChild(flash); }, 2500);
+  } catch(e) {}
+}
+
+// -------- Membership edit modal (our own) --------
+function openEditMemModal(progKey) {
+  if (!progKey) return;
+  var mems = Store.getMems();
+  var mem = null;
+  for (var i = 0; i < mems.length; i++) {
+    if (canonKey(mems[i]) === progKey) { mem = mems[i]; break; }
+  }
+  var meta = PROGRAMS[progKey] || {};
+  var name = mem ? mem.name : (meta.name || progKey);
+  var emoji = mem ? mem.emoji : (meta.icon || '\u2B50');
+  var unit = mem ? mem.unit : (meta.unit || 'pts');
+  var currentBal = mem ? Calc.displayedBalance(mem) : 0;
+  var bestCpp = mem ? (mem.bestCpp || meta.bestCpp || meta.cpp || 0) : (meta.bestCpp || meta.cpp || 0);
+  var bestLabel = mem ? (mem.bestLabel || meta.bestLabel || 'best rate') : (meta.bestLabel || 'best rate');
+
+  var overlay = document.createElement('div');
+  overlay.className = 'rs-edit-overlay';
+  overlay.innerHTML = '<div class="rs-edit-modal">' +
+    '<div class="rs-edit-head">' +
+      '<div class="rs-edit-title">' + esc(emoji) + ' ' + esc(name) + '</div>' +
+      '<button type="button" class="rs-edit-close" data-close="1">\u00D7</button>' +
+    '</div>' +
+    '<div class="rs-edit-body">' +
+      '<label class="rs-edit-lbl">Current balance (' + esc(unit) + ')</label>' +
+      '<input type="number" class="rs-edit-input" id="rs-edit-input" value="' + Math.round(currentBal) + '" min="0" step="1" inputmode="decimal">' +
+      '<div class="rs-edit-hint" id="rs-edit-hint"></div>' +
+      '<div class="rs-edit-note">\uD83D\uDCA1 Enter your true current balance. Future logged purchases will add on top.</div>' +
+    '</div>' +
+    '<div class="rs-edit-actions">' +
+      (mem ? '<button type="button" class="rs-edit-delete" data-delete="1">Delete</button>' : '') +
+      '<button type="button" class="rs-edit-cancel" data-close="1">Cancel</button>' +
+      '<button type="button" class="rs-edit-save" data-save="1">Save</button>' +
+    '</div>' +
+  '</div>';
+  document.body.appendChild(overlay);
+  setTimeout(function() { overlay.classList.add('show'); }, 10);
+
+  var input = overlay.querySelector('#rs-edit-input');
+  var hint = overlay.querySelector('#rs-edit-hint');
+  function upd() {
+    var b = parseFloat(input.value) || 0;
+    if (b > 0 && bestCpp > 0) {
+      hint.textContent = '\u2248 ' + fmtMoney((b * bestCpp) / 100) + ' at ' + bestLabel;
+    } else { hint.textContent = ''; }
+  }
+  input.addEventListener('input', upd);
+  upd();
+
+  function close() {
+    overlay.classList.remove('show');
+    setTimeout(function() { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); }, 220);
+  }
+
+  overlay.addEventListener('click', function(e) {
+    var t = e.target;
+    if (!t) return;
+    if (t.getAttribute && t.getAttribute('data-close')) { close(); return; }
+    if (t === overlay) { close(); return; }
+    if (t.getAttribute && t.getAttribute('data-save')) {
+      var newBal = parseFloat(input.value);
+      if (!isFinite(newBal) || newBal < 0) {
+        input.focus();
+        input.style.borderColor = 'var(--coral, #d94b4b)';
+        setTimeout(function() { input.style.borderColor = ''; }, 1500);
+        return;
+      }
+      Store.saveMem({
+        key: progKey,
+        name: name,
+        emoji: emoji,
+        unit: unit,
+        cpp: meta.cpp,
+        balance: newBal
+      });
+      close();
+      return;
+    }
+    if (t.getAttribute && t.getAttribute('data-delete')) {
+      if (confirm('Delete this membership? Your baseline of ' + fmtInt(currentBal) + ' ' + unit + ' will be lost.')) {
+        Store.deleteMem(progKey);
+        close();
+      }
+      return;
+    }
+  });
+
+  var escHandler = function(e) {
+    if (e.key === 'Escape') {
+      close();
+      document.removeEventListener('keydown', escHandler);
+    }
+  };
+  document.addEventListener('keydown', escHandler);
+
+  setTimeout(function() { if (input) { input.focus(); input.select(); } }, 260);
+}
+
+// -------- Route Add Membership through V81's modal, but intercept its Save --------
+function openAddMemModal() {
+  try {
+    if (typeof window.__v81OpenAddMembership === 'function') {
+      window.__v81OpenAddMembership();
+      return;
+    }
+  } catch(e) {}
+  alert('Add-membership dialog not available. Reload the page and try again.');
+}
+
+// ============================================================
+// 9. GLOBAL OVERRIDES  point legacy code at our implementation
+// ============================================================
+function installOverrides() {
+  // Data path
+  window.saveHeroLogPurchase = saveHeroLogPurchase;
+  window.__v126SaveLog = saveHeroLogPurchase;
+  window.openAddTxModal = openAddTxModal;
+  window.closeAddTxModal = closeAddTxModal;
+  window.saveTxFromModal = saveTxFromModal;
+  window.deleteTx = deleteTxAction;
+  window.editTx = editTxAction;
+  window.clearAllTx = clearAllTxAction;
+  window.setMonth = function(m) { currentMonth = m; renderMonthPills(); renderActivity(); };
+
+  // Render path (route legacy render function names to ours)
+  window.renderVault = function(){};  // V245's POINT_PROGRAMS-based renderer
+  window.renderVaultV122 = function(){ renderVault(); renderHomeSummary(); };
+  window.renderRewardsHero = renderHero;
+  window.renderTxList = renderActivity;
+  window.buildMonthPills = renderMonthPills;
+  window.renderOverview = function() { renderOverviewRecent(); clearGhosts(); };
+  window.renderMissedSummary = function() { clearGhosts(); };
+  window.renderSubscriptions = function() { clearGhosts(); };
+  window.renderHomeVaultSummary = renderHomeSummary;
+
+  // Wrap switchTab and switchRewardsView to re-render on tab change
+  try {
+    if (typeof window.switchTab === 'function' && !window.switchTab.__rsWrap) {
+      var origST = window.switchTab;
+      window.switchTab = function() {
+        var r = origST.apply(this, arguments);
+        setTimeout(scheduleRender, 30);
+        return r;
+      };
+      window.switchTab.__rsWrap = true;
+    }
+    if (typeof window.switchRewardsView === 'function' && !window.switchRewardsView.__rsWrap) {
+      var origSV = window.switchRewardsView;
+      window.switchRewardsView = function() {
+        var r = origSV.apply(this, arguments);
+        setTimeout(scheduleRender, 30);
+        return r;
+      };
+      window.switchRewardsView = window.switchRewardsView;
+      window.switchRewardsView.__rsWrap = true;
+    }
+  } catch(e) {}
+}
+
+// ============================================================
+// 10. EVENT INTERCEPTORS  capture phase, prevents legacy handlers
+// ============================================================
+function installEventInterceptors() {
+  document.addEventListener('click', function(e) {
+    var t = e.target;
+    if (!t) return;
+
+    // ---- V81 memberships modal Save button ----
+    // V81 uses #v81Save. Intercept BEFORE its handler runs.
+    if (t.id === 'v81Save' || (t.closest && t.closest('#v81Save'))) {
+      e.stopImmediatePropagation();
+      e.preventDefault();
+      handleV81Save();
+      return;
+    }
+
+    // ---- Our activity list edit/delete buttons ----
+    var editBtn = t.closest && t.closest('[data-rs-edit-tx]');
+    if (editBtn) {
+      e.stopImmediatePropagation();
+      editTxAction(editBtn.getAttribute('data-rs-edit-tx'));
+      return;
+    }
+    var delBtn = t.closest && t.closest('[data-rs-del-tx]');
+    if (delBtn) {
+      e.stopImmediatePropagation();
+      deleteTxAction(delBtn.getAttribute('data-rs-del-tx'));
+      return;
+    }
+
+    // ---- Our memberships list edit/delete/add buttons ----
+    var editMem = t.closest && t.closest('[data-rs-edit-mem]');
+    if (editMem) {
+      e.stopImmediatePropagation();
+      openEditMemModal(editMem.getAttribute('data-rs-edit-mem'));
+      return;
+    }
+    var delMem = t.closest && t.closest('[data-rs-del-mem]');
+    if (delMem) {
+      e.stopImmediatePropagation();
+      var k = delMem.getAttribute('data-rs-del-mem');
+      if (confirm('Delete this membership?')) Store.deleteMem(k);
+      return;
+    }
+    var addMem = t.closest && t.closest('[data-rs-add-mem]');
+    if (addMem) {
+      e.stopImmediatePropagation();
+      openAddMemModal();
+      return;
+    }
+
+    // ---- Extras toggle ----
+    var extToggle = t.closest && t.closest('[data-rs-toggle-extras]');
+    if (extToggle) {
+      e.stopImmediatePropagation();
+      var body = document.getElementById('rs-extras-body');
+      var chev = extToggle.querySelector('.v122-extras-chev');
+      if (body) {
+        var open = body.classList.toggle('show');
+        if (chev) chev.textContent = open ? '\u25BE' : '\u25B8';
+      }
+      return;
+    }
+
+    // ---- Home summary card > jump to Points tab ----
+    var goVault = t.closest && t.closest('[data-rs-go-vault]');
+    if (goVault) {
+      e.stopImmediatePropagation();
+      try {
+        if (typeof window.switchTab === 'function') window.switchTab('rewards');
+        setTimeout(function() {
+          if (typeof window.switchRewardsView === 'function') window.switchRewardsView('vault');
+        }, 100);
+      } catch(err) {}
+      return;
+    }
+
+    // ---- V122 legacy edit button (in case V122 renders before we override) ----
+    var v122Edit = t.closest && t.closest('.v122-prog-edit');
+    if (v122Edit && !v122Edit.hasAttribute('data-rs-edit-mem')) {
+      e.stopImmediatePropagation();
+      var prog = v122Edit.getAttribute('data-prog');
+      if (prog) openEditMemModal(prog);
+      return;
+    }
+  }, true);  // CAPTURE phase = runs before target listeners
+}
+
+function handleV81Save() {
+  var prog = document.getElementById('v81Prog');
+  var bal = document.getElementById('v81Balance');
+  if (!prog || !bal) return;
+  var balance = parseFloat(bal.value);
+  if (!(balance > 0)) {
+    bal.focus();
+    bal.style.borderColor = 'var(--coral, #d94b4b)';
+    setTimeout(function() { bal.style.borderColor = ''; }, 1500);
+    return;
+  }
+  var progValue = prog.value;
+  var mem;
+  if (progValue === '__custom__') {
+    var cn = document.getElementById('v81CustName');
+    var ce = document.getElementById('v81CustEmoji');
+    var cu = document.getElementById('v81CustUnit');
+    var cc = document.getElementById('v81CustCpp');
+    var name = cn ? String(cn.value || '').trim() : '';
+    if (!name) {
+      if (cn) { cn.focus(); cn.style.borderColor = 'var(--coral, #d94b4b)'; }
+      return;
+    }
+    mem = {
+      key: 'custom_' + Date.now(),
+      name: name,
+      emoji: ce ? (ce.value || '\u2B50').trim() : '\u2B50',
+      unit: cu ? (cu.value || 'pts').trim() : 'pts',
+      cpp: cc ? (parseFloat(cc.value) || 0) : 0,
+      balance: balance
+    };
+  } else {
+    var meta = PROGRAMS[progValue] || {};
+    mem = {
+      key: progValue,
+      name: meta.name || progValue,
+      emoji: meta.icon || '\u2B50',
+      unit: meta.unit || 'pts',
+      cpp: meta.cpp || 0,
+      balance: balance
+    };
+  }
+  Store.saveMem(mem);
+  // Close V81's modal
+  var modal = document.getElementById('v81Modal');
+  if (modal) modal.classList.remove('show');
+  // Reset V81's inputs so next open starts fresh
+  if (bal) bal.value = '';
+}
+
+// ============================================================
+// 11. STORAGE EVENT (cross-tab)
+// ============================================================
 window.addEventListener('storage', function(e) {
   if (!e || !e.key) return;
-  if (e.key === 'wiq.tx' || e.key === 'wiq.mem') scheduleRender();
+  if (e.key === 'wiq2.tx' || e.key === 'wiq2.mem') scheduleRender();
 });
 
 // ============================================================
-// 9. BOOT
+// 12. PUBLIC API + BOOT
 // ============================================================
-window.V300 = {
-  version: 'V300',
+window.RS = {
+  version: 'rebuild-2026-07-21',
   Store: Store,
   Calc: Calc,
   PROGRAMS: PROGRAMS,
   CARD_EARN: CARD_EARN,
   render: scheduleRender,
-  _syncing: false,
   debug: function() {
-    var p = {
-      total: Calc.portfolioTotal(),
-      thisMonth: Calc.monthlyEarnings(0),
-      lastMonth: Calc.monthlyEarnings(-1),
-      ytd: Calc.ytdEarnings()
-    };
+    var mems = Store.getMems();
     return {
-      portfolio: p,
+      portfolio: {
+        total: Calc.portfolioTotal(),
+        thisMonth: Calc.monthlyEarnings(0),
+        lastMonth: Calc.monthlyEarnings(-1),
+        ytd: Calc.ytdEarnings()
+      },
       txCount: Store.getTxs().length,
-      memberships: Store.getMems().map(function(m) {
+      memberships: mems.map(function(m) {
         var k = canonKey(m);
         return {
           program: k,
           name: m.name,
           manualBaseline: m.manualBaseline,
-          autoAccrual: Calc.autoAccrual(k),
+          baselineSetAt: new Date(m.baselineSetAt).toISOString(),
+          autoAccrual: Calc.autoAccrualForKey(k, Number(m.baselineSetAt) || 0),
           displayed: Calc.displayedBalance(m),
           value: Calc.memberValue(m)
         };
       })
     };
+  },
+  reset: function() {
+    if (!confirm('Reset all Rewards Studio data (tx and memberships)? This is destructive.')) return;
+    try { localStorage.removeItem('wiq2.tx'); } catch(e) {}
+    try { localStorage.removeItem('wiq2.mem'); } catch(e) {}
+    try { localStorage.removeItem('wiq.migrated_v2'); } catch(e) {}
+    location.reload();
   }
 };
 
+Store.onChange(scheduleRender);
+
 function boot() {
   try { migrate(); } catch(e) { log('migrate err:', e); }
-  try { installUIHooks(); } catch(e) { log('installUIHooks err:', e); }
+  try { installOverrides(); } catch(e) { log('installOverrides err:', e); }
+  try { installEventInterceptors(); } catch(e) { log('installEventInterceptors err:', e); }
   scheduleRender();
-  // Late-render passes to catch any DOM elements loading after boot
-  setTimeout(scheduleRender, 500);
+  setTimeout(scheduleRender, 300);
   setTimeout(scheduleRender, 1500);
-  log('Rewards Studio active. Portfolio =', fmt(Calc.portfolioTotal()));
+  log('Rewards Studio active. Portfolio =', fmt(Calc.portfolioTotal()), 'from', Store.getMems().length, 'memberships and', Store.getTxs().length, 'txs.');
 }
 
 if (document.readyState === 'loading') {
